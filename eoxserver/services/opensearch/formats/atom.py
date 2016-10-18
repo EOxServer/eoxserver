@@ -31,7 +31,7 @@ from itertools import chain
 from lxml.etree import CDATA
 from lxml.builder import ElementMaker
 
-from eoxserver.core.util.xmltools import etree, NameSpace, NameSpaceMap
+from eoxserver.core.util.xmltools import etree, NameSpace, NameSpaceMap, typemap
 from eoxserver.services.opensearch.formats.base import (
     BaseFeedResultFormat, ns_dc, ns_georss, ns_media, ns_owc
 )
@@ -46,7 +46,7 @@ ns_gml = NameSpace("http://www.opengis.net/gml", "gml")
 nsmap = NameSpaceMap(ns_atom, ns_opensearch, ns_dc, ns_georss, ns_media, ns_owc)
 
 # Element factories
-ATOM = ElementMaker(namespace=ns_atom.uri, nsmap=nsmap)
+ATOM = ElementMaker(namespace=ns_atom.uri, nsmap=nsmap, typemap=typemap)
 OS = ElementMaker(namespace=ns_opensearch.uri, nsmap=nsmap)
 GML = ElementMaker(namespace=ns_gml.uri, nsmap=nsmap)
 
@@ -89,7 +89,7 @@ class AtomResultFormat(BaseFeedResultFormat):
         entry = ATOM("entry",
             ATOM("title", item.identifier),
             ATOM("id", item.identifier),
-            ATOM("summary", CDATA(str(item.identifier))),
+            ATOM("summary", CDATA(item.identifier)),
         )
 
         entry.extend(self.encode_item_links(request, item))

@@ -28,10 +28,10 @@
 from itertools import chain
 
 from lxml.etree import CDATA
-from lxml.builder import ElementMaker, E
+from lxml.builder import ElementMaker
 from django.core.urlresolvers import reverse
 
-from eoxserver.core.util.xmltools import etree, NameSpace, NameSpaceMap
+from eoxserver.core.util.xmltools import etree, NameSpace, NameSpaceMap, typemap
 from eoxserver.core.util.timetools import isoformat
 from eoxserver.services.opensearch.formats.base import (
     BaseFeedResultFormat, ns_opensearch, ns_dc, ns_atom, ns_media, ns_owc
@@ -50,6 +50,7 @@ nsmap = NameSpaceMap(
 # Element factories
 GEORSS = ElementMaker(namespace=ns_georss.uri, nsmap=nsmap)
 GML = ElementMaker(namespace=ns_gml.uri, nsmap=nsmap)
+RSS = ElementMaker(typemap=typemap)
 
 
 class RSSResultFormat(BaseFeedResultFormat):
@@ -88,16 +89,16 @@ class RSSResultFormat(BaseFeedResultFormat):
             % (reverse("ows"), item.identifier)
         )
 
-        rss_item = E("item",
-            E("title", item.identifier),
-            E("description", CDATA(str(item.identifier))),
-            E("link", link_url),
+        rss_item = RSS("item",
+            RSS("title", item.identifier),
+            RSS("description", CDATA(item.identifier)),
+            RSS("link", link_url),
         )
 
         if "geo" in search_context.parameters:
-            rss_item.append(E("guid", request.build_absolute_uri()))
+            rss_item.append(RSS("guid", request.build_absolute_uri()))
         else:
-            rss_item.append(E("guid", item.identifier, isPermaLink="false"))
+            rss_item.append(RSS("guid", item.identifier, isPermaLink="false"))
 
         rss_item.extend(self.encode_item_links(request, item))
 
