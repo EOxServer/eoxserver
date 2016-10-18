@@ -33,7 +33,7 @@ from lxml.builder import ElementMaker
 
 from eoxserver.core.util.xmltools import etree, NameSpace, NameSpaceMap
 from eoxserver.services.opensearch.formats.base import (
-    BaseFeedResultFormat, ns_dc, ns_georss
+    BaseFeedResultFormat, ns_dc, ns_georss, ns_media, ns_owc
 )
 
 
@@ -43,7 +43,7 @@ ns_opensearch = NameSpace("http://a9.com/-/spec/opensearch/1.1/", "opensearch")
 ns_gml = NameSpace("http://www.opengis.net/gml", "gml")
 
 # namespace map
-nsmap = NameSpaceMap(ns_atom, ns_opensearch, ns_dc, ns_georss)
+nsmap = NameSpaceMap(ns_atom, ns_opensearch, ns_dc, ns_georss, ns_media, ns_owc)
 
 # Element factories
 ATOM = ElementMaker(namespace=ns_atom.uri, nsmap=nsmap)
