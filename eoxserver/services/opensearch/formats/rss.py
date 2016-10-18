@@ -90,9 +90,7 @@ class RSSResultFormat(BaseFeedResultFormat):
 
         rss_item = E("item",
             E("title", item.identifier),
-            E("description", CDATA(
-                item.identifier
-            )),
+            E("description", CDATA(str(item.identifier))),
             E("link", link_url),
         )
 

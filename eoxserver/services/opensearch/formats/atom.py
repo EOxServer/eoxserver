@@ -89,9 +89,7 @@ class AtomResultFormat(BaseFeedResultFormat):
         entry = ATOM("entry",
             ATOM("title", item.identifier),
             ATOM("id", item.identifier),
-            ATOM("summary", CDATA(
-                item.identifier
-            )),
+            ATOM("summary", CDATA(str(item.identifier))),
         )
 
         entry.extend(self.encode_item_links(request, item))
