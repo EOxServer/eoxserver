@@ -135,7 +135,6 @@ Copyright (C) European Space Agency - ESA
     <wcs:Extension>
       <crs:crsSupported>http://www.opengis.net/def/crs/EPSG/0/4326</crs:crsSupported>
       <crs:crsSupported>http://www.opengis.net/def/crs/EPSG/0/3857</crs:crsSupported>
-      <crs:crsSupported>http://www.opengis.net/def/crs/EPSG/0/900913</crs:crsSupported>
       <crs:crsSupported>http://www.opengis.net/def/crs/EPSG/0/3035</crs:crsSupported>
     </wcs:Extension>
   </wcs:ServiceMetadata>
