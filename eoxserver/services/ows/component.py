@@ -37,7 +37,8 @@ from eoxserver.services.ows.interfaces import *
 from eoxserver.services.ows.decoders import get_decoder
 from eoxserver.services.exceptions import (
     ServiceNotSupportedException, VersionNotSupportedException,
-    VersionNegotiationException, OperationNotSupportedException
+    VersionNegotiationException, OperationNotSupportedException,
+    HTTPMethodNotAllowedError,
 )
 from eoxserver.services.ows.common.v20.exceptionhandler import (
     OWS20ExceptionHandler
@@ -113,8 +114,10 @@ class ServiceComponent(Component):
         elif request.method == "OPTIONS":
             return OptionsRequestHandler()
         else:
-            raise Exception(self.service_handlers)
-            handlers = self.service_handlers
+            raise HTTPMethodNotAllowedError(
+                "The %s HTTP method is not allowed!" % request.method
+            )
+            #handlers = self.service_handlers
 
         version = decoder.version
         if version is None:

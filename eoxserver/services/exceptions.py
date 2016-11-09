@@ -27,6 +27,14 @@
 #-------------------------------------------------------------------------------
 
 
+class HTTPMethodNotAllowedError(Exception):
+    """ This exception is raised in case of a HTTP requires with unssuported
+    HTTP method.
+    This exception should always lead to the 405 Method not allowed HTTP error.
+    """
+    pass
+
+
 class InvalidRequestException(Exception):
     """
     This exception indicates that the request was invalid and an exception
