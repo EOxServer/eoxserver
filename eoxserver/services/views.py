@@ -72,9 +72,10 @@ def ows(request):
         handler = component.query_exception_handler(request)
         result = handler.handle_exception(request, e)
         content, content_type = handler.handle_exception(request, e)[:2]
-        return HttpResponse(
+        result = HttpResponse(
             content=content, content_type=content_type, status=405
         )
+        result["Access-Control-Allow-Methods"] = ", ".join(e.allowed_methods)
     except Exception, e:
         logger.debug(traceback.format_exc())
         handler = component.query_exception_handler(request)
