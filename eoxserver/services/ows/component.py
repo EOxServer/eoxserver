@@ -30,13 +30,15 @@ import logging
 import itertools
 from functools import partial
 
-from eoxserver.core import Component, ExtensionPoint, env
+from django.http import HttpResponse
 
+from eoxserver.core import Component, ExtensionPoint, env
 from eoxserver.services.ows.interfaces import *
 from eoxserver.services.ows.decoders import get_decoder
 from eoxserver.services.exceptions import (
     ServiceNotSupportedException, VersionNotSupportedException,
-    VersionNegotiationException, OperationNotSupportedException
+    VersionNegotiationException, OperationNotSupportedException,
+    HTTPMethodNotAllowedError,
 )
 from eoxserver.services.ows.common.v20.exceptionhandler import (
     OWS20ExceptionHandler
@@ -44,6 +46,32 @@ from eoxserver.services.ows.common.v20.exceptionhandler import (
 
 
 logger = logging.getLogger(__name__)
+
+
+class OptionsRequestHandler(object):
+    """ Dummy request handler class to respond to HTTP OPTIONS requests.
+    """
+    def handle(self, request):
+
+        def add_required_headers(headers, required_headers):
+            """ Make sure the required headers are included in the list. """
+            headers_lc = set(header.lower() for header in headers)
+            for required_header in required_headers:
+                if required_header.lower() not in headers_lc:
+                    headers.append(required_header)
+            return headers
+
+        # return an empty 200 response
+        response = HttpResponse()
+        response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
+        headers = [
+            header.strip() for header in
+            request.META.get("HTTP_ACCESS_CONTROL_REQUEST_HEADERS", "").split(",")
+            if header
+        ]
+        headers = add_required_headers(headers, ['Content-Type'])
+        response["Access-Control-Allow-Headers"] = ", ".join(headers)
+        return response
 
 
 class ServiceComponent(Component):
@@ -83,8 +111,13 @@ class ServiceComponent(Component):
             handlers = self.get_service_handlers
         elif request.method == "POST":
             handlers = self.post_service_handlers
+        elif request.method == "OPTIONS":
+            return OptionsRequestHandler()
         else:
-            handlers = self.service_handlers
+            raise HTTPMethodNotAllowedError(
+                "The %s HTTP method is not allowed!" % request.method
+            )
+            #handlers = self.service_handlers
 
         version = decoder.version
         if version is None:
