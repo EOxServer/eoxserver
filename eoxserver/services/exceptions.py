@@ -28,11 +28,16 @@
 
 
 class HTTPMethodNotAllowedError(Exception):
-    """ This exception is raised in case of a HTTP requires with unssuported
+    """ This exception is raised in case of a HTTP requires with unsupported
     HTTP method.
     This exception should always lead to the 405 Method not allowed HTTP error.
+
+    The constructor takes two arguments, the error message ``mgs`` and the list
+    of the accepted HTTP methods ``allowed_methods``.
     """
-    pass
+    def __init__(self, msg, allowed_methods):
+        super(HTTPMethodNotAllowedError, self).__init__(msg)
+        self.allowed_methods = allowed_methods
 
 
 class InvalidRequestException(Exception):

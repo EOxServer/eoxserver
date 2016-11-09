@@ -47,6 +47,7 @@ from eoxserver.services.ows.common.v20.exceptionhandler import (
 
 logger = logging.getLogger(__name__)
 
+ALLOWED_HTTP_METHODS = ["GET", "POST", "OPTIONS"]
 
 class OptionsRequestHandler(object):
     """ Dummy request handler class to respond to HTTP OPTIONS requests.
@@ -63,7 +64,9 @@ class OptionsRequestHandler(object):
 
         # return an empty 200 response
         response = HttpResponse()
-        response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
+        response["Access-Control-Allow-Methods"] = ", ".join(
+            ALLOWED_HTTP_METHODS
+        )
         headers = [
             header.strip() for header in
             request.META.get("HTTP_ACCESS_CONTROL_REQUEST_HEADERS", "").split(",")
@@ -107,6 +110,8 @@ class ServiceComponent(Component):
         """
 
         decoder = get_decoder(request)
+
+
         if request.method == "GET":
             handlers = self.get_service_handlers
         elif request.method == "POST":
@@ -115,7 +120,8 @@ class ServiceComponent(Component):
             return OptionsRequestHandler()
         else:
             raise HTTPMethodNotAllowedError(
-                "The %s HTTP method is not allowed!" % request.method
+                "The %s HTTP method is not allowed!" % request.method,
+                ALLOWED_HTTP_METHODS
             )
             #handlers = self.service_handlers
 
