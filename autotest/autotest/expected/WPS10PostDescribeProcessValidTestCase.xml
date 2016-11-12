@@ -33,9 +33,9 @@
         <LiteralData>
           <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#string">string</ows:DataType>
           <ows:AllowedValues>
-            <ows:Value>high</ows:Value>
-            <ows:Value>medium</ows:Value>
             <ows:Value>low</ows:Value>
+            <ows:Value>medium</ows:Value>
+            <ows:Value>high</ows:Value>
           </ows:AllowedValues>
           <DefaultValue>medium</DefaultValue>
         </LiteralData>

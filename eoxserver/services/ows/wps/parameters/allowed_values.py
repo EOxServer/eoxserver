@@ -27,7 +27,7 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-from itertools import chain
+from itertools import chain, ifilterfalse
 from .data_types import BaseType, Double, DTYPES
 
 class TypedMixIn(object):
@@ -96,17 +96,33 @@ class AllowedByReference(BaseAllowed):
 class AllowedEnum(BaseAllowed, TypedMixIn):
     """ Allowed values class allowing values from an enumerated set. """
 
+    @staticmethod
+    def _unique(values):
+        """ Get list of order-preserved unique values and the corresponding
+        unordered set.
+        """
+        vset = set()
+        vlist = []
+        vset_add = vset.add
+        vlist_append = vlist.append
+        for value in ifilterfalse(vset.__contains__, values):
+            vset_add(value)
+            vlist_append(value)
+        return vlist, vset
+
     def __init__(self, values, dtype=Double):
         TypedMixIn.__init__(self, dtype)
-        self._values = set(self._dtype.parse(v) for v in values)
+        self._values_list, self._values_set = self._unique(
+            self._dtype.parse(value) for value in values
+        )
 
     @property
     def values(self):
         """ Get the allowed values. """
-        return self._values
+        return self._values_list
 
     def check(self, value):
-        return self._dtype.parse(value) in self._values
+        return self._dtype.parse(value) in self._values_set
 
     def verify(self, value):
         if self.check(value):
