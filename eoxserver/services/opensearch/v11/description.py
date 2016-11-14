@@ -134,7 +134,8 @@ class OpenSearch11DescriptionEncoder(XMLEncoder):
             if method == "GET" else search_url,
             rel="results" if collection else "collection", ** {
                 self.ns_param("method"): method,
-                self.ns_param("enctype"): "application/x-www-form-urlencoded"
+                self.ns_param("enctype"): "application/x-www-form-urlencoded",
+                "indexOffset": "0"
             }
         )
 
