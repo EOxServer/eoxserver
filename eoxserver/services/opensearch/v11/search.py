@@ -108,6 +108,11 @@ class OpenSearch11SearchHandler(Component):
             qs = qs[decoder.start_index:decoder.start_index+decoder.count]
         elif decoder.count:
             qs = qs[:decoder.count]
+        elif decoder.count == 0:
+            if collection_id:
+                qs = models.Collection.objects.none()
+            else:
+                qs = models.EOObject.objects.none()
 
         try:
             result_format = next(
