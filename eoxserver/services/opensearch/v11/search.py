@@ -154,5 +154,5 @@ def pos_int(raw):
 class OpenSearch11BaseDecoder(kvp.Decoder):
     search_terms = kvp.Parameter("q", num="?")
     start_index = kvp.Parameter("startIndex", pos_int_zero, num="?", default=0)
-    count = kvp.Parameter("count", pos_int, num="?", default=None)
+    count = kvp.Parameter("count", pos_int_zero, num="?", default=None)
     output_encoding = kvp.Parameter("outputEncoding", num="?", default="UTF-8")
