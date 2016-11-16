@@ -101,7 +101,8 @@ class Reference(object):
         schema      output ComplexData schema
     """
     # pylint: disable=too-few-public-methods, too-many-arguments
-    def __init__(self, path, href, mime_type=None, encoding=None, schema=None):
+    def __init__(self, path, href, mime_type=None, encoding=None, schema=None,
+                 **kwarg):
         self.path = path
         self.href = href
         self.mime_type = mime_type
