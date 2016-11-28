@@ -68,6 +68,10 @@ class MapServerWMSBaseComponent(Component):
         map_.setMetaData("wms_srs", crss_string)
 
         self.check_parameters(map_, request_values)
+        # allow layer factories to see all request fields
+        options['request'] = dict(
+            (key.lower(), value) for key, value in request_values
+        )
 
         session = self.setup_map(layer_groups, map_, options)
 
