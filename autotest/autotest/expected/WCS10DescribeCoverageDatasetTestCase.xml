@@ -76,7 +76,6 @@
     <supportedCRSs>
       <requestResponseCRSs>EPSG:4326</requestResponseCRSs>
       <requestResponseCRSs>EPSG:3857</requestResponseCRSs>
-      <requestResponseCRSs>EPSG:900913</requestResponseCRSs>
       <requestResponseCRSs>EPSG:3035</requestResponseCRSs>
       <nativeCRSs>EPSG:4326</nativeCRSs>
     </supportedCRSs>

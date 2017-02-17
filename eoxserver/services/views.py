@@ -42,6 +42,7 @@ except:
 
 from eoxserver.core import env
 from eoxserver.services.ows.component import ServiceComponent
+from eoxserver.services.exceptions import HTTPMethodNotAllowedError
 
 
 logger = logging.getLogger(__name__)
@@ -67,6 +68,14 @@ def ows(request):
         handler = component.query_service_handler(request)
         result = handler.handle(request)
         default_status = 200
+    except HTTPMethodNotAllowedError, e:
+        handler = component.query_exception_handler(request)
+        result = handler.handle_exception(request, e)
+        content, content_type = handler.handle_exception(request, e)[:2]
+        result = HttpResponse(
+            content=content, content_type=content_type, status=405
+        )
+        result["Allow"] = ", ".join(e.allowed_methods)
     except Exception, e:
         logger.debug(traceback.format_exc())
         handler = component.query_exception_handler(request)

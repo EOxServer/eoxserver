@@ -49,8 +49,9 @@ fi
 
 python manage.py syncdb --noinput --traceback
 python manage.py loaddata auth_data.json range_types.json --traceback
-python manage.py eoxs_rangetype_load -i autotest_jenkins/data/meris/meris_range_type_definition.json --traceback
-python manage.py eoxs_rangetype_load -i autotest_jenkins/data/asar/asar_range_type_definition.json --traceback
+python manage.py eoxs_rangetype_load -i autotest_jenkins/data/meris/meris_range_type_definition.json --traceback # load a new range-type with forbiden update 
+python manage.py eoxs_rangetype_load -u -i autotest_jenkins/data/asar/asar_range_type_definition.json --traceback # load a new range-type with allowed update
+python manage.py eoxs_rangetype_load -u -i autotest_jenkins/data/meris/meris_range_type_definition.json --traceback # update an existing range-type
 python manage.py eoxs_rangetype_list --traceback
 python manage.py eoxs_rangetype_list --json --traceback # dump all range-types as JSON
 python manage.py eoxs_collection_create -i MER_FRS_1P_reduced --traceback

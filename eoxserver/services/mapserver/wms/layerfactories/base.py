@@ -33,6 +33,7 @@ from django.conf import settings
 
 from eoxserver.core import Component, implements
 from eoxserver.contrib import mapserver as ms
+from eoxserver.contrib import gdal
 from eoxserver.resources.coverages import models, crss
 from eoxserver.services.mapserver.interfaces import LayerFactoryInterface
 from eoxserver.services import models as service_models
@@ -99,6 +100,11 @@ class OffsiteColorMixIn(object):
         for index in band_indices:
             band = range_type[index]
             nil_value_set = band.nil_value_set
+
+            # we only support offsite colors for "Byte" bands
+            if nil_value_set and nil_value_set.data_type != gdal.GDT_Byte:
+                return None
+
             if nil_value_set and len(nil_value_set) > 0:
                 values.append(nil_value_set[0].value)
             else:
@@ -190,7 +196,30 @@ class PlainLayerMixIn(object):
             elif red is not None and (green, blue, alpha) == (None, None, None):
                 layer.setProcessingKey("BANDS", str(red))
 
-            if options.scale_auto:
+            if options.bands_scale_min and options.bands_scale_max:
+                bands_scale_min = str(options.bands_scale_min).split(',')
+                bands_scale_max = str(options.bands_scale_max).split(',')
+
+                if red is not None and (green, blue) == (None, None):
+                    idx1 = red - 1
+                    layer.setProcessingKey("SCALE", "%d,%d" % (
+                        bands_scale_min[idx1], bands_scale_max[idx1]
+                    ))
+                else:
+                    idx1 = (red or 1) - 1
+                    idx2 = (green or 2) - 1
+                    idx3 = (blue or 3) - 1
+                    layer.setProcessingKey("SCALE_1", "%s,%s" % (
+                        bands_scale_min[idx1], bands_scale_max[idx1]
+                    ))
+                    layer.setProcessingKey("SCALE_2", "%s,%s" % (
+                        bands_scale_min[idx2], bands_scale_max[idx2]
+                    ))
+                    layer.setProcessingKey("SCALE_3", "%s,%s" % (
+                        bands_scale_min[idx3], bands_scale_max[idx3]
+                    ))
+
+            elif options.scale_auto:
                 layer.setProcessingKey("SCALE", "AUTO")
             elif options.scale_min is not None and options.scale_max is not None:
                 layer.setProcessingKey(
