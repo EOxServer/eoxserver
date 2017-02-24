@@ -182,7 +182,10 @@ def _encode_input(data, prm, raw):
         elem.append(WPS("Data", _encode_bbox(data, prm)))
     elif isinstance(prm, ComplexData):
         if data is None:
-            data = prm.parse(raw.data)
+            data = prm.parse(
+                data=raw.data, mime_type=raw.mime_type, encoding=raw.encoding,
+                schema=raw.schema
+            )
         elem.append(WPS("Data", _encode_complex(data, prm)))
     return elem
 
