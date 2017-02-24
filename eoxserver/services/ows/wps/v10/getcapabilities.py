@@ -26,7 +26,7 @@
 #-------------------------------------------------------------------------------
 
 from eoxserver.core import Component, ExtensionPoint, implements
-from eoxserver.core.decoders import kvp, xml, typelist
+from eoxserver.core.decoders import kvp, xml
 from eoxserver.services.ows.interfaces import (
     ServiceHandlerInterface, GetServiceHandlerInterface,
     PostServiceHandlerInterface, VersionNegotiationInterface
@@ -37,6 +37,7 @@ from eoxserver.services.ows.wps.v10.util import nsmap
 
 
 class WPS10GetCapabilitiesHandler(Component):
+    """ WPS 1.0 GetCapabilities service handler. """
     implements(ServiceHandlerInterface)
     implements(GetServiceHandlerInterface)
     implements(PostServiceHandlerInterface)
@@ -49,18 +50,21 @@ class WPS10GetCapabilitiesHandler(Component):
     processes = ExtensionPoint(ProcessInterface)
 
     def handle(self, request):
+        """ Handle HTTP request. """
         encoder = WPS10CapabilitiesXMLEncoder()
-        return encoder.serialize(
-            encoder.encode_capabilities(self.processes)
-        ), encoder.content_type
+        return encoder.serialize(encoder.encode_capabilities(self.processes))
 
 
 class WPS10GetCapabilitiesKVPDecoder(kvp.Decoder):
+    """ WPS 1.0 GetCapabilities HTTP/GET KVP request decoder. """
+    #pylint: disable=too-few-public-methods
     #acceptversions = kvp.Parameter(type=typelist(str, ","), num="?")
     language = kvp.Parameter(num="?")
 
 
 class WPS10GetCapabilitiesXMLDecoder(xml.Decoder):
+    """ WPS 1.0 DescribeProcess HTTP/POST XML request decoder. """
+    #pylint: disable=too-few-public-methods
     #acceptversions = xml.Parameter("/ows:AcceptVersions/ows:Version/text()", num="*")
     language = xml.Parameter("/ows:AcceptLanguages/ows:Language/text()", num="*")
     namespaces = nsmap

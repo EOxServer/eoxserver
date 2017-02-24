@@ -1,0 +1,44 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<wps:ProcessDescriptions xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:ows="http://www.opengis.net/ows/1.1" xmlns:wps="http://www.opengis.net/wps/1.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.0.0" xml:lang="en-US" service="WPS" xsi:schemaLocation="wps http://schemas.opengis.net/wps/1.0.0/wpsAll.xsd">
+  <ProcessDescription wps:processVersion="1.0.0">
+    <ows:Identifier>TC05:identity:literal:datetime</ows:Identifier>
+    <ows:Title>Test Case 05: Literal output date-time time-zone test.</ows:Title>
+    <ows:Abstract> Test processes testing time-zone aware date-time input data-type
+    with automatic time-zone conversion.
+    </ows:Abstract>
+    <wps:Profile>test_profile</wps:Profile>
+    <DataInputs>
+      <Input minOccurs="1" maxOccurs="1">
+        <ows:Identifier>TC05:datetime</ows:Identifier>
+        <ows:Title>Date-time input.</ows:Title>
+        <LiteralData>
+          <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#dateTime">dateTime</ows:DataType>
+          <ows:AnyValue/>
+        </LiteralData>
+      </Input>
+    </DataInputs>
+    <ProcessOutputs>
+      <Output>
+        <ows:Identifier>TC05:datetime</ows:Identifier>
+        <ows:Title>Date-time output without modification.</ows:Title>
+        <LiteralOutput>
+          <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#dateTime">dateTime</ows:DataType>
+        </LiteralOutput>
+      </Output>
+      <Output>
+        <ows:Identifier>TC05:datetime_aware</ows:Identifier>
+        <ows:Title>Date-time output with default time-zone.</ows:Title>
+        <LiteralOutput>
+          <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#dateTime">dateTime</ows:DataType>
+        </LiteralOutput>
+      </Output>
+      <Output>
+        <ows:Identifier>TC05:datetime_converted</ows:Identifier>
+        <ows:Title>Date-time output with default time-zone.</ows:Title>
+        <LiteralOutput>
+          <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#dateTime">dateTime</ows:DataType>
+        </LiteralOutput>
+      </Output>
+    </ProcessOutputs>
+  </ProcessDescription>
+</wps:ProcessDescriptions>
