@@ -101,6 +101,12 @@ class ResponseDocument(ResponseForm):
         self.status = status
         self.store_response = store_response
 
+    def __reduce__(self): # NOTE: needed for correct async-WPS request pickling
+        return (
+            self.__class__, (self.lineage, self.status, self.store_response),
+            None, None, self.iteritems()
+        )
+
     def __str__(self):
         return (
             "ResponseDocument(lineage=%s, status=%s, store_response=%s)[%s]" %
