@@ -2,6 +2,7 @@
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
+#          Martin Paces <martin.paces@eox.at>
 #
 #-------------------------------------------------------------------------------
 # Copyright (C) 2013 EOX IT Services GmbH
@@ -24,6 +25,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
+
 
 class AsyncBackendInterface(object):
     """ Interface class for an asynchronous WPS back-end.
@@ -79,7 +81,6 @@ class AsyncBackendInterface(object):
         """ Resume the job execution. """
 
 
-
 class ProcessInterface(object):
     """ Interface class for processes offered, described and executed by
         the WPS.
@@ -92,15 +93,15 @@ class ProcessInterface(object):
         """
 
     @property
-    def synchrous(self):
+    def synchronous(self):
         """ Optional boolean flag indicating whether the process can be executed
-        synchronously. If missing the True is assumed.
+        synchronously. If missing True is assumed.
         """
 
     @property
-    def asynchrous(self):
+    def asynchronous(self):
         """ Optional boolean flag indicating whether the process can be executed
-        synchronously. If missing the False is assumed.
+        asynchronously. If missing False is assumed.
         """
 
     @property
@@ -158,8 +159,8 @@ class ProcessInterface(object):
     def outputs(self):
         """ A dict mapping the outputs' identifiers to their respective types.
             The type can be either one of the supported native python types
-            (automatically converted to a ``LiterData`` object) or an instance
-            of one of the data-specification classes (``LiterData``,
+            (automatically converted to a ``LiteralData`` object) or an instance
+            of one of the data-specification classes (``LiteralData``,
             ``BoundingBoxData``, or ``ComplexData``).  Mandatory.
         """
 
