@@ -24,152 +24,161 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
+# pylint: disable=missing-docstring
 
-import sys
+from sys import stdout
 import json
 from optparse import make_option
 from django.core.management.base import BaseCommand, CommandError
-from eoxserver.resources.coverages.rangetype import getAllRangeTypeNames
-from eoxserver.resources.coverages.rangetype import isRangeTypeName
-from eoxserver.resources.coverages.rangetype import getRangeType
+from eoxserver.contrib.gdal import GDT_TO_NAME, GCI_TO_NAME
+from eoxserver.resources.coverages.models import RangeType
 from eoxserver.resources.coverages.management.commands import CommandOutputMixIn
+
+JSON_OPTIONS = {
+    "indent": 4,
+    "separators": (',', ': '),
+    "sort_keys": True,
+}
 
 
 class Command(CommandOutputMixIn, BaseCommand):
     option_list = BaseCommand.option_list + (
-        make_option('--json',
-            dest='json_dump',
-            action='store_true',
-            default=False,
-            help=("Optional. Dump rangetype(s) in JSON format. The JSON "
-                  "dump can be loaded by another EOxServer instance.")
+        make_option(
+            '--details', dest='details', action='store_true', default=False,
+            help="Optional. Print details of the reangetypes."
         ),
-        make_option('-o', '--output',
-            dest='filename',
-            action='store', type='string',
-            default='-',
-            help=("Optional. Write output to a file rather than to the default"
-                  " standard output.")
+        make_option(
+            '--json', dest='json_dump', action='store_true', default=False,
+            help=(
+                "Optional. Dump range-type(s) in JSON format. This JSON "
+                "dump can be loaded by another instance of EOxServer."
+            )
+        ),
+        make_option(
+            '-o', '--output', dest='filename', action='store', type='string',
+            default='-', help=(
+                "Optional. Write output to a file rather than to the default"
+                " standard output."
+            )
         ),
     )
 
     args = "[<rt-id> [<rt-id> ...]]"
 
-    help = (
-    """
-    Print list of registered range-types.  The output and its format can be
-    controlled.  By default, the program dupms a simple list of range-types'
-    identifiers.
-    If the range-type identifiers are specified than only these rangetypes
-    are filtered.  In addition, complete rangetype definitions cans be dumped
-    in the JSON format.  The JSON output can be directly loaded by another
-    EOxServer instance.
+    help = """
+    Print either list of all range-type identifiers and their details.
+    When the range-type identifiers are specified than only these range-types
+    are selected. In addition complete range-types cans be dumped in JSON
+    format which can be then loaded by another EOxServer instance.
 
     NOTE: JSON format of the range-types has slightly changed with the new
           range-type data model introduced in the EOxServer version v0.4.
-          The produced JSON is not backward comatible and cannot be loaded
+          The produced JSON is not backward compatible and cannot be loaded
           to EOxServer 0.3.* and earlier.
     """
-    )
-
 
     def handle(self, *args, **options):
+        # collect input parameters
+        self.verbosity = int(options.get('verbosity', 1))
+        print_details = bool(options.get('details', False))
         print_json = bool(options.get('json_dump', False))
         filename = options.get('filename', '-')
-        rt_list = args # list of range-type identifiers
 
-        if not rt_list:
-            # if no range-type name specified get all of them
-            rt_list = getAllRangeTypeNames()
-
+        # get the range types
+        if args:
+            range_types = RangeType.objects.filter(name__in=args)
         else:
-            # filter existing range-type names
-            def __checkRangeType(rt):
-                rv = isRangeTypeName(rt)
-                if not rv:
-                    self.print_err("Invalid range-type identifier '%s' !"%rt)
-                return rv
-            rt_list = [rt for rt in rt_list if __checkRangeType(rt)]
+            range_types = RangeType.objects.all()
 
-        # select the right output format
+        # select the right output formatter
         if print_json:
-            output = OutputJSON
+            output_formatter = output_json
+        elif print_details:
+            output_formatter = output_detailed
         else:
-            output = OutputBrief
+            output_formatter = output_brief
 
-        def _write_out(fout):
-            """ Write the output."""
-            fout.write(output.lead())
-            for i, rt_name in enumerate(rt_list):
-                if i > 0:
-                    fout.write(output.separator())
-                fout.write(output.object(rt_name))
-            fout.write(output.trail())
-
+        # write the output
         try:
-            if filename == "-":
-                _write_out(sys.stdout)
-            else:
-                with open(filename, "w") as fout:
-                    _write_out(fout)
-
+            with (stdout if filename == "-" else open(filename, "w")) as fout:
+                for item in output_formatter(range_types):
+                    fout.write(item)
         except IOError as exc:
-            raise CommandError("Failed to write to file '%s'!"
-                                " REASON: %s" % (filename, str(exc)))
+            raise CommandError(
+                "Failed to write the output file %r! %s" % (filename, str(exc))
+            )
 
 
-class BaseOutput(object):
-    """ base output class """
-    @staticmethod
-    def lead():
-        return ""
+# output formatters ...
 
-    @staticmethod
-    def object(rt_name):
-        raise NotImplementedError
-
-    @staticmethod
-    def trail():
-        return ""
-
-    @staticmethod
-    def separator():
-        return ""
+def output_brief(range_types):
+    """ Brief range-type name output. """
+    for range_type in range_types:
+        yield "%s\n" % range_type.name
 
 
-class OutputBrief(BaseOutput):
-    """ brief text output - RT name only """
-    @staticmethod
-    def object(rt_name):
-        return rt_name
+def output_detailed(range_types):
+    """ Detailed range-type output (includes brief bands' info). """
+    for range_type in range_types:
+        name = range_type.name
+        bands = list(range_type.bands.all())
+        nbands = len(bands)
+        yield "%s (%d band%s)\n" % (name, nbands, "" if nbands == 1 else "s")
+        for band in bands:
+            data_type = GDT_TO_NAME.get(band.data_type, 'Invalid')
+            yield "    %-8s %s\n" % (data_type, band.identifier)
+        yield "\n"
 
-    @staticmethod
-    def separator():
-        return "\n"
-
-    @staticmethod
-    def trail():
-        return "\n"
-
-
-class OutputJSON(BaseOutput):
-    """ JSON output """
-    @staticmethod
-    def lead():
-        return "["
-
-    @staticmethod
-    def trail():
-        return "]\n"
-
-    @staticmethod
-    def separator():
-        return ",\n"
-
-    @staticmethod
-    def object(rt_name):
-        # get rangetype as a dict and dump the json
-        return json.dumps(getRangeType(rt_name), indent=4,
-                        separators=(',', ': '), sort_keys=True)
+def output_json(range_types):
+    """ Full JSON range-type dump. """
+    range_types = iter(range_types)
+    yield '['
+    try:
+        yield json.dumps(range_type_to_dict(range_types.next()), **JSON_OPTIONS)
+    except StopIteration:
+        pass
+    for range_type in range_types:
+        yield ',\n'
+        yield json.dumps(range_type_to_dict(range_type), **JSON_OPTIONS)
+    yield ']\n'
 
 
+def range_type_to_dict(range_type):
+    """ Convert range-type to a JSON serializable dictionary.
+    """
+    # loop over band records (ordering set in model)
+    output_bands = []
+    for band in range_type.bands.all():
+        output_nil_values = []
+        if band.nil_value_set:
+            # loop over nil values
+            for nil_value in band.nil_value_set.nil_values.all():
+                # append created nil-value dictionary
+                output_nil_values.append({
+                    'reason': nil_value.reason,
+                    'value': nil_value.raw_value,
+                })
+
+        output_band = {
+            'name': band.name,
+            'data_type': GDT_TO_NAME.get(band.data_type, 'Invalid'),
+            'identifier': band.identifier,
+            'description': band.description,
+            'definition': band.definition,
+            'uom': band.uom,
+            'nil_values': output_nil_values,
+            'color_interpretation': GCI_TO_NAME.get(
+                band.color_interpretation, 'Invalid'
+            ),
+        }
+
+        if band.raw_value_min is not None:
+            output_band["value_min"] = band.raw_value_min
+        if band.raw_value_max is not None:
+            output_band["value_max"] = band.raw_value_max
+
+        # append created band dictionary
+        output_bands.append(output_band)
+
+    # return a JSON serializable dictionary
+    return {'name': range_type.name, 'bands': output_bands}

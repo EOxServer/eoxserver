@@ -27,7 +27,8 @@
 #-------------------------------------------------------------------------------
 
 class OWS10Exception(Exception):
-    """ Base OWS 1.0 exception of the WPS 1.0.0 exceptionss """
+    """ Base OWS 1.0 exception of the WPS 1.0.0 exceptions """
+    http_status_code = 400
     def __init__(self, code, locator, message):
         self.code = code
         self.locator = locator
@@ -38,6 +39,7 @@ class OWS10Exception(Exception):
 # see OGC 05-007r7 Table 38 and Table 62
 
 class NoApplicableCode(OWS10Exception):
+    http_status_code = 500
     def __init__(self, message, locator=None):
         OWS10Exception.__init__(self, "NoApplicableCode", locator, message)
 
@@ -50,10 +52,12 @@ class InvalidParameterValue(OWS10Exception):
         OWS10Exception.__init__(self, "InvalidParameterValue", locator, message)
 
 class NotEnoughStorage(OWS10Exception):
+    http_status_code = 507
     def __init__(self, message):
         OWS10Exception.__init__(self, "NotEnoughStorage", None, message)
 
 class ServerBusy(OWS10Exception):
+    http_status_code = 503
     def __init__(self, message):
         OWS10Exception.__init__(self, "ServerBusy", None, message)
 

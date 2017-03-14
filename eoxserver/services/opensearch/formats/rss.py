@@ -27,14 +27,14 @@
 
 from itertools import chain
 
-from lxml.builder import ElementMaker, E
+from lxml.etree import CDATA
+from lxml.builder import ElementMaker
 from django.core.urlresolvers import reverse
 
-
-from eoxserver.core.util.xmltools import etree, NameSpace, NameSpaceMap
+from eoxserver.core.util.xmltools import etree, NameSpace, NameSpaceMap, typemap
 from eoxserver.core.util.timetools import isoformat
 from eoxserver.services.opensearch.formats.base import (
-    BaseFeedResultFormat, ns_opensearch
+    BaseFeedResultFormat, ns_opensearch, ns_dc, ns_atom, ns_media, ns_owc
 )
 
 
@@ -43,11 +43,14 @@ ns_georss = NameSpace("http://www.georss.org/georss", "georss")
 ns_gml = NameSpace("http://www.opengis.net/gml", "gml")
 
 # namespace map
-nsmap = NameSpaceMap(ns_georss, ns_gml, ns_opensearch)
+nsmap = NameSpaceMap(
+    ns_georss, ns_gml, ns_opensearch, ns_dc, ns_atom, ns_media, ns_owc
+)
 
 # Element factories
 GEORSS = ElementMaker(namespace=ns_georss.uri, nsmap=nsmap)
 GML = ElementMaker(namespace=ns_gml.uri, nsmap=nsmap)
+RSS = ElementMaker(typemap=typemap)
 
 
 class RSSResultFormat(BaseFeedResultFormat):
@@ -86,27 +89,20 @@ class RSSResultFormat(BaseFeedResultFormat):
             % (reverse("ows"), item.identifier)
         )
 
-        rss_item = E("item",
-            E("title", item.identifier),
-            # RSS("description", ), # TODO
-            E("link", link_url),
+        rss_item = RSS("item",
+            RSS("title", item.identifier),
+            RSS("description", CDATA(item.identifier)),
+            RSS("link", link_url),
         )
 
         if "geo" in search_context.parameters:
-            rss_item.append(E("guid", request.build_absolute_uri()))
+            rss_item.append(RSS("guid", request.build_absolute_uri()))
         else:
-            rss_item.append(E("guid", item.identifier, isPermaLink="false"))
+            rss_item.append(RSS("guid", item.identifier, isPermaLink="false"))
 
         rss_item.extend(self.encode_item_links(request, item))
 
-        if item.footprint:
-            extent = item.extent_wgs84
-            rss_item.append(
-                GEORSS("box",
-                    "%f %f %f %f" % (extent[1], extent[0], extent[3], extent[2])
-                )
-            )
-
+        # TODO: remove this for the general dc:date?
         if item.begin_time and item.end_time:
             rss_item.append(
                 GML("TimePeriod",
@@ -115,4 +111,6 @@ class RSSResultFormat(BaseFeedResultFormat):
                     **{ns_gml("id"): item.identifier}
                 )
             )
+
+        rss_item.extend(self.encode_spatio_temporal(item))
         return rss_item

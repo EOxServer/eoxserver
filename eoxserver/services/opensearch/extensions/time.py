@@ -31,7 +31,7 @@ from django.db.models import Q
 from eoxserver.core import Component, implements
 from eoxserver.core.decoders import kvp, enum
 from eoxserver.core.util.xmltools import NameSpace
-from eoxserver.core.util.timetools import parse_iso8601, isoformat
+from eoxserver.core.util.timetools import parse_iso8601
 from eoxserver.services.opensearch.interfaces import SearchExtensionInterface
 
 
@@ -89,17 +89,10 @@ class TimeExtension(Component):
                 qs = qs.filter(end_time=end)
         return qs
 
-    def get_schema(self, collection=None):
-        minmax = {}
-        if collection:
-            if collection.begin_time:
-                minmax["minimum"] = isoformat(collection.begin_time)
-            if collection.end_time:
-                minmax["maximum"] = isoformat(collection.end_time)
-
+    def get_schema(self):
         return (
-            dict(name="start", type="start", **minmax),
-            dict(name="end", type="end", **minmax),
+            dict(name="start", type="start"),
+            dict(name="end", type="end"),
             dict(name="timerel", type="relation",
                 options=["intersects", "contains", "disjoint", "equals"]
             )

@@ -140,6 +140,21 @@ def parse(obj):
         pass
 
 
+def add_cdata(element, cdata):
+    assert (
+        not element.text,
+        "Can't add a CDATA section. Element already has some text: %r"
+        % element.text
+    )
+    element.text = cdata
+
+try:
+    typemap = {
+        etree.CDATA: add_cdata
+    }
+except AttributeError:
+    typemap = {}
+
 ns_xsi = NameSpace("http://www.w3.org/2001/XMLSchema-instance", "xsi")
 
 

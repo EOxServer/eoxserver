@@ -26,76 +26,80 @@
 #-------------------------------------------------------------------------------
 
 import json
-from lxml import etree
 from StringIO import StringIO
+from lxml import etree
 from eoxserver.core import Component, implements
 from eoxserver.services.ows.wps.interfaces import ProcessInterface
 from eoxserver.services.ows.wps.exceptions import InvalidOutputDefError
 from eoxserver.services.ows.wps.parameters import (
-    ComplexData, CDObject, CDTextBuffer,
-    FormatText, FormatXML, FormatJSON, #FormatBinaryRaw, FormatBinaryBase64,
+    ComplexData, CDObject, CDTextBuffer, FormatText, FormatXML, FormatJSON,
 )
 
 class TestProcess02(Component):
-    """ Test identity process (the ouptuts are copies of the inputs)
-        demonstrating various features of the complex data inputs
-        and outputs.
+    """ Test identity process (the outputs are copies of the inputs)
+    demonstrating various features of the complex data inputs and outputs.
     """
     implements(ProcessInterface)
 
     identifier = "TC02:identity:complex"
     title = "Test Case 02: Complex data identity."
-    metadata = {"test-metadata":"http://www.metadata.com/test-metadata"}
+    metadata = {"test-metadata": "http://www.metadata.com/test-metadata"}
     profiles = ["test_profile"]
 
     inputs = [
-        ("input00",
-            ComplexData('TC02:input00',
-                title="Test case #02: Complex input #00",
-                abstract="Demonstrating use of the text-based complex input.",
-                formats=(FormatText('text/plain'), FormatXML('text/xml'),
-                          FormatJSON())
-            )
-        ),
+        ("input00", ComplexData(
+            'TC02:input00', title="Test case #02: Complex input #00",
+            abstract="Text-based complex data input.",
+            formats=[
+                FormatText('text/plain'),
+                FormatXML('text/xml'),
+                FormatJSON(),
+            ],
+        )),
     ]
 
     outputs = [
-        ("output00",
-            ComplexData('TC02:output00',
-                title="Test case #02: Complex output #00",
-                abstract="Copy of the input00. Output format must be the same "
-                    "as the input format.",
-                formats=(FormatText('text/plain'), FormatXML('text/xml'),
-                          FormatJSON())
-            )
-        ),
-        ("output01",
-            ComplexData('TC02:output01',
-                title="Test case #02: Complex output #01",
-                abstract="String representation of the input00.",
-                formats=FormatText('text/plain')
-            )
-        ),
+        ("output00", ComplexData(
+            'TC02:output00', title="Test case #02: Complex output #00",
+            abstract=(
+                "Text based complex data output (copy of the input). "
+                "Note that the output format must be the same as the input "
+                "format."
+            ),
+            formats=[
+                FormatText('text/plain'),
+                FormatXML('text/xml'),
+                FormatJSON(),
+            ],
+        )),
+        ("output01", ComplexData(
+            'TC02:output01', title="Test case #02: Complex output #01",
+            abstract="Plain text data output (copy of the input).",
+            formats=FormatText('text/plain')
+        )),
     ]
 
     @staticmethod
     def execute(input00, output00, **kwarg):
+        """ WPS Process execute handler. """
         outputs = {}
         output_filename_base = "test02_identity_complex"
 
         # process specific format constraint known only by the execute() method
         if input00.mime_type != output00['mime_type']:
-            raise InvalidOutputDefError("TC02:output00", "The 'TC02:output00' "
-                "format must be the same as the format of 'TC02:input00'.")
+            raise InvalidOutputDefError(
+                "TC02:output00", "The 'TC02:output00' "
+                "format must be the same as the format of 'TC02:input00'."
+            )
 
         if input00.mime_type == "text/plain":
-            # CDTextBuffer object inherited from StringIO - works with unicode
+            # CDTextBuffer object inherited from StringIO - works with Unicode
             # The 'filename' parameter sets the raw output
             # 'Content-Disposition: filename=' HTTP header.
             outputs['output00'] = CDTextBuffer( # default format is used
                 input00.read(), filename=(output_filename_base + ".txt")
             )
-            # provides 'data' propery for convenience (equivalent of 'read()')
+            # provides 'data' property for convenience (equivalent of 'read()')
             # text output also accepts StringIO
             outputs['output01'] = StringIO(input00.data)
 
@@ -108,7 +112,7 @@ class TestProcess02(Component):
                 input00.data, mime_type="text/xml",
                 filename=(output_filename_base + ".xml")
             )
-            # text output also accepts unicode strings
+            # text output also accepts Unicode strings
             outputs['output01'] = unicode(
                 etree.tostring(
                     input00.data, encoding='utf-8', pretty_print=True

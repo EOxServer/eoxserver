@@ -35,29 +35,32 @@ except ImportError:
     from StringIO import StringIO
 
 from eoxserver.services.result import (
-    to_http_response, ResultItem, #ResultFile,
+    to_http_response, ResultItem,
 )
 from eoxserver.services.ows.wps.parameters import (
     LiteralData, ComplexData, BoundingBoxData,
 )
 from eoxserver.services.ows.wps.exceptions import InvalidOutputValueError
 
-#-------------------------------------------------------------------------------
 
 class WPS10ExecuteResponseRawEncoder(object):
+    """ WPS 1.0 raw output Execute response encoder. """
 
     @staticmethod
     def serialize(result_items, **kwargs):
+        """ Serialize the result items to the HTTP response object. """
+        # pylint: disable=unused-argument
         return to_http_response(result_items)
 
-    def __init__(self):
+    def __init__(self, resp_form):
         self.content_type = None
+        self.resp_form = resp_form
 
-    def encode_response(self, process, results, resp_form, inputs, raw_inputs):
+    def encode_response(self, results):
         """Pack the raw execute response."""
         outputs = []
         for data, prm, req in results.itervalues():
-            if prm.identifier in resp_form:
+            if prm.identifier in self.resp_form:
                 outputs.append(_encode_raw_output(data, prm, req))
 
         if len(outputs) == 1:
@@ -77,6 +80,7 @@ class ResultAlt(ResultItem):
 
     def __init__(self, buf, content_type=None, filename=None, identifier=None,
                  close=False, headers=None):
+        # pylint: disable=too-many-arguments
         ResultItem.__init__(self, content_type, filename, identifier)
         if isinstance(buf, basestring):
             self._file = StringIO(str(buf)) # make sure a byte string is passed

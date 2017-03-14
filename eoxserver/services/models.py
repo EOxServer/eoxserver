@@ -46,3 +46,7 @@ class WMSRenderOptions(models.Model):
     scale_auto = models.BooleanField(default=False)
     scale_min = models.PositiveIntegerField(null=True, blank=True)
     scale_max = models.PositiveIntegerField(null=True, blank=True)
+
+    # following fields store comma-separated scaling for the individual bands
+    bands_scale_min = models.CharField(null=True, blank=True, max_length=256)
+    bands_scale_max = models.CharField(null=True, blank=True, max_length=256)
