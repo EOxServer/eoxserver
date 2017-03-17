@@ -45,11 +45,19 @@ class SearchContext(namedtuple("SearchContext", [
 
     @property
     def page_count(self):
-        return self.total_count // (self.page_size or self.count)
+        divisor = (self.page_size or self.count)
+        if divisor == 0:
+            return 1
+
+        return self.total_count // divisor
 
     @property
     def current_page(self):
-        return self.start_index // (self.page_size or self.count)
+        divisor = (self.page_size or self.count)
+        if divisor == 0:
+            return 1
+
+        return self.start_index // divisor
 
 
 class OpenSearch11SearchHandler(Component):
@@ -57,7 +65,14 @@ class OpenSearch11SearchHandler(Component):
     result_formats = ExtensionPoint(ResultFormatInterface)
 
     def handle(self, request, collection_id=None, format_name=None):
-        decoder = OpenSearch11BaseDecoder(request.GET)
+        if request.method == "GET":
+            request_parameters = request.GET
+        elif request.method == "POST":
+            request_parameters = request.POST
+        else:
+            raise Exception("Invalid request method '%s'." % request.method)
+
+        decoder = OpenSearch11BaseDecoder(request_parameters)
 
         if collection_id:
             qs = models.Collection.objects.get(
@@ -76,10 +91,11 @@ class OpenSearch11SearchHandler(Component):
             # get all search extension related parameters and translate the name
             # to the actual parameter name
             params = dict(
-                (parameter["type"], request.GET[parameter["name"]])
+                (parameter["type"], request_parameters[parameter["name"]])
                 for parameter in search_extension.get_schema()
-                if parameter["name"] in request.GET
+                if parameter["name"] in request_parameters
             )
+
             qs = search_extension.filter(qs, params)
             namespaces.add(search_extension.namespace)
             all_parameters[search_extension.namespace.prefix] = params
@@ -92,6 +108,11 @@ class OpenSearch11SearchHandler(Component):
             qs = qs[decoder.start_index:decoder.start_index+decoder.count]
         elif decoder.count:
             qs = qs[:decoder.count]
+        elif decoder.count == 0:
+            if collection_id:
+                qs = models.Collection.objects.none()
+            else:
+                qs = models.EOObject.objects.none()
 
         try:
             result_format = next(
@@ -102,8 +123,11 @@ class OpenSearch11SearchHandler(Component):
         except StopIteration:
             raise Http404("No such result format '%s'." % format_name)
 
+        default_page_size = 100  # TODO: make this configurable
+
         search_context = SearchContext(
-            total_count, decoder.start_index, decoder.count, len(qs),
+            total_count, decoder.start_index,
+            decoder.count or default_page_size, len(qs),
             all_parameters, namespaces
         )
 
@@ -130,5 +154,5 @@ def pos_int(raw):
 class OpenSearch11BaseDecoder(kvp.Decoder):
     search_terms = kvp.Parameter("q", num="?")
     start_index = kvp.Parameter("startIndex", pos_int_zero, num="?", default=0)
-    count = kvp.Parameter("count", pos_int, num="?", default=None)
+    count = kvp.Parameter("count", pos_int_zero, num="?", default=None)
     output_encoding = kvp.Parameter("outputEncoding", num="?", default="UTF-8")

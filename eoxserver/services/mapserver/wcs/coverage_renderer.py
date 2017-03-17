@@ -253,7 +253,7 @@ class RectifiedCoverageMapServerRenderer(BaseRenderer):
 
                 if scaleaxes:
                     yield "scaleaxes", ",".join(
-                        "%s(%f)" % (scale.axis, scale.value)
+                        "%s(%f)" % (scale.axis, scale.scale)
                         for scale in scaleaxes
                     )
 

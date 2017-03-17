@@ -26,6 +26,8 @@
 #-------------------------------------------------------------------------------
 
 
+from itertools import chain
+
 from lxml.builder import ElementMaker
 from django.core.urlresolvers import reverse
 from django.shortcuts import get_object_or_404
@@ -45,7 +47,7 @@ class OpenSearch11DescriptionEncoder(XMLEncoder):
 
     def __init__(self, search_extensions):
         ns_os = NameSpace("http://a9.com/-/spec/opensearch/1.1/", None)
-        ns_param = NameSpace(
+        self.ns_param = ns_param = NameSpace(
             "http://a9.com/-/spec/opensearch/extensions/parameters/1.0/",
             "parameters"
         )
@@ -62,12 +64,13 @@ class OpenSearch11DescriptionEncoder(XMLEncoder):
             OS("ShortName", collection.identifier if collection else ""),
             OS("Description")
         )
-        description.extend([
-            self.encode_url(
-                request, collection, result_format
-            )
-            for result_format in result_formats
-        ]),
+        for method in ("GET", "POST"):
+            description.extend([
+                self.encode_url(
+                    request, collection, result_format, method
+                )
+                for result_format in result_formats
+            ])
         description.extend([
             OS("Contact"),
             OS("LongName"),
@@ -81,7 +84,7 @@ class OpenSearch11DescriptionEncoder(XMLEncoder):
         ])
         return description
 
-    def encode_url(self, request, collection, result_format):
+    def encode_url(self, request, collection, result_format, method):
         if collection:
             search_url = reverse("opensearch:collection:search",
                 kwargs={
@@ -98,40 +101,62 @@ class OpenSearch11DescriptionEncoder(XMLEncoder):
 
         search_url = request.build_absolute_uri(search_url)
 
+        default_parameters = (
+            dict(name="q", type="searchTerms"),
+            dict(name="count", type="count"),
+            dict(name="startIndex", type="startIndex"),
+        )
+        parameters = list(chain(default_parameters, *[
+            [
+                dict(parameter, **{"namespace": search_extension.namespace})
+                for parameter in search_extension.get_schema()
+            ] for search_extension in self.search_extensions
+        ]))
+
         query_template = "&".join(
-            "%s={%s:%s%s}" % (
-                parameter["name"], search_extension.namespace.prefix,
+            "%s={%s%s%s%s}" % (
+                parameter["name"],
+                parameter["namespace"].prefix
+                if "namespace" in parameter else "",
+                ":" if "namespace" in parameter else "",
                 parameter["type"],
                 "?" if parameter.get("optional", True) else ""
             )
-            for search_extension in self.search_extensions
-            for parameter in search_extension.get_schema(collection)
+            for parameter in parameters
         )
 
         url = self.OS("Url", *[
-                self.encode_parameter(parameter, search_extension.namespace)
-                for search_extension in self.search_extensions
-                for parameter in search_extension.get_schema(collection)
+                self.encode_parameter(parameter, parameter.get("namespace"))
+                for parameter in parameters
             ],
             type=result_format.mimetype,
-            template=(
-                "%s?q={searchTerms?}&count={count?}"
-                "&startIndex={startIndex?}&%s" % (search_url, query_template)
-            ),
-            rel="results" if collection else "collection"
+            template="%s?%s" % (search_url, query_template)
+            if method == "GET" else search_url,
+            rel="results" if collection else "collection", ** {
+                self.ns_param("method"): method,
+                self.ns_param("enctype"): "application/x-www-form-urlencoded",
+                "indexOffset": "0"
+            }
         )
 
         return url
 
     def encode_parameter(self, parameter, namespace):
         options = parameter.pop("options", [])
-        parameter["value"] = "{%s:%s}" % (
-            namespace.prefix, parameter.pop("type")
-        )
+        attributes = {"name": parameter["name"]}
+        if namespace:
+            attributes["value"] = "{%s:%s}" % (
+                namespace.prefix, parameter.pop("type")
+            )
+        else:
+            attributes["value"] = "{%s}" % parameter.pop("type")
+
         return self.PARAM("Parameter", *[
             self.PARAM("Option", value=option, label=option)
             for option in options
-        ], **parameter)
+        ], minimum="0" if parameter.get("optional", True) else "1", maximum="1",
+            **attributes
+        )
 
 
 class OpenSearch11DescriptionHandler(Component):

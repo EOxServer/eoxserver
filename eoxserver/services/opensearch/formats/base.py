@@ -37,6 +37,7 @@ from eoxserver.core import Component, implements
 from eoxserver.core.util.timetools import isoformat
 from eoxserver.core.util.xmltools import NameSpace, NameSpaceMap
 from eoxserver.resources.coverages import models
+from eoxserver.services.gml.v32.encoders import GML32Encoder
 from eoxserver.services.opensearch.interfaces import ResultFormatInterface
 
 
@@ -139,9 +140,19 @@ class BaseOGRResultFormat(BaseResultFormat):
 
 ns_atom = NameSpace("http://www.w3.org/2005/Atom", "atom")
 ns_opensearch = NameSpace("http://a9.com/-/spec/opensearch/1.1/", "opensearch")
-nsmap = NameSpaceMap(ns_atom)
+ns_dc = NameSpace("http://purl.org/dc/elements/1.1/", "dc")
+ns_georss = NameSpace("http://www.georss.org/georss", "georss")
+ns_media = NameSpace("http://search.yahoo.com/mrss/", "media")
+ns_owc = NameSpace("http://www.opengis.net/owc/1.0", "owc")
+
+nsmap = NameSpaceMap(ns_atom, ns_dc, ns_georss, ns_media, ns_owc)
+
 ATOM = ElementMaker(namespace=ns_atom.uri)
 OS = ElementMaker(namespace=ns_opensearch.uri)
+DC = ElementMaker(namespace=ns_dc.uri, nsmap=nsmap)
+GEORSS = ElementMaker(namespace=ns_georss.uri, nsmap=nsmap)
+MEDIA = ElementMaker(namespace=ns_media.uri, nsmap=nsmap)
+OWC = ElementMaker(namespace=ns_owc.uri, nsmap=nsmap)
 
 
 class BaseFeedResultFormat(BaseResultFormat):
@@ -240,19 +251,141 @@ class BaseFeedResultFormat(BaseResultFormat):
         if issubclass(item.real_type, models.Coverage):
             # add a link for a Describe and GetCoverage request for
             # metadata and data download
+
+            minx, miny, maxx, maxy = item.extent_wgs84
+
+            fx = 1.0
+            fy = 1.0
+
+            if (maxx - minx) > (maxy - miny):
+                fy = (maxy - miny) / (maxx - minx)
+            else:
+                fx = (maxx - minx) / (maxy - miny)
+
+            wms_get_capabilities = request.build_absolute_uri(
+                "%s?service=WMS&version=1.3.0&request=GetCapabilities"
+            )
+
+            wms_small = request.build_absolute_uri(
+                "%s?service=WMS&version=1.3.0&request=GetMap"
+                "&layers=%s&format=image/png&TRANSPARENT=true"
+                "&width=%d&height=%d&CRS=EPSG:4326&STYLES="
+                "&BBOX=%f,%f,%f,%f"
+                "" % (
+                    reverse("ows"), item.identifier,
+                    int(100 * fx), int(100 * fy),
+                    miny, minx, maxy, maxx
+                )
+            )
+
+            wms_large = request.build_absolute_uri(
+                "%s?service=WMS&version=1.3.0&request=GetMap"
+                "&layers=%s&format=image/png&TRANSPARENT=true"
+                "&width=%d&height=%d&CRS=EPSG:4326&STYLES="
+                "&BBOX=%f,%f,%f,%f"
+                "" % (
+                    reverse("ows"), item.identifier,
+                    int(500 * fx), int(500 * fy),
+                    miny, minx, maxy, maxx
+                )
+            )
+
+            wcs_get_capabilities = request.build_absolute_uri(
+                "%s?service=WCS&version=2.0.1&request=GetCapabilities"
+            )
+
+            wcs_describe_coverage = request.build_absolute_uri(
+                "%s?service=WCS&version=2.0.1&request=DescribeCoverage"
+                "&coverageId=%s" % (reverse("ows"), item.identifier)
+            )
+
+            wcs_get_coverage = request.build_absolute_uri(
+                "%s?service=WCS&version=2.0.1&request=GetCoverage"
+                "&coverageId=%s" % (reverse("ows"), item.identifier)
+            )
+
             links.extend([
-                ATOM("link", rel="enclosure", href=request.build_absolute_uri(
-                        "%s?service=WCS&version=2.0.1&request=GetCoverage"
-                        "&coverageId=%s" % (reverse("ows"), item.identifier)
-                    )
+                ATOM("link", rel="enclosure", href=wcs_get_coverage),
+                ATOM("link", rel="via", href=wcs_describe_coverage),
+                # "Browse" image
+                ATOM("link", rel="icon", href=wms_large),
+            ])
+
+            # media RSS style links
+            links.extend([
+                # "Browse" image
+                MEDIA("content",
+                    MEDIA("category", "QUICKLOOK"),
+                    url=wms_large
                 ),
-                ATOM("link", rel="via", href=request.build_absolute_uri(
-                        "%s?service=WCS&version=2.0.1&request=DescribeCoverage"
-                        "&coverageId=%s" % (reverse("ows"), item.identifier)
-                    )
+                # "Thumbnail" image
+                MEDIA("content",
+                    MEDIA("category", "THUMBNAIL"),
+                    url=wms_small
+                ),
+            ])
+
+            # OWC offerings for WMS/WCS
+            links.extend([
+                OWC("offering",
+                    OWC("operation",
+                        code="GetCapabilities", method="GET",
+                        type="application/xml", href=wms_get_capabilities
+                    ),
+                    OWC("operation",
+                        code="GetMap", method="GET",
+                        type="image/png", href=wms_large
+                    ),
+                    code="http://www.opengis.net/spec/owc-atom/1.0/req/wms",
+                ),
+                OWC("offering",
+                    OWC("operation",
+                        code="GetCapabilities", method="GET",
+                        type="application/xml", href=wcs_get_capabilities
+                    ),
+                    OWC("operation",
+                        code="DescribeCoverage", method="GET",
+                        type="application/xml", href=wcs_describe_coverage
+                    ),
+                    OWC("operation",
+                        code="GetCoverage", method="GET",
+                        type="image/tiff", href=wcs_get_coverage
+                        # TODO: native format
+                    ),
+                    code="http://www.opengis.net/spec/owc-atom/1.0/req/wcs",
                 )
             ])
         return links
 
     def encode_summary(self, request, item):
         pass
+
+    def encode_spatio_temporal(self, item):
+        entries = []
+        if item.footprint:
+            extent = item.extent_wgs84
+            entries.append(
+                GEORSS("box",
+                    "%f %f %f %f" % (extent[1], extent[0], extent[3], extent[2])
+                )
+            )
+            entries.append(
+                GEORSS("where",
+                    GML32Encoder().encode_multi_surface(
+                        item.footprint, item.identifier
+                    )
+                )
+            )
+
+        begin_time, end_time = item.time_extent
+        if begin_time and end_time:
+            if begin_time != end_time:
+                entries.append(
+                    DC("date", "%s/%s" % (
+                        isoformat(begin_time), isoformat(end_time)
+                    ))
+                )
+            else:
+                entries.append(DC("date", isoformat(begin_time)))
+
+        return entries

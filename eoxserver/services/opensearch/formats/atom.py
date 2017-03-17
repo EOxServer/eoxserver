@@ -28,25 +28,26 @@
 
 from itertools import chain
 
+from lxml.etree import CDATA
 from lxml.builder import ElementMaker
 
-from eoxserver.core.util.xmltools import etree, NameSpace, NameSpaceMap
-from eoxserver.services.opensearch.formats.base import BaseFeedResultFormat
+from eoxserver.core.util.xmltools import etree, NameSpace, NameSpaceMap, typemap
+from eoxserver.services.opensearch.formats.base import (
+    BaseFeedResultFormat, ns_dc, ns_georss, ns_media, ns_owc
+)
 
 
 # namespace declarations
 ns_atom = NameSpace("http://www.w3.org/2005/Atom", None)
 ns_opensearch = NameSpace("http://a9.com/-/spec/opensearch/1.1/", "opensearch")
-ns_georss = NameSpace("http://www.georss.org/georss", "georss")
 ns_gml = NameSpace("http://www.opengis.net/gml", "gml")
 
 # namespace map
-nsmap = NameSpaceMap(ns_atom, ns_opensearch, ns_georss)
+nsmap = NameSpaceMap(ns_atom, ns_opensearch, ns_dc, ns_georss, ns_media, ns_owc)
 
 # Element factories
-ATOM = ElementMaker(namespace=ns_atom.uri, nsmap=nsmap)
+ATOM = ElementMaker(namespace=ns_atom.uri, nsmap=nsmap, typemap=typemap)
 OS = ElementMaker(namespace=ns_opensearch.uri, nsmap=nsmap)
-GEORSS = ElementMaker(namespace=ns_georss.uri, nsmap=nsmap)
 GML = ElementMaker(namespace=ns_gml.uri, nsmap=nsmap)
 
 
@@ -87,18 +88,11 @@ class AtomResultFormat(BaseFeedResultFormat):
     def encode_entry(self, request, item):
         entry = ATOM("entry",
             ATOM("title", item.identifier),
-            ATOM("id", item.identifier)
-            # ATOM("summary", ), # TODO
+            ATOM("id", item.identifier),
+            ATOM("summary", CDATA(item.identifier)),
         )
 
         entry.extend(self.encode_item_links(request, item))
-
-        if item.footprint:
-            extent = item.extent_wgs84
-            entry.append(
-                GEORSS("box",
-                    "%f %f %f %f" % (extent[1], extent[0], extent[3], extent[2])
-                )
-            )
+        entry.extend(self.encode_spatio_temporal(item))
 
         return entry

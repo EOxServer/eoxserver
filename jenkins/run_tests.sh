@@ -22,6 +22,9 @@ if [ $DB == "postgis" ] && [ `psql template_postgis jenkins -tAc "SELECT 1 FROM 
 fi
 
 export XML_CATALOG_FILES="$WORKSPACE/schemas/catalog.xml"
+# the WPS unit-tests cannot be run via manage.py test in Django <=1.5
+python -m eoxserver.services.ows.wps.test_data_types -v
+python -m eoxserver.services.ows.wps.test_allowed_values -v
 python manage.py test autotest_services -v2
 python manage.py test autotest_coverages -v2
 python manage.py test --pythonpath=../eoxserver/ core -v2
@@ -46,8 +49,9 @@ fi
 
 python manage.py syncdb --noinput --traceback
 python manage.py loaddata auth_data.json range_types.json --traceback
-python manage.py eoxs_rangetype_load -i autotest_jenkins/data/meris/meris_range_type_definition.json --traceback
-python manage.py eoxs_rangetype_load -i autotest_jenkins/data/asar/asar_range_type_definition.json --traceback
+python manage.py eoxs_rangetype_load -i autotest_jenkins/data/meris/meris_range_type_definition.json --traceback # load a new range-type with forbiden update 
+python manage.py eoxs_rangetype_load -u -i autotest_jenkins/data/asar/asar_range_type_definition.json --traceback # load a new range-type with allowed update
+python manage.py eoxs_rangetype_load -u -i autotest_jenkins/data/meris/meris_range_type_definition.json --traceback # update an existing range-type
 python manage.py eoxs_rangetype_list --traceback
 python manage.py eoxs_rangetype_list --json --traceback # dump all range-types as JSON
 python manage.py eoxs_collection_create -i MER_FRS_1P_reduced --traceback
