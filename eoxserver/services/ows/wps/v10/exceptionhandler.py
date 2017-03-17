@@ -41,8 +41,11 @@ class WPS10ExceptionHandler(Component):
     def handle_exception(self, request, exception):
         """ Handle exception. """
         # pylint: disable=unused-argument, no-self-use
+
         code = getattr(exception, "code", None)
         locator = getattr(exception, "locator", None)
+        http_status_code = getattr(exception, "http_status_code", 400)
+
         if not code:
             code = "NoApplicableCode"
             locator = type(exception).__name__
@@ -55,5 +58,5 @@ class WPS10ExceptionHandler(Component):
                     str(exception), "1.1.0", code, locator
                 )
             ),
-            encoder.content_type, 400
+            encoder.content_type, http_status_code
         )
