@@ -47,6 +47,7 @@ class WCS20DescribeCoverageHandler(WCSDescribeCoverageHandlerBase, Component):
     implements(PostServiceHandlerInterface)
 
     versions = ("2.0.0", "2.0.1")
+    methods = ['GET', 'POST']
 
     index = 5
 

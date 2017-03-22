@@ -148,23 +148,26 @@ class Component(object):
     Every component can declare what extension points it provides, as
     well as what extension points of other components it extends.
     """
-    __metaclass__ = ComponentMeta
+    # __metaclass__ = ComponentMeta
+
+    def __init__(self, *args):
+        pass
 
     @staticmethod
     def implements(*interfaces):
         """Can be used in the class definition of `Component`
         subclasses to declare the extension points that are extended.
         """
-        import sys
+        # import sys
 
-        frame = sys._getframe(1)
-        locals_ = frame.f_locals
+        # frame = sys._getframe(1)
+        # locals_ = frame.f_locals
 
-        # Some sanity checks
-        assert locals_ is not frame.f_globals and '__module__' in locals_, \
-            'implements() can only be used in a class definition'
+        # # Some sanity checks
+        # assert locals_ is not frame.f_globals and '__module__' in locals_, \
+        #     'implements() can only be used in a class definition'
 
-        locals_.setdefault('_implements', []).extend(interfaces)
+        # locals_.setdefault('_implements', []).extend(interfaces)
 
 
 implements = Component.implements
