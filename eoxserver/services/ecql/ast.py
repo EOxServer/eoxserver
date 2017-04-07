@@ -260,13 +260,15 @@ class FilterEvaluator(object):
             )
         elif isinstance(node, LikePredicateNode):
             return filters.like(
-                to_filter(node.lhs), to_filter(node.rhs), node.case, node.not_
+                to_filter(node.lhs), to_filter(node.rhs), node.case, node.not_,
+                self.mapping_choices
+
             )
         elif isinstance(node, InPredicateNode):
             return filters.contains(
                 to_filter(node.lhs), [
                     to_filter(sub_node) for sub_node in node.sub_nodes
-                ], node.not_
+                ], node.not_, self.mapping_choices
             )
         elif isinstance(node, NullPredicateNode):
             return filters.null(

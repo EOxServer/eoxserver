@@ -1,7 +1,7 @@
 from operator import and_, or_, add, sub, mul, div
 from datetime import datetime, timedelta
 
-from django.db.models import Q, F, expressions
+from django.db.models import Q, F, expressions, ForeignKey
 try:
     from django.db.models import Value
     ARITHMETIC_TYPES = (F, Value, expressions.ExpressionNode, int, float)
@@ -102,34 +102,79 @@ def between(lhs, low, high, not_=False):
     return ~q if not_ else q
 
 
-def like(lhs, rhs, case=False, not_=False):
+def like(lhs, rhs, case=False, not_=False, mapping_choices=None):
     assert isinstance(lhs, F)
 
-    i = "" if case else "i"
+    if isinstance(rhs, basestring):
+        pattern = rhs
+    elif hasattr(rhs, 'value'):
+        pattern = rhs.value
+    else:
+        raise AssertionError('Invalid pattern specified')
 
-    if rhs.startswith("%") and rhs.endswith("%"):
+    if mapping_choices and lhs.name in mapping_choices:
+        # special case when choices are given for the field:
+        # compare statically and use 'in' operator to check if contained
+        cmp_av = [
+            (a, a if case else a.lower())
+            for a in mapping_choices[lhs.name].keys()
+        ]
+        cmp_p = pattern if case else pattern.lower()
+        if pattern.startswith("%") and pattern.endswith("%"):
+            available = [a[0] for a in cmp_av if cmp_p[1:-1] in a[1]]
+        elif pattern.startswith("%"):
+            available = [a[0] for a in cmp_av if a[1].endswith(cmp_p[1:])]
+        elif pattern.endswith("%"):
+            available = [a[0] for a in cmp_av if a[1].startswith(cmp_p[:-1])]
+        else:
+            available = [a[0] for a in cmp_av if a[1] == cmp_p]
+
         q = Q(**{
-            "%s__%s" % (lhs.name, "%scontains" % i): rhs[1:-1]
-        })
-    elif rhs.startswith("%"):
-        q = Q(**{
-            "%s__%s" % (lhs.name, "%sendswith" % i): rhs[1:]
-        })
-    elif rhs.endswith("%"):
-        q = Q(**{
-            "%s__%s" % (lhs.name, "%sstartswith" % i): rhs[:-1]
+            "%s__in" % lhs.name: [
+                mapping_choices[lhs.name][a]
+                for a in available
+            ]
         })
     else:
-        q = Q(**{
-            "%s__%s" % (lhs.name, "%sexact" % i): rhs
-        })
+        i = "" if case else "i"
+
+        if pattern.startswith("%") and pattern.endswith("%"):
+            q = Q(**{
+                "%s__%s" % (lhs.name, "%scontains" % i): pattern[1:-1]
+            })
+        elif pattern.startswith("%"):
+            q = Q(**{
+                "%s__%s" % (lhs.name, "%sendswith" % i): pattern[1:]
+            })
+        elif pattern.endswith("%"):
+            q = Q(**{
+                "%s__%s" % (lhs.name, "%sstartswith" % i): pattern[:-1]
+            })
+        else:
+            q = Q(**{
+                "%s__%s" % (lhs.name, "%sexact" % i): pattern
+            })
     return ~q if not_ else q
 
 
-def contains(lhs, items, not_=False):
+def contains(lhs, items, not_=False, mapping_choices=None):
     assert isinstance(lhs, F)
     # for item in items:
     #     assert isinstance(item, BaseExpression)
+
+    if mapping_choices and lhs.name in mapping_choices:
+        def map_value(item):
+            try:
+                if isinstance(item, basestring):
+                    item = mapping_choices[lhs.name][item]
+                elif hasattr(item, 'value'):
+                    item = Value(mapping_choices[lhs.name][item.value])
+
+            except KeyError, e:
+                raise AssertionError("Invalid field value %s" % e)
+            return item
+
+        items = map(map_value, items)
 
     q = Q(**{"%s__in" % lhs.name: items})
     return ~q if not_ else q
@@ -254,6 +299,15 @@ def get_field_mapping_for_model(ModelClass):
     mapping = {}
     mapping_choices = {}
 
+    def is_common_value(field):
+        try:
+            if isinstance(field, ForeignKey):
+                field.related.parent_model._meta.get_field('value')
+                return True
+        except:
+            pass
+        return False
+
     if issubclass(ModelClass, models.EOMetadata):
         field_names = ('identifier', 'begin_time', 'end_time', 'footprint')
         for field_name in field_names:
@@ -271,9 +325,10 @@ def get_field_mapping_for_model(ModelClass):
                 # skip fields that are defined in a parent model
                 if field.model is not metadata_class:
                     continue
-
-                # TODO: what if field is related, i.e: __value
-                full_path = '%s__%s' % (path, field.name)
+                if is_common_value(field):
+                    full_path = '%s__%s__value' % (path, field.name)
+                else:
+                    full_path = '%s__%s' % (path, field.name)
                 mapping[to_camel_case(field.name)] = full_path
                 if field.choices:
                     mapping_choices[full_path] = dict(

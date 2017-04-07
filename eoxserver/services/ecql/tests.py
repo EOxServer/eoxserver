@@ -1,4 +1,5 @@
 from django.test import TransactionTestCase
+from django.db.models import ForeignKey
 from django.contrib.gis.geos import Polygon, MultiPolygon
 
 from eoxserver.core.util.timetools import parse_iso8601
@@ -6,7 +7,6 @@ from eoxserver.resources.coverages import models
 from eoxserver.services import ecql
 from eoxserver.services.filters import get_field_mapping_for_model
 
-import eoxserver.services.ecql.ast
 
 class ECQLTestCase(TransactionTestCase):
     # mapping = {
@@ -47,6 +47,8 @@ class ECQLTestCase(TransactionTestCase):
             illumination_zenith_angle=20.0,
             illumination_elevation_angle=30.0,
             parent_identifier="AparentA",
+            orbit_number="AAA",
+            orbit_direction="ASCENDING"
         ))
 
         self.create(dict(
@@ -61,13 +63,38 @@ class ECQLTestCase(TransactionTestCase):
             illumination_azimuth_angle=20.0,
             illumination_zenith_angle=30.0,
             parent_identifier="BparentB",
+            orbit_number="BBB",
+            orbit_direction="DESCENDING"
+        ))
+
+    def create_metadata(self, coverage, metadata):
+        def is_common_value(field):
+            try:
+                if isinstance(field, ForeignKey):
+                    field.related.parent_model._meta.get_field('value')
+                    return True
+            except:
+                pass
+            return False
+
+        def convert(name, value):
+            field = models.CoverageMetadata._meta.get_field(name)
+            if is_common_value(field):
+                return field.related.parent_model.objects.get_or_create(
+                    value=value
+                )[0]
+            elif field.choices:
+                return dict((v, k) for k, v in field.choices)[value]
+            return value
+
+        return models.CoverageMetadata.objects.create(coverage=coverage, **dict(
+            (name, convert(name, value))
+            for name, value in metadata.items()
         ))
 
     def create(self, coverage_params, metadata):
         c = models.RectifiedDataset.objects.create(**coverage_params)
-        models.CoverageMetadata.objects.create(
-            coverage=c, **metadata
-        )
+        self.create_metadata(c, metadata)
         return c
 
     def create_opt(self, coverage_params, metadata):
@@ -136,6 +163,50 @@ class ECQLTestCase(TransactionTestCase):
     def test_float_between(self):
         self.evaluate(
             'illuminationZenithAngle BETWEEN 19 AND 21',
+            ('A',)
+        )
+
+    # test different field types
+
+    def test_common_value_eq(self):
+        self.evaluate(
+            'orbitNumber = "AAA"',
+            ('A',)
+        )
+
+    def test_common_value_in(self):
+        self.evaluate(
+            'orbitNumber IN ("AAA", "XXX")',
+            ('A',)
+        )
+
+    def test_common_value_like(self):
+        self.evaluate(
+            'orbitNumber LIKE "AA%"',
+            ('A',)
+        )
+
+    def test_enum_value_eq(self):
+        self.evaluate(
+            'orbitDirection = "ASCENDING"',
+            ('A',)
+        )
+
+    def test_enum_value_in(self):
+        self.evaluate(
+            'orbitDirection IN ("ASCENDING")',
+            ('A',)
+        )
+
+    def test_enum_value_like(self):
+        self.evaluate(
+            'orbitDirection LIKE "ASCEN%"',
+            ('A',)
+        )
+
+    def test_enum_value_ilike(self):
+        self.evaluate(
+            'orbitDirection LIKE "ascen%"',
             ('A',)
         )
 
@@ -332,7 +403,6 @@ class ECQLTestCase(TransactionTestCase):
             ('A',)
         )
 
-
     # TODO: other relation methods
 
     # arithmethic expressions
@@ -373,5 +443,4 @@ class ECQLTestCase(TransactionTestCase):
             'illuminationZenithAngle = 5 + illuminationAzimuthAngle * 1.5',
             ('A',)
         )
-
 
