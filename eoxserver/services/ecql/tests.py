@@ -80,290 +80,298 @@ class ECQLTestCase(TransactionTestCase):
         model_type = model_type or models.RectifiedDataset
         mapping, mapping_choices = get_field_mapping_for_model(model_type)
 
-        filters = ecql.parse(cql_expr, mapping, mapping_choices)
+        ast = ecql.parse(cql_expr)
+
+        # print
+        # print
+        # print cql_expr
+        # #print ecql.get_repr(ast)
+        filters = ecql.to_filter(ast, mapping, mapping_choices)
+        # print filters
+
         qs = model_type.objects.filter(filters)
 
         self.assertItemsEqual(
             expected_ids, qs.values_list("identifier", flat=True)
         )
 
-    # # common comparisons
+    # common comparisons
 
-    # def test_id_eq(self):
-    #     self.evaluate(
-    #         'identifier = "A"',
-    #         ('A',)
-    #     )
+    def test_id_eq(self):
+        self.evaluate(
+            'identifier = "A"',
+            ('A',)
+        )
 
-    # def test_id_ne(self):
-    #     self.evaluate(
-    #         'identifier <> "B"',
-    #         ('A',)
-    #     )
+    def test_id_ne(self):
+        self.evaluate(
+            'identifier <> "B"',
+            ('A',)
+        )
 
-    # def test_float_lt(self):
-    #     self.evaluate(
-    #         'illuminationZenithAngle < 30',
-    #         ('A',)
-    #     )
+    def test_float_lt(self):
+        self.evaluate(
+            'illuminationZenithAngle < 30',
+            ('A',)
+        )
 
-    # def test_float_le(self):
-    #     self.evaluate(
-    #         'illuminationZenithAngle <= 20',
-    #         ('A',)
-    #     )
+    def test_float_le(self):
+        self.evaluate(
+            'illuminationZenithAngle <= 20',
+            ('A',)
+        )
 
-    # def test_float_gt(self):
-    #     self.evaluate(
-    #         'illuminationZenithAngle > 20',
-    #         ('B',)
-    #     )
+    def test_float_gt(self):
+        self.evaluate(
+            'illuminationZenithAngle > 20',
+            ('B',)
+        )
 
-    # def test_float_ge(self):
-    #     self.evaluate(
-    #         'illuminationZenithAngle >= 30',
-    #         ('B',)
-    #     )
+    def test_float_ge(self):
+        self.evaluate(
+            'illuminationZenithAngle >= 30',
+            ('B',)
+        )
 
-    # def test_float_between(self):
-    #     self.evaluate(
-    #         'illuminationZenithAngle BETWEEN 19 AND 21',
-    #         ('A',)
-    #     )
+    def test_float_between(self):
+        self.evaluate(
+            'illuminationZenithAngle BETWEEN 19 AND 21',
+            ('A',)
+        )
 
-    # # (NOT) LIKE | ILIKE
+    # (NOT) LIKE | ILIKE
 
-    # def test_like_beginswith(self):
-    #     self.evaluate(
-    #         'parentIdentifier LIKE "A%"',
-    #         ('A',)
-    #     )
+    def test_like_beginswith(self):
+        self.evaluate(
+            'parentIdentifier LIKE "A%"',
+            ('A',)
+        )
 
-    # def test_ilike_beginswith(self):
-    #     self.evaluate(
-    #         'parentIdentifier ILIKE "a%"',
-    #         ('A',)
-    #     )
+    def test_ilike_beginswith(self):
+        self.evaluate(
+            'parentIdentifier ILIKE "a%"',
+            ('A',)
+        )
 
-    # def test_like_endswith(self):
-    #     self.evaluate(
-    #         'parentIdentifier LIKE "%A"',
-    #         ('A',)
-    #     )
+    def test_like_endswith(self):
+        self.evaluate(
+            'parentIdentifier LIKE "%A"',
+            ('A',)
+        )
 
-    # def test_ilike_endswith(self):
-    #     self.evaluate(
-    #         'parentIdentifier ILIKE "%a"',
-    #         ('A',)
-    #     )
+    def test_ilike_endswith(self):
+        self.evaluate(
+            'parentIdentifier ILIKE "%a"',
+            ('A',)
+        )
 
-    # def test_like_middle(self):
-    #     self.evaluate(
-    #         'parentIdentifier LIKE "%parent%"',
-    #         ('A', 'B')
-    #     )
+    def test_like_middle(self):
+        self.evaluate(
+            'parentIdentifier LIKE "%parent%"',
+            ('A', 'B')
+        )
 
-    # def test_ilike_middle(self):
-    #     self.evaluate(
-    #         'parentIdentifier ILIKE "%PaReNT%"',
-    #         ('A', 'B')
-    #     )
+    def test_ilike_middle(self):
+        self.evaluate(
+            'parentIdentifier ILIKE "%PaReNT%"',
+            ('A', 'B')
+        )
 
-    # def test_not_like_beginswith(self):
-    #     self.evaluate(
-    #         'parentIdentifier NOT LIKE "B%"',
-    #         ('A',)
-    #     )
+    def test_not_like_beginswith(self):
+        self.evaluate(
+            'parentIdentifier NOT LIKE "B%"',
+            ('A',)
+        )
 
-    # def test_not_ilike_beginswith(self):
-    #     self.evaluate(
-    #         'parentIdentifier NOT ILIKE "b%"',
-    #         ('A',)
-    #     )
+    def test_not_ilike_beginswith(self):
+        self.evaluate(
+            'parentIdentifier NOT ILIKE "b%"',
+            ('A',)
+        )
 
-    # def test_not_like_endswith(self):
-    #     self.evaluate(
-    #         'parentIdentifier NOT LIKE "%B"',
-    #         ('A',)
-    #     )
+    def test_not_like_endswith(self):
+        self.evaluate(
+            'parentIdentifier NOT LIKE "%B"',
+            ('A',)
+        )
 
-    # def test_not_ilike_endswith(self):
-    #     self.evaluate(
-    #         'parentIdentifier NOT ILIKE "%b"',
-    #         ('A',)
-    #     )
+    def test_not_ilike_endswith(self):
+        self.evaluate(
+            'parentIdentifier NOT ILIKE "%b"',
+            ('A',)
+        )
 
-    # # (NOT) IN
+    # (NOT) IN
 
-    # def test_string_in(self):
-    #     self.evaluate(
-    #         'identifier IN ("A", \'B\')',
-    #         ('A', 'B')
-    #     )
+    def test_string_in(self):
+        self.evaluate(
+            'identifier IN ("A", \'B\')',
+            ('A', 'B')
+        )
 
-    # def test_string_not_in(self):
-    #     self.evaluate(
-    #         'identifier NOT IN ("B", \'C\')',
-    #         ('A',)
-    #     )
+    def test_string_not_in(self):
+        self.evaluate(
+            'identifier NOT IN ("B", \'C\')',
+            ('A',)
+        )
 
-    # # (NOT) NULL
+    # (NOT) NULL
 
-    # def test_string_null(self):
-    #     self.evaluate(
-    #         'illuminationElevationAngle IS NULL',
-    #         ('B',)
-    #     )
+    def test_string_null(self):
+        self.evaluate(
+            'illuminationElevationAngle IS NULL',
+            ('B',)
+        )
 
-    # def test_string_not_null(self):
-    #     self.evaluate(
-    #         'illuminationElevationAngle IS NOT NULL',
-    #         ('A',)
-    #     )
+    def test_string_not_null(self):
+        self.evaluate(
+            'illuminationElevationAngle IS NOT NULL',
+            ('A',)
+        )
 
-    # # temporal predicates
+    # temporal predicates
 
-    # def test_before(self):
-    #     self.evaluate(
-    #         'beginTime BEFORE 2000-01-01T00:00:01Z',
-    #         ('A',)
-    #     )
+    def test_before(self):
+        self.evaluate(
+            'beginTime BEFORE 2000-01-01T00:00:01Z',
+            ('A',)
+        )
 
-    # def test_before_or_during_dt_dt(self):
-    #     self.evaluate(
-    #         'beginTime BEFORE OR DURING '
-    #         '2000-01-01T00:00:00Z / 2000-01-01T00:00:01Z',
-    #         ('A',)
-    #     )
+    def test_before_or_during_dt_dt(self):
+        self.evaluate(
+            'beginTime BEFORE OR DURING '
+            '2000-01-01T00:00:00Z / 2000-01-01T00:00:01Z',
+            ('A',)
+        )
 
-    # def test_before_or_during_dt_td(self):
-    #     self.evaluate(
-    #         'beginTime BEFORE OR DURING '
-    #         '2000-01-01T00:00:00Z / PT4S',
-    #         ('A',)
-    #     )
+    def test_before_or_during_dt_td(self):
+        self.evaluate(
+            'beginTime BEFORE OR DURING '
+            '2000-01-01T00:00:00Z / PT4S',
+            ('A',)
+        )
 
-    # def test_before_or_during_td_dt(self):
-    #     self.evaluate(
-    #         'beginTime BEFORE OR DURING '
-    #         'PT4S / 2000-01-01T00:00:03Z',
-    #         ('A',)
-    #     )
+    def test_before_or_during_td_dt(self):
+        self.evaluate(
+            'beginTime BEFORE OR DURING '
+            'PT4S / 2000-01-01T00:00:03Z',
+            ('A',)
+        )
 
-    # def test_during_td_dt(self):
-    #     self.evaluate(
-    #         'beginTime BEFORE OR DURING '
-    #         'PT4S / 2000-01-01T00:00:03Z',
-    #         ('A',)
-    #     )
+    def test_during_td_dt(self):
+        self.evaluate(
+            'beginTime BEFORE OR DURING '
+            'PT4S / 2000-01-01T00:00:03Z',
+            ('A',)
+        )
 
-    # # TODO: test DURING OR AFTER / AFTER
+    # TODO: test DURING OR AFTER / AFTER
 
-    # # spatial predicates
+    # spatial predicates
 
-    # def test_intersects_point(self):
-    #     self.evaluate(
-    #         'INTERSECTS(footprint, POINT(1 1.0))',
-    #         ('A',)
-    #     )
+    def test_intersects_point(self):
+        self.evaluate(
+            'INTERSECTS(footprint, POINT(1 1.0))',
+            ('A',)
+        )
 
-    # def test_intersects_mulitipoint_1(self):
-    #     self.evaluate(
-    #         'INTERSECTS(footprint, MULTIPOINT(0 0, 1 1))',
-    #         ('A',)
-    #     )
+    def test_intersects_mulitipoint_1(self):
+        self.evaluate(
+            'INTERSECTS(footprint, MULTIPOINT(0 0, 1 1))',
+            ('A',)
+        )
 
-    # def test_intersects_mulitipoint_2(self):
-    #     self.evaluate(
-    #         'INTERSECTS(footprint, MULTIPOINT((0 0), (1 1)))',
-    #         ('A',)
-    #     )
+    def test_intersects_mulitipoint_2(self):
+        self.evaluate(
+            'INTERSECTS(footprint, MULTIPOINT((0 0), (1 1)))',
+            ('A',)
+        )
 
-    # def test_intersects_linestring(self):
-    #     self.evaluate(
-    #         'INTERSECTS(footprint, LINESTRING(0 0, 1 1))',
-    #         ('A',)
-    #     )
+    def test_intersects_linestring(self):
+        self.evaluate(
+            'INTERSECTS(footprint, LINESTRING(0 0, 1 1))',
+            ('A',)
+        )
 
-    # def test_intersects_multilinestring(self):
-    #     self.evaluate(
-    #         'INTERSECTS(footprint, MULTILINESTRING((0 0, 1 1), (2 1, 1 2)))',
-    #         ('A',)
-    #     )
+    def test_intersects_multilinestring(self):
+        self.evaluate(
+            'INTERSECTS(footprint, MULTILINESTRING((0 0, 1 1), (2 1, 1 2)))',
+            ('A',)
+        )
 
-    # def test_intersects_polygon(self):
-    #     self.evaluate(
-    #         'INTERSECTS(footprint, '
-    #         'POLYGON((0 0, 3 0, 3 3, 0 3, 0 0), (1 1, 2 1, 2 2, 1 2, 1 1)))',
-    #         ('A',)
-    #     )
+    def test_intersects_polygon(self):
+        self.evaluate(
+            'INTERSECTS(footprint, '
+            'POLYGON((0 0, 3 0, 3 3, 0 3, 0 0), (1 1, 2 1, 2 2, 1 2, 1 1)))',
+            ('A',)
+        )
 
-    # def test_intersects_multipolygon(self):
-    #     self.evaluate(
-    #         'INTERSECTS(footprint, '
-    #         'MULTIPOLYGON(((0 0, 3 0, 3 3, 0 3, 0 0), '
-    #         '(1 1, 2 1, 2 2, 1 2, 1 1))))',
-    #         ('A',)
-    #     )
+    def test_intersects_multipolygon(self):
+        self.evaluate(
+            'INTERSECTS(footprint, '
+            'MULTIPOLYGON(((0 0, 3 0, 3 3, 0 3, 0 0), '
+            '(1 1, 2 1, 2 2, 1 2, 1 1))))',
+            ('A',)
+        )
 
-    # def test_intersects_envelope(self):
-    #     self.evaluate(
-    #         'INTERSECTS(footprint, ENVELOPE(0 0 1.0 1.0))',
-    #         ('A',)
-    #     )
+    def test_intersects_envelope(self):
+        self.evaluate(
+            'INTERSECTS(footprint, ENVELOPE(0 0 1.0 1.0))',
+            ('A',)
+        )
 
-    # def test_dwithin(self):
-    #     self.evaluate(
-    #         'DWITHIN(footprint, POINT(0 0), 10, meters)',
-    #         ('A',)
-    #     )
+    def test_dwithin(self):
+        self.evaluate(
+            'DWITHIN(footprint, POINT(0 0), 10, meters)',
+            ('A',)
+        )
 
-    # def test_bbox(self):
-    #     self.evaluate(
-    #         'BBOX(footprint, 0, 0, 1, 1, "EPSG:4326")',
-    #         ('A',)
-    #     )
+    def test_bbox(self):
+        self.evaluate(
+            'BBOX(footprint, 0, 0, 1, 1, "EPSG:4326")',
+            ('A',)
+        )
 
 
-    # # TODO: other relation methods
+    # TODO: other relation methods
 
-    # # arithmethic expressions
+    # arithmethic expressions
 
-    # def test_arith_simple_plus(self):
-    #     self.evaluate(
-    #         'illuminationZenithAngle = 10 + 10',
-    #         ('A',)
-    #     )
+    def test_arith_simple_plus(self):
+        self.evaluate(
+            'illuminationZenithAngle = 10 + 10',
+            ('A',)
+        )
 
-    # def test_arith_field_plus_1(self):
-    #     self.evaluate(
-    #         'illuminationZenithAngle = illuminationAzimuthAngle + 10',
-    #         ('A', 'B')
-    #     )
+    def test_arith_field_plus_1(self):
+        self.evaluate(
+            'illuminationZenithAngle = illuminationAzimuthAngle + 10',
+            ('A', 'B')
+        )
 
-    # def test_arith_field_plus_2(self):
-    #     self.evaluate(
-    #         'illuminationZenithAngle = 10 + illuminationAzimuthAngle',
-    #         ('A', 'B')
-    #     )
+    def test_arith_field_plus_2(self):
+        self.evaluate(
+            'illuminationZenithAngle = 10 + illuminationAzimuthAngle',
+            ('A', 'B')
+        )
 
-    # def test_arith_field_plus_field(self):
-    #     self.evaluate(
-    #         'illuminationElevationAngle = '
-    #         'illuminationZenithAngle + illuminationAzimuthAngle',
-    #         ('A',)
-    #     )
+    def test_arith_field_plus_field(self):
+        self.evaluate(
+            'illuminationElevationAngle = '
+            'illuminationZenithAngle + illuminationAzimuthAngle',
+            ('A',)
+        )
 
-    # def test_arith_field_plus_mul_1(self):
-    #     self.evaluate(
-    #         'illuminationZenithAngle = illuminationAzimuthAngle * 1.5 + 5',
-    #         ('A',)
-    #     )
+    def test_arith_field_plus_mul_1(self):
+        self.evaluate(
+            'illuminationZenithAngle = illuminationAzimuthAngle * 1.5 + 5',
+            ('A',)
+        )
 
-    # def test_arith_field_plus_mul_2(self):
-    #     self.evaluate(
-    #         'illuminationZenithAngle = 5 + illuminationAzimuthAngle * 1.5',
-    #         ('A',)
-    #     )
+    def test_arith_field_plus_mul_2(self):
+        self.evaluate(
+            'illuminationZenithAngle = 5 + illuminationAzimuthAngle * 1.5',
+            ('A',)
+        )
 
 

@@ -1,0 +1,8 @@
+from .getcapabilities import WCS20GetCapabilitiesHandler
+from .describecoverage import WCS20DescribeCoverageHandler
+from .getcoverage import WCS20GetCoverageHandler
+
+
+GetCapabilitiesHandler = WCS20GetCapabilitiesHandler
+DescribeCoverageHandler = WCS20DescribeCoverageHandler
+GetCoverageHandler = WCS20GetCoverageHandler

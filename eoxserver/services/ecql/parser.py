@@ -1,11 +1,11 @@
 from ply import yacc
 
 from eoxserver.services.ecql.lexer import ECQLLexer
-from eoxserver.services import filters
+from eoxserver.services.ecql import ast
 
 
 class ECQLParser(object):
-    def __init__(self, field_mapping=None, mapping_choices=None):
+    def __init__(self):
         self.lexer = ECQLLexer(
             optimize=True,
             # lextab='ecql.lextab',
@@ -25,8 +25,6 @@ class ECQLParser(object):
 
             errorlog=yacc.NullLogger(),
         )
-        self.field_mapping = field_mapping or {}
-        self.mapping_choices = mapping_choices
 
     def parse(self, text):
         return self.parser.parse(
@@ -65,9 +63,9 @@ class ECQLParser(object):
         if len(p) == 2:
             p[0] = p[1]
         elif p[2] in ("AND", "OR"):
-            p[0] = filters.combine([p[1], p[3]], p[2])
+            p[0] = ast.CombinationConditionNode([p[1], p[3]], p[2])
         elif p[1] == "NOT":
-            p[0] = filters.negate(p[2])
+            p[0] = ast.NotConditionNode(p[2])
         elif p[1] in ("(", "["):
             p[0] = p[2]
 
@@ -95,7 +93,7 @@ class ECQLParser(object):
             p[0] = p[1]
 
         elif p[2] in ("=", "<>", "<", "<=", ">", ">="):
-            p[0] = filters.compare(p[1], p[3], p[2], self.mapping_choices)
+            p[0] = ast.ComparisonPredicateNode(p[1], p[3], p[2])
         else:
             not_ = False
             op = p[2]
@@ -104,18 +102,19 @@ class ECQLParser(object):
                 op = p[3]
 
             if op == "BETWEEN":
-                p[0] = filters.between(
+                p[0] = ast.BetweenPredicateNode(
                     p[1], p[4 if not_ else 3], p[6 if not_ else 5], not_
                 )
             elif op in ("LIKE", "ILIKE"):
-                p[0] = filters.like(
-                    p[1], p[4 if not_ else 3], op == "ILIKE", not_
+                p[0] = ast.LikePredicateNode(
+                    p[1], ast.LiteralExpression(p[4 if not_ else 3]),
+                    op == "ILIKE", not_
                 )
             elif op == "IN":
-                p[0] = filters.contains(p[1], p[5 if not_ else 4], not_)
+                p[0] = ast.InPredicateNode(p[1], p[5 if not_ else 4], not_)
 
             elif op == "IS":
-                p[0] = filters.null(p[1], p[3] == "NOT")
+                p[0] = ast.NullPredicateNode(p[1], p[3] == "NOT")
 
     def p_temporal_predicate(self, p):
         """ temporal_predicate : expression BEFORE TIME
@@ -130,7 +129,7 @@ class ECQLParser(object):
         else:
             op = p[2]
 
-        p[0] = filters.temporal(p[1], p[3 if len(p) == 4 else 5], op)
+        p[0] = ast.TemporalPredicateNode(p[1], p[3 if len(p) == 4 else 5], op)
 
     def p_time_period(self, p):
         """ time_period : TIME DIVIDE TIME
@@ -153,19 +152,20 @@ class ECQLParser(object):
                               | BEYOND LPAREN expression COMMA expression COMMA number COMMA UNITS RPAREN
                               | BBOX LPAREN expression COMMA number COMMA number COMMA number COMMA number COMMA QUOTED RPAREN
         """
-        # TODO: RELATE, DWITHIN, BEYOND, BBOX
         op = p[1]
         lhs = p[3]
         rhs = p[5]
 
         if op == "RELATE":
-            p[0] = filters.spatial(lhs, rhs, op, pattern=p[7])
+            p[0] = ast.SpatialPredicateNode(lhs, rhs, op, pattern=p[7])
         elif op in ("DWITHIN", "BEYOND"):
-            p[0] = filters.spatial(lhs, rhs, op, distance=p[7], units=p[9])
+            p[0] = ast.SpatialPredicateNode(
+                lhs, rhs, op, distance=p[7], units=p[9]
+            )
         elif op == "BBOX":
-            p[0] = filters.bbox(lhs, *p[5::2])
+            p[0] = ast.BBoxPredicateNode(lhs, *p[5::2])
         else:
-            p[0] = filters.spatial(lhs, rhs, op)
+            p[0] = ast.SpatialPredicateNode(lhs, rhs, op)
 
     def p_expression_list(self, p):
         """ expression_list : expression_list COMMA expression
@@ -192,7 +192,10 @@ class ECQLParser(object):
                        | FLOAT
         """
         if len(p) == 2:
-            p[0] = p[1]
+            if isinstance(p[1], ast.Node):
+                p[0] = p[1]
+            else:
+                p[0] = ast.LiteralExpression(p[1])
         else:
             if p[1] in ("(", "["):
                 p[0] = p[2]
@@ -200,18 +203,18 @@ class ECQLParser(object):
                 op = p[2]
                 lhs = p[1]
                 rhs = p[3]
-                p[0] = filters.arithmetic(lhs, rhs, op)
+                p[0] = ast.ArithmeticExpressionNode(lhs, rhs, op)
 
     def p_number(self, p):
         """ number : INTEGER
                    | FLOAT
         """
-        p[0] = p[1]
+        p[0] = ast.LiteralExpression(p[1])
 
     def p_attribute(self, p):
         """ attribute : ATTRIBUTE
         """
-        p[0] = filters.attribute(p[1], self.field_mapping)
+        p[0] = ast.AttributeExpression(p[1])
 
     def p_empty(self, p):
         'empty : '
