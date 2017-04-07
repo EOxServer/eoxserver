@@ -1,17 +1,19 @@
 from operator import and_, or_, add, sub, mul, div
 from datetime import datetime, timedelta
 
-from django.db.models import Q, F
+from django.db.models import Q, F, expressions
 try:
     from django.db.models import Value
-    ARITHMETIC_TYPES = (F, Value, int, float)
+    ARITHMETIC_TYPES = (F, Value, expressions.ExpressionNode, int, float)
 except ImportError:
     def Value(v):
         return v
-    ARITHMETIC_TYPES = (F, int, float)
+    ARITHMETIC_TYPES = (F, expressions.ExpressionNode, int, float)
 
 from django.contrib.gis.geos import Polygon
 from django.contrib.gis.measure import D
+
+from eoxserver.resources.coverages import models
 
 # ------------------------------------------------------------------------------
 # Filters
@@ -57,7 +59,7 @@ OP_TO_COMP = {
 }
 
 
-def compare(lhs, rhs, op):
+def compare(lhs, rhs, op, mapping_choices=None):
     """ Compare a filter with an expression using a comparison operation
 
         :param lhs: the field to compare
@@ -75,6 +77,17 @@ def compare(lhs, rhs, op):
     comp = OP_TO_COMP[op]
 
     field_name = lhs.name
+
+    if mapping_choices and field_name in mapping_choices:
+        try:
+            if isinstance(rhs, basestring):
+                rhs = mapping_choices[field_name][rhs]
+            elif hasattr(rhs, 'value'):
+                rhs = Value(mapping_choices[field_name][rhs.value])
+
+        except KeyError, e:
+            raise AssertionError("Invalid field value %s" % e)
+
     if comp:
         return Q(**{"%s__%s" % (lhs.name, comp): rhs})
     return ~Q(**{field_name: rhs})
@@ -187,8 +200,8 @@ def spatial(lhs, rhs, op, pattern=None, distance=None, units=None):
         # TODO: maybe use D.unit_attname(units)
         d = D(**{UNITS_LOOKUP[units]: distance})
         if op == "DWITHIN":
-            return Q(**{"%s__dwithin": d})
-        return Q(**{"%s__distance_gt": d})
+            return Q(**{"%s__dwithin" % lhs.name: (rhs, d)})
+        return Q(**{"%s__distance_gt" % lhs.name: (rhs, d)})
 
     print op
 
@@ -196,7 +209,6 @@ def spatial(lhs, rhs, op, pattern=None, distance=None, units=None):
 def bbox(lhs, minx, miny, maxx, maxy, crs=None):
     assert isinstance(lhs, F)
     bbox = Polygon.from_bbox((minx, miny, maxx, maxy))
-
     # TODO: CRS?
 
     return Q(**{"%s__bboverlaps" % lhs.name: bbox})
@@ -230,3 +242,42 @@ def arithmetic(lhs, rhs, op):
     assert op in OP_TO_FUNC
     func = OP_TO_FUNC[op]
     return func(lhs, rhs)
+
+
+# helpers
+def to_camel_case(word):
+    string = ''.join(x.capitalize() or '_' for x in word.split('_'))
+    return string[0].lower() + string[1:]
+
+
+def get_field_mapping_for_model(ModelClass):
+    mapping = {}
+    mapping_choices = {}
+
+    if issubclass(ModelClass, models.EOMetadata):
+        field_names = ('identifier', 'begin_time', 'end_time', 'footprint')
+        for field_name in field_names:
+            mapping[to_camel_case(field_name)] = field_name
+
+    if issubclass(ModelClass, models.Coverage):
+        metadata_classes = (
+            (models.CoverageMetadata, 'metadata'),
+            (models.SARMetadata, 'metadata__sarmetadata'),
+            (models.OPTMetadata, 'metadata__optmetadata'),
+            (models.ALTMetadata, 'metadata__altmetadata')
+        )
+        for (metadata_class, path) in metadata_classes:
+            for field in metadata_class._meta.fields:
+                # skip fields that are defined in a parent model
+                if field.model is not metadata_class:
+                    continue
+
+                # TODO: what if field is related, i.e: __value
+                full_path = '%s__%s' % (path, field.name)
+                mapping[to_camel_case(field.name)] = full_path
+                if field.choices:
+                    mapping_choices[full_path] = dict(
+                        (full, abbrev) for (abbrev, full) in field.choices
+                    )
+
+    return mapping, mapping_choices
