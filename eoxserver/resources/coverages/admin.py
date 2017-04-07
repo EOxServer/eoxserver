@@ -248,6 +248,23 @@ class DataItemInline(AbstractInline):
     model = models.backends.DataItem
 
 
+class CollectionMetadataInline(admin.StackedInline):
+    extra = 1
+    model = models.CollectionMetadata
+
+
+class CoverageMetadataInline(admin.StackedInline):
+    extra = 1
+    model = models.CoverageMetadata
+
+
+class SARMetadataInline(CoverageMetadataInline):
+    model = models.SARMetadata
+
+
+class OPTMetadataInline(CoverageMetadataInline):
+    model = models.OPTMetadata
+
 #===============================================================================
 # Model admins
 #===============================================================================
@@ -284,14 +301,14 @@ admin.site.register(models.DataSource, DataSourceAdmin)
 
 class RectifiedDatasetAdmin(CoverageAdmin):
     model = models.RectifiedDataset
-    inlines = (DataItemInline, CollectionInline)
+    inlines = (DataItemInline, CollectionInline, CoverageMetadataInline, SARMetadataInline, OPTMetadataInline)
 
 admin.site.register(models.RectifiedDataset, RectifiedDatasetAdmin)
 
 
 class ReferenceableDatasetAdmin(CoverageAdmin):
     model = models.ReferenceableDataset
-    inlines = (DataItemInline, CollectionInline)
+    inlines = (DataItemInline, CollectionInline, CoverageMetadataInline, SARMetadataInline, OPTMetadataInline)
 
 admin.site.register(models.ReferenceableDataset, ReferenceableDatasetAdmin)
 
