@@ -88,6 +88,7 @@ setup(
     install_requires=[
         'django>=1.4',
         'python-dateutil',
+        'ply',
     ],
     zip_safe=False,
 
