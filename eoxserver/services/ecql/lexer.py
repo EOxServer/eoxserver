@@ -1,6 +1,6 @@
 from ply import lex
 from ply.lex import TOKEN
-from django.contrib.gis.geos import GEOSGeometry
+from django.contrib.gis.geos import GEOSGeometry, Polygon
 
 from eoxserver.core.util.timetools import parse_iso8601, parse_duration
 
@@ -26,6 +26,7 @@ class ECQLLexer(object):
         "BEFORE", "AFTER", "DURING", "INTERSECTS", "DISJOINT", "CONTAINS",
         "WITHIN", "TOUCHES", "CROSSES", "OVERLAPS", "EQUALS", "RELATE",
         "DWITHIN", "BEYOND", "BBOX",
+        "feet", "meters", "statute miles", "nautical miles", "kilometers"
     )
 
     tokens = keywords + (
@@ -40,11 +41,13 @@ class ECQLLexer(object):
         'GEOMETRY',
         'ENVELOPE',
 
+        'UNITS',
+
         'ATTRIBUTE',
         'TIME',
         'DURATION',
-        'INTEGER',
         'FLOAT',
+        'INTEGER',
         'QUOTED',
     )
 
@@ -53,19 +56,22 @@ class ECQLLexer(object):
     identifier_pattern = r'[a-zA-Z_$][0-9a-zA-Z_$]*'
 
     int_pattern = r'[0-9]+'
-    float_pattern = r'(?:[0-9]+[.][0-9]*|[.][0-9]+)(?:[Ee][-+]?[0-9]+)?'
+    # float_pattern = r'(?:[0-9]+[.][0-9]*|[.][0-9]+)(?:[Ee][-+]?[0-9]+)?'
+    float_pattern = r'[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?'
 
     time_pattern = "\d{4}-\d{2}-\d{2}T[0-2][0-9]:[0-5][0-9]:[0-5][0-9]Z"
     duration_pattern = (
         # "P(?=[YMDHMS])"  # positive lookahead here... TODO: does not work
         # "((\d+Y)?(\d+M)?(\d+D)?)?(T(\d+H)?(\d+M)?(\d+S)?)?"
-        "P((\d+Y)?(\d+M)?(\d+D)?)?(T(\d+H)?(\d+M)?(\d+S)?)?"  ## TODO maybe this causes trouble with 'POINT' or similar...
+        "P((\d+Y)?(\d+M)?(\d+D)?)?(T(\d+H)?(\d+M)?(\d+S)?)?"
     )
     quoted_string_pattern = r'(\"[^"]*\")|(\'[^\']*\')'
 
     # for geometry parsing
-    # number_pattern = '(%s)|(%s)' % (float_pattern, int_pattern)
-    number_pattern = int_pattern  # TODO: +float
+
+    # a simple pattern that allows the simple float and integer notations (but
+    # not the scientific ones). Maybe TODO
+    number_pattern = r'[0-9]*\.?[0-9]+'
 
     coordinate_2d_pattern = r'%s\s+%s\s*' % (number_pattern, number_pattern)
     coordinate_3d_pattern = r'%s\s+%s\s*' % (
@@ -100,7 +106,7 @@ class ECQLLexer(object):
         ) +
         r'(MULTIPOLYGON\s*\(%s\))' % nested_coordinate_groups_pattern
     )
-    envelope_pattern = r'ENVELOPE\s*\((\s*%s\s*)+\)' % number_pattern
+    envelope_pattern = r'ENVELOPE\s*\((\s*%s\s*){4}\)' % number_pattern
 
     t_PLUS = r'\+'
     t_MINUS = r'-'
@@ -129,6 +135,15 @@ class ECQLLexer(object):
 
     @TOKEN(envelope_pattern)
     def t_ENVELOPE(self, t):
+        bbox = [
+            float(number) for number in
+            t.value.partition('(')[2].partition(')')[0].split()
+        ]
+        t.value = Polygon.from_bbox(bbox)
+        return t
+
+    @TOKEN(r'(feet)|(meters)|(statute miles)|(nautical miles)|(kilometers)')
+    def t_UNITS(self, t):
         return t
 
     @TOKEN(time_pattern)
@@ -141,14 +156,14 @@ class ECQLLexer(object):
         t.value = parse_duration(t.value)
         return t
 
-    @TOKEN(int_pattern)
-    def t_INTEGER(self, t):
-        t.value = int(t.value)
-        return t
-
     @TOKEN(float_pattern)
     def t_FLOAT(self, t):
         t.value = float(t.value)
+        return t
+
+    @TOKEN(int_pattern)
+    def t_INTEGER(self, t):
+        t.value = int(t.value)
         return t
 
     @TOKEN(quoted_string_pattern)

@@ -5,7 +5,7 @@ from eoxserver.services import filters
 
 
 class ECQLParser(object):
-    def __init__(self, field_mapping=None):
+    def __init__(self, field_mapping=None, mapping_choices=None):
         self.lexer = ECQLLexer(
             optimize=True,
             # lextab='ecql.lextab',
@@ -26,6 +26,7 @@ class ECQLParser(object):
             errorlog=yacc.NullLogger(),
         )
         self.field_mapping = field_mapping or {}
+        self.mapping_choices = mapping_choices
 
     def parse(self, text):
         return self.parser.parse(
@@ -94,7 +95,7 @@ class ECQLParser(object):
             p[0] = p[1]
 
         elif p[2] in ("=", "<>", "<", "<=", ">", ">="):
-            p[0] = filters.compare(p[1], p[3], p[2])
+            p[0] = filters.compare(p[1], p[3], p[2], self.mapping_choices)
         else:
             not_ = False
             op = p[2]
@@ -147,17 +148,24 @@ class ECQLParser(object):
                               | CROSSES LPAREN expression COMMA expression RPAREN
                               | OVERLAPS LPAREN expression COMMA expression RPAREN
                               | EQUALS LPAREN expression COMMA expression RPAREN
-                              | RELATE LPAREN expression COMMA expression RPAREN
-                              | DWITHIN LPAREN expression COMMA expression RPAREN
-                              | BEYOND LPAREN expression COMMA expression RPAREN
-                              | BBOX LPAREN expression COMMA expression RPAREN
+                              | RELATE LPAREN expression COMMA expression COMMA QUOTED RPAREN
+                              | DWITHIN LPAREN expression COMMA expression COMMA number COMMA UNITS RPAREN
+                              | BEYOND LPAREN expression COMMA expression COMMA number COMMA UNITS RPAREN
+                              | BBOX LPAREN expression COMMA number COMMA number COMMA number COMMA number COMMA QUOTED RPAREN
         """
         # TODO: RELATE, DWITHIN, BEYOND, BBOX
         op = p[1]
         lhs = p[3]
         rhs = p[5]
 
-        p[0] = filters.spatial(lhs, rhs, op)
+        if op == "RELATE":
+            p[0] = filters.spatial(lhs, rhs, op, pattern=p[7])
+        elif op in ("DWITHIN", "BEYOND"):
+            p[0] = filters.spatial(lhs, rhs, op, distance=p[7], units=p[9])
+        elif op == "BBOX":
+            p[0] = filters.bbox(lhs, *p[5::2])
+        else:
+            p[0] = filters.spatial(lhs, rhs, op)
 
     def p_expression_list(self, p):
         """ expression_list : expression_list COMMA expression
@@ -194,6 +202,12 @@ class ECQLParser(object):
                 rhs = p[3]
                 p[0] = filters.arithmetic(lhs, rhs, op)
 
+    def p_number(self, p):
+        """ number : INTEGER
+                   | FLOAT
+        """
+        p[0] = p[1]
+
     def p_attribute(self, p):
         """ attribute : ATTRIBUTE
         """
@@ -205,9 +219,10 @@ class ECQLParser(object):
 
     def p_error(self, p):
         if p:
-            print("Syntax error at token", p.type)
+            print dir(p)
+            print("Syntax error at token", p.type, p.value, p.lexpos, p.lineno)
             # Just discard the token and tell the parser it's okay.
-            p.parser.errok()
+            #p.parser.errok()
         else:
             print("Syntax error at EOF")
 

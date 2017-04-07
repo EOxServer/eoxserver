@@ -4,20 +4,22 @@ from django.contrib.gis.geos import Polygon, MultiPolygon
 from eoxserver.core.util.timetools import parse_iso8601
 from eoxserver.resources.coverages import models
 from eoxserver.services import ecql
+from eoxserver.services.filters import get_field_mapping_for_model
 
+import eoxserver.services.ecql.ast
 
 class ECQLTestCase(TransactionTestCase):
-    mapping = {
-        "identifier": "identifier",
-        "id": "identifier",
-        "beginTime": "begin_time",
-        "endTime": "end_time",
-        "footprint": "footprint",
-        "parentIdentifier": "metadata__parent_identifier",
-        "illuminationAzimuthAngle": "metadata__illumination_azimuth_angle",
-        "illuminationZenithAngle": "metadata__illumination_zenith_angle",
-        "illuminationElevationAngle": "metadata__illumination_elevation_angle"
-    }
+    # mapping = {
+    #     "identifier": "identifier",
+    #     "id": "identifier",
+    #     "beginTime": "begin_time",
+    #     "endTime": "end_time",
+    #     "footprint": "footprint",
+    #     "parentIdentifier": "metadata__parent_identifier",
+    #     "illuminationAzimuthAngle": "metadata__illumination_azimuth_angle",
+    #     "illuminationZenithAngle": "metadata__illumination_zenith_angle",
+    #     "illuminationElevationAngle": "metadata__illumination_elevation_angle"
+    # }
 
     def setUp(self):
         p = parse_iso8601
@@ -74,12 +76,13 @@ class ECQLTestCase(TransactionTestCase):
     def create_sar(self, coverage_params, metadata):
         pass
 
-    def evaluate(self, cql_expr, expected_ids):
-        qs = models.RectifiedDataset.objects.filter(
-            ecql.parse(cql_expr, self.mapping)
-        )
+    def evaluate(self, cql_expr, expected_ids, model_type=None):
+        model_type = model_type or models.RectifiedDataset
+        mapping, mapping_choices = get_field_mapping_for_model(model_type)
 
-        # print qs.query
+        filters = ecql.parse(cql_expr, mapping, mapping_choices)
+        qs = model_type.objects.filter(filters)
+
         self.assertItemsEqual(
             expected_ids, qs.values_list("identifier", flat=True)
         )
@@ -254,13 +257,13 @@ class ECQLTestCase(TransactionTestCase):
     #         ('A',)
     #     )
 
-    # TODO: test DURING OR AFTER / AFTER
+    # # TODO: test DURING OR AFTER / AFTER
 
     # # spatial predicates
 
     # def test_intersects_point(self):
     #     self.evaluate(
-    #         'INTERSECTS(footprint, POINT(1 1))',
+    #         'INTERSECTS(footprint, POINT(1 1.0))',
     #         ('A',)
     #     )
 
@@ -298,30 +301,69 @@ class ECQLTestCase(TransactionTestCase):
     # def test_intersects_multipolygon(self):
     #     self.evaluate(
     #         'INTERSECTS(footprint, '
-    #         'POLYGON((0 0, 3 0, 3 3, 0 3, 0 0), (1 1, 2 1, 2 2, 1 2, 1 1)))',
+    #         'MULTIPOLYGON(((0 0, 3 0, 3 3, 0 3, 0 0), '
+    #         '(1 1, 2 1, 2 2, 1 2, 1 1))))',
     #         ('A',)
     #     )
 
+    # def test_intersects_envelope(self):
+    #     self.evaluate(
+    #         'INTERSECTS(footprint, ENVELOPE(0 0 1.0 1.0))',
+    #         ('A',)
+    #     )
+
+    # def test_dwithin(self):
+    #     self.evaluate(
+    #         'DWITHIN(footprint, POINT(0 0), 10, meters)',
+    #         ('A',)
+    #     )
+
+    # def test_bbox(self):
+    #     self.evaluate(
+    #         'BBOX(footprint, 0, 0, 1, 1, "EPSG:4326")',
+    #         ('A',)
+    #     )
+
+
     # # TODO: other relation methods
 
-    # arithmethic expressions
+    # # arithmethic expressions
 
-    def test_arith_simple_plus(self):
-        self.evaluate(
-            'illuminationZenithAngle = 10 + 10',
-            ('A',)
-        )
+    # def test_arith_simple_plus(self):
+    #     self.evaluate(
+    #         'illuminationZenithAngle = 10 + 10',
+    #         ('A',)
+    #     )
 
-    def test_arith_field_plus_1(self):
-        self.evaluate(
-            'illuminationZenithAngle = illuminationAzimuthAngle + 10',
-            ('A', 'B')
-        )
+    # def test_arith_field_plus_1(self):
+    #     self.evaluate(
+    #         'illuminationZenithAngle = illuminationAzimuthAngle + 10',
+    #         ('A', 'B')
+    #     )
 
-    def test_arith_field_plus_2(self):
-        self.evaluate(
-            'illuminationZenithAngle = 10 + illuminationAzimuthAngle',
-            ('A', 'B')
-        )
+    # def test_arith_field_plus_2(self):
+    #     self.evaluate(
+    #         'illuminationZenithAngle = 10 + illuminationAzimuthAngle',
+    #         ('A', 'B')
+    #     )
+
+    # def test_arith_field_plus_field(self):
+    #     self.evaluate(
+    #         'illuminationElevationAngle = '
+    #         'illuminationZenithAngle + illuminationAzimuthAngle',
+    #         ('A',)
+    #     )
+
+    # def test_arith_field_plus_mul_1(self):
+    #     self.evaluate(
+    #         'illuminationZenithAngle = illuminationAzimuthAngle * 1.5 + 5',
+    #         ('A',)
+    #     )
+
+    # def test_arith_field_plus_mul_2(self):
+    #     self.evaluate(
+    #         'illuminationZenithAngle = 5 + illuminationAzimuthAngle * 1.5',
+    #         ('A',)
+    #     )
 
 
