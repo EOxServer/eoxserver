@@ -779,7 +779,7 @@ class CollectionMetadata(models.Model):
     processing_level = models.CharField(max_length=256, blank=True, null=True, db_index=True)
     orbit_type = models.CharField(max_length=256, blank=True, null=True, db_index=True)
     spectral_range = models.CharField(max_length=256, blank=True, null=True, db_index=True)
-    wavelength = models.CharField(max_length=256, blank=True, null=True, db_index=True)
+    wavelength = models.IntegerField(blank=True, null=True, db_index=True)
     # hasSecurityConstraints = models.CharField(blank=True, null=True, index=True)
     # dissemination = models.CharField(blank=True, null=True, index=True)
 
@@ -869,9 +869,7 @@ class AcquisitionSubType(AbstractCommonValue):
     pass
 
 
-class CoverageMetadata(models.Model):
-    coverage = models.OneToOneField(Coverage, related_name="metadata")
-
+class ProductMetadata(models.Model):
     parent_identifier = models.CharField(max_length=256, null=True, blank=True)
 
     production_status = models.CharField(max_length=1, null=True, blank=True, choices=PRODUCTION_STATUS_CHOICES)
@@ -896,10 +894,16 @@ class CoverageMetadata(models.Model):
     archiving_center = models.ForeignKey(ArchivingCenter, **common_value_args)
     processing_mode = models.ForeignKey(ProcessingMode, **common_value_args)
 
+
+class CoverageMetadata(models.Model):
+    coverage = models.OneToOneField(Coverage, related_name="metadata")
+
+    product_metadata = models.ForeignKey(ProductMetadata)
+
     availability_time = models.DateTimeField(null=True, blank=True)
     acquisition_station = models.ForeignKey(AcquisitionStation, **common_value_args)
     acquisition_sub_type = models.ForeignKey(AcquisitionSubType, **common_value_args)
-    start_time_from_ascending_node = models.IntegerField(null=True, blank=True) # in ms
+    start_time_from_ascending_node = models.IntegerField(null=True, blank=True)
     completion_time_from_ascending_node = models.IntegerField(null=True, blank=True)
     illumination_azimuth_angle = models.FloatField(null=True, blank=True)
     illumination_zenith_angle = models.FloatField(null=True, blank=True)
