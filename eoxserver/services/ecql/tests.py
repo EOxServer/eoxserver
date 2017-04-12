@@ -1,3 +1,31 @@
+# ------------------------------------------------------------------------------
+#
+# Project: EOxServer <http://eoxserver.org>
+# Authors: Fabian Schindler <fabian.schindler@eox.at>
+#
+# ------------------------------------------------------------------------------
+# Copyright (C) 2017 EOX IT Services GmbH
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies of this Software or works derived from this Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+# ------------------------------------------------------------------------------
+
+
 from django.test import TransactionTestCase
 from django.db.models import ForeignKey
 from django.contrib.gis.geos import Polygon, MultiPolygon
@@ -46,6 +74,7 @@ class ECQLTestCase(TransactionTestCase):
             illumination_azimuth_angle=10.0,
             illumination_zenith_angle=20.0,
             illumination_elevation_angle=30.0,
+        ), dict(
             parent_identifier="AparentA",
             orbit_number="AAA",
             orbit_direction="ASCENDING"
@@ -62,12 +91,13 @@ class ECQLTestCase(TransactionTestCase):
         ), dict(
             illumination_azimuth_angle=20.0,
             illumination_zenith_angle=30.0,
+        ), dict(
             parent_identifier="BparentB",
             orbit_number="BBB",
             orbit_direction="DESCENDING"
         ))
 
-    def create_metadata(self, coverage, metadata):
+    def create_metadata(self, coverage, metadata, product_metadata):
         def is_common_value(field):
             try:
                 if isinstance(field, ForeignKey):
@@ -77,8 +107,8 @@ class ECQLTestCase(TransactionTestCase):
                 pass
             return False
 
-        def convert(name, value):
-            field = models.CoverageMetadata._meta.get_field(name)
+        def convert(name, value, model_class):
+            field = model_class._meta.get_field(name)
             if is_common_value(field):
                 return field.related.parent_model.objects.get_or_create(
                     value=value
@@ -87,15 +117,24 @@ class ECQLTestCase(TransactionTestCase):
                 return dict((v, k) for k, v in field.choices)[value]
             return value
 
-        return models.CoverageMetadata.objects.create(coverage=coverage, **dict(
-            (name, convert(name, value))
-            for name, value in metadata.items()
+        pm = models.ProductMetadata.objects.create(**dict(
+            (name, convert(name, value, models.ProductMetadata))
+            for name, value in product_metadata.items()
         ))
+        return models.CoverageMetadata.objects.create(
+            coverage=coverage, product_metadata=pm, **dict(
+                (name, convert(name, value, models.CoverageMetadata))
+                for name, value in metadata.items()
+            )
+        )
 
-    def create(self, coverage_params, metadata):
+    def create(self, coverage_params, metadata, product_metadata):
         c = models.RectifiedDataset.objects.create(**coverage_params)
-        self.create_metadata(c, metadata)
+        self.create_metadata(c, metadata, product_metadata)
         return c
+
+    def create_collection(self, collection_params, metadata):
+        pass
 
     def create_opt(self, coverage_params, metadata):
         pass
@@ -186,6 +225,12 @@ class ECQLTestCase(TransactionTestCase):
             ('A',)
         )
 
+    def test_common_value_like_middle(self):
+        self.evaluate(
+            r'orbitNumber LIKE "A%A"',
+            ('A',)
+        )
+
     def test_enum_value_eq(self):
         self.evaluate(
             'orbitDirection = "ASCENDING"',
@@ -206,7 +251,13 @@ class ECQLTestCase(TransactionTestCase):
 
     def test_enum_value_ilike(self):
         self.evaluate(
-            'orbitDirection LIKE "ascen%"',
+            'orbitDirection ILIKE "ascen%"',
+            ('A',)
+        )
+
+    def test_enum_value_ilike_start_middle_end(self):
+        self.evaluate(
+            r'orbitDirection ILIKE "a%en%ing"',
             ('A',)
         )
 
@@ -226,20 +277,38 @@ class ECQLTestCase(TransactionTestCase):
 
     def test_like_endswith(self):
         self.evaluate(
-            'parentIdentifier LIKE "%A"',
+            r'parentIdentifier LIKE "%A"',
             ('A',)
         )
 
     def test_ilike_endswith(self):
         self.evaluate(
-            'parentIdentifier ILIKE "%a"',
+            r'parentIdentifier ILIKE "%a"',
             ('A',)
         )
 
     def test_like_middle(self):
         self.evaluate(
-            'parentIdentifier LIKE "%parent%"',
+            r'parentIdentifier LIKE "%parent%"',
             ('A', 'B')
+        )
+
+    def test_like_startswith_middle(self):
+        self.evaluate(
+            r'parentIdentifier LIKE "A%rent%"',
+            ('A',)
+        )
+
+    def test_like_middle_endswith(self):
+        self.evaluate(
+            r'parentIdentifier LIKE "%ren%A"',
+            ('A',)
+        )
+
+    def test_like_startswith_middle_endswith(self):
+        self.evaluate(
+            r'parentIdentifier LIKE "A%ren%A"',
+            ('A',)
         )
 
     def test_ilike_middle(self):
@@ -262,13 +331,13 @@ class ECQLTestCase(TransactionTestCase):
 
     def test_not_like_endswith(self):
         self.evaluate(
-            'parentIdentifier NOT LIKE "%B"',
+            r'parentIdentifier NOT LIKE "%B"',
             ('A',)
         )
 
     def test_not_ilike_endswith(self):
         self.evaluate(
-            'parentIdentifier NOT ILIKE "%b"',
+            r'parentIdentifier NOT ILIKE "%b"',
             ('A',)
         )
 
@@ -443,4 +512,3 @@ class ECQLTestCase(TransactionTestCase):
             'illuminationZenithAngle = 5 + illuminationAzimuthAngle * 1.5',
             ('A',)
         )
-

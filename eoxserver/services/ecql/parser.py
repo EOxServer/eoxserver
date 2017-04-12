@@ -1,3 +1,31 @@
+# ------------------------------------------------------------------------------
+#
+# Project: EOxServer <http://eoxserver.org>
+# Authors: Fabian Schindler <fabian.schindler@eox.at>
+#
+# ------------------------------------------------------------------------------
+# Copyright (C) 2017 EOX IT Services GmbH
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies of this Software or works derived from this Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+# ------------------------------------------------------------------------------
+
+
 from ply import yacc
 
 from eoxserver.services.ecql.lexer import ECQLLexer
@@ -63,7 +91,7 @@ class ECQLParser(object):
         if len(p) == 2:
             p[0] = p[1]
         elif p[2] in ("AND", "OR"):
-            p[0] = ast.CombinationConditionNode([p[1], p[3]], p[2])
+            p[0] = ast.CombinationConditionNode(p[1], p[3], p[2])
         elif p[1] == "NOT":
             p[0] = ast.NotConditionNode(p[2])
         elif p[1] in ("(", "["):
@@ -108,7 +136,7 @@ class ECQLParser(object):
             elif op in ("LIKE", "ILIKE"):
                 p[0] = ast.LikePredicateNode(
                     p[1], ast.LiteralExpression(p[4 if not_ else 3]),
-                    op == "ILIKE", not_
+                    op == "LIKE", not_
                 )
             elif op == "IN":
                 p[0] = ast.InPredicateNode(p[1], p[5 if not_ else 4], not_)
@@ -228,6 +256,11 @@ class ECQLParser(object):
             #p.parser.errok()
         else:
             print("Syntax error at EOF")
+
+
+def parse(cql):
+    parser = ECQLParser()
+    return parser.parse(cql)
 
 # if __name__ == "__main__":
 #     p = ECQLParser()
