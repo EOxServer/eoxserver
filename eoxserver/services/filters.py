@@ -1,5 +1,38 @@
+# ------------------------------------------------------------------------------
+#
+# Project: EOxServer <http://eoxserver.org>
+# Authors: Fabian Schindler <fabian.schindler@eox.at>
+#
+# ------------------------------------------------------------------------------
+# Copyright (C) 2017 EOX IT Services GmbH
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies of this Software or works derived from this Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+# ------------------------------------------------------------------------------
+
+
 from operator import and_, or_, add, sub, mul, div
 from datetime import datetime, timedelta
+
+try:
+    from collections import OrderedDict
+except ImportError:
+    from django.utils.datastructures import SortedDict as OrderedDict
 
 from django.db.models import Q, F, expressions, ForeignKey
 try:
@@ -66,6 +99,8 @@ def compare(lhs, rhs, op, mapping_choices=None):
         :param rhs: the filter expression
         :param op: a string denoting the operation. one of ``"<"``, ``"<="``,
                    ``">"``, ``">="``, ``"<>"``, ``"="``
+        :param mapping_choices: a dict to lookup potential choices for a certain
+                                field.
         :type lhs: :class:`django.db.models.F`
         :type rhs: :class:`django.db.models.F`
         :return: a comparison expression object
@@ -94,6 +129,18 @@ def compare(lhs, rhs, op, mapping_choices=None):
 
 
 def between(lhs, low, high, not_=False):
+    """ Create a filter to match elements that have a value within a certain
+        range.
+
+        :param lhs: the field to compare
+        :param low: the lower value of the range
+        :param high: the upper value of the range
+        :param not_: whether the range shall be inclusive (the default) or
+                     exclusive
+        :type lhs: :class:`django.db.models.F`
+        :return: a comparison expression object
+        :rtype: :class:`django.db.models.Q`
+    """
     assert isinstance(lhs, F)
     # assert isinstance(low, BaseExpression)
     # assert isinstance(high, BaseExpression)  # TODO
@@ -103,6 +150,22 @@ def between(lhs, low, high, not_=False):
 
 
 def like(lhs, rhs, case=False, not_=False, mapping_choices=None):
+    """ Create a filter to filter elements according to a string attribute using
+        wildcard expressions.
+
+        :param lhs: the field to compare
+        :param rhs: the wildcard pattern: a string containing any number of '%'
+                    characters as wildcards.
+        :param case: whether the lookup shall be done case sensitively or not
+        :param not_: whether the range shall be inclusive (the default) or
+                     exclusive
+        :param mapping_choices: a dict to lookup potential choices for a certain
+                                field.
+        :type lhs: :class:`django.db.models.F`
+        :type rhs: str
+        :return: a comparison expression object
+        :rtype: :class:`django.db.models.Q`
+    """
     assert isinstance(lhs, F)
 
     if isinstance(rhs, basestring):
@@ -112,6 +175,9 @@ def like(lhs, rhs, case=False, not_=False, mapping_choices=None):
     else:
         raise AssertionError('Invalid pattern specified')
 
+    parts = pattern.split("%")
+    length = len(parts)
+
     if mapping_choices and lhs.name in mapping_choices:
         # special case when choices are given for the field:
         # compare statically and use 'in' operator to check if contained
@@ -119,45 +185,73 @@ def like(lhs, rhs, case=False, not_=False, mapping_choices=None):
             (a, a if case else a.lower())
             for a in mapping_choices[lhs.name].keys()
         ]
-        cmp_p = pattern if case else pattern.lower()
-        if pattern.startswith("%") and pattern.endswith("%"):
-            available = [a[0] for a in cmp_av if cmp_p[1:-1] in a[1]]
-        elif pattern.startswith("%"):
-            available = [a[0] for a in cmp_av if a[1].endswith(cmp_p[1:])]
-        elif pattern.endswith("%"):
-            available = [a[0] for a in cmp_av if a[1].startswith(cmp_p[:-1])]
-        else:
-            available = [a[0] for a in cmp_av if a[1] == cmp_p]
+
+        for idx, part in enumerate(parts):
+            if not part:
+                continue
+
+            cmp_p = part if case else part.lower()
+
+            if idx == 0 and length > 1:  # startswith
+                cmp_av = [a for a in cmp_av if a[1].startswith(cmp_p)]
+            elif idx == 0:  # exact matching
+                cmp_av = [a for a in cmp_av if a[1] == cmp_p]
+            elif idx == length - 1:   # endswith
+                cmp_av = [a for a in cmp_av if a[1].endswith(cmp_p)]
+            else:  # middle
+                cmp_av = [a for a in cmp_av if cmp_p in a[1]]
 
         q = Q(**{
             "%s__in" % lhs.name: [
-                mapping_choices[lhs.name][a]
-                for a in available
+                mapping_choices[lhs.name][a[0]]
+                for a in cmp_av
             ]
         })
+
     else:
         i = "" if case else "i"
+        q = None
 
-        if pattern.startswith("%") and pattern.endswith("%"):
-            q = Q(**{
-                "%s__%s" % (lhs.name, "%scontains" % i): pattern[1:-1]
-            })
-        elif pattern.startswith("%"):
-            q = Q(**{
-                "%s__%s" % (lhs.name, "%sendswith" % i): pattern[1:]
-            })
-        elif pattern.endswith("%"):
-            q = Q(**{
-                "%s__%s" % (lhs.name, "%sstartswith" % i): pattern[:-1]
-            })
-        else:
-            q = Q(**{
-                "%s__%s" % (lhs.name, "%sexact" % i): pattern
-            })
+        for idx, part in enumerate(parts):
+            if not part:
+                continue
+
+            if idx == 0 and length > 1:  # startswith
+                new_q = Q(**{
+                    "%s__%s" % (lhs.name, "%sstartswith" % i): part
+                })
+            elif idx == 0:  # exact matching
+                new_q = Q(**{
+                    "%s__%s" % (lhs.name, "%sexact" % i): part
+                })
+            elif idx == length - 1:   # endswith
+                new_q = Q(**{
+                    "%s__%s" % (lhs.name, "%sendswith" % i): part
+                })
+            else:  # middle
+                new_q = Q(**{
+                    "%s__%s" % (lhs.name, "%scontains" % i): part
+                })
+
+            q = q & new_q if q else new_q
+
     return ~q if not_ else q
 
 
 def contains(lhs, items, not_=False, mapping_choices=None):
+    """ Create a filter to match elements attribute to be in a list of choices.
+
+        :param lhs: the field to compare
+        :param items: a list of choices
+        :param not_: whether the range shall be inclusive (the default) or
+                     exclusive
+        :param mapping_choices: a dict to lookup potential choices for a certain
+                                field.
+        :type lhs: :class:`django.db.models.F`
+        :type items: list
+        :return: a comparison expression object
+        :rtype: :class:`django.db.models.Q`
+    """
     assert isinstance(lhs, F)
     # for item in items:
     #     assert isinstance(item, BaseExpression)
@@ -181,11 +275,33 @@ def contains(lhs, items, not_=False, mapping_choices=None):
 
 
 def null(lhs, not_=False):
+    """ Create a filter to match elements whose attribute is (not) null
+
+        :param lhs: the field to compare
+        :param not_: whether the range shall be inclusive (the default) or
+                     exclusive
+        :type lhs: :class:`django.db.models.F`
+        :return: a comparison expression object
+        :rtype: :class:`django.db.models.Q`
+    """
     assert isinstance(lhs, F)
     return Q(**{"%s__isnull" % lhs.name: not not_})
 
 
 def temporal(lhs, time_or_period, op):
+    """ Create a temporal filter for the given temporal attribute.
+
+        :param lhs: the field to compare
+        :param time_or_period: the time instant or time span to use as a filter
+        :param op: the comparison operation. one of "BEFORE", "BEFORE OR DURING",
+                   "DURING", "DURING OR AFTER", "AFTER".
+        :type lhs: :class:`django.db.models.F`
+        :type time_or_period: :class:`datetime.datetime` or a tuple of two
+                              datetimes or a tuple of one datetime and one
+                              :class:`datetime.timedelta`
+        :return: a comparison expression object
+        :rtype: :class:`django.db.models.Q`
+    """
     assert isinstance(lhs, F)
     assert op in (
         "BEFORE", "BEFORE OR DURING", "DURING", "DURING OR AFTER", "AFTER"
@@ -222,6 +338,21 @@ UNITS_LOOKUP = {
 
 
 def spatial(lhs, rhs, op, pattern=None, distance=None, units=None):
+    """ Create a spatial filter for the given spatial attribute.
+
+        :param lhs: the field to compare
+        :param rhs: the time instant or time span to use as a filter
+        :param op: the comparison operation. one of "INTERSECTS", "DISJOINT",
+                   "CONTAINS", "WITHIN", "TOUCHES", "CROSSES", "OVERLAPS",
+                   "EQUALS", "RELATE", "DWITHIN", "BEYOND"
+        :param pattern: the spatial relation pattern
+        :param distance: the distance value for distance based lookups:
+                         "DWITHIN" and "BEYOND"
+        :param units: the units the distance is expressed in
+        :type lhs: :class:`django.db.models.F`
+        :return: a comparison expression object
+        :rtype: :class:`django.db.models.Q`
+    """
     assert isinstance(lhs, F)
     # assert isinstance(rhs, BaseExpression)  # TODO
 
@@ -252,6 +383,18 @@ def spatial(lhs, rhs, op, pattern=None, distance=None, units=None):
 
 
 def bbox(lhs, minx, miny, maxx, maxy, crs=None):
+    """ Create a bounding box filter for the given spatial attribute.
+
+        :param lhs: the field to compare
+        :param minx: the lower x part of the bbox
+        :param miny: the lower y part of the bbox
+        :param maxx: the upper x part of the bbox
+        :param maxy: the upper y part of the bbox
+        :param crs: the CRS the bbox is expressed in
+        :type lhs: :class:`django.db.models.F`
+        :return: a comparison expression object
+        :rtype: :class:`django.db.models.Q`
+    """
     assert isinstance(lhs, F)
     bbox = Polygon.from_bbox((minx, miny, maxx, maxy))
     # TODO: CRS?
@@ -265,6 +408,12 @@ def bbox(lhs, minx, miny, maxx, maxy, crs=None):
 
 
 def attribute(name, field_mapping):
+    """ Create an attribute lookup expression using a field mapping dictionary.
+
+        :param name: the field filter name
+        :param field_mapping: the dictionary to use as a lookup.
+        :rtype: :class:`django.db.models.F`
+    """
     field = field_mapping[name]
     return F(field)
 
@@ -282,6 +431,14 @@ OP_TO_FUNC = {
 
 
 def arithmetic(lhs, rhs, op):
+    """ Create an arithmetic filter
+
+        :param lhs: left hand side of the arithmetic expression. either a scalar
+                    or a field lookup or another type of expression
+        :param rhs: same as `lhs`
+        :param op: the arithmetic operation. one of "+", "-", "*", "/"
+        :rtype: :class:`django.db.models.F`
+    """
     assert isinstance(lhs, ARITHMETIC_TYPES)
     assert isinstance(rhs, ARITHMETIC_TYPES)
     assert op in OP_TO_FUNC
@@ -295,8 +452,17 @@ def to_camel_case(word):
     return string[0].lower() + string[1:]
 
 
-def get_field_mapping_for_model(ModelClass):
-    mapping = {}
+def get_field_mapping_for_model(model_class, strict=False):
+    """ Utility function to get the metadata mapping for a specific model class.
+
+        :param model_class: The django database model to create the mapping for
+        :param strict: Whether only the related metadata attributes shall be
+                       included or the basic ones as-well
+        :returns: two dictionaries: the mapping dict, mapping from metadata
+                  filter name to the database field lookup and a dict to map the
+                  field lookup to the potential choices.
+    """
+    mapping = OrderedDict()
     mapping_choices = {}
 
     def is_common_value(field):
@@ -308,22 +474,24 @@ def get_field_mapping_for_model(ModelClass):
             pass
         return False
 
-    if issubclass(ModelClass, models.EOMetadata):
+    if issubclass(model_class, models.EOMetadata) and not strict:
         field_names = ('identifier', 'begin_time', 'end_time', 'footprint')
         for field_name in field_names:
             mapping[to_camel_case(field_name)] = field_name
 
-    if issubclass(ModelClass, models.Coverage):
+    if issubclass(model_class, models.Coverage):
         metadata_classes = (
+            (models.ProductMetadata, 'metadata__product_metadata'),
             (models.CoverageMetadata, 'metadata'),
             (models.SARMetadata, 'metadata__sarmetadata'),
             (models.OPTMetadata, 'metadata__optmetadata'),
-            (models.ALTMetadata, 'metadata__altmetadata')
+            (models.ALTMetadata, 'metadata__altmetadata'),
         )
         for (metadata_class, path) in metadata_classes:
             for field in metadata_class._meta.fields:
                 # skip fields that are defined in a parent model
-                if field.model is not metadata_class:
+                if field.model is not metadata_class or \
+                        field.name in ("id", "coveragemetadata_ptr"):
                     continue
                 if is_common_value(field):
                     full_path = '%s__%s__value' % (path, field.name)
@@ -334,5 +502,18 @@ def get_field_mapping_for_model(ModelClass):
                     mapping_choices[full_path] = dict(
                         (full, abbrev) for (abbrev, full) in field.choices
                     )
+
+    if issubclass(model_class, models.Collection):
+        for field in models.CollectionMetadata._meta.fields:
+            # skip fields that are defined in a parent model
+            if is_common_value(field):
+                full_path = 'metadata__%s__value' % field.name
+            else:
+                full_path = 'metadata__%s' % field.name
+            mapping[to_camel_case(field.name)] = full_path
+            if field.choices:
+                mapping_choices[full_path] = dict(
+                    (full, abbrev) for (abbrev, full) in field.choices
+                )
 
     return mapping, mapping_choices
