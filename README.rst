@@ -1,6 +1,10 @@
 EOxServer
 =========
 
+.. image:: https://badges.gitter.im/Join%20Chat.svg
+   :alt: Join the chat at https://gitter.im/EOxServer/eoxserver
+   :target: https://gitter.im/EOxServer/eoxserver?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
+
 .. image:: https://travis-ci.org/EOxServer/eoxserver.svg?branch=master
    :target: https://travis-ci.org/EOxServer/eoxserver
 
