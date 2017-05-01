@@ -32,16 +32,12 @@ from django.core.management import call_command
 from django.core.management.base import CommandError, BaseCommand
 from django.utils.dateparse import parse_datetime
 from django.contrib.gis import geos
-from django.utils.importlib import import_module
 
 from eoxserver.core import env
-from eoxserver.contrib import gdal, osr
-from eoxserver.backends import models as backends
-from eoxserver.backends.component import BackendComponent
 from eoxserver.backends.cache import CacheContext
-from eoxserver.backends.access import connect
-from eoxserver.resources.coverages import models
-from eoxserver.resources.coverages.metadata.component import MetadataComponent
+from eoxserver.resources.coverages.registration.component import (
+    RegistratorComponent
+)
 from eoxserver.resources.coverages.management.commands import (
     CommandOutputMixIn, _variable_args_cb, nested_commit_on_success
 )
@@ -204,214 +200,59 @@ class Command(CommandOutputMixIn, BaseCommand):
             self.handle_with_cache(cache, *args, **kwargs)
 
     def handle_with_cache(self, cache, *args, **kwargs):
-        metadata_component = MetadataComponent(env)
+        scheme = kwargs['scheme']
+        for registrator in RegistratorComponent(env).registrators:
+            if registrator.scheme == scheme:
+                break
+        else:
+            raise CommandError("No registrator for scheme '%s' found." % scheme)
+
         datas = kwargs["data"]
         semantics = kwargs.get("semantics")
         metadatas = kwargs["metadata"]
-        range_type_name = kwargs["range_type_name"]
+        replace = kwargs['replace']
 
-        if range_type_name is None:
-            raise CommandError("No range type name specified.")
-        range_type = models.RangeType.objects.get(name=range_type_name)
-
-        metadata_keys = set((
-            "identifier", "extent", "size", "projection",
-            "footprint", "begin_time", "end_time", "coverage_type",
-        ))
-
-        all_data_items = []
-        retrieved_metadata = {}
-
-        retrieved_metadata.update(
-            self._get_overrides(**kwargs)
-        )
-
-        for metadata in metadatas:
-            storage, package, format, location = self._get_location_chain(
-                metadata
-            )
-            data_item = backends.DataItem(
-                location=location, format=format or "", semantic="metadata",
-                storage=storage, package=package,
-            )
-            data_item.full_clean()
-            data_item.save()
-            all_data_items.append(data_item)
-
-            with open(connect(data_item, cache)) as f:
-                content = f.read()
-                reader = metadata_component.get_reader_by_test(content)
-                if reader:
-                    values = reader.read(content)
-
-                    format = values.pop("format", None)
-                    if format:
-                        data_item.format = format
-                        data_item.full_clean()
-                        data_item.save()
-
-                    for key, value in values.items():
-                        if key in metadata_keys:
-                            retrieved_metadata.setdefault(key, value)
-
-        if len(datas) < 1:
-            raise CommandError("No data files specified.")
-
-        if semantics is None:
-            # TODO: check corner cases.
-            # e.g: only one data item given but multiple bands in range type
-            # --> bands[1:<bandnum>]
-            if len(datas) == 1:
-                if len(range_type) == 1:
-                    semantics = ["bands[1]"]
-                else:
-                    semantics = ["bands[1:%d]" % len(range_type)]
-
-            else:
-                semantics = ["bands[%d]" % i for i in range(len(datas))]
-
-        for data, semantic in zip(datas, semantics):
-            storage, package, format, location = self._get_location_chain(data)
-            data_item = backends.DataItem(
-                location=location, format=format or "", semantic=semantic,
-                storage=storage, package=package,
-            )
-            data_item.full_clean()
-            data_item.save()
-            all_data_items.append(data_item)
-
-            try:
-                ds = gdal.Open(connect(data_item, cache))
-            except:
-                with open(connect(data_item, cache)) as f:
-                    ds = f.read()
-
-            reader = metadata_component.get_reader_by_test(ds)
-            if reader:
-                values = reader.read(ds)
-
-                format = values.pop("format", None)
-                if format:
-                    data_item.format = format
-                    data_item.full_clean()
-                    data_item.save()
-
-                for key, value in values.items():
-                    retrieved_metadata.setdefault(key, value)
-            ds = None
-
-        if len(metadata_keys - set(retrieved_metadata.keys())):
-            raise CommandError(
-                "Missing metadata keys %s."
-                % ", ".join(metadata_keys - set(retrieved_metadata.keys()))
-            )
-
-        # replace any already registered dataset
-        if kwargs["replace"]:
-            try:
-                # get a list of all collections the coverage was in.
-                coverage = models.Coverage.objects.get(
-                    identifier=retrieved_metadata["identifier"]
-                )
-                additional_ids = [
-                    c.identifier
-                    for c in models.Collection.objects.filter(
-                        eo_objects__in=[coverage.pk]
-                    )
-                ]
-                coverage.delete()
-
-                self.print_msg(
-                    "Replacing previous dataset '%s'."
-                    % retrieved_metadata["identifier"]
-                )
-
-                collection_ids = kwargs["collection_ids"] or []
-                for identifier in additional_ids:
-                    if identifier not in collection_ids:
-                        collection_ids.append(identifier)
-                kwargs["collection_ids"] = collection_ids
-            except models.Coverage.DoesNotExist:
-                self.print_msg(
-                    "Could not replace previous dataset '%s'."
-                    % retrieved_metadata["identifier"]
-                )
+        print datas, semantics, metadatas
 
         try:
-            coverage_type = retrieved_metadata["coverage_type"]
-            # TODO: allow types of different apps
-
-            if len(coverage_type.split(".")) > 1:
-                module_name, _, coverage_type = coverage_type.rpartition(".")
-                module = import_module(module_name)
-                CoverageType = getattr(module, coverage_type)
-            else:
-                CoverageType = getattr(models, coverage_type)
-        except AttributeError:
-            raise CommandError(
-                "Type '%s' is not supported."
-                % retrieved_metadata["coverage_type"]
+            dataset, replaced = registrator.register(
+                datas, semantics, metadatas, self._get_overrides(**kwargs),
+                replace, cache
             )
-
-        try:
-            coverage = CoverageType()
-            coverage.range_type = range_type
-
-            proj = retrieved_metadata.pop("projection")
-            if isinstance(proj, int):
-                retrieved_metadata["srid"] = proj
+            if replace and replaced:
+                self.print_msg(
+                    "Dataset with ID '%s' replaced sucessfully."
+                    % (dataset.identifier)
+                )
+            elif replace:
+                self.print_wrn(
+                    "Could not replace Dataset with ID '%s' but inserted it."
+                    % (dataset.identifier)
+                )
             else:
-                definition, format = proj
-
-                # Try to identify the SRID from the given input
-                try:
-                    sr = osr.SpatialReference(definition, format)
-                    retrieved_metadata["srid"] = sr.srid
-                except Exception, e:
-                    prj = models.Projection.objects.get(
-                        format=format, definition=definition
-                    )
-                    retrieved_metadata["projection"] = prj
-
-            # TODO: bug in models for some coverages
-            for key, value in retrieved_metadata.items():
-                setattr(coverage, key, value)
-
-            coverage.visible = kwargs["visible"]
-
-            coverage.full_clean()
-            coverage.save()
-
-            for data_item in all_data_items:
-                data_item.dataset = coverage
-                data_item.full_clean()
-                data_item.save()
+                self.print_msg(
+                    "Dataset with ID '%s' inserted sucessfully."
+                    % (dataset.identifier)
+                )
 
             # link with collection(s)
             if kwargs["collection_ids"]:
                 ignore_missing_collection = kwargs["ignore_missing_collection"]
                 call_command("eoxs_collection_link",
                     collection_ids=kwargs["collection_ids"],
-                    add_ids=[coverage.identifier],
+                    add_ids=[dataset.identifier],
                     ignore_missing_collection=ignore_missing_collection
                 )
-
         except Exception as e:
             self.print_traceback(e, kwargs)
             raise CommandError(
-                "Dataset '%s' registration failed: %s" %
-                (retrieved_metadata["identifier"], e)
+                "Dataset registration failed: %s" % e
             )
-
-        self.print_msg(
-            "Dataset with ID '%s' registered sucessfully."
-            % coverage.identifier
-        )
 
     def _get_overrides(self, identifier=None, size=None, extent=None,
                        begin_time=None, end_time=None, footprint=None,
                        projection=None, coverage_type=None, srid=None,
-                       **kwargs):
+                       range_type_name=None, **kwargs):
 
         overrides = {}
 
@@ -432,6 +273,9 @@ class Command(CommandOutputMixIn, BaseCommand):
 
         if end_time:
             overrides["end_time"] = parse_datetime(end_time)
+
+        if range_type_name:
+            overrides["range_type_name"] = range_type_name
 
         if footprint:
             footprint = geos.GEOSGeometry(footprint)
@@ -462,55 +306,3 @@ class Command(CommandOutputMixIn, BaseCommand):
                 pass
 
         return overrides
-
-    def _get_location_chain(self, items):
-        """ Returns the tuple
-        """
-        component = BackendComponent(env)
-        storage = None
-        package = None
-
-        storage_type, url = self._split_location(items[0])
-        if storage_type:
-            storage_component = component.get_storage_component(storage_type)
-        else:
-            storage_component = None
-
-        if storage_component:
-            storage, _ = backends.Storage.objects.get_or_create(
-                url=url, storage_type=storage_type
-            )
-
-        # packages
-        for item in items[1 if storage else 0:-1]:
-            type_or_format, location = self._split_location(item)
-            package_component = component.get_package_component(type_or_format)
-            if package_component:
-                package, _ = backends.Package.objects.get_or_create(
-                    location=location, format=format,
-                    storage=storage, package=package
-                )
-                storage = None  # override here
-            else:
-                raise Exception(
-                    "Could not find package component for format '%s'"
-                    % type_or_format
-                )
-
-        format, location = self._split_location(items[-1])
-        return storage, package, format, location
-
-    def _split_location(self, item):
-        """ Splits string as follows: <format>:<location> where format can be
-            None.
-        """
-        p = item.find(":")
-        if p == -1:
-            return None, item
-        return item[:p], item[p + 1:]
-
-
-def save(model):
-    model.full_clean()
-    model.save()
-    return model
