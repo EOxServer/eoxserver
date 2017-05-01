@@ -45,6 +45,9 @@ from eoxserver.resources.coverages.util import (
 logger = logging.getLogger(__name__)
 
 
+mandatory = dict(null=False, blank=False)
+optional = dict(null=True, blank=True)
+
 #===============================================================================
 # Helpers
 #===============================================================================
@@ -98,8 +101,8 @@ class Extent(models.Model):
     min_y = models.FloatField()
     max_x = models.FloatField()
     max_y = models.FloatField()
-    srid = models.PositiveIntegerField(blank=True, null=True)
-    projection = models.ForeignKey(Projection, blank=True, null=True)
+    srid = models.PositiveIntegerField(**optional)
+    projection = models.ForeignKey(Projection, **optional)
 
     @property
     def spatial_reference(self):
@@ -138,9 +141,9 @@ class EOMetadata(models.Model):
         associated.
     """
 
-    begin_time = models.DateTimeField(null=True, blank=True)
-    end_time = models.DateTimeField(null=True, blank=True)
-    footprint = models.MultiPolygonField(null=True, blank=True)
+    begin_time = models.DateTimeField(**optional)
+    end_time = models.DateTimeField(**optional)
+    footprint = models.MultiPolygonField(**optional)
 
     #objects = models.GeoManager()
 
@@ -159,7 +162,7 @@ class EOMetadata(models.Model):
 
 
 class DataSource(backends.Dataset):
-    pattern = models.CharField(max_length=512, null=False, blank=False)
+    pattern = models.CharField(max_length=512, **mandatory)
     collection = models.ForeignKey("Collection", related_name="data_sources")
 
 
@@ -177,7 +180,7 @@ class EOObject(base.Castable, EOMetadata, backends.Dataset):
         `identifiers`.
     """
 
-    identifier = models.CharField(max_length=256, unique=True, null=False, blank=False)
+    identifier = models.CharField(max_length=256, unique=True, **mandatory)
 
     # this field is required to be named 'real_content_type'
     real_content_type = models.PositiveSmallIntegerField()
@@ -196,9 +199,9 @@ class EOObject(base.Castable, EOMetadata, backends.Dataset):
         super(EOObject, self).save(*args, **kwargs)
 
         # propagate changes of the EO Metadata up in the collection hierarchy
-        if (self._original_begin_time != self.begin_time
-            or self._original_end_time != self.end_time
-            or self._original_footprint != self.footprint):
+        if (self._original_begin_time != self.begin_time or
+                self._original_end_time != self.end_time or
+                self._original_footprint != self.footprint):
 
             for collection in self.collections.all():
                 collection.update_eo_metadata()
@@ -266,8 +269,8 @@ class ReservedID(EOObject):
     """ Model to reserve a specific ID. The field `until` can be used to
         specify the end of the reservation.
     """
-    until = models.DateTimeField(null=True)
-    request_id = models.CharField(max_length=256, null=True)
+    until = models.DateTimeField(**optional)
+    request_id = models.CharField(max_length=256, **optional)
 
     objects = ReservedIDManager()
 
@@ -361,7 +364,7 @@ class RangeType(models.Model):
     """ Collection model for bands.
     """
 
-    name = models.CharField(max_length=512, null=False, blank=False, unique=True)
+    name = models.CharField(max_length=512, unique=True, **mandatory)
 
     def __init__(self, *args, **kwargs):
         super(RangeType, self).__init__(*args, **kwargs)
@@ -394,21 +397,21 @@ class Band(models.Model):
     """
 
     index = models.PositiveSmallIntegerField()
-    name = models.CharField(max_length=512, null=False, blank=False)
-    identifier = models.CharField(max_length=512, null=False, blank=False)
-    description = models.TextField(null=True, blank=True)
-    definition = models.CharField(max_length=512, null=True, blank=True)
-    uom = models.CharField(max_length=64, null=False, blank=False)
+    name = models.CharField(max_length=512, **mandatory)
+    identifier = models.CharField(max_length=512, **mandatory)
+    description = models.TextField(**optional)
+    definition = models.CharField(max_length=512, **optional)
+    uom = models.CharField(max_length=64, **mandatory)
 
     # GDAL specific
     data_type = models.PositiveIntegerField()
-    color_interpretation = models.PositiveIntegerField(null=True, blank=True)
+    color_interpretation = models.PositiveIntegerField(**optional)
 
-    raw_value_min = models.CharField(max_length=512, null=True, blank=True, help_text="The string representation of the minimum value.")
-    raw_value_max = models.CharField(max_length=512, null=True, blank=True, help_text="The string representation of the maximum value.")
+    raw_value_min = models.CharField(max_length=512, help_text="The string representation of the minimum value.", **optional)
+    raw_value_max = models.CharField(max_length=512, help_text="The string representation of the maximum value.", **optional)
 
-    range_type = models.ForeignKey(RangeType, related_name="bands", null=False, blank=False)
-    nil_value_set = models.ForeignKey(NilValueSet, null=True, blank=True)
+    range_type = models.ForeignKey(RangeType, related_name="bands", **mandatory)
+    nil_value_set = models.ForeignKey(NilValueSet, **optional)
 
     def clean(self):
         nil_value_set = self.nil_value_set
@@ -614,10 +617,10 @@ class EOObjectToCollectionThrough(models.Model):
             self._original_collection = None
 
     def save(self, *args, **kwargs):
-        if (self._original_eo_object is not None
-            and self._original_collection is not None
-            and (self._original_eo_object != self.eo_object
-                 or self._original_collection != self.collection)):
+        if (self._original_eo_object is not None and
+            self._original_collection is not None and
+            (self._original_eo_object != self.eo_object or
+                self._original_collection != self.collection)):
             logger.debug("Relation has been altered!")
             self._original_collection.remove(self._original_eo_object, self)
 
@@ -813,6 +816,9 @@ common_value_args = dict(
 class AbstractCommonValue(models.Model):
     value = models.CharField(max_length=256, unique=True)
 
+    def __unicode__(self):
+        return self.value
+
     class Meta:
         abstract = True
 
@@ -869,7 +875,9 @@ class AcquisitionSubType(AbstractCommonValue):
     pass
 
 
-class ProductMetadata(models.Model):
+class Product(models.Model):
+    coverage = models.OneToOneField(Coverage, related_name="product_metadata")
+
     parent_identifier = models.CharField(max_length=256, null=True, blank=True)
 
     production_status = models.CharField(max_length=1, null=True, blank=True, choices=PRODUCTION_STATUS_CHOICES)
@@ -897,8 +905,6 @@ class ProductMetadata(models.Model):
 
 class CoverageMetadata(models.Model):
     coverage = models.OneToOneField(Coverage, related_name="metadata")
-
-    product_metadata = models.ForeignKey(ProductMetadata)
 
     availability_time = models.DateTimeField(null=True, blank=True)
     acquisition_station = models.ForeignKey(AcquisitionStation, **common_value_args)
