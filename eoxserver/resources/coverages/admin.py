@@ -122,6 +122,13 @@ class CoverageForm(LocationForm):
 #===============================================================================
 
 
+class IndexHiddenAdmin(admin.ModelAdmin):
+    """ Admin class that hides on the apps admin index page.
+    """
+    def get_model_perms(self, request):
+        return {}
+
+
 class EOObjectAdmin(admin.GeoModelAdmin):
     wms_name = 'EOX Maps'
     wms_url = '//tiles.maps.eox.at/wms/'
@@ -248,13 +255,18 @@ class DataItemInline(AbstractInline):
     model = models.backends.DataItem
 
 
+class ProductInline(admin.StackedInline):
+    extra = 0
+    model = models.Product
+
+
 class CollectionMetadataInline(admin.StackedInline):
-    extra = 1
+    extra = 0
     model = models.CollectionMetadata
 
 
 class CoverageMetadataInline(admin.StackedInline):
-    extra = 1
+    extra = 0
     model = models.CoverageMetadata
 
 
@@ -301,14 +313,20 @@ admin.site.register(models.DataSource, DataSourceAdmin)
 
 class RectifiedDatasetAdmin(CoverageAdmin):
     model = models.RectifiedDataset
-    inlines = (DataItemInline, CollectionInline, CoverageMetadataInline, SARMetadataInline, OPTMetadataInline)
+    inlines = (
+        DataItemInline, CollectionInline,
+        CoverageMetadataInline, SARMetadataInline, OPTMetadataInline
+    )
 
 admin.site.register(models.RectifiedDataset, RectifiedDatasetAdmin)
 
 
 class ReferenceableDatasetAdmin(CoverageAdmin):
     model = models.ReferenceableDataset
-    inlines = (DataItemInline, CollectionInline, CoverageMetadataInline, SARMetadataInline, OPTMetadataInline)
+    inlines = (
+        DataItemInline, CollectionInline, ProductInline,
+        CoverageMetadataInline, SARMetadataInline, OPTMetadataInline
+    )
 
 admin.site.register(models.ReferenceableDataset, ReferenceableDatasetAdmin)
 
@@ -345,3 +363,19 @@ class DatasetSeriesAdmin(CollectionAdmin):
     )
 
 admin.site.register(models.DatasetSeries, DatasetSeriesAdmin)
+
+# admin.site.register(models.Product)
+
+admin.site.register(models.OrbitNumber, IndexHiddenAdmin)
+admin.site.register(models.Track, IndexHiddenAdmin)
+admin.site.register(models.Frame, IndexHiddenAdmin)
+admin.site.register(models.SwathIdentifier, IndexHiddenAdmin)
+admin.site.register(models.ProductVersion, IndexHiddenAdmin)
+admin.site.register(models.ProductQualityDegredationTag, IndexHiddenAdmin)
+admin.site.register(models.ProcessorName, IndexHiddenAdmin)
+admin.site.register(models.ProcessingCenter, IndexHiddenAdmin)
+admin.site.register(models.SensorMode, IndexHiddenAdmin)
+admin.site.register(models.ArchivingCenter, IndexHiddenAdmin)
+admin.site.register(models.ProcessingMode, IndexHiddenAdmin)
+admin.site.register(models.AcquisitionStation, IndexHiddenAdmin)
+admin.site.register(models.AcquisitionSubType, IndexHiddenAdmin)
