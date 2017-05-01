@@ -88,6 +88,14 @@ class NameSpace(object):
     def schema_location(self):
         return self._schema_location
 
+    def __eq__(self, other):
+        if isinstance(other, NameSpace):
+            return self.uri == other.uri
+        elif isinstance(other, basestring):
+            return self.uri == other
+
+        raise TypeError
+
     def __call__(self, tag):
         return self._lxml_uri + tag
 
