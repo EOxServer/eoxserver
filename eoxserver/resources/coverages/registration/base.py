@@ -142,12 +142,13 @@ class BaseRegistrator(Component):
 
         product_metadata = retrieved_metadata.pop('product_metadata', None)
         metadata = retrieved_metadata.pop('metadata', None)
+        metadata_type = retrieved_metadata.pop('metadata_type', None)
 
         dataset = self._create_dataset(
             data_items=chain(metadata_items, data_items), **retrieved_metadata
         )
 
-        self._create_metadata(dataset, product_metadata, metadata)
+        self._create_metadata(dataset, product_metadata, metadata, metadata_type)
 
         # when we replaced the dataset, re-insert the newly created dataset to
         # the collections
@@ -207,6 +208,8 @@ class BaseRegistrator(Component):
                 )
                 coverage.projection = prj
 
+        print footprint
+
         coverage.identifier = identifier
         coverage.extent = extent
         coverage.size = size
@@ -230,7 +233,7 @@ class BaseRegistrator(Component):
         return coverage
 
     def _create_metadata(self, dataset, product_metadata_values,
-                         metadata_values):
+                         metadata_values, metadata_type):
 
         if product_metadata_values:
             product_metadata_values = dict(
@@ -244,7 +247,6 @@ class BaseRegistrator(Component):
 
         if metadata_values:
             metadata_class = models.CoverageMetadata
-            metadata_type = metadata_values.pop('type', None)
             if metadata_type == "SAR":
                 metadata_class = models.SARMetadata
             elif metadata_type == "OPT":
