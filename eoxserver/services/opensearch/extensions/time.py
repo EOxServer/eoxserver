@@ -89,7 +89,7 @@ class TimeExtension(Component):
                 qs = qs.filter(end_time=end)
         return qs
 
-    def get_schema(self):
+    def get_schema(self, reference_collection=None):
         return (
             dict(name="start", type="start"),
             dict(name="end", type="end"),

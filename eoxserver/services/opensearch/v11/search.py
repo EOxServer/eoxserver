@@ -75,9 +75,9 @@ class OpenSearch11SearchHandler(Component):
         decoder = OpenSearch11BaseDecoder(request_parameters)
 
         if collection_id:
-            qs = models.Collection.objects.get(
-                identifier=collection_id
-            ).eo_objects.all()
+            qs = models.Coverage.objects.filter(
+                collections__identifier=collection_id
+            )
         else:
             qs = models.Collection.objects.all()
 
@@ -92,7 +92,7 @@ class OpenSearch11SearchHandler(Component):
             # to the actual parameter name
             params = dict(
                 (parameter["type"], request_parameters[parameter["name"]])
-                for parameter in search_extension.get_schema()
+                for parameter in search_extension.get_schema(qs.model)
                 if parameter["name"] in request_parameters
             )
 
@@ -112,7 +112,7 @@ class OpenSearch11SearchHandler(Component):
             if collection_id:
                 qs = models.Collection.objects.none()
             else:
-                qs = models.EOObject.objects.none()
+                qs = models.Coverage.objects.none()
 
         try:
             result_format = next(

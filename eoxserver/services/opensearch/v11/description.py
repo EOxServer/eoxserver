@@ -109,7 +109,7 @@ class OpenSearch11DescriptionEncoder(XMLEncoder):
         parameters = list(chain(default_parameters, *[
             [
                 dict(parameter, **{"namespace": search_extension.namespace})
-                for parameter in search_extension.get_schema()
+                for parameter in search_extension.get_schema(type(collection))
             ] for search_extension in self.search_extensions
         ]))
 
@@ -150,6 +150,10 @@ class OpenSearch11DescriptionEncoder(XMLEncoder):
             )
         else:
             attributes["value"] = "{%s}" % parameter.pop("type")
+
+        pattern = parameter.get("pattern")
+        if pattern:
+            attributes["pattern"] = pattern
 
         return self.PARAM("Parameter", *[
             self.PARAM("Option", value=option, label=option)
