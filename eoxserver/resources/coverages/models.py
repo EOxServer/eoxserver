@@ -956,12 +956,12 @@ class SARMetadata(CoverageMetadata):
 
 
 class OPTMetadata(CoverageMetadata):
-    cloud_cover = models.SmallIntegerField(null=True, blank=True) # 0-100
-    snow_cover = models.SmallIntegerField(null=True, blank=True) # 0-100
+    cloud_cover = models.FloatField(null=True, blank=True)  # 0-100
+    snow_cover = models.FloatField(null=True, blank=True)  # 0-100
 
 
 class ALTMetadata(CoverageMetadata):
-    cloud_cover = models.SmallIntegerField(null=True, blank=True)
-    snow_cover = models.SmallIntegerField(null=True, blank=True)
+    cloud_cover = models.FloatField(null=True, blank=True)
+    snow_cover = models.FloatField(null=True, blank=True)
     lowest_location = models.FloatField(null=True, blank=True)
     highest_location = models.FloatField(null=True, blank=True)
