@@ -33,6 +33,8 @@ from eoxserver.resources.coverages.registration.base import BaseRegistrator
 
 
 class GDALRegistrator(BaseRegistrator):
+    scheme = "GDAL"
+
     def _read_metadata_from_data(self, data_item, retrieved_metadata, cache):
         metadata_component = MetadataComponent(env)
 
