@@ -25,13 +25,14 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-from eoxserver.core import env, Component, ExtensionPoint
+
+from eoxserver.core import Component, ExtensionPoint
 from eoxserver.resources.coverages.metadata.interfaces import *
+
 
 class MetadataComponent(Component):
     metadata_readers = ExtensionPoint(MetadataReaderInterface)
     metadata_writers = ExtensionPoint(MetadataWriterInterface)
-
 
     def get_reader_by_test(self, obj):
         for reader in self.metadata_readers:
@@ -39,13 +40,11 @@ class MetadataComponent(Component):
                 return reader
         return None
 
-
     def get_reader_by_format(self, format):
         for reader in self.metadata_readers:
             if format in reader.formats:
                 return reader
         return None
-
 
     def get_writer_by_format(self, format):
         for writer in self.metadata_writers:
