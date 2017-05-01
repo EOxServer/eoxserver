@@ -31,7 +31,7 @@ from eoxserver.core.util.timetools import parse_iso8601
 from eoxserver.core.util.xmltools import parse, NameSpace, NameSpaceMap
 from eoxserver.core.util.iteratortools import pairwise
 from eoxserver.core import Component, implements
-from eoxserver.core.decoders import xml, to_dict
+from eoxserver.core.decoders import xml, to_dict, InvalidParameterException
 from eoxserver.resources.coverages.metadata.interfaces import (
     MetadataReaderInterface
 )
@@ -73,8 +73,19 @@ class EOOMFormatReader(Component):
         tree = parse(obj)
         if tree is not None:
             root = tree.getroot()
-            use_21 = root.nsmap[root.prefix] in namespaces_21
+            root_ns = root.nsmap[root.prefix]
+            use_21 = root_ns in namespaces_21
             decoder = EOOMFormatDecoder(tree, use_21)
+
+            metadata_type = None
+
+            if root_ns in (NS_OPT_20, NS_OPT_21):
+                metadata_type = "OPT"
+            # TODO: fixme
+            # elif root_ns in (NS_ALT_20, NS_ALT_21):
+            #     metadata_type = "ALT"
+            elif root_ns in (NS_SAR_20, NS_SAR_21):
+                metadata_type = "SAR"
 
             return {
                 "identifier": decoder.identifier,
@@ -85,7 +96,8 @@ class EOOMFormatReader(Component):
                 "metadata": to_dict(EOOMExtraMetadataDecoder(tree, use_21)),
                 "product_metadata": to_dict(
                     EOOMProductMetadataDecoder(tree, use_21)
-                )
+                ),
+                "metadata_type": metadata_type
             }
 
         raise Exception("Could not parse from obj '%s'." % repr(obj))
@@ -162,16 +174,17 @@ class EOOMProductMetadataDecoder(EOOMNamespaceMixIn, xml.Decoder):
     sensor_mode = xml.Parameter("om:procedure/eop:EarthObservationEquipment/eop:sensor/eop:Sensor/eop:operationalMode/text()", type=str, num="?")
     archiving_center = xml.Parameter("eop:metaDataProperty/eop:EarthObservationMetaData/eop:archivedIn/eop:ArchivingInformation/eop:archivingCenter/text()", type=str, num="?")
     processing_mode = xml.Parameter("eop:metaDataProperty/eop:EarthObservationMetaData/eop:processing/eop:ProcessingInformation/eop:ProcessingMode/text()", type=str, num="?")
+    creation_date = xml.Parameter("eop:metaDataProperty/eop:EarthObservationMetaData/eop:creationDate/text()", type=parse_iso8601, num="?")
 
 
 class EOOMExtraMetadataDecoder(EOOMNamespaceMixIn, xml.Decoder):
-    creation_date = xml.Parameter("eop:metaDataProperty/eop:EarthObservationMetaData/eop:creationDate/text()", type=parse_iso8601, num="?")
     modification_date = xml.Parameter("eop:metaDataProperty/eop:EarthObservationMetaData/eop:modificationDate/text()", type=parse_iso8601, num="?")
-    resolution = xml.Parameter("om:procedure/eop:EarthObservationEquipment/eop:sensor/eop:Sensor/eop:resolution/text()", type=str, num="?")
-    
 
-    cloud_cover = xml.Parameter("om:result/opt:EarthObservationResult/opt:cloudCoverPercentage/text()|om:result/atm:EarthObservationResult/atm:cloudCoverPercentage/text()", type=int, num="?")
-    snow_cover = xml.Parameter("om:result/opt:EarthObservationResult/opt:snowCoverPercentage/text()|om:result/atm:EarthObservationResult/atm:snowCoverPercentage/text()", type=int, num="?")
+    # TODO: get this into models
+    # resolution = xml.Parameter("om:procedure/eop:EarthObservationEquipment/eop:sensor/eop:Sensor/eop:resolution/text()", type=str, num="?")
+
+    cloud_cover = xml.Parameter("om:result/opt:EarthObservationResult/opt:cloudCoverPercentage/text()|om:result/atm:EarthObservationResult/atm:cloudCoverPercentage/text()", type=float, num="?")
+    snow_cover = xml.Parameter("om:result/opt:EarthObservationResult/opt:snowCoverPercentage/text()|om:result/atm:EarthObservationResult/atm:snowCoverPercentage/text()", type=float, num="?")
     lowest_location = xml.Parameter("atm:EarthObservation/om:resultOf/atm:EarthObservationResult/atm:dataLayers/atm:DataLayer/atm:lowestLocation/text()", type=float, num="?")
     highest_location = xml.Parameter("atm:EarthObservation/om:resultOf/atm:EarthObservationResult/atm:dataLayers/atm:DataLayer/atm:highestLocation/text()", type=float, num="?")
 
