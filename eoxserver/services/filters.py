@@ -54,7 +54,7 @@ from eoxserver.resources.coverages import models
 
 
 def combine(sub_filters, combinator="AND"):
-    """ Combine two filters using a logical combinator
+    """ Combine filters using a logical combinator
 
         :param sub_filters: the filters to combine
         :param combinator: a string: "AND" / "OR"
@@ -62,7 +62,6 @@ def combine(sub_filters, combinator="AND"):
         :return: the combined filter
         :rtype: :class:`django.db.models.Q`
     """
-    assert len(sub_filters) >= 2
     for sub_filter in sub_filters:
         assert isinstance(sub_filter, Q)
 
@@ -481,7 +480,7 @@ def get_field_mapping_for_model(model_class, strict=False):
 
     if issubclass(model_class, models.Coverage):
         metadata_classes = (
-            (models.ProductMetadata, 'metadata__product_metadata'),
+            (models.Product, 'product_metadata'),
             (models.CoverageMetadata, 'metadata'),
             (models.SARMetadata, 'metadata__sarmetadata'),
             (models.OPTMetadata, 'metadata__optmetadata'),
