@@ -61,7 +61,9 @@ class OpenSearch11DescriptionEncoder(XMLEncoder):
     def encode_description(self, request, collection, result_formats):
         OS = self.OS
         description = OS("OpenSearchDescription",
-            OS("ShortName", collection.identifier if collection else ""),
+            OS("ShortName",
+                collection.identifier if collection is not None else ""
+            ),
             OS("Description")
         )
         for method in ("GET", "POST"):
@@ -85,7 +87,7 @@ class OpenSearch11DescriptionEncoder(XMLEncoder):
         return description
 
     def encode_url(self, request, collection, result_format, method):
-        if collection:
+        if collection is not None:
             search_url = reverse("opensearch:collection:search",
                 kwargs={
                     "collection_id": collection.identifier,
@@ -132,7 +134,7 @@ class OpenSearch11DescriptionEncoder(XMLEncoder):
             type=result_format.mimetype,
             template="%s?%s" % (search_url, query_template)
             if method == "GET" else search_url,
-            rel="results" if collection else "collection", ** {
+            rel="results" if collection is not None else "collection", ** {
                 self.ns_param("method"): method,
                 self.ns_param("enctype"): "application/x-www-form-urlencoded",
                 "indexOffset": "0"
