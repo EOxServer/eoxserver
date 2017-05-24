@@ -72,6 +72,9 @@ case $DB in
         sed -e "s/#from sys import argv/from sys import argv/" -i autotest/autotest/settings.py
         sed -e "s/#if 'test' in argv:/if 'test' in argv:/" -i autotest/autotest/settings.py
         sed -e "s/#    DEFAULT_TABLESPACE = 'ramfs'/    DEFAULT_TABLESPACE = 'ramfs'/" -i autotest/autotest/settings.py
+        #mount ramfs on /mnt via fstab: "none /mnt tmpfs mode=1777 0 0"
+        mkdir -p /mnt/pgdata/
+        chmod 0777 /mnt/pgdata/
         ;;
     *)
         echo "Unknown database system, Exiting..."
