@@ -182,7 +182,6 @@ git commit setup.py eoxserver/__init__.py -m "Adjusting version."
 #Development Status :: 7 - Inactive
 
 git tag -s release-0.3.2 -m "Tagging the 0.3.2 release of EOxServer."
-# TODO add tag in autotest (needed for osgeo-live), documentation, etc.
 
 git archive --format=tar.gz --prefix=EOxServer-0.3.2/ -o EOxServer-0.3.2.tar.gz release-0.3.2 eoxserver/ MANIFEST.in README.rst setup.cfg setup.py tools/
 mv EOxServer-0.3.2.tar.gz <path-to-builder_rpm>
@@ -193,7 +192,7 @@ tar xzf EOxServer-0.3.2.tar.gz
 rm EOxServer-0.3.2.tar.gz
 cd EOxServer-0.3.2/
 
-# pypi
+# pypi (no need to run in builder_rpm VM)
 python setup.py sdist
 #Check newly generated file dist/EOxServer-0.3.2.tar.gz
 python setup.py sdist upload
