@@ -653,4 +653,12 @@ class OWSCommonConfigReader(object):
         """
         return System.getConfig().getInstanceConfigValue("services.owscommon", "http_service_url")
 
+    def getResamplingMethod(self):
+        """
+        Returns the value of the `resampling_method`` in the
+        ``services.owscommon`` section. This is used for setting the
+        resampling method for example in WMS GetMap requests.
+        """
+        return System.getConfig().getInstanceConfigValue("services.owscommon", "resampling_method")
+
 OWSCommonConfigReaderImplementation = ConfigReaderInterface.implement(OWSCommonConfigReader)

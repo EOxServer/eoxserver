@@ -194,6 +194,7 @@ class WMSCoverageLayer(WMSLayer):
         layer = super(WMSCoverageLayer, self).getMapServerLayer(req)
         
         layer.setMetaData("wms_enable_request", "getcapabilities,getmap")
+        layer.setProcessingKey("RESAMPLE", OWSCommonConfigReader().getResamplingMethod())
 
         for key, value in self.coverage.getLayerMetadata():
             layer.setMetaData(key, value)

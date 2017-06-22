@@ -165,6 +165,13 @@ Mandatory. This parameter is the actual domain and path URL to the OWS services
 served with the EOxServer instance. This parameter is used in various contexts
 and is also included in several OWS service responses.
 
+::
+
+  resampling_method
+
+Which resampling method to use e.g. 'near', 'bilinear', 'average', etc.
+Default: 'near'
+
 
 [services.ows.wms]
 ------------------
