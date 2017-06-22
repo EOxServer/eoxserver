@@ -76,6 +76,7 @@ class ReprojectionOptimization(DatasetOptimization):
         self.temporary_directory = temporary_directory
 
     def __call__(self, src_ds):
+        logger.info("Applying ReprojectionOptimization")
         # setup
         src_sr = osr.SpatialReference()
         src_sr.ImportFromWkt(src_ds.GetProjection())
@@ -145,6 +146,7 @@ class BandSelectionOptimization(DatasetOptimization):
         self.temporary_directory = temporary_directory
 
     def __call__(self, src_ds):
+        logger.info("Applying BandSelectionOptimization")
         try:
             dst_ds = create_temp(src_ds.RasterXSize, src_ds.RasterYSize,
                                  len(self.bands), self.datatype,
@@ -253,6 +255,7 @@ class ColorIndexOptimization(DatasetOptimization):
         self.temporary_directory = temporary_directory
 
     def __call__(self, src_ds):
+        logger.info("Applying ColorIndexOptimization")
         try:
             dst_ds = create_temp(src_ds.RasterXSize, src_ds.RasterYSize,
                                  1, gdal.GDT_Byte,
@@ -300,6 +303,7 @@ class NoDataValueOptimization(DatasetOptimization):
         self.nodata_values = nodata_values
 
     def __call__(self, ds):
+        logger.info("Applying NoDataValueOptimization")
         nodata_values = self.nodata_values
         if len(nodata_values) == 1:
             nodata_values = nodata_values * ds.RasterCount
@@ -340,6 +344,7 @@ class OverviewOptimization(DatasetPostOptimization):
         self.minsize = minsize
 
     def __call__(self, ds):
+        logger.info("Applying OverviewOptimization")
         levels = self.levels
 
         # calculate the overviews automatically.
@@ -382,6 +387,7 @@ class AlphaBandOptimization(object):
     image. """
 
     def __call__(self, src_ds, footprint_wkt):
+        logger.info("Applying AlphaBandOptimization")
         dt = src_ds.GetRasterBand(1).DataType
         if src_ds.RasterCount == 3:
             src_ds.AddBand(dt)
