@@ -5,7 +5,7 @@ yum update -y
 
 # Install packages
 yum install -y gdal-eox gdal-eox-python postgis proj-epsg python-werkzeug \
-               python-lxml mod_wsgi httpd postgresql-server python-psycopg2 \
+               python-lxml mod_wsgi httpd postgresql-server \
                pytz python-dateutil libxml2 libxml2-python mapserver \
                mapserver-python python-pysqlite-eox
 
@@ -29,5 +29,5 @@ pip install --upgrade pip
 pip install pyopenssl ndg-httpsclient pyasn1
 
 # Install recent version of Django (1.6, since 1.7+ requires Python 2.7)
-pip install "django>=1.6,<1.7" --no-binary django --force-reinstall --upgrade
-pip install django-extensions
+pip install "django>=1.11,<1.12a0" --no-binary django --force-reinstall --upgrade
+pip install django-extensions psycopg2
