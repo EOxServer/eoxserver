@@ -188,18 +188,18 @@ class TestAllowedEnumDateTime2(TestCase, BaseTestMixin):
 
 class TestAllowedEnumDuration(TestCase, BaseTestMixin):
     def setUp(self):
-        vlist = ['P1Y', 'P26DT1M', 'P25M16S']
+        vlist = ['P1Y', 'P26DT1M', 'PT25M16S']
         self.domain = AllowedEnum(vlist, dtype=Duration)
         self.accepted = [vlist[1], Duration.parse(vlist[0])]
-        self.rejected = [Duration.parse('P7D15H8M')]
+        self.rejected = [Duration.parse('P7DT15H8M')]
 
 
 class TestAllowedEnumDuration2(TestCase, BaseTestMixin):
     def setUp(self):
-        vlist = ['P1Y', 'P26DT1M', 'P25M16S']
+        vlist = ['P1Y', 'P26DT1M', 'PT25M16S']
         self.domain = AllowedEnum(vlist, dtype=timedelta)
         self.accepted = [vlist[1], Duration.parse(vlist[0])]
-        self.rejected = [Duration.parse('P7D15H8M')]
+        self.rejected = [Duration.parse('P7DT15H8M')]
 
 #------------------------------------------------------------------------------
 
@@ -350,7 +350,7 @@ class TestAllowedRangeDuration(TestCase, BaseTestMixin):
             'P1M0DT30M',
         ]
         self.rejected = [
-            Duration.parse('-P2D18H'),
+            Duration.parse('-P2DT18H'),
             'P1Y',
         ]
 
