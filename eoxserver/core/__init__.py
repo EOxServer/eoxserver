@@ -37,13 +37,11 @@ For convenience, the module imports the most important items from the
 import logging
 import threading
 
-from django.utils.importlib import import_module
-
 from eoxserver.core.component import (
     ComponentManager, ComponentMeta, Component,
     ExtensionPoint, UniqueExtensionPoint, implements
 )
-from eoxserver.core.util.importtools import easy_import
+from eoxserver.core.util.importtools import easy_import, import_module
 
 
 env = ComponentManager()
