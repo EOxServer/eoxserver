@@ -28,7 +28,7 @@
 #-------------------------------------------------------------------------------
 
 import os
-from os import path
+import os.path
 import shutil
 import tempfile
 import errno
@@ -51,7 +51,7 @@ class CacheException(Exception):
 
 
 def setup_cache_session(config=None):
-    """ Initialize the cache context for this session. If a cache context was 
+    """ Initialize the cache context for this session. If a cache context was
         already present, an exception is raised.
     """
     if not config:
@@ -63,7 +63,7 @@ def setup_cache_session(config=None):
 
 
 def shutdown_cache_session():
-    """ Shutdown the cache context for this session and trigger any pending 
+    """ Shutdown the cache context for this session and trigger any pending
         cleanup actions required.
     """
     try:
@@ -76,7 +76,7 @@ def shutdown_cache_session():
 
 
 def set_cache_context(cache_context):
-    """ Sets the cache context for this session. Raises an exception if there 
+    """ Sets the cache context for this session. Raises an exception if there
         was already a cache context associated.
     """
     if cache_context is not None:
@@ -119,19 +119,16 @@ class CacheContext(object):
 
         self._managed = managed
 
-
     @property
     def cache_directory(self):
         """ Returns the configured cache directory.
         """
         return self._cache_directory
 
-
     def relative_path(self, cache_path):
         """ Returns a path relative to the cache directory.
         """
-        return path.join(self._cache_directory, cache_path)
-
+        return os.path.join(self._cache_directory, cache_path)
 
     def add_mapping(self, path, item):
         """ Add an external file to this context. Those files will be treated as
@@ -140,9 +137,8 @@ class CacheContext(object):
         """
         self._mappings[path] = item
 
-
     def add_path(self, cache_path):
-        """ Add a path to this cache context. Also creates necessary 
+        """ Add a path to this cache context. Also creates necessary
             sub-directories.
         """
         self._cached_objects.add(cache_path)
@@ -150,14 +146,13 @@ class CacheContext(object):
 
         try:
             # create all necessary subdirectories
-            os.makedirs(path.dirname(relative_path))
+            os.makedirs(os.path.dirname(relative_path))
         except OSError, e:
             # it's only ok if the dir already existed
             if e.errno != errno.EEXIST:
                 raise
 
         return relative_path
-
 
     def cleanup(self):
         """ Perform cache cleanup.
@@ -175,21 +170,19 @@ class CacheContext(object):
             shutil.rmtree(self._cache_directory)
             self._cached_objects.clear()
 
-
     def contains(self, cache_path):
         """ Check whether or not the path is contained in this cache.
         """
         if cache_path in self._cached_objects:
             return True
 
-        return path.exists(self.relative_path(cache_path))
+        return os.path.exists(self.relative_path(cache_path))
 
     def __contains__(self, cache_path):
         """ Alias for method `contains`.
         """
         return self.contains(cache_path)
 
-    
     def __enter__(self):
         """ Context manager protocol, for recursive use. Each time the a context
             is entered, the internal level is raised by one.
@@ -197,9 +190,8 @@ class CacheContext(object):
         self._level += 1
         return self
 
-
     def __exit__(self, etype=None, evalue=None, tb=None):
-        """ Exit of context manager protocol. Performs cache cleanup if 
+        """ Exit of context manager protocol. Performs cache cleanup if
             the level drops to zero.
         """
         self._level -= 1
