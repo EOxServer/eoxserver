@@ -32,6 +32,7 @@
 from django.core.exceptions import ValidationError
 from django.contrib.gis.db import models
 from django.utils.timezone import now
+from django.utils.encoding import python_2_unicode_compatible
 from model_utils.managers import InheritanceManager
 
 from eoxserver.backends import models as backends
@@ -162,6 +163,12 @@ class Grid(models.Model):
     axis_3_offset = models.CharField(max_length=256, **optional)
     axis_4_offset = models.CharField(max_length=256, **optional)
 
+    def __str__(self):
+        pass
+
+    def clean(self):
+        validate_grid(self)
+
 
 class GridFixture(models.Model):
     # optional here to allow 'referenceable' coverages
@@ -186,7 +193,8 @@ class GridFixture(models.Model):
 # ==============================================================================
 
 
-class EOObject(backends.Dataset):
+@python_2_unicode_compatible
+class EOObject(models.Model):
     """ Base class for Collections, Products and Coverages
     """
     identifier = models.CharField(max_length=256, unique=True, **mandatory)
@@ -209,11 +217,11 @@ class Collection(EOObject):
 
 class Product(EOObject):
     product_type = models.ForeignKey(ProductType, **optional_protected)
-
     collections = models.ManyToManyField(Collection, related_name='products', blank=True)
+    package = models.OneToOneField(backends.Storage, **optional_protected)
 
 
-class Coverage(GridFixture, EOObject):
+class Coverage(EOObject, GridFixture):
     coverage_type = models.ForeignKey(CoverageType, **optional_protected)
 
     collections = models.ManyToManyField(Collection, related_name='coverages', blank=True)
@@ -225,6 +233,11 @@ class Browse(backends.DataItem):
     browse_type = models.ForeignKey(BrowseType, **optional)
     style = models.CharField(max_length=256, **optional)
 
+    coordinate_reference_system = models.TextField(**mandatory)
+    min_x = models.FloatField(**mandatory)
+    min_y = models.FloatField(**mandatory)
+    max_x = models.FloatField(**mandatory)
+    max_y = models.FloatField(**mandatory)
     width = models.PositiveIntegerField(**mandatory)
     height = models.PositiveIntegerField(**mandatory)
 
@@ -233,8 +246,8 @@ class Browse(backends.DataItem):
 
 
 class Mask(backends.DataItem):
+    product = models.ForeignKey(Product, related_name='masks', **mandatory)
     mask_type = models.ForeignKey(MaskType, **mandatory)
-    # product = models.ForeignKey(Product, related_name='masks', **mandatory)
 
     geometry = models.GeometryField(**optional)
 
@@ -294,7 +307,7 @@ def collection_insert_eo_object(collection, eo_object):
     eo_object = cast_eo_object(eo_object)
     if not isinstance(eo_object, (Product, Coverage)):
         raise ManagementError(
-            'Cannot insert object of type %r' % type(eo_object.__name__)
+            'Cannot insert object of type %r' % type(eo_object).__name__
         )
 
     if isinstance(eo_object, Product):
@@ -369,7 +382,7 @@ def collection_exclude_eo_object(collection, eo_object):
 
     if not isinstance(eo_object, (Product, Coverage)):
         raise ManagementError(
-            'Cannot exclude object of type %r' % type(eo_object.__name__)
+            'Cannot exclude object of type %r' % type(eo_object).__name__
         )
 
     if isinstance(eo_object, Product):
@@ -401,7 +414,7 @@ def product_add_coverage(product, coverage):
     coverage = cast_eo_object(coverage)
     if not isinstance(coverage, Coverage):
         raise ManagementError(
-            'Cannot insert object of type %r' % type(coverage.__name__)
+            'Cannot insert object of type %r' % type(coverage).__name__
         )
 
     coverage_type = coverage.coveraget_type
@@ -416,3 +429,36 @@ def product_add_coverage(product, coverage):
         )
 
     product.coverages.add(coverage)
+
+# ==============================================================================
+# Validators
+# ==============================================================================
+
+
+def validate_grid(grid):
+    """ Validation function for grids.
+    """
+
+    higher_dim = False
+    for i in range(4, 0, -1):
+        axis_type = getattr(grid, 'axis_%d_type' % i, None)
+        axis_name = getattr(grid, 'axis_%d_name' % i, None)
+        axis_offset = getattr(grid, 'axis_%d_offset' % i, None)
+
+        attrs = (axis_type, axis_name, axis_offset)
+
+        has_dim = any(attrs)
+
+        # check that when this axis is not set, no higher axis is set
+        if not has_dim and higher_dim:
+            raise ValidationError(
+                'Axis %d not set, but higher axis %d is set.' % (i, higher_dim)
+            )
+
+        # check that all of 'name', 'type', and 'offset' is set
+        if has_dim and not all(attrs):
+            raise ValidationError(
+                "For each axis, 'name', 'type', and 'offset' must be set."
+            )
+
+        higher_dim = i if has_dim else False
