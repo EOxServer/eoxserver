@@ -1,9 +1,9 @@
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
 #
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Copyright (C) 2014 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -23,16 +23,21 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 from itertools import chain
 
+from django.db.models import Q
+from django.contrib.gis.geos import GEOSGeometry
+
 from eoxserver.core import Component, implements, env
-from eoxserver.contrib import osr
+from eoxserver.contrib import osr, gdal
 from eoxserver.backends import models as backends
-from eoxserver.backends.access import retrieve
+from eoxserver.backends.access import retrieve, get_vsi_path
 from eoxserver.resources.coverages import models
-from eoxserver.resources.coverages.metadata.component import MetadataComponent
+from eoxserver.resources.coverages.metadata.component import (
+    CoverageMetadataComponent, ProductMetadataComponent
+)
 from eoxserver.resources.coverages.registration.exceptions import (
     RegistrationError
 )
@@ -113,7 +118,7 @@ class BaseRegistrator(Component):
         """ Read all available metadata of a ``data_item`` into the
         ``retrieved_metadata`` :class:`dict`.
         """
-        metadata_component = MetadataComponent(env)
+        metadata_component = CoverageMetadataComponent(env)
 
         with open(retrieve(data_item, cache)) as f:
             content = f.read()

@@ -25,13 +25,17 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-from eoxserver.core import env, Component, ExtensionPoint
-from eoxserver.resources.coverages.metadata.interfaces import *
 
-class MetadataComponent(Component):
+from eoxserver.core import Component, ExtensionPoint
+from eoxserver.resources.coverages.metadata.interfaces import *
+from eoxserver.resources.coverages.metadata.product_formats.sentinel2 import (
+    S2ProductFormatReader
+)
+
+
+class CoverageMetadataComponent(Component):
     metadata_readers = ExtensionPoint(MetadataReaderInterface)
     metadata_writers = ExtensionPoint(MetadataWriterInterface)
-
 
     def get_reader_by_test(self, obj):
         for reader in self.metadata_readers:
@@ -39,16 +43,58 @@ class MetadataComponent(Component):
                 return reader
         return None
 
-
     def get_reader_by_format(self, format):
         for reader in self.metadata_readers:
             if format in reader.formats:
                 return reader
         return None
 
-
     def get_writer_by_format(self, format):
         for writer in self.metadata_writers:
             if format in writer.formats:
                 return writer
         return None
+
+
+class ProductMetadataComponent(object):
+    # metadata_readers = ExtensionPoint(ProductMetadataReaderInterface)
+    metadata_readers = [S2ProductFormatReader]
+
+    def get_reader_by_test(self, path):
+        with open(path) as f:
+            for reader_cls in self.metadata_readers:
+                reader = reader_cls()
+                if hasattr(reader, 'test_path') and reader.test_path(path):
+                    return reader
+                elif hasattr(reader, 'test') and reader.test(f):
+                    return reader
+        return None
+
+    def collect_metadata(self, data_items, cache=None):
+        collected_metadata = {}
+        for data_item in data_items:
+            path = retrieve(data_item, cache)
+            reader = self.get_reader_by_test(path)
+            if reader:
+                if hasattr(reader, 'read_path'):
+                    metadata = reader.read_path(path)
+                else:
+                    with open(path) as f:
+                        metadata = reader.read(f)
+
+                metadata.update(collected_metadata)
+                collected_metadata = metadata
+        return collected_metadata
+
+    def collect_package_metadata(self, storage, cache=None):
+        # path = retrieve(storage, cache)
+        path = storage.url
+        reader = self.get_reader_by_test(path)
+        if reader:
+            if hasattr(reader, 'read_path'):
+                return reader.read_path(path)
+            else:
+                with open(path) as f:
+                    return reader.read(f)
+
+        raise Exception('No suitable metadata reader found.')
