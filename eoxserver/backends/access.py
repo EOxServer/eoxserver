@@ -1,9 +1,9 @@
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
 #
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Copyright (C) 2013 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -23,20 +23,26 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 
 import hashlib
 import logging
 
+from eoxserver.core.util.iteratortools import pairwise_iterative
+from eoxserver.contrib import vsi
 from eoxserver.backends.cache import get_cache_context
-from eoxserver.backends.component import BackendComponent, env
+from eoxserver.backends.storages import get_handler_class_for_model
 
 
 logger = logging.getLogger(__name__)
 
 
-def generate_hash(location, format, hash_impl="sha1"):
+class AccessError(Exception):
+    pass
+
+
+def _generate_hash(location, format, hash_impl="sha1"):
     h = hashlib.new(hash_impl)
     if format is not None:
         h.update(format)
@@ -44,124 +50,68 @@ def generate_hash(location, format, hash_impl="sha1"):
     return h.hexdigest()
 
 
-def connect(data_item, cache=None):
-    """ Connect to a :class:`DataItem <eoxserver.backends.models.DataItem>`.
-    If the data item is not connectable but retrievable, this function uses
-    :func:`retrieve` as a fallback.
-
-    :param data_item: the :class:`DataItem <eoxserver.backends.models.DataItem>`
-                      to connect to
-    :param cache: an instance of :class:`CacheContext
-                  <eoxserver.backends.cache.CacheContext>` or ``None``
-                  if the caching shall be handled internally
-    :returns: the connection string to retrieve data from or a local path
-              if the ``DataItem`` was ``retrieved``
+def _linearize_storages(data_item):
+    """ Retrieve a list of all storages.
     """
-
-    backend = BackendComponent(env)
-
+    chain = []
     storage = data_item.storage
+    while storage:
+        handler_cls = get_handler_class_for_model(storage)
+        if not handler_cls:
+            raise AccessError(
+                'Unsupported storage type %r' % storage.storage_type
+            )
 
-    if storage:
-        component = backend.get_connected_storage_component(
-            storage.storage_type
-        )
-
-    if not storage or not component:
-        return retrieve(data_item, cache)
-
-    return component.connect(storage.url, data_item.location)
+        chain.append((storage, handler_cls))
+        storage = storage.parent
+    return reversed(chain)
 
 
 def retrieve(data_item, cache=None):
-    """ Retrieve a :class:`DataItem <eoxserver.backends.models.DataItem>`, i.e:
-    make it locally available. This takes into account any download from a
-    :class:`Storage <eoxserver.backends.models.Storage>` and any unpacking from
-    a :class:`Package <eoxserver.backends.models.Package>` the ``DataItem``
-    might be contained in.
+    """ Retrieves the :class:`eoxserver.backends.models.DataItem` and makes the
+        file locally available if necessary.
+        When the data item is not associated with a storage, then the data items
+        location will be returned. Otherwise, the storage  handlers ``retrieve``
+        method will be called to make the data item locally available.
 
-    :param data_item: the :class:`DataItem <eoxserver.backends.models.DataItem>`
-                      to connect retrieve
-    :param cache: an instance of :class:`CacheContext
-                  <eoxserver.backends.cache.CacheContext>` or ``None``
-                  if the caching shall be handled internally
+        :param data_item: data item to retrieve
+        :type data_item: :class:`eoxserver.backends.models.DataItem`
+        :param cache: the optional cache context
+        :type cache: eoxserver.backends.cache.CacheContext
+        :returns: the path to the localized file
+        :rtype: str
     """
+    cache = cache or get_cache_context()
 
-    backend = BackendComponent(env)
+    # use shortcut here, when no storage is provided
+    if not data_item.storage:
+        return data_item.location
 
-    if cache is None:
-        cache = get_cache_context()
-
-    # compute a cache path where the file *would* be cached
+    storage_handlers = _linearize_storages(data_item)
     with cache:
-        item_id = generate_hash(data_item.location, data_item.format)
-        path = cache.relative_path(item_id)
+        handler = None
+        path = None
+        for current, child in pairwise_iterative(storage_handlers):
+            storage, handler_cls = current
+            child_storage, _ = child
 
-        logger.debug("Retrieving %s (ID: %s)" % (data_item, item_id))
+            item_id = _generate_hash(data_item.location, data_item.format)
+            tmp_path = cache.relative_path(item_id)
+            if not cache.contains(item_id):
+                # actually retrieve the item when not in the cache
+                handler = handler_cls(path or storage.url)
+                use_cache, path = handler.retrieve(
+                    path or child_storage.url, tmp_path
+                )
+                if not use_cache:
+                    cache.add_mapping(path)
+            else:
+                path = tmp_path
 
-        if item_id in cache:
-            logger.debug("Item %s is already in the cache." % item_id)
-            return path
-
-        if data_item.package is None and data_item.storage:
-            return _retrieve_from_storage(
-                backend, data_item, data_item.storage, item_id, path, cache
-            )
-
-        elif data_item.package:
-            return _extract_from_package(
-                backend, data_item, data_item.package, item_id, path, cache
-            )
-
-        else:
-            return data_item.location
-
-
-def _retrieve_from_storage(backend, data_item, storage, item_id, path, cache):
-    """ Helper function to retrieve a file from a storage.
-    """
-
-    logger.debug("Accessing storage %s." % storage)
-
-    component = backend.get_file_storage_component(
-        storage.storage_type
-    )
-
-    actual_path = component.retrieve(
-        storage.url, data_item.location, path
-    )
-
-    if actual_path and actual_path != path:
-        cache.add_mapping(actual_path, item_id)
-
-    return actual_path or path
-
-
-def _extract_from_package(backend, data_item, package, item_id, path, cache):
-    """ Helper function to extract a file from a package.
-    """
-
-    logger.debug("Accessing package %s." % package)
-
-    package_location = retrieve(package, cache)
-
-    component = backend.get_package_component(
-        package.format
-    )
-
-    logger.debug(
-        "Extracting from %s: %s and saving it at %s"
-        % (package_location, data_item.location, path)
-    )
-
-    actual_path = component.extract(
-        package_location, data_item.location, path
-    )
-
-    if actual_path and actual_path != path:
-        cache.add_mapping(actual_path, item_id)
-
-    return actual_path or path
+        if storage_handlers:
+            storage, handler_cls = storage_handlers[-1]
+            handler = handler_cls(path)
+            return handler.retrieve(data_item.location)[1]
 
 
 def open(data_item, cache=None):
@@ -178,3 +128,40 @@ def open(data_item, cache=None):
     """
 
     return __builtins__.open(retrieve(data_item, cache))
+
+
+def get_vsi_path(data_item):
+    """ Get the VSI path to the given :class:`eoxserver.backends.models.DataItem`
+
+        :param data_item: the data item to get the path to
+        :type data_item: :class:`eoxserver.backends.models.DataItem`
+        :returns: the VSI file path which is can be used with GDAL-related APIs
+        :rtype: str
+    """
+    storage = data_item.storage
+    if storage:
+        if storage.parent:
+            raise NotImplementedError(
+                'VSI paths for nested storages is not supported'
+            )
+        handler_cls = get_handler_class_for_model(storage)
+        if handler_cls:
+            handler = handler_cls(storage.url)
+            return handler.get_vsi_path(data_item.location)
+        else:
+            raise AccessError(
+                'Unsupported storage type %r' % storage.storage_type
+            )
+    return data_item.location
+
+
+def vsi_open(data_item):
+    """ Opens a :class:`eoxserver.backends.models.DataItem` as a
+        :class:`eoxserver.contrib.vsi.VSIFile`. Uses :func:`get_vsi_path`
+        internally to get the path.
+
+        :param data_item: the data item to open as a VSI file
+        :type data_item: :class:`eoxserver.backends.models.DataItem`
+        :rtype: :class:`eoxserver.contrib.vsi.VSIFile`
+    """
+    return vsi.open(get_vsi_path(data_item))
