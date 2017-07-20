@@ -29,6 +29,15 @@
 from eoxserver.core.decoders import config
 
 
+DEFAULT_EOXS_STORAGE_HANDLERS = [
+    'eoxserver.backends.storages.ZIPStorageHandler',
+    'eoxserver.backends.storages.TARStorageHandler',
+    'eoxserver.backends.storages.DirectoryStorageHandler',
+    'eoxserver.backends.storages.HTTPStorageHandler',
+    'eoxserver.backends.storages.FTPStorageHandler',
+]
+
+
 class CacheConfigReader(config.Reader):
     config.section("backends")
     retention_time = config.Option() # TODO
