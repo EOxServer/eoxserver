@@ -78,7 +78,7 @@ class VSIFile(object):
             raise IOError("Failed to open file '%s'." % self._filename)
 
     @property
-    def filename(self):
+    def name(self):
         """ Returns the filename referenced by this file
         """
         return self._filename
@@ -137,7 +137,7 @@ class VSIFile(object):
     def size(self):
         """ Return the size of the file in bytes
         """
-        stat = VSIStatL(self.filename)
+        stat = VSIStatL(self.name)
         return stat.size
 
     def __enter__(self):
@@ -165,12 +165,26 @@ class TemporaryVSIFile(VSIFile):
                          by default this is an in-memory location
         """
         if not filename:
-            filename = "/vsimem/%s" % uuid4().hex()
+            filename = "/vsimem/%s" % uuid4().hex
         FileFromMemBuffer(filename, buf)
-        return cls(mode)
+        return cls(filename, mode)
 
     def close(self):
         """ Close the file. This also deletes it.
         """
         super(TemporaryVSIFile, self).close()
-        remove(self.filename)
+        remove(self.name)
+
+
+def join(first, *paths):
+    """ Joins the given VSI path specifiers. Similar to :func:`os.path.join` but
+        takes care of the VSI-specific handles such as `vsicurl`, `vsizip`, etc.
+    """
+    parts = first.split('/')
+    for path in paths:
+        new = path.split('/')
+        if path.startswith('/vsi'):
+            parts = new[0:2] + (parts if parts[0] else parts[1:]) + new[2:]
+        else:
+            parts.extend(new)
+    return '/'.join(parts)
