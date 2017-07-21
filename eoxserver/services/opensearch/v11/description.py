@@ -61,7 +61,9 @@ class OpenSearch11DescriptionEncoder(XMLEncoder):
     def encode_description(self, request, collection, result_formats):
         OS = self.OS
         description = OS("OpenSearchDescription",
-            OS("ShortName", collection.identifier if collection else ""),
+            OS("ShortName",
+                collection.identifier if collection is not None else ""
+            ),
             OS("Description")
         )
         for method in ("GET", "POST"):
@@ -85,7 +87,7 @@ class OpenSearch11DescriptionEncoder(XMLEncoder):
         return description
 
     def encode_url(self, request, collection, result_format, method):
-        if collection:
+        if collection is not None:
             search_url = reverse("opensearch:collection:search",
                 kwargs={
                     "collection_id": collection.identifier,
@@ -109,7 +111,7 @@ class OpenSearch11DescriptionEncoder(XMLEncoder):
         parameters = list(chain(default_parameters, *[
             [
                 dict(parameter, **{"namespace": search_extension.namespace})
-                for parameter in search_extension.get_schema()
+                for parameter in search_extension.get_schema(type(collection))
             ] for search_extension in self.search_extensions
         ]))
 
@@ -132,7 +134,7 @@ class OpenSearch11DescriptionEncoder(XMLEncoder):
             type=result_format.mimetype,
             template="%s?%s" % (search_url, query_template)
             if method == "GET" else search_url,
-            rel="results" if collection else "collection", ** {
+            rel="results" if collection is not None else "collection", ** {
                 self.ns_param("method"): method,
                 self.ns_param("enctype"): "application/x-www-form-urlencoded",
                 "indexOffset": "0"
@@ -150,6 +152,10 @@ class OpenSearch11DescriptionEncoder(XMLEncoder):
             )
         else:
             attributes["value"] = "{%s}" % parameter.pop("type")
+
+        pattern = parameter.get("pattern")
+        if pattern:
+            attributes["pattern"] = pattern
 
         return self.PARAM("Parameter", *[
             self.PARAM("Option", value=option, label=option)

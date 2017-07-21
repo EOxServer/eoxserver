@@ -169,3 +169,24 @@ class CollectionAdmin(EOObjectAdmin):
     inlines = [CollectionMetadataInline]
 
 admin.site.register(models.Collection, CollectionAdmin)
+
+
+class IndexHiddenAdmin(admin.ModelAdmin):
+    """ Admin class that hides on the apps admin index page.
+        """
+    def get_model_perms(self, request):
+        return {}
+
+admin.site.register(models.OrbitNumber, IndexHiddenAdmin)
+admin.site.register(models.Track, IndexHiddenAdmin)
+admin.site.register(models.Frame, IndexHiddenAdmin)
+admin.site.register(models.SwathIdentifier, IndexHiddenAdmin)
+admin.site.register(models.ProductVersion, IndexHiddenAdmin)
+admin.site.register(models.ProductQualityDegredationTag, IndexHiddenAdmin)
+admin.site.register(models.ProcessorName, IndexHiddenAdmin)
+admin.site.register(models.ProcessingCenter, IndexHiddenAdmin)
+admin.site.register(models.SensorMode, IndexHiddenAdmin)
+admin.site.register(models.ArchivingCenter, IndexHiddenAdmin)
+admin.site.register(models.ProcessingMode, IndexHiddenAdmin)
+admin.site.register(models.AcquisitionStation, IndexHiddenAdmin)
+admin.site.register(models.AcquisitionSubType, IndexHiddenAdmin)
