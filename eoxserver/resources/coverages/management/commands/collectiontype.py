@@ -49,7 +49,7 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             )
 
         create_parser.add_argument(
-            '--coverage-type', '-c', action='append',
+            '--coverage-type', '-c', action='append', default=[],
             dest='allowed_coverage_type_names',
             help=(
                 'Specify a coverage type that is allowed in collections of this '
@@ -57,7 +57,7 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             )
         )
         create_parser.add_argument(
-            '--product-type', '-p', action='append',
+            '--product-type', '-p', action='append', default=[],
             dest='allowed_product_type_names',
             help=(
                 'Specify a product type that is allowed in collections of this '

@@ -44,9 +44,10 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
         insert_parser = self.add_subparser(parser, 'insert')
         exclude_parser = self.add_subparser(parser, 'exclude')
         purge_parser = self.add_subparser(parser, 'purge')
+        summary_parser = self.add_subparser(parser, 'summary')
         parsers = [
             create_parser, delete_parser, insert_parser, exclude_parser,
-            purge_parser
+            purge_parser, summary_parser
         ]
 
         # identifier is a common argument
@@ -76,6 +77,28 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             )
         )
 
+        summary_parser.add_argument(
+            '--products', action='store_true', default=True,
+            dest='product_summary',
+            help=('Collect summary product metadata. Default.')
+        )
+        summary_parser.add_argument(
+            '--no-products', action='store_false', default=True,
+            dest='coverage_summary',
+            help=("Don't collect summary product metadata.")
+        )
+
+        summary_parser.add_argument(
+            '--coverages', action='store_true', default=True,
+            dest='product_summary',
+            help=('Collect summary coverage metadata. Default.')
+        )
+        summary_parser.add_argument(
+            '--no-coverages', action='store_false', default=True,
+            dest='coverage_summary',
+            help=("Don't collect summary coverage metadata.")
+        )
+
     @transaction.atomic
     def handle(self, subcommand, identifier, *args, **kwargs):
         """ Dispatch sub-commands: create, delete, insert, exclude, purge.
@@ -91,6 +114,8 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             self.handle_exclude(identifier, *args, **kwargs)
         elif subcommand == "purge":
             self.handle_purge(identifier, *args, **kwargs)
+        elif subcommand == "summary":
+            self.handle_summary(identifier, *args, **kwargs)
 
     def handle_create(self, identifier, type_name, grid_name, **kwargs):
         """ Handle the creation of a new collection.
@@ -109,6 +134,7 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             raise CommandError("Collection type %r does not exist." % type_name)
 
         models.Collection.objects.create(
+            identifier=identifier,
             collection_type=collection_type, grid=grid
         )
 
@@ -178,6 +204,13 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
 
     def handle_purge(self, identifier, **kwargs):
         pass
+
+    def handle_summary(self, identifier, product_summary, coverage_summary,
+                       **kwargs):
+        models.collection_collect_metadata(
+            self.get_collection(identifier),
+            False, False, False, product_summary, coverage_summary
+        )
 
     def get_collection(self, identifier):
         """ Helper method to get a collection by identifier or raise a
