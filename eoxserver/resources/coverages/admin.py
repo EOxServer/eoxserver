@@ -85,17 +85,17 @@ class BrowseInline(admin.StackedInline):
     browse_image_tag.empty_value_display = ''
 
 
-class CoverageMetadataInline(admin.TabularInline):
+class CoverageMetadataInline(admin.StackedInline):
     model = models.CoverageMetadata
     extra = 0
 
 
-class ProductMetadataInline(admin.TabularInline):
+class ProductMetadataInline(admin.StackedInline):
     model = models.ProductMetadata
     extra = 0
 
 
-class CollectionMetadataInline(admin.TabularInline):
+class CollectionMetadataInline(admin.StackedInline):
     model = models.CollectionMetadata
     extra = 0
 
@@ -167,6 +167,19 @@ admin.site.register(models.Product, ProductAdmin)
 
 class CollectionAdmin(EOObjectAdmin):
     inlines = [CollectionMetadataInline]
+
+    actions = ['summary']
+
+    # action to refresh the summary info on a collection
+    def summary(self, request, queryset):
+        for collection in queryset:
+            models.collection_collect_metadata(
+                collection, product_summary=True, coverage_summary=True
+            )
+
+    summary.short_description = (
+        "Update the summary information for each collection"
+    )
 
 admin.site.register(models.Collection, CollectionAdmin)
 

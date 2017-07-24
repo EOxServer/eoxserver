@@ -29,13 +29,19 @@
 
 # pep8: disable=E501
 
+import json
+from datetime import datetime
+
 from django.core.exceptions import ValidationError
 from django.contrib.gis.db import models
+from django.contrib.gis.db.models import Extent, Union
+from django.db.models import Min, Max, Q
 from django.utils.timezone import now
 from django.utils.encoding import python_2_unicode_compatible
 from model_utils.managers import InheritanceManager
 
 from eoxserver.backends import models as backends
+from eoxserver.core.util.timetools import isoformat
 
 
 mandatory = dict(null=False, blank=False)
@@ -45,6 +51,11 @@ searchable = dict(null=True, blank=True, db_index=True)
 optional_protected = dict(null=True, blank=True, on_delete=models.PROTECT)
 mandatory_protected = dict(null=False, blank=False, on_delete=models.PROTECT)
 
+optional_indexed = dict(blank=True, null=True, db_index=True)
+common_value_args = dict(
+    on_delete=models.SET_NULL, null=True, blank=True,
+    related_name="metadatas"
+)
 
 # ==============================================================================
 # "Type" models
@@ -203,6 +214,9 @@ class EOObject(models.Model):
     end_time = models.DateTimeField(**optional)
     footprint = models.GeometryField(**optional)
 
+    # inserted = models.DateTimeField(auto_now_add=True)
+    # updated = models.DateTimeField(auto_now=True)
+
     objects = InheritanceManager()
 
     def __str__(self):
@@ -234,29 +248,29 @@ class ReservedIDManager(models.Manager):
         """
     def get_original_queryset(self):
         return super(ReservedIDManager, self).get_queryset()
-    
+
     def get_queryset(self):
         Q = models.Q
         return self.get_original_queryset().filter(
-                                                   Q(until__isnull=True) | Q(until__gt=now())
-                                                   )
-    
+            Q(until__isnull=True) | Q(until__gt=now())
+        )
+
     def cleanup_reservations(self):
         Q = models.Q
         self.get_original_queryset().filter(
-                                            Q(until__isnull=False) | Q(until__lte=now())
-                                            ).delete()
-    
+            Q(until__isnull=False) | Q(until__lte=now())
+        ).delete()
+
     def remove_reservation(self, identifier=None, request_id=None):
         if not identifier and not request_id:
             raise ValueError("Either identifier or request ID required")
-        
+
         if identifier:
             model = self.get_original_queryset().get(identifier=identifier)
             if request_id and model.request_id != request_id:
                 raise ValueError(
-                                 "Given request ID does not match the reservation."
-                                 )
+                    "Given request ID does not match the reservation."
+                )
         else:
             model = self.get_original_queryset().get(request_id=request_id)
             model.delete()
@@ -268,7 +282,7 @@ class ReservedID(EOObject):
         """
     until = models.DateTimeField(**optional)
     request_id = models.CharField(max_length=256, **optional)
-    
+
     objects = ReservedIDManager()
 
 
@@ -303,75 +317,36 @@ class Mask(backends.DataItem):
 
 class CollectionMetadata(models.Model):
     collection = models.OneToOneField(Collection, related_name='collection_metadata')
-    # ...
+
+    product_type = models.CharField(max_length=256, **optional_indexed)
+    doi = models.CharField(max_length=256, **optional_indexed)
+    platform = models.CharField(max_length=256, **optional_indexed)
+    platform_serial_identifier = models.CharField(max_length=256, **optional_indexed)
+    instrument = models.CharField(max_length=256, **optional_indexed)
+    sensor_type = models.CharField(max_length=256, **optional_indexed)
+    composite_type = models.CharField(max_length=256, **optional_indexed)
+    processing_level = models.CharField(max_length=256, **optional_indexed)
+    orbit_type = models.CharField(max_length=256, **optional_indexed)
+    spectral_range = models.CharField(max_length=256, **optional_indexed)
+    wavelength = models.IntegerField(**optional_indexed)
+    # hasSecurityConstraints = models.CharField(**optional_indexed)
+    # dissemination = models.CharField(**optional_indexed)
+
+    product_metadata_summary = models.TextField(**optional)
+    coverage_metadata_summary = models.TextField(**optional)
 
 
-class CollectionSummaryMetadata(models.Model):
-    """ Store summary information about all Coverages/Products in the
-        collection for quick display.
-    """
-    collection = models.OneToOneField(Collection, related_name='summary_metadata')
-    # ...
-
-
-class ProductMetadata(models.Model):
-    product = models.OneToOneField(Product, related_name='product_metadata')
-    # ...
-
-
-    name = models.CharField(max_length=512, unique=True, **mandatory)
-
-
-class CollectionMetadata(models.Model):
-    collection = models.OneToOneField(Collection, related_name="metadata")
-    
-    product_type = models.CharField(max_length=256, blank=True, null=True, db_index=True)
-    doi = models.CharField(max_length=256, blank=True, null=True, db_index=True)
-    platform = models.CharField(max_length=256, blank=True, null=True, db_index=True)
-    platform_serial_identifier = models.CharField(max_length=256, blank=True, null=True, db_index=True)
-    instrument = models.CharField(max_length=256, blank=True, null=True, db_index=True)
-    sensor_type = models.CharField(max_length=256, blank=True, null=True, db_index=True)
-    composite_type = models.CharField(max_length=256, blank=True, null=True, db_index=True)
-    processing_level = models.CharField(max_length=256, blank=True, null=True, db_index=True)
-    orbit_type = models.CharField(max_length=256, blank=True, null=True, db_index=True)
-    spectral_range = models.CharField(max_length=256, blank=True, null=True, db_index=True)
-    wavelength = models.IntegerField(blank=True, null=True, db_index=True)
-# hasSecurityConstraints = models.CharField(blank=True, null=True, index=True)
-# dissemination = models.CharField(blank=True, null=True, index=True)
-
-PRODUCTION_STATUS_CHOICES = (
-                             ('0', 'ARCHIVED'),
-                             ('1', 'ACQUIRED'),
-                             ('2', 'CANCELLED')
-                             )
-
-ACQUISITION_TYPE_CHOICES = (
-                            ('N', 'NOMINAL'),
-                            ('C', 'CALIBRATION'),
-                            ('O', 'OTHER')
-                            )
-
-ORBIT_DIRECTION_CHOICES = (
-                           ('A', 'ASCENDING'),
-                           ('D', 'DESCENDING')
-                           )
-
-PRODUCT_QUALITY_STATUS_CHOICES = (
-                                  ('N', 'NOMINAL'),
-                                  ('D', 'DEGRAGED')
-                                  )
-
-common_value_args = dict(
-                         on_delete=models.SET_NULL, null=True, blank=True
-                         )
+# ==============================================================================
+# "Common value" tables to store string enumerations
+# ==============================================================================
 
 
 class AbstractCommonValue(models.Model):
-    value = models.CharField(max_length=256, unique=True)
-    
+    value = models.CharField(max_length=256, db_index=True, unique=True)
+
     def __unicode__(self):
         return self.value
-    
+
     class Meta:
         abstract = True
 
@@ -428,96 +403,110 @@ class AcquisitionSubType(AbstractCommonValue):
     pass
 
 
-class Product(models.Model):
-    coverage = models.OneToOneField(Coverage, related_name="product_metadata")
-    
-    parent_identifier = models.CharField(max_length=256, null=True, blank=True)
-    
-    production_status = models.CharField(max_length=1, null=True, blank=True, choices=PRODUCTION_STATUS_CHOICES)
-    acquisition_type = models.CharField(max_length=1, null=True, blank=True, choices=ACQUISITION_TYPE_CHOICES)
-    
+class ProductMetadata(models.Model):
+    PRODUCTION_STATUS_CHOICES = (
+        (0, 'ARCHIVED'),
+        (1, 'ACQUIRED'),
+        (2, 'CANCELLED')
+    )
+
+    ACQUISITION_TYPE_CHOICES = (
+        (0, 'NOMINAL'),
+        (1, 'CALIBRATION'),
+        (2, 'OTHER')
+    )
+
+    ORBIT_DIRECTION_CHOICES = (
+        (0, 'ASCENDING'),
+        (1, 'DESCENDING')
+    )
+
+    PRODUCT_QUALITY_STATUS_CHOICES = (
+        (0, 'NOMINAL'),
+        (1, 'DEGRAGED')
+    )
+
+    product = models.OneToOneField(Product, related_name='product_metadata')
+
+    parent_identifier = models.CharField(max_length=256, **optional_indexed)
+
+    production_status = models.PositiveSmallIntegerField(choices=PRODUCTION_STATUS_CHOICES, **optional_indexed)
+    acquisition_type = models.PositiveSmallIntegerField(choices=ACQUISITION_TYPE_CHOICES, **optional_indexed)
+
     orbit_number = models.ForeignKey(OrbitNumber, **common_value_args)
-    orbit_direction = models.CharField(max_length=1, null=True, blank=True, choices=ORBIT_DIRECTION_CHOICES)
-    
+    orbit_direction = models.PositiveSmallIntegerField(choices=ORBIT_DIRECTION_CHOICES, **optional_indexed)
+
     track = models.ForeignKey(Track, **common_value_args)
     frame = models.ForeignKey(Frame, **common_value_args)
     swath_identifier = models.ForeignKey(SwathIdentifier, **common_value_args)
-    
+
     product_version = models.ForeignKey(ProductVersion, **common_value_args)
-    product_quality_status = models.CharField(max_length=1, null=True, blank=True, choices=PRODUCT_QUALITY_STATUS_CHOICES)
+    product_quality_status = models.PositiveSmallIntegerField(choices=PRODUCT_QUALITY_STATUS_CHOICES, **optional_indexed)
     product_quality_degradation_tag = models.ForeignKey(ProductQualityDegredationTag, **common_value_args)
     processor_name = models.ForeignKey(ProcessorName, **common_value_args)
     processing_center = models.ForeignKey(ProcessingCenter, **common_value_args)
-    creation_date = models.DateTimeField(null=True, blank=True) # insertion into catalog
-    modification_date = models.DateTimeField(null=True, blank=True) # last modification in catalog
-    processing_date = models.DateTimeField(null=True, blank=True)
+    creation_date = models.DateTimeField(**optional_indexed) # insertion into catalog
+    modification_date = models.DateTimeField(**optional_indexed) # last modification in catalog
+    processing_date = models.DateTimeField(**optional_indexed)
     sensor_mode = models.ForeignKey(SensorMode, **common_value_args)
     archiving_center = models.ForeignKey(ArchivingCenter, **common_value_args)
     processing_mode = models.ForeignKey(ProcessingMode, **common_value_args)
 
 
 class CoverageMetadata(models.Model):
+    POLARISATION_MODE_CHOICES = (
+        (0, 'single'),
+        (1, 'dual'),
+        (2, 'twin'),
+        (3, 'quad'),
+        (4, 'UNDEFINED')
+    )
+
+    POLARISATION_CHANNELS_CHOICES = (
+        (0, "HV"),
+        (1, "HV, VH"),
+        (2, "VH"),
+        (3, "VV"),
+        (4, "HH, VV"),
+        (5, "HH, VH"),
+        (6, "HH, HV"),
+        (7, "VH, VV"),
+        (8, "VH, HV"),
+        (9, "VV, HV"),
+        (10, "VV, VH"),
+        (11, "HH"),
+        (12, "HH, HV, VH, VV"),
+        (13, "UNDEFINED"),
+    )
+
+    ANTENNA_LOOK_DIRECTION_CHOICES = (
+        (0, 'LEFT'),
+        (1, 'RIGHT')
+    )
+
     coverage = models.OneToOneField(Coverage, related_name="metadata")
-    
-    availability_time = models.DateTimeField(null=True, blank=True)
+
+    availability_time = models.DateTimeField(**optional_indexed)
     acquisition_station = models.ForeignKey(AcquisitionStation, **common_value_args)
     acquisition_sub_type = models.ForeignKey(AcquisitionSubType, **common_value_args)
-    start_time_from_ascending_node = models.IntegerField(null=True, blank=True)
-    completion_time_from_ascending_node = models.IntegerField(null=True, blank=True)
-    illumination_azimuth_angle = models.FloatField(null=True, blank=True)
-    illumination_zenith_angle = models.FloatField(null=True, blank=True)
-    illumination_elevation_angle = models.FloatField(null=True, blank=True)
-
-POLARISATION_MODE_CHOICES = (
-                             ('S', 'single'),
-                             ('D', 'dual'),
-                             ('T', 'twin'),
-                             ('Q', 'quad'),
-                             ('U', 'UNDEFINED')
-                             )
-
-POLARISATION_CHANNELS_CHOICES = (
-                                 ('a', "HV"),
-                                 ('b', "HV, VH"),
-                                 ('c', "VH"),
-                                 ('d', "VV"),
-                                 ('e', "HH, VV"),
-                                 ('f', "HH, VH"),
-                                 ('g', "HH, HV"),
-                                 ('h', "VH, VV"),
-                                 ('i', "VH, HV"),
-                                 ('j', "VV, HV"),
-                                 ('k', "VV, VH"),
-                                 ('l', "HH"),
-                                 ('m', "HH, HV, VH, VV"),
-                                 ('u', "UNDEFINED"),
-                                 )
-
-ANTENNA_LOOK_DIRECTION_CHOICES = (
-                                  ('L', 'LEFT'),
-                                  ('R', 'RIGHT')
-                                  )
-
-class SARMetadata(CoverageMetadata):
-    polarisation_mode = models.CharField(max_length=1, null=True, blank=True, choices=POLARISATION_MODE_CHOICES)
-    polarization_channels = models.CharField(max_length=1, null=True, blank=True, choices=POLARISATION_CHANNELS_CHOICES)
-    antenna_look_direction = models.CharField(max_length=1, null=True, blank=True, choices=ANTENNA_LOOK_DIRECTION_CHOICES)
-    minimum_incidence_angle = models.FloatField(null=True, blank=True)
-    maximum_incidence_angle = models.FloatField(null=True, blank=True)
-    doppler_frequency = models.FloatField(null=True, blank=True)
-    incidence_angle_variation = models.FloatField(null=True, blank=True)
-
-
-class OPTMetadata(CoverageMetadata):
-    cloud_cover = models.FloatField(null=True, blank=True)  # 0-100
-    snow_cover = models.FloatField(null=True, blank=True)  # 0-100
-
-
-class ALTMetadata(CoverageMetadata):
-    cloud_cover = models.FloatField(null=True, blank=True)
-    snow_cover = models.FloatField(null=True, blank=True)
-    lowest_location = models.FloatField(null=True, blank=True)
-    highest_location = models.FloatField(null=True, blank=True)
+    start_time_from_ascending_node = models.IntegerField(**optional_indexed)
+    completion_time_from_ascending_node = models.IntegerField(**optional_indexed)
+    illumination_azimuth_angle = models.FloatField(**optional_indexed)
+    illumination_zenith_angle = models.FloatField(**optional_indexed)
+    illumination_elevation_angle = models.FloatField(**optional_indexed)
+    polarisation_mode = models.PositiveSmallIntegerField(choices=POLARISATION_MODE_CHOICES, **optional_indexed)
+    polarization_channels = models.PositiveSmallIntegerField(choices=POLARISATION_CHANNELS_CHOICES, **optional_indexed)
+    antenna_look_direction = models.PositiveSmallIntegerField(choices=ANTENNA_LOOK_DIRECTION_CHOICES, **optional_indexed)
+    minimum_incidence_angle = models.FloatField(**optional_indexed)
+    maximum_incidence_angle = models.FloatField(**optional_indexed)
+    # for SAR acquisitions
+    doppler_frequency = models.FloatField(**optional_indexed)
+    incidence_angle_variation = models.FloatField(**optional_indexed)
+    # for OPT/ALT
+    cloud_cover = models.FloatField(**optional_indexed)
+    snow_cover = models.FloatField(**optional_indexed)
+    lowest_location = models.FloatField(**optional_indexed)
+    highest_location = models.FloatField(**optional_indexed)
 
 
 # ==============================================================================
@@ -604,13 +593,6 @@ def collection_insert_eo_object(collection, eo_object):
             else max(eo_object.end_time, collection.end_time)
         )
 
-    try:
-        summary_metadata = collection.summary_metadata
-        # TODO: collect summary metadata as-well
-        summary_metadata
-    except CollectionSummaryMetadata.DoesNotExist:
-        pass
-
     collection.full_clean()
     collection.save()
 
@@ -626,23 +608,142 @@ def collection_exclude_eo_object(collection, eo_object):
         )
 
     if isinstance(eo_object, Product):
-        # TODO remove
-        pass
+        collection.products.remove(eo_object)
+
     elif isinstance(eo_object, Coverage):
-        # TODO: remove
-        pass
+        collection.coverage.remove(eo_object)
 
-    if eo_object.footprint:
-        # TODO: recalc footprint
-        pass
+    collection_collect_metadata(collection,
+        eo_object.footprint is not None,
+        eo_object.begin_time and eo_object.begin_time == collection.begin_time,
+        eo_object.end_time and eo_object.end_time == collection.end_time,
+        False
+    )
 
-    if eo_object.begin_time:
-        # TODO: recalc begin_time
-        pass
 
-    if eo_object.end_time:
-        # TODO: recalc end_time
-        pass
+def collection_collect_metadata(collection, collect_footprint=True,
+                                collect_begin_time=True, collect_end_time=True,
+                                product_summary=False, coverage_summary=False):
+    """ Collect metadata
+    """
+
+    if collect_footprint or collect_begin_time or collect_end_time:
+        aggregates = {}
+
+        if collect_footprint:
+            aggregates["footprint"] = Union("footprint")
+        if collect_begin_time:
+            aggregates["begin_time"] = Min("begin_time")
+        if collect_end_time:
+            aggregates["end_time"] = Max("end_time")
+
+        values = EOObject.objects.filter(
+            Q(coverage__collections=collection) |
+            Q(product__collections=collection)
+        ).aggregate(**aggregates)
+
+        if collect_footprint:
+            collection.footprint = values["footprint"]
+        if collect_begin_time:
+            collection.footprint = values["begin_time"]
+        if collect_end_time:
+            collection.footprint = values["end_time"]
+
+    if product_summary or coverage_summary:
+        collection_metadata, _ = CollectionMetadata.objects.get_or_create(
+            collection=collection
+        )
+
+        if product_summary:
+            collection_metadata.product_metadata_summary = json.dumps(
+                _collection_metadata(
+                    collection, ProductMetadata, 'product'
+                ), indent=4, sort_keys=True
+            )
+
+        if coverage_summary:
+            collection_metadata.coverage_metadata_summary = json.dumps(
+                _collection_metadata(
+                    collection, CoverageMetadata, 'coverage'
+                ), indent=4, sort_keys=True
+            )
+
+        collection_metadata.save()
+
+
+def _collection_metadata(collection, metadata_model, path):
+    summary_metadata = {}
+    fields = metadata_model._meta.get_fields()
+
+    def is_common_value(field):
+        if isinstance(field, models.ForeignKey):
+            return issubclass(field.related_model, AbstractCommonValue)
+        return False
+
+    # "Value fields": float, ints, dates, etc; displaying a single value
+    value_fields = [
+        field for field in fields
+        if isinstance(field, (
+            models.FloatField, models.IntegerField, models.DateTimeField
+        )) and not field.choices
+    ]
+
+    # choice fields
+    choice_fields = [
+        field for field in fields if field.choices
+    ]
+
+    # "common value" fields
+    common_value_fields = [
+        field for field in fields
+        if is_common_value(field)
+    ]
+
+    base_query = metadata_model.objects.filter(
+        **{"%s__collections__in" % path: [collection]}
+    )
+
+    # get a list of all related common values
+    for field in common_value_fields:
+        summary_metadata[field.name] = list(field.related_model.objects.filter(
+            **{"metadatas__%s__collections__in" % path: [collection]}
+        ).values_list('value', flat=True))
+
+    # get a list of all related choice fields
+    for field in choice_fields:
+        summary_metadata[field.name] = [
+            dict(field.choices)[raw_value]
+            for raw_value in base_query.filter(
+                **{"%s__isnull" % field.name: False}
+            ).values_list(
+                field.name, flat=True
+            ).distinct()
+        ]
+
+    # get min/max
+    aggregates = {}
+    for field in value_fields:
+        aggregates.update({
+            "%s_min" % field.name: Min(field.name),
+            "%s_max" % field.name: Max(field.name),
+        })
+    values = base_query.aggregate(**aggregates)
+
+    for field in value_fields:
+        min_ = values["%s_min" % field.name]
+        max_ = values["%s_max" % field.name]
+
+        if isinstance(min_, datetime):
+            min_ = isoformat(min_)
+        if isinstance(max_, datetime):
+            max_ = isoformat(max_)
+
+        summary_metadata[field.name] = {
+            "min": min_,
+            "max": max_,
+        }
+
+    return summary_metadata
 
 
 def product_add_coverage(product, coverage):
