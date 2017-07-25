@@ -48,5 +48,4 @@ def get_extensions():
     if EXTENSIONS is None:
         _setup_extensions()
 
-    print EXTENSIONS
     return EXTENSIONS
