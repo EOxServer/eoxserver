@@ -1,9 +1,9 @@
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
 #
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Copyright (C) 2015 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -23,7 +23,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 
 import uuid
@@ -33,24 +33,13 @@ from lxml.builder import ElementMaker
 from django.core.urlresolvers import reverse
 
 from eoxserver.contrib import ogr, vsi
-from eoxserver.core import Component, implements
 from eoxserver.core.util.timetools import isoformat
 from eoxserver.core.util.xmltools import NameSpace, NameSpaceMap
 from eoxserver.resources.coverages import models
 from eoxserver.services.gml.v32.encoders import GML32Encoder
-from eoxserver.services.opensearch.interfaces import ResultFormatInterface
 
 
-class BaseResultFormat(Component):
-    """ Base class for result formats
-    """
-
-    implements(ResultFormatInterface)
-
-    abstract = True
-
-
-class BaseOGRResultFormat(BaseResultFormat):
+class BaseOGRResultFormat(object):
     """ Base ckass for result formats using OGR for encoding the records.
     """
     abstract = True
@@ -155,7 +144,7 @@ MEDIA = ElementMaker(namespace=ns_media.uri, nsmap=nsmap)
 OWC = ElementMaker(namespace=ns_owc.uri, nsmap=nsmap)
 
 
-class BaseFeedResultFormat(BaseResultFormat):
+class BaseFeedResultFormat(object):
     """ Abstract base component for feed result formats like RSS and atom. Adds
     functionality to encode the paging mechanisms by using ``atom:link``s.
     """
@@ -237,7 +226,7 @@ class BaseFeedResultFormat(BaseResultFormat):
 
     def encode_item_links(self, request, item):
         links = []
-        if issubclass(item.real_type, models.Collection):
+        if isinstance(item, models.Collection):
             # add link to opensearch collection search
             links.append(
                 ATOM("link", rel="search", href=request.build_absolute_uri(
@@ -248,47 +237,78 @@ class BaseFeedResultFormat(BaseResultFormat):
             )
             # TODO: link to WMS (GetCapabilities)
 
-        if issubclass(item.real_type, models.Coverage):
+        if isinstance(item, models.Product):
+            footprint = item.footprint
+            if footprint:
+                minx, miny, maxx, maxy = footprint.extent
+
+                fx = 1.0
+                fy = 1.0
+
+                if (maxx - minx) > (maxy - miny):
+                    fy = (maxy - miny) / (maxx - minx)
+                else:
+                    fx = (maxx - minx) / (maxy - miny)
+
+                wms_get_capabilities = request.build_absolute_uri(
+                    "%s?service=WMS&version=1.3.0&request=GetCapabilities"
+                )
+
+                wms_small = request.build_absolute_uri(
+                    "%s?service=WMS&version=1.3.0&request=GetMap"
+                    "&layers=%s&format=image/png&TRANSPARENT=true"
+                    "&width=%d&height=%d&CRS=EPSG:4326&STYLES="
+                    "&BBOX=%f,%f,%f,%f"
+                    "" % (
+                        reverse("ows"), item.identifier,
+                        int(100 * fx), int(100 * fy),
+                        miny, minx, maxy, maxx
+                    )
+                )
+
+                wms_large = request.build_absolute_uri(
+                    "%s?service=WMS&version=1.3.0&request=GetMap"
+                    "&layers=%s&format=image/png&TRANSPARENT=true"
+                    "&width=%d&height=%d&CRS=EPSG:4326&STYLES="
+                    "&BBOX=%f,%f,%f,%f"
+                    "" % (
+                        reverse("ows"), item.identifier,
+                        int(500 * fx), int(500 * fy),
+                        miny, minx, maxy, maxx
+                    )
+                )
+
+                # media RSS style links
+                links.extend([
+                    # "Browse" image
+                    MEDIA("content",
+                        MEDIA("category", "QUICKLOOK"),
+                        url=wms_large
+                    ),
+                    # "Thumbnail" image
+                    MEDIA("content",
+                        MEDIA("category", "THUMBNAIL"),
+                        url=wms_small
+                    ),
+                ])
+
+                links.extend([
+                    OWC("offering",
+                        OWC("operation",
+                            code="GetCapabilities", method="GET",
+                            type="application/xml", href=wms_get_capabilities
+                        ),
+                        OWC("operation",
+                            code="GetMap", method="GET",
+                            type="image/png", href=wms_large
+                        ),
+                        code="http://www.opengis.net/spec/owc-atom/1.0/req/wms",
+                    ),
+                ])
+
+        if isinstance(item, models.Coverage):
             # add a link for a Describe and GetCoverage request for
             # metadata and data download
-
-            minx, miny, maxx, maxy = item.extent_wgs84
-
-            fx = 1.0
-            fy = 1.0
-
-            if (maxx - minx) > (maxy - miny):
-                fy = (maxy - miny) / (maxx - minx)
-            else:
-                fx = (maxx - minx) / (maxy - miny)
-
-            wms_get_capabilities = request.build_absolute_uri(
-                "%s?service=WMS&version=1.3.0&request=GetCapabilities"
-            )
-
-            wms_small = request.build_absolute_uri(
-                "%s?service=WMS&version=1.3.0&request=GetMap"
-                "&layers=%s&format=image/png&TRANSPARENT=true"
-                "&width=%d&height=%d&CRS=EPSG:4326&STYLES="
-                "&BBOX=%f,%f,%f,%f"
-                "" % (
-                    reverse("ows"), item.identifier,
-                    int(100 * fx), int(100 * fy),
-                    miny, minx, maxy, maxx
-                )
-            )
-
-            wms_large = request.build_absolute_uri(
-                "%s?service=WMS&version=1.3.0&request=GetMap"
-                "&layers=%s&format=image/png&TRANSPARENT=true"
-                "&width=%d&height=%d&CRS=EPSG:4326&STYLES="
-                "&BBOX=%f,%f,%f,%f"
-                "" % (
-                    reverse("ows"), item.identifier,
-                    int(500 * fx), int(500 * fy),
-                    miny, minx, maxy, maxx
-                )
-            )
 
             wcs_get_capabilities = request.build_absolute_uri(
                 "%s?service=WCS&version=2.0.1&request=GetCapabilities"
@@ -308,36 +328,11 @@ class BaseFeedResultFormat(BaseResultFormat):
                 ATOM("link", rel="enclosure", href=wcs_get_coverage),
                 ATOM("link", rel="via", href=wcs_describe_coverage),
                 # "Browse" image
-                ATOM("link", rel="icon", href=wms_large),
+                # ATOM("link", rel="icon", href=wms_large),
             ])
 
-            # media RSS style links
+            # OWC offerings for WCS
             links.extend([
-                # "Browse" image
-                MEDIA("content",
-                    MEDIA("category", "QUICKLOOK"),
-                    url=wms_large
-                ),
-                # "Thumbnail" image
-                MEDIA("content",
-                    MEDIA("category", "THUMBNAIL"),
-                    url=wms_small
-                ),
-            ])
-
-            # OWC offerings for WMS/WCS
-            links.extend([
-                OWC("offering",
-                    OWC("operation",
-                        code="GetCapabilities", method="GET",
-                        type="application/xml", href=wms_get_capabilities
-                    ),
-                    OWC("operation",
-                        code="GetMap", method="GET",
-                        type="image/png", href=wms_large
-                    ),
-                    code="http://www.opengis.net/spec/owc-atom/1.0/req/wms",
-                ),
                 OWC("offering",
                     OWC("operation",
                         code="GetCapabilities", method="GET",
@@ -363,7 +358,7 @@ class BaseFeedResultFormat(BaseResultFormat):
     def encode_spatio_temporal(self, item):
         entries = []
         if item.footprint:
-            extent = item.extent_wgs84
+            extent = item.footprint.extent
             entries.append(
                 GEORSS("box",
                     "%f %f %f %f" % (extent[1], extent[0], extent[3], extent[2])
@@ -377,7 +372,8 @@ class BaseFeedResultFormat(BaseResultFormat):
                 )
             )
 
-        begin_time, end_time = item.time_extent
+        begin_time = item.begin_time
+        end_time = item.end_time
         if begin_time and end_time:
             if begin_time != end_time:
                 entries.append(

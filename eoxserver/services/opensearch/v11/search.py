@@ -28,14 +28,13 @@
 from collections import namedtuple
 
 from django.http import Http404
+from django.db.models import Q
 
-from eoxserver.core import Component, ExtensionPoint
 from eoxserver.core.decoders import kvp
 from eoxserver.core.util.xmltools import NameSpaceMap
 from eoxserver.resources.coverages import models
-from eoxserver.services.opensearch.interfaces import (
-    SearchExtensionInterface, ResultFormatInterface
-)
+from eoxserver.services.opensearch.formats import get_formats
+from eoxserver.services.opensearch.extensions import get_extensions
 
 
 class SearchContext(namedtuple("SearchContext", [
@@ -60,10 +59,7 @@ class SearchContext(namedtuple("SearchContext", [
         return self.start_index // divisor
 
 
-class OpenSearch11SearchHandler(Component):
-    search_extensions = ExtensionPoint(SearchExtensionInterface)
-    result_formats = ExtensionPoint(ResultFormatInterface)
-
+class OpenSearch11SearchHandler(object):
     def handle(self, request, collection_id=None, format_name=None):
         if request.method == "GET":
             request_parameters = request.GET
@@ -75,9 +71,16 @@ class OpenSearch11SearchHandler(Component):
         decoder = OpenSearch11BaseDecoder(request_parameters)
 
         if collection_id:
-            qs = models.Coverage.objects.filter(
-                collections__identifier=collection_id
-            )
+            # search for products in that collection and coverages not
+            # associated with a product but contained in this collection
+            qs = models.EOObject.objects.filter(
+                Q(product__collections__identifier=collection_id) |
+                Q(
+                    coverage__collections__identifier=collection_id,
+                    coverage__parent_product__isnull=True
+                )
+            ).select_subclasses()
+
         else:
             qs = models.Collection.objects.all()
 
@@ -87,9 +90,11 @@ class OpenSearch11SearchHandler(Component):
 
         namespaces = NameSpaceMap()
         all_parameters = {}
-        for search_extension in self.search_extensions:
+        for search_extension_class in get_extensions():
             # get all search extension related parameters and translate the name
             # to the actual parameter name
+            search_extension = search_extension_class()
+
             params = dict(
                 (parameter["type"], request_parameters[parameter["name"]])
                 for parameter in search_extension.get_schema(qs.model)
@@ -109,15 +114,12 @@ class OpenSearch11SearchHandler(Component):
         elif decoder.count:
             qs = qs[:decoder.count]
         elif decoder.count == 0:
-            if collection_id:
-                qs = models.Collection.objects.none()
-            else:
-                qs = models.Coverage.objects.none()
+            qs = models.EOObject.objects.none()
 
         try:
             result_format = next(
-                result_format
-                for result_format in self.result_formats
+                result_format()
+                for result_format in get_formats()
                 if result_format.name == format_name
             )
         except StopIteration:

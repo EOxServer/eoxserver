@@ -28,20 +28,17 @@
 import re
 import functools
 
-from eoxserver.core import Component, implements
 from eoxserver.core.decoders import kvp, enum
 from eoxserver.core.util.xmltools import NameSpace
 from eoxserver.core.util.timetools import parse_iso8601
-from eoxserver.services.opensearch.interfaces import SearchExtensionInterface
 from eoxserver.services import filters
 from eoxserver.resources.coverages import models
 
 
-class EarthObservationExtension(Component):
+class EarthObservationExtension(object):
     """ Implementation of the OpenSearch `'EO' extension
     <http://docs.opengeospatial.org/is/13-026r8/13-026r8.html>`_.
     """
-    implements(SearchExtensionInterface)
 
     namespace = NameSpace(
         "http://a9.com/-/opensearch/extensions/eo/1.0/", "eo"

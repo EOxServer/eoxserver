@@ -28,10 +28,8 @@
 
 from django.shortcuts import render
 
-from eoxserver.services.opensearch.formats.base import BaseResultFormat
 
-
-class HTMLResultFormat(BaseResultFormat):
+class HTMLResultFormat(object):
     """ HTML result format.
     """
 

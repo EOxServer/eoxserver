@@ -1,10 +1,10 @@
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
 #
-#-------------------------------------------------------------------------------
-# Copyright (C) 2015 EOX IT Services GmbH
+# ------------------------------------------------------------------------------
+# Copyright (C) 2017 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -23,34 +23,22 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 
-from django.http import HttpResponse
+# default for EOXS_OPENSEARCH_FORMATS
+DEFAULT_EOXS_OPENSEARCH_FORMATS = [
+    'eoxserver.services.opensearch.formats.atom.AtomResultFormat',
+    'eoxserver.services.opensearch.formats.rss.RSSResultFormat',
+    'eoxserver.services.opensearch.formats.html.HTMLResultFormat',
+    'eoxserver.services.opensearch.formats.kml.KMLResultFormat',
+    'eoxserver.services.opensearch.formats.geojson.GeoJSONResultFormat',
 
-from eoxserver.services.opensearch.v11.description import (
-    OpenSearch11DescriptionHandler
-)
-from eoxserver.services.opensearch.v11.search import (
-    OpenSearch11SearchHandler
-)
+]
 
-
-def description(request, collection_id=None):
-    """ View function for OpenSearch Description requests.
-    """
-    content, content_type = OpenSearch11DescriptionHandler().handle(
-        request, collection_id
-    )
-    return HttpResponse(
-        content=content, content_type=content_type, status=200
-    )
-
-
-def search(request, collection_id=None, format_name=None):
-    content, content_type = OpenSearch11SearchHandler().handle(
-        request, collection_id, format_name
-    )
-    return HttpResponse(
-        content=content, content_type=content_type, status=200
-    )
+# default for EOXS_OPENSEARCH_EXTENSIONS
+DEFAULT_EOXS_OPENSEARCH_EXTENSIONS = [
+    'eoxserver.services.opensearch.extensions.eo.EarthObservationExtension',
+    'eoxserver.services.opensearch.extensions.geo.GeoExtension',
+    'eoxserver.services.opensearch.extensions.time.TimeExtension',
+]

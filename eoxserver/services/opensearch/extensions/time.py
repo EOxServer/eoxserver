@@ -28,18 +28,15 @@
 
 from django.db.models import Q
 
-from eoxserver.core import Component, implements
 from eoxserver.core.decoders import kvp, enum
 from eoxserver.core.util.xmltools import NameSpace
 from eoxserver.core.util.timetools import parse_iso8601
-from eoxserver.services.opensearch.interfaces import SearchExtensionInterface
 
 
-class TimeExtension(Component):
+class TimeExtension(object):
     """ Implementation of the OpenSearch `'Time' extension
     <http://www.opensearch.org/Specifications/OpenSearch/Extensions/Time/1.0/Draft_1>`_.
     """
-    implements(SearchExtensionInterface)
 
     namespace = NameSpace(
         "http://a9.com/-/opensearch/extensions/time/1.0/", "time"

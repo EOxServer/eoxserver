@@ -32,14 +32,12 @@ from lxml.builder import ElementMaker
 from django.core.urlresolvers import reverse
 from django.shortcuts import get_object_or_404
 
-from eoxserver.core import Component, ExtensionPoint
 from eoxserver.core.util.xmltools import (
     XMLEncoder, NameSpace, NameSpaceMap
 )
 from eoxserver.resources.coverages import models
-from eoxserver.services.opensearch.interfaces import (
-    SearchExtensionInterface, ResultFormatInterface
-)
+from eoxserver.services.opensearch.formats import get_formats
+from eoxserver.services.opensearch.extensions import get_extensions
 
 
 class OpenSearch11DescriptionEncoder(XMLEncoder):
@@ -165,10 +163,7 @@ class OpenSearch11DescriptionEncoder(XMLEncoder):
         )
 
 
-class OpenSearch11DescriptionHandler(Component):
-    search_extensions = ExtensionPoint(SearchExtensionInterface)
-    result_formats = ExtensionPoint(ResultFormatInterface)
-
+class OpenSearch11DescriptionHandler(object):
     def handle(self, request, collection_id=None):
         collection = None
         if collection_id:
@@ -176,11 +171,13 @@ class OpenSearch11DescriptionHandler(Component):
                 identifier=collection_id
             )
 
-        encoder = OpenSearch11DescriptionEncoder(self.search_extensions)
+        encoder = OpenSearch11DescriptionEncoder([
+            extension() for extension in get_extensions()
+        ])
         return (
             encoder.serialize(
                 encoder.encode_description(
-                    request, collection, self.result_formats
+                    request, collection, [format_() for format_ in get_formats()]
                 )
             ),
             encoder.content_type

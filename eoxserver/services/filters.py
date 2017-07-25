@@ -37,11 +37,11 @@ except ImportError:
 from django.db.models import Q, F, expressions, ForeignKey
 try:
     from django.db.models import Value
-    ARITHMETIC_TYPES = (F, Value, expressions.ExpressionNode, int, float)
+    ARITHMETIC_TYPES = (F, Value, int, float)
 except ImportError:
     def Value(v):
         return v
-    ARITHMETIC_TYPES = (F, expressions.ExpressionNode, int, float)
+    ARITHMETIC_TYPES = (F, int, float)
 
 from django.contrib.gis.geos import Polygon
 from django.contrib.gis.measure import D
@@ -445,12 +445,6 @@ def arithmetic(lhs, rhs, op):
     return func(lhs, rhs)
 
 
-# helpers
-def to_camel_case(word):
-    string = ''.join(x.capitalize() or '_' for x in word.split('_'))
-    return string[0].lower() + string[1:]
-
-
 def get_field_mapping_for_model(model_class, strict=False):
     """ Utility function to get the metadata mapping for a specific model class.
 
@@ -464,55 +458,66 @@ def get_field_mapping_for_model(model_class, strict=False):
     mapping = OrderedDict()
     mapping_choices = {}
 
-    def is_common_value(field):
-        try:
-            if isinstance(field, ForeignKey):
-                field.related.parent_model._meta.get_field('value')
-                return True
-        except:
-            pass
-        return False
+    metadata_classes = {
+        models.Collection: (models.CollectionMetadata, 'collection'),
+        models.Product: (models.ProductMetadata, 'product'),
+        models.Coverage: (models.CoverageMetadata, 'coverage'),
+    }
 
-    if issubclass(model_class, models.EOMetadata) and not strict:
+    if issubclass(model_class, models.EOObject) and not strict:
         field_names = ('identifier', 'begin_time', 'end_time', 'footprint')
         for field_name in field_names:
-            mapping[to_camel_case(field_name)] = field_name
+            mapping[_to_camel_case(field_name)] = field_name
 
-    if issubclass(model_class, models.Coverage):
-        metadata_classes = (
-            (models.Product, 'product_metadata'),
-            (models.CoverageMetadata, 'metadata'),
-            (models.SARMetadata, 'metadata__sarmetadata'),
-            (models.OPTMetadata, 'metadata__optmetadata'),
-            (models.ALTMetadata, 'metadata__altmetadata'),
-        )
-        for (metadata_class, path) in metadata_classes:
-            for field in metadata_class._meta.fields:
-                # skip fields that are defined in a parent model
-                if field.model is not metadata_class or \
-                        field.name in ("id", "coveragemetadata_ptr"):
-                    continue
-                if is_common_value(field):
-                    full_path = '%s__%s__value' % (path, field.name)
-                else:
-                    full_path = '%s__%s' % (path, field.name)
-                mapping[to_camel_case(field.name)] = full_path
-                if field.choices:
-                    mapping_choices[full_path] = dict(
-                        (full, abbrev) for (abbrev, full) in field.choices
-                    )
+        if model_class in metadata_classes:
+            mapping, mapping_choices = _get_metadata_model_mapping(
+                *metadata_classes.get(model_class)
+            )
 
-    if issubclass(model_class, models.Collection):
-        for field in models.CollectionMetadata._meta.fields:
-            # skip fields that are defined in a parent model
-            if is_common_value(field):
-                full_path = 'metadata__%s__value' % field.name
-            else:
-                full_path = 'metadata__%s' % field.name
-            mapping[to_camel_case(field.name)] = full_path
-            if field.choices:
-                mapping_choices[full_path] = dict(
-                    (full, abbrev) for (abbrev, full) in field.choices
+        elif model_class is models.EOObject:
+            for metadata_class, name in metadata_classes.values():
+                class_mapping, class_choices = _get_metadata_model_mapping(
+                    metadata_class, "%s__%s" % (name, name)
                 )
+                mapping.update(class_mapping)
+                mapping_choices.update(class_choices)
+
+    return mapping, mapping_choices
+
+
+# helpers
+def _to_camel_case(word):
+    string = ''.join(x.capitalize() or '_' for x in word.split('_'))
+    return string[0].lower() + string[1:]
+
+
+def _is_common_value(field):
+    try:
+        if isinstance(field, ForeignKey):
+            field.related.parent_model._meta.get_field('value')
+            return True
+    except:
+        pass
+    return False
+
+
+def _get_metadata_model_mapping(metadata_class, path_name):
+    mapping = OrderedDict()
+    mapping_choices = {}
+    for field in metadata_class._meta.fields:
+        # skip fields that are defined in a parent model
+        if field.model is not metadata_class or field.name == "id":
+            continue
+        if _is_common_value(field):
+            full_path = '%s_metadata__%s__value' % (
+                path_name, field.name
+            )
+        else:
+            full_path = '%s_metadata__%s' % (path_name, field.name)
+        mapping[_to_camel_case(field.name)] = full_path
+        if field.choices:
+            mapping_choices[full_path] = dict(
+                (full, abbrev) for (abbrev, full) in field.choices
+            )
 
     return mapping, mapping_choices
