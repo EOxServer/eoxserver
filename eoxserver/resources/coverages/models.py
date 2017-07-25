@@ -484,7 +484,7 @@ class CoverageMetadata(models.Model):
         (1, 'RIGHT')
     )
 
-    coverage = models.OneToOneField(Coverage, related_name="metadata")
+    coverage = models.OneToOneField(Coverage, related_name="coverage_metadata")
 
     availability_time = models.DateTimeField(**optional_indexed)
     acquisition_station = models.ForeignKey(AcquisitionStation, **common_value_args)
