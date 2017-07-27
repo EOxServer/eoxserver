@@ -32,16 +32,10 @@ from os.path import splitext
 
 from django.utils.timezone import utc
 
-from eoxserver.core import Component, implements
-from eoxserver.resources.coverages.metadata.interfaces import (
-    GDALDatasetMetadataReaderInterface
-)
 
-
-class GDALDatasetEnvisatMetadataFormatReader(Component):
+class GDALDatasetEnvisatMetadataFormatReader(object):
     """ Metadata format reader for specific ENVISAT products.
     """
-    implements(GDALDatasetMetadataReaderInterface)
 
     def test_ds(self, ds):
         """ Check whether or not the dataset seems to be an ENVISAT image and

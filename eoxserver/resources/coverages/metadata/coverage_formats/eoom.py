@@ -30,11 +30,7 @@ from django.contrib.gis.geos import Polygon, MultiPolygon
 from eoxserver.core.util.timetools import parse_iso8601
 from eoxserver.core.util.xmltools import parse, NameSpace, NameSpaceMap
 from eoxserver.core.util.iteratortools import pairwise
-from eoxserver.core import Component, implements
 from eoxserver.core.decoders import xml, to_dict, InvalidParameterException
-from eoxserver.resources.coverages.metadata.interfaces import (
-    MetadataReaderInterface
-)
 
 
 NS_EOP_20 = NameSpace("http://www.opengis.net/eop/2.0", "eop")
@@ -59,9 +55,7 @@ nsmap_21 = NameSpaceMap(NS_GML, NS_OM, *namespaces_21)
 nsmap_gml = NameSpaceMap(NS_GML)
 
 
-class EOOMFormatReader(Component):
-    implements(MetadataReaderInterface)
-
+class EOOMFormatReader(object):
     def test(self, obj):
         tree = parse(obj)
         tag = tree.getroot().tag if tree is not None else None
@@ -94,10 +88,10 @@ class EOOMFormatReader(Component):
                 "footprint": MultiPolygon(*decoder.polygons),
                 "format": "eogml",
                 "metadata": to_dict(EOOMExtraMetadataDecoder(tree, use_21)),
-                "product_metadata": to_dict(
-                    EOOMProductMetadataDecoder(tree, use_21)
-                ),
-                "metadata_type": metadata_type
+                # "product_metadata": to_dict(
+                #     EOOMProductMetadataDecoder(tree, use_21)
+                # ),
+                # "metadata_type": metadata_type
             }
 
         raise Exception("Could not parse from obj '%s'." % repr(obj))

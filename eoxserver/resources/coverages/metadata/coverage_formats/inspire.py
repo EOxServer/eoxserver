@@ -30,11 +30,7 @@ from django.contrib.gis.geos import Polygon, MultiPolygon
 from eoxserver.core.util.xmltools import parse, NameSpace, NameSpaceMap
 from eoxserver.core.util.timetools import parse_iso8601
 from eoxserver.core.util.iteratortools import pairwise
-from eoxserver.core import Component, implements
 from eoxserver.core.decoders import xml
-from eoxserver.resources.coverages.metadata.interfaces import (
-    MetadataReaderInterface
-)
 
 NS_GMD = NameSpace("http://www.isotc211.org/2005/gmd", "gmd")
 NS_GML = NameSpace("http://www.opengis.net/gml", "gml")
@@ -43,9 +39,7 @@ NS_GCO = NameSpace("http://www.isotc211.org/2005/gco", "gco")
 nsmap = NameSpaceMap(NS_GMD, NS_GCO, NS_GML)
 
 
-class InspireFormatReader(Component):
-    implements(MetadataReaderInterface)
-
+class InspireFormatReader(object):
     def test(self, obj):
         tree = parse(obj)
         return tree is not None and tree.getroot().tag == NS_GMD("MD_Metadata")

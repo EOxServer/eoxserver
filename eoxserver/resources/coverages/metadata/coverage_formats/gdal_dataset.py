@@ -27,13 +27,12 @@
 
 from django.contrib.gis.geos import GEOSGeometry, Polygon, MultiPolygon
 
-from eoxserver.core import Component, ExtensionPoint, implements
 from eoxserver.contrib import gdal
-from eoxserver.resources.coverages.metadata.interfaces import (
-    MetadataReaderInterface, GDALDatasetMetadataReaderInterface
-)
 from eoxserver.processing.gdal import reftools as rt
 from eoxserver.contrib import osr
+from eoxserver.resources.coverages.metadata.coverage_formats import (
+    get_gdal_dataset_format_readers
+)
 
 
 def open_gdal(obj):
@@ -45,11 +44,7 @@ def open_gdal(obj):
         return None
 
 
-class GDALDatasetMetadataReader(Component):
-    implements(MetadataReaderInterface)
-
-    additional_readers = ExtensionPoint(GDALDatasetMetadataReaderInterface)
-
+class GDALDatasetMetadataReader(object):
     def test(self, obj):
         return open_gdal(obj) is not None
 
@@ -70,23 +65,23 @@ class GDALDatasetMetadataReader(Component):
         size = (ds.RasterXSize, ds.RasterYSize)
         values = {"size": size}
 
+        projection = ds.GetProjection()
+
         # --= rectified datasets =--
         # NOTE: If the projection is a non-zero string then
         #       the geocoding is given by the Geo-Trasnformation
         #       matrix - not matter what are the values.
         if ds.GetProjection():
-            values["coverage_type"] = "RectifiedDataset"
-            values["projection"] = (ds.GetProjection(), "WKT")
-
-            # get coordinates of all four image corners
             gt = ds.GetGeoTransform()
-            def gtrans(x, y):
-                return gt[0] + x*gt[1] + y*gt[2], gt[3] + x*gt[4] + y*gt[5]
-            vpix = [(0, 0), (0, size[1]), (size[0], 0), (size[0], size[1])]
-            vx, vy = zip(*(gtrans(x, y) for x, y in vpix))
 
-            # find the extent
-            values["extent"] = (min(vx), min(vy), max(vx), max(vy))
+            values['origin'] = [gt[0], gt[3]]
+
+            values['grid'] = {
+                'coordinate_reference_system': ds.GetProjection(),
+                'axis_offsets': [gt[1], gt[5]],
+                'axis_types': ['spatial', 'spatial'],
+                'axis_names': ['x', 'y'],
+            }
 
         # --= tie-point encoded referenceable datasets =--
         # NOTE: If the GCP projection is a non-zero string and
@@ -95,31 +90,32 @@ class GDALDatasetMetadataReader(Component):
         #       footprint. The fooprint must not be wrapped arround
         #       the date-line!
         elif ds.GetGCPProjection() and ds.GetGCPCount() > 0:
-            values["coverage_type"] = "ReferenceableDataset"
-            projection = ds.GetGCPProjection()
-            values["projection"] = (projection, "WKT")
+            # values["coverage_type"] = "ReferenceableDataset"
+            # projection = ds.GetGCPProjection()
+            # values["projection"] = (projection, "WKT")
 
-            # parse the spatial reference to get the EPSG code
-            sr = osr.SpatialReference(projection, "WKT")
+            # # parse the spatial reference to get the EPSG code
+            # sr = osr.SpatialReference(projection, "WKT")
 
-            # NOTE: GeosGeometry can't handle non-EPSG geometry projections.
-            if sr.GetAuthorityName(None) == "EPSG":
-                srid = int(sr.GetAuthorityCode(None))
+            # # NOTE: GeosGeometry can't handle non-EPSG geometry projections.
+            # if sr.GetAuthorityName(None) == "EPSG":
+            #     srid = int(sr.GetAuthorityCode(None))
 
-                # get the footprint
-                rt_prm = rt.suggest_transformer(ds)
-                fp_wkt = rt.get_footprint_wkt(ds, **rt_prm)
-                footprint = GEOSGeometry(fp_wkt, srid)
+            #     # get the footprint
+            #     rt_prm = rt.suggest_transformer(ds)
+            #     fp_wkt = rt.get_footprint_wkt(ds, **rt_prm)
+            #     footprint = GEOSGeometry(fp_wkt, srid)
 
-                if isinstance(footprint, Polygon):
-                    footprint = MultiPolygon(footprint)
-                elif not isinstance(footprint, MultiPolygon):
-                    raise TypeError(
-                        "Got invalid geometry %s" % type(footprint).__name__
-                    )
+            #     if isinstance(footprint, Polygon):
+            #         footprint = MultiPolygon(footprint)
+            #     elif not isinstance(footprint, MultiPolygon):
+            #         raise TypeError(
+            #             "Got invalid geometry %s" % type(footprint).__name__
+            #         )
 
-                values["footprint"] = footprint
-                values["extent"] = footprint.extent
+            #     values["footprint"] = footprint
+            #     values["extent"] = footprint.extent
+            pass
 
         # --= dataset with no geocoding =--
         # TODO: Handling of other types of GDAL geocoding (e.g, RPC).
@@ -140,7 +136,7 @@ class GDALDatasetMetadataReader(Component):
         return values
 
     def _find_additional_reader(self, ds):
-        for reader in self.additional_readers:
+        for reader in get_gdal_dataset_format_readers():
             if reader.test_ds(ds):
                 return reader
         return None

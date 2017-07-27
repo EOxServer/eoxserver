@@ -57,11 +57,11 @@ class S2ProductFormatReader(object):
             values['footprint'] = ds.footprint.wkt
 
             values['masks'] = [
-                ('clouds', granule.cloudmask.wkt),
-                ('nodata', granule.nodata_mask.wkt),
+                # ('clouds', granule.cloudmask.wkt),
+                # ('nodata', granule.nodata_mask.wkt),
             ]
             values['browses'] = [
-                (None, granule.pvi_path)
+                (None, granule.tci_path)
             ]
 
             # TODO: extended metadata

@@ -29,17 +29,11 @@
 from eoxserver.core.util.timetools import parse_iso8601
 from django.contrib.gis.geos import Polygon, MultiPolygon
 
-from eoxserver.core import Component, implements
 from eoxserver.core.decoders import xml
 from eoxserver.core.util.xmltools import parse
-from eoxserver.resources.coverages.metadata.interfaces import (
-    MetadataReaderInterface
-)
 
 
-class DimapGeneralFormatReader(Component):
-    implements(MetadataReaderInterface)
-
+class DimapGeneralFormatReader(object):
     def test(self, obj):
         tree = parse(obj)
         return tree is not None and tree.getroot().tag == "Dimap_Document"

@@ -29,16 +29,10 @@ import os.path
 from cStringIO import StringIO
 from ConfigParser import RawConfigParser
 
-from eoxserver.core import Component, implements
 from eoxserver.core.decoders import config
-from eoxserver.resources.coverages.metadata.interfaces import (
-    MetadataReaderInterface
-)
 
 
-class NativeConfigFormatReader(Component):
-    implements(MetadataReaderInterface)
-
+class NativeConfigFormatReader(object):
     def open_reader(self, obj):
         if isinstance(obj, basestring):
             try:

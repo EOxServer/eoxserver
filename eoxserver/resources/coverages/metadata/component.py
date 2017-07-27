@@ -26,34 +26,9 @@
 #-------------------------------------------------------------------------------
 
 
-from eoxserver.core import Component, ExtensionPoint
-from eoxserver.resources.coverages.metadata.interfaces import *
 from eoxserver.resources.coverages.metadata.product_formats.sentinel2 import (
     S2ProductFormatReader
 )
-
-
-class CoverageMetadataComponent(Component):
-    metadata_readers = ExtensionPoint(MetadataReaderInterface)
-    metadata_writers = ExtensionPoint(MetadataWriterInterface)
-
-    def get_reader_by_test(self, obj):
-        for reader in self.metadata_readers:
-            if reader.test(obj):
-                return reader
-        return None
-
-    def get_reader_by_format(self, format):
-        for reader in self.metadata_readers:
-            if format in reader.formats:
-                return reader
-        return None
-
-    def get_writer_by_format(self, format):
-        for writer in self.metadata_writers:
-            if format in writer.formats:
-                return writer
-        return None
 
 
 class ProductMetadataComponent(object):
