@@ -85,6 +85,16 @@ class BrowseInline(admin.StackedInline):
     browse_image_tag.empty_value_display = ''
 
 
+class MetaDataItemInline(admin.StackedInline):
+    model = models.MetaDataItem
+    extra = 0
+
+
+class ArrayDataItemInline(admin.StackedInline):
+    model = models.ArrayDataItem
+    extra = 0
+
+
 class CoverageMetadataInline(admin.StackedInline):
     model = models.CoverageMetadata
     extra = 0
@@ -154,7 +164,7 @@ admin.site.register(models.Grid, GridAdmin)
 
 
 class CoverageAdmin(EOObjectAdmin):
-    inlines = [CoverageMetadataInline]
+    inlines = [CoverageMetadataInline, MetaDataItemInline, ArrayDataItemInline]
 
 admin.site.register(models.Coverage, CoverageAdmin)
 

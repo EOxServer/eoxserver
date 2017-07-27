@@ -174,8 +174,9 @@ class Grid(models.Model):
     axis_3_offset = models.CharField(max_length=256, **optional)
     axis_4_offset = models.CharField(max_length=256, **optional)
 
-    def __str__(self):
-        pass
+    # TODO: find nice string representation for grid
+    # def __str__(self):
+    #     pass
 
     def clean(self):
         validate_grid(self)
@@ -286,6 +287,14 @@ class ReservedID(EOObject):
     objects = ReservedIDManager()
 
 
+# ==============================================================================
+# DataItems subclasses
+# ==============================================================================
+
+class MetaDataItem(backends.DataItem):
+    eo_object = models.ForeignKey(EOObject, related_name='metadata_items', **mandatory)
+
+
 class Browse(backends.DataItem):
     product = models.ForeignKey(Product, related_name='browses', **mandatory)
     browse_type = models.ForeignKey(BrowseType, **optional)
@@ -308,6 +317,26 @@ class Mask(backends.DataItem):
     mask_type = models.ForeignKey(MaskType, **mandatory)
 
     geometry = models.GeometryField(**optional)
+
+
+class ArrayDataItem(backends.DataItem):
+    BANDS_INTERPRETATION_CHOICES = [
+        (0, 'fields'),
+        (1, 'dimension')
+    ]
+
+    coverage = models.ForeignKey(EOObject, related_name='arraydata_items', **mandatory)
+
+    field_index = models.PositiveSmallIntegerField(default=0, **mandatory)
+    band_count = models.PositiveSmallIntegerField(default=1, **mandatory)
+
+    subdataset_type = models.CharField(max_length=64, **optional)
+    subdataset_locator = models.CharField(max_length=1024, **optional)
+
+    bands_interpretation = models.PositiveSmallIntegerField(default=0, choices=BANDS_INTERPRETATION_CHOICES, **mandatory)
+
+    class Meta:
+        unique_together = [('coverage', 'field_index')]
 
 
 # ==============================================================================
