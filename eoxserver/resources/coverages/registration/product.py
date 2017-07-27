@@ -26,13 +26,13 @@
 # ------------------------------------------------------------------------------
 
 
-from django.db.models import Q
 from django.contrib.gis.geos import GEOSGeometry
 
 from eoxserver.contrib import gdal
 from eoxserver.backends import models as backends
 from eoxserver.backends.access import retrieve, get_vsi_path
 from eoxserver.resources.coverages import models
+from eoxserver.resources.coverages.registration import base
 from eoxserver.resources.coverages.metadata.component import (
     ProductMetadataComponent
 )
@@ -41,7 +41,7 @@ from eoxserver.resources.coverages.registration.exceptions import (
 )
 
 
-class ProductRegistrator(object):
+class ProductRegistrator(base.BaseRegistrator):
     def register(self, file_handles, mask_handles, package_path,
                  overrides, type_name=None, extended_metadata=True,
                  discover_masks=True, discover_browses=True):
@@ -164,19 +164,3 @@ class ProductRegistrator(object):
 
             browse.full_clean()
             browse.save()
-
-    def resolve_storage(self, storage_paths):
-        if not storage_paths:
-            return None
-
-        first = storage_paths[0]
-        try:
-            parent = backends.Storage.objects.get(Q(name=first) | Q(url=first))
-        except backends.Storage.DoesNotExist:
-            parent = backends.Storage.create(url=first)
-
-        for storage_path in storage_paths[1:]:
-            parent = backends.Storage.objects.create(
-                parent=parent, url=storage_path
-            )
-        return parent

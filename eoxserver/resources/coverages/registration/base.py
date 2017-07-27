@@ -25,42 +25,32 @@
 # THE SOFTWARE.
 # ------------------------------------------------------------------------------
 
-from itertools import chain
+from django.db.models import ForeignKey, Q
 
-from django.db.models import ForeignKey
-
-from eoxserver.core import Component, implements, env
-from eoxserver.contrib import osr, gdal
 from eoxserver.backends import models as backends
-from eoxserver.backends.access import retrieve
-from eoxserver.backends.component import BackendComponent
+from eoxserver.backends.access import vsi_open
 from eoxserver.resources.coverages import models
-from eoxserver.resources.coverages.metadata.component import (
-    CoverageMetadataComponent, ProductMetadataComponent
+from eoxserver.resources.coverages.metadata.coverage_formats import (
+    get_reader_by_test
 )
 from eoxserver.resources.coverages.registration.exceptions import (
     RegistrationError
 )
-from eoxserver.resources.coverages.registration.interfaces import (
-    RegistratorInterface
-)
 
 
-class BaseRegistrator(Component):
+class BaseRegistrator(object):
     """ Abstract base component to be used by specialized registrators.
     """
-
-    implements(RegistratorInterface)
 
     abstract = True
 
     metadata_keys = frozenset((
-        "identifier", "extent", "size", "projection",
-        "footprint", "begin_time", "end_time", "coverage_type",
-        "range_type_name"
+        "identifier", "footprint", "begin_time", "end_time",
+        "size", "origin", "grid"
     ))
 
-    def register(self, data_locations, data_semantics, metadata_locations,
+    def register(self, data_locations, metadata_locations,
+                 coverage_type_name=None,
                  overrides=None, replace=False, cache=None):
         """ Main registration method
 
@@ -75,11 +65,48 @@ class BaseRegistrator(Component):
         replaced = False
         retrieved_metadata = overrides or {}
 
-        # create DataItems for each item that is metadata
+        # fetch the coverage type if a type name was specified
+        coverage_type = None
+        if coverage_type_name:
+            try:
+                coverage_type = models.CoverageType.objects.get(
+                    name=coverage_type_name
+                )
+            except models.CoverageType.DoesNotExist:
+                raise RegistrationError(
+                    'No such coverage type %r' % coverage_type_name
+                )
+
+        # create MetaDataItems for each item that is metadata
         metadata_items = [
-            self._descriptor_to_data_item(location, 'metadata')
+            models.MetaDataItem(
+                location=location[-1],
+                storage=self.resolve_storage(location[:-1])
+            )
             for location in metadata_locations
         ]
+
+        # prepare ArrayDataItems for each given location
+        arraydata_items = []
+        for location in data_locations:
+            # handle storages and/or subdataset specifiers
+            path = location[-1]
+            parts = path.split(':')
+            subdataset_type = None
+            subdataset_locator = None
+            if len(parts) > 1:
+                path = parts[1]
+                subdataset_type = parts[0]
+                subdataset_locator = ":".join(parts[2:])
+
+            arraydata_items.append(
+                models.ArrayDataItem(
+                    location=path,
+                    storage=self.resolve_storage(location[:-1]),
+                    subdataset_type=subdataset_type,
+                    subdataset_locator=subdataset_locator,
+                )
+            )
 
         # read metadata until we are satisfied or run out of metadata items
         for metadata_item in metadata_items:
@@ -87,37 +114,39 @@ class BaseRegistrator(Component):
                 break
             self._read_metadata(metadata_item, retrieved_metadata, cache)
 
-        range_type_name = retrieved_metadata.get('range_type_name')
-        if not range_type_name:
-            raise RegistrationError('Could not determine range type name')
-        range_type = models.RangeType.objects.get(name=range_type_name)
+        # check the coverage type for expected amount of fields
+        if coverage_type:
+            num_fields = coverage_type.fields.count()
+            if len(arraydata_items) != 1 or len(arraydata_items) != num_fields:
+                raise RegistrationError(
+                    'Invalid number of data files specified. Expected 1 or %d'
+                    % num_fields
+                )
 
-        # check if data semantics were passed, otherwise create our own.
-        if data_semantics is None:
-            # TODO: check corner cases.
-            # e.g: only one data item given but multiple bands in range type
-            # --> bands[1:<bandnum>]
-            if len(data_locations) == 1:
-                if len(range_type) == 1:
-                    data_semantics = ["bands[1]"]
-                else:
-                    data_semantics = ["bands[1:%d]" % len(range_type)]
+            # TODO: lookup actual band counts
+
+            if len(arraydata_items) == 1:
+                arraydata_items[0].band_count = num_fields
 
             else:
-                data_semantics = ["bands[%d]" % i for i in range(
-                    len(data_locations)
-                )]
+                for i, arraydata_item in enumerate(arraydata_items):
+                    arraydata_items[0].field_index = i
+                    arraydata_items[0].band_count = 1
 
-        # create DataItems for each item that is not metadata
-        data_items = [
-            self._descriptor_to_data_item(location, semantic)
-            for location, semantic in zip(data_locations, data_semantics)
-        ]
+        elif len(arraydata_items) != 1:
+            raise RegistrationError(
+                'Invalid number of data files specified.'
+            )
+
+            # TODO find actual bands
+
         # if there is still some metadata missing, read it from the data
-        for data_item in data_items:
+        for arraydata_item in arraydata_items:
             if not self.missing_metadata_keys(retrieved_metadata):
                 break
-            self._read_metadata_from_data(data_item, retrieved_metadata, cache)
+            self._read_metadata_from_data(
+                arraydata_item, retrieved_metadata, cache
+            )
 
         if self.missing_metadata_keys(retrieved_metadata):
             raise RegistrationError(
@@ -126,14 +155,16 @@ class BaseRegistrator(Component):
             )
 
         collections = []
+        product = None
         if replace:
             try:
                 # get a list of all collections the coverage was in.
                 coverage = models.Coverage.objects.get(
                     identifier=retrieved_metadata["identifier"]
                 )
+                product = coverage.parent_product
                 collections = list(models.Collection.objects.filter(
-                    eo_objects__in=[coverage.pk]
+                    coverages=coverage.pk
                 ))
 
                 coverage.delete()
@@ -142,212 +173,245 @@ class BaseRegistrator(Component):
             except models.Coverage.DoesNotExist:
                 pass
 
-        product_metadata = retrieved_metadata.pop('product_metadata', None)
         metadata = retrieved_metadata.pop('metadata', None)
-        metadata_type = retrieved_metadata.pop('metadata_type', None)
 
-        dataset = self._create_dataset(
-            data_items=chain(metadata_items, data_items), **retrieved_metadata
+        coverage = self._create_coverage(
+            arraydata_items=arraydata_items,
+            metadata_items=metadata_items,
+            coverage_type_name=coverage_type_name,
+            **retrieved_metadata
         )
 
-        self._create_metadata(dataset, product_metadata, metadata, metadata_type)
+        if metadata:
+            self._create_metadata(coverage, metadata)
 
-        # when we replaced the dataset, re-insert the newly created dataset to
-        # the collections
+        # when we replaced the coverage, re-insert the newly created coverage to
+        # the collections and/or product
         for collection in collections:
-            collection.insert(dataset)
+            models.collection_insert_eo_object(coverage)
 
-        return dataset, replaced
+        if product:
+            models.product_add_coverage(coverage)
 
-    def _read_metadata(self, data_item, retrieved_metadata, cache):
+        return coverage, replaced
+
+    def _read_metadata(self, metadata_item, retrieved_metadata, cache):
         """ Read all available metadata of a ``data_item`` into the
         ``retrieved_metadata`` :class:`dict`.
         """
-        metadata_component = CoverageMetadataComponent(env)
 
-        with open(retrieve(data_item, cache)) as f:
+        with vsi_open(metadata_item) as f:
             content = f.read()
-            reader = metadata_component.get_reader_by_test(content)
+            reader = get_reader_by_test(content)
             if reader:
                 values = reader.read(content)
 
-                format = values.pop("format", None)
-                if format:
-                    data_item.format = format
-                    data_item.full_clean()
-                    data_item.save()
+                format_ = values.pop("format", None)
+                if format_:
+                    metadata_item.format = format_
 
                 for key, value in values.items():
-                    # if key in self.metadata_keys:
                     retrieved_metadata.setdefault(key, value)
 
     def _read_metadata_from_data(self, data_item, retrieved_metadata, cache):
         "Interface method to be overridden in subclasses"
         raise NotImplementedError
 
-    def _create_dataset(self, identifier, extent, size, projection,
-                        footprint, begin_time, end_time, coverage_type,
-                        range_type_name, data_items, visible=False,
-                        product=None):
+    def _create_coverage(self, identifier, footprint, begin_time, end_time,
+                         size, origin, grid, coverage_type_name, arraydata_items,
+                         metadata_items):
 
-        CoverageType = getattr(models, coverage_type)
-
-        coverage = CoverageType()
-        coverage.range_type = models.RangeType.objects.get(name=range_type_name)
-
-        if isinstance(projection, int):
-            coverage.srid = projection
-        else:
-            definition, format = projection
-
-            # Try to identify the SRID from the given input
+        coverage_type = None
+        if coverage_type_name:
             try:
-                sr = osr.SpatialReference(definition, format)
-                coverage.srid = sr.srid
-            except:
-                prj = models.Projection.objects.get(
-                    format=format, definition=definition
+                coverage_type = models.CoverageType.objects.get(
+                    name=coverage_type_name
                 )
-                coverage.projection = prj
+            except models.CoverageType.DoesNotExist:
+                raise RegistrationError(
+                    'Coverage type %r does not exist' % coverage_type_name
+                )
 
-        print footprint
+        grid = self._get_grid(grid)
 
-        coverage.identifier = identifier
-        coverage.extent = extent
-        coverage.size = size
-        coverage.footprint = footprint
-        coverage.begin_time = begin_time
-        coverage.end_time = end_time
+        if len(size) < 4:
+            size = list(size) + [None] * (4 - len(size))
+        elif len(size) > 4:
+            raise RegistrationError('Highest dimension number is 4.')
 
-        coverage.product = product
+        if len(origin) < 4:
+            origin = list(origin) + [None] * (4 - len(origin))
+        elif len(origin) > 4:
+            raise RegistrationError('Highest dimension number is 4.')
 
-        coverage.visible = visible
+        (axis_1_size, axis_2_size, axis_3_size, axis_4_size) = size
+        (axis_1_origin, axis_2_origin, axis_3_origin, axis_4_origin) = origin
+
+        coverage = models.Coverage(
+            identifier=identifier, footprint=footprint,
+            begin_time=begin_time, end_time=end_time,
+            coverage_type=coverage_type,
+            grid=grid,
+            axis_1_origin=axis_1_origin,
+            axis_2_origin=axis_2_origin,
+            axis_3_origin=axis_3_origin,
+            axis_4_origin=axis_4_origin,
+            axis_1_size=axis_1_size,
+            axis_2_size=axis_2_size,
+            axis_3_size=axis_3_size,
+            axis_4_size=axis_4_size,
+        )
 
         coverage.full_clean()
         coverage.save()
 
         # attach all data items
-        for data_item in data_items:
-            data_item.dataset = coverage
-            data_item.full_clean()
-            data_item.save()
+        for metadata_item in metadata_items:
+            metadata_item.eo_object = coverage
+            metadata_item.full_clean()
+            metadata_item.save()
+
+        for arraydata_item in arraydata_items:
+            arraydata_item.coverage = coverage
+            arraydata_item.full_clean()
+            arraydata_item.save()
 
         return coverage
 
-    def _create_metadata(self, dataset, product_metadata_values,
-                         metadata_values, metadata_type):
+    def _create_metadata(self, coverage, metadata_values):
+        metadata_values = dict(
+            (name, convert(name, value, models.CoverageMetadata))
+            for name, value in metadata_values.items()
+            if value is not None
+        )
 
-        if product_metadata_values:
-            product_metadata_values = dict(
-                (name, convert(name, value, models.Product))
-                for name, value in product_metadata_values.items()
-                if value is not None
-            )
-            models.Product.objects.create(
-                coverage=dataset, **product_metadata_values
-            )
-
-        if metadata_values:
-            metadata_class = models.CoverageMetadata
-            if metadata_type == "SAR":
-                metadata_class = models.SARMetadata
-            elif metadata_type == "OPT":
-                metadata_class = models.OPTMetadata
-            elif metadata_type == "ALT":
-                metadata_class = models.ALTMetadata
-
-            metadata_values = dict(
-                (name, convert(name, value, metadata_class))
-                for name, value in metadata_values.items()
-                if value is not None
-            )
-            metadata_class.objects.create(coverage=dataset, **metadata_values)
+        models.CoverageMetadata.objects.create(
+            coverage=coverage, **metadata_values
+        )
 
     def missing_metadata_keys(self, retrieved_metadata):
         """ Return a :class:`frozenset` of metadata keys still missing.
         """
         return self.metadata_keys - frozenset(retrieved_metadata.keys())
 
-    def _descriptor_to_data_item(self, path_items, semantic):
-        storage, package, frmt, location = self._get_location_chain(path_items)
-        data_item = backends.DataItem(
-            location=location, format=frmt or "", semantic=semantic,
-            storage=storage, package=package,
-        )
-        data_item.full_clean()
-        data_item.save()
-        return data_item
-
-    def _create_data_item(self, storage_or_package, location, semantic, format):
-        """ Small helper function to create a :class:`DataItem
-        <eoxserver.backends.models.DataItem>` from the available inputs.
+    def _get_grid(self, definition):
+        """ Get or create a grid according to our defintion
         """
-        storage = None
-        package = None
-        if isinstance(storage_or_package, backends.Storage):
-            storage = storage_or_package
-        elif isinstance(storage_or_package, backends.Package):
-            package = storage_or_package
+        grid = None
+        if isinstance(definition, basestring):
+            try:
+                grid = models.Grid.objects.get(name=definition)
+            except models.Grid.DoesNotExist:
+                raise RegistrationError(
+                    'Grid %r does not exist' % definition
+                )
+        elif definition:
+            axis_names = definition.get('axis_names', [])
+            axis_types = definition['axis_types']
+            axis_offsets = definition['axis_offsets']
 
-        data_item = backends.DataItem(
-            storage=storage, package=package, location=location,
-            semantic=semantic, format=format
-        )
-        data_item.full_clean()
-        data_item.save()
-        return data_item
+            # check lengths and destructure
+            if len(axis_types) != len(axis_offsets):
+                raise RegistrationError('Dimensionality mismatch')
+            elif axis_names and len(axis_names) != len(axis_types):
+                raise RegistrationError('Dimensionality mismatch')
 
-    def _get_location_chain(self, path_items):
-        """ Returns the tuple
-        """
-        component = BackendComponent(env)
-        storage = None
-        package = None
+            if len(axis_types) < 4:
+                axis_types = list(axis_types) + [None] * (4 - len(axis_types))
+            elif len(axis_types) > 4:
+                raise RegistrationError('Highest dimension number is 4.')
 
-        storage_type, url = self._split_location(path_items[0])
-        if storage_type:
-            storage_component = component.get_storage_component(storage_type)
-        else:
-            storage_component = None
+            if len(axis_offsets) < 4:
+                axis_offsets = (
+                    list(axis_offsets) + [None] * (4 - len(axis_offsets))
+                )
+            elif len(axis_offsets) > 4:
+                raise RegistrationError('Highest dimension number is 4.')
 
-        if storage_component:
-            storage, _ = backends.Storage.objects.get_or_create(
-                url=url, storage_type=storage_type
+            # translate axis type name to ID
+            axis_type_names_to_id = {
+                name: id_
+                for id_, name in models.Grid.AXIS_TYPES
+            }
+
+            print axis_type_names_to_id
+            axis_types = [
+                axis_type_names_to_id[axis_type] if axis_type else None
+                for axis_type in axis_types
+            ]
+
+            # unwrap axis types, offsets, names
+            (type_1, type_2, type_3, type_4) = axis_types
+            (offset_1, offset_2, offset_3, offset_4) = axis_offsets
+
+            # TODO: use names like 'time', or 'x'/'y', etc
+            axis_names = axis_names or [
+                '%d' % i if i < len(axis_types) else None
+                for i in range(len(axis_types))
+            ]
+
+            (name_1, name_2, name_3, name_4) = (
+                axis_names + [None] * (4 - len(axis_names))
             )
 
-        # packages
-        for item in path_items[1 if storage else 0:-1]:
-            type_or_format, location = self._split_location(item)
-            package_component = component.get_package_component(type_or_format)
-            if package_component:
-                package, _ = backends.Package.objects.get_or_create(
-                    location=location, format=format,
-                    storage=storage, package=package
+            try:
+                # try to find a suitable grid: with the given axis types,
+                # offsets and coordinate reference system
+                grid = models.Grid.objects.get(
+                    coordinate_reference_system=definition[
+                        'coordinate_reference_system'
+                    ],
+                    axis_1_type=type_1,
+                    axis_2_type=type_2,
+                    axis_3_type=type_3,
+                    axis_4_type=type_4,
+                    axis_1_offset=offset_1,
+                    axis_2_offset=offset_2,
+                    axis_3_offset=offset_3,
+                    axis_4_offset=offset_4,
                 )
-                storage = None  # override here
-            else:
-                raise Exception(
-                    "Could not find package component for format '%s'"
-                    % type_or_format
+            except models.Grid.DoesNotExist:
+                # create a new grid from the given definition
+                grid = models.Grid.objects.create(
+                    coordinate_reference_system=definition[
+                        'coordinate_reference_system'
+                    ],
+                    axis_1_name=name_1,
+                    axis_2_name=name_2,
+                    axis_3_name=name_3,
+                    axis_4_name=name_4,
+                    axis_1_type=type_1,
+                    axis_2_type=type_2,
+                    axis_3_type=type_3,
+                    axis_4_type=type_4,
+                    axis_1_offset=offset_1,
+                    axis_2_offset=offset_2,
+                    axis_3_offset=offset_3,
+                    axis_4_offset=offset_4,
                 )
+        return grid
 
-        format, location = self._split_location(path_items[-1])
-        return storage, package, format, location
+    def resolve_storage(self, storage_paths):
+        if not storage_paths:
+            return None
 
-    def _split_location(self, item):
-        """ Splits string as follows: <format>:<location> where format can be
-            None.
-        """
-        p = item.find(":")
-        if p == -1:
-            return None, item
-        return item[:p], item[p + 1:]
+        first = storage_paths[0]
+        try:
+            parent = backends.Storage.objects.get(Q(name=first) | Q(url=first))
+        except backends.Storage.DoesNotExist:
+            parent = backends.Storage.create(url=first)
+
+        for storage_path in storage_paths[1:]:
+            parent = backends.Storage.objects.create(
+                parent=parent, url=storage_path
+            )
+        return parent
 
 
 def is_common_value(field):
     try:
         if isinstance(field, ForeignKey):
-            field.related.parent_model._meta.get_field('value')
+            field.related_model._meta.get_field('value')
             return True
     except:
         pass
@@ -357,7 +421,7 @@ def is_common_value(field):
 def convert(name, value, model_class):
     field = model_class._meta.get_field(name)
     if is_common_value(field):
-        return field.related.parent_model.objects.get_or_create(
+        return field.related_model.objects.get_or_create(
             value=value
         )[0]
     elif field.choices:

@@ -25,10 +25,11 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-from eoxserver.core import env
 from eoxserver.contrib import gdal
-from eoxserver.backends.access import connect
-from eoxserver.resources.coverages.metadata.component import MetadataComponent
+from eoxserver.backends.access import get_vsi_path
+from eoxserver.resources.coverages.metadata.coverage_formats import (
+    get_reader_by_test
+)
 from eoxserver.resources.coverages.registration.base import BaseRegistrator
 
 
@@ -36,18 +37,14 @@ class GDALRegistrator(BaseRegistrator):
     scheme = "GDAL"
 
     def _read_metadata_from_data(self, data_item, retrieved_metadata, cache):
-        metadata_component = MetadataComponent(env)
-
-        ds = gdal.Open(connect(data_item, cache))
-        reader = metadata_component.get_reader_by_test(ds)
+        ds = gdal.Open(get_vsi_path(data_item))
+        reader = get_reader_by_test(ds)
         if reader:
             values = reader.read(ds)
 
-            format = values.pop("format", None)
-            if format:
-                data_item.format = format
-                data_item.full_clean()
-                data_item.save()
+            format_ = values.pop("format", None)
+            if format_:
+                data_item.format = format_
 
             for key, value in values.items():
                 retrieved_metadata.setdefault(key, value)

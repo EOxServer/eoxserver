@@ -32,6 +32,9 @@ from eoxserver.resources.coverages import models
 from eoxserver.resources.coverages.management.commands import (
     CommandOutputMixIn, SubParserMixIn
 )
+from eoxserver.resources.coverages.registration.registrators.gdal import (
+    GDALRegistrator
+)
 
 
 class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
@@ -42,63 +45,106 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
         register_parser = self.add_subparser(parser, 'register')
         deregister_parser = self.add_subparser(parser, 'deregister')
 
-        for parser in [register_parser, deregister_parser]:
-            parser.add_argument(
-                'identifier', nargs=1, help='The coverage identifier'
-            )
-
         register_parser.add_argument(
-            '--type', '--coverage-type', '-t', dest='type_name', default=None,
+            "--data", "--data-location", "-d",
+            dest="data_locations", nargs="+", action="append", default=[],
+            help=(
+                "Add a data location to the coverage. In the form "
+                "[[... storage] storage] path"
+            )
+        )
+        register_parser.add_argument(
+            "--meta-data", "--meta-data-location", "-m",
+            dest="metadata_locations", nargs="+", action="append", default=[],
+            help=(
+                "Add a meta-data file to the coverage. In the form "
+                "[[... storage] storage] path"
+            )
+        )
+        register_parser.add_argument(
+            '--type', '--coverage-type', '-t',
+            dest='coverage_type_name', default=None,
             help='The name of the coverage type to associate the coverage with.'
         )
-
         register_parser.add_argument(
-            '--grid', '-g', dest='grid_name', default=None,
+            '--grid', '-g',
+            dest='grid_name', default=None,
             help='The name of the grid to associate the coverage with.'
+        )
+        register_parser.add_argument(
+            "--size", "-s",
+            dest="size", default=None, nargs="+",
+            help="Override size."
+        )
+        register_parser.add_argument(
+            "--origin", "-o", dest="origin", default=None, nargs="+",
+            help="Override origin."
+        )
+        register_parser.add_argument(
+            "--footprint", "-f",
+            dest="footprint", default=None,
+            help=(
+                "Override footprint. Must be supplied as WKT Polygons or "
+                "MultiPolygons."
+            )
+        )
+        register_parser.add_argument(
+            "--begin-time", "-b",
+            dest="begin_time", default=None,
+            help="Override begin time. Format is ISO8601 datetime strings."
+        )
+        register_parser.add_argument(
+            "--end-time", "-e",
+            dest="end_time", default=None,
+            help="Override end time. Format is ISO8601 datetime strings."
+        )
+        register_parser.add_argument(
+            "--replace", "-r",
+            dest="replace", action="store_true", default=False,
+            help=(
+                "Optional. If the coverage with the given identifier already "
+                "exists, replace it. Without this flag, this would result in "
+                "an error."
+            )
+        )
+
+        deregister_parser.add_argument(
+            'identifier', nargs=1,
+            help='The identifier of the coverage to derigster'
         )
 
     @transaction.atomic
-    def handle(self, subcommand, identifier, *args, **kwargs):
+    def handle(self, subcommand, *args, **kwargs):
         """ Dispatch sub-commands: register, deregister.
         """
-        identifier = identifier[0]
+        print args
+        print kwargs
         if subcommand == "register":
-            self.handle_register(identifier, *args, **kwargs)
+            self.handle_register(*args, **kwargs)
         elif subcommand == "deregister":
-            self.handle_deregister(identifier, *args, **kwargs)
+            self.handle_deregister(kwargs['identifier'][0], *args, **kwargs)
 
-    def handle_register(self, identifier, grid_name, coverage_type_name,
+    def handle_register(self, coverage_type_name,
+                        data_locations, metadata_locations,
                         **kwargs):
         """ Handle the creation of a new coverage.
         """
-        grid = None
-        coverage_type = None
+        overrides = {
+            key: kwargs[key]
+            for key in [
+                'begin_time', 'end_time', 'footprint', 'identifier',
+                'origin', 'size', 'grid'
+            ]
+            if kwargs.get('key')
+        }
 
-        if grid_name:
-            try:
-                grid = models.Grid.objects.get(name=grid_name)
-            except models.Grid.DoesNotExist:
-                raise CommandError('Grid %r does not exist' % grid_name)
-
-        if coverage_type_name:
-            try:
-                coverage_type = models.CoverageType.objects.get(
-                    name=coverage_type_name
-                )
-            except models.CoverageType.DoesNotExist:
-                raise CommandError(
-                    'Coverage type %r does not exist' % coverage_type_name
-                )
-
-        coverage = models.Coverage.objects.create(
-            identifier=identifier,
-            grid=grid,
-            coverage_type=coverage_type,
+        GDALRegistrator().register(
+            data_locations=data_locations,
+            metadata_locations=metadata_locations,
+            coverage_type_name=coverage_type_name,
+            overrides=overrides,
+            replace=kwargs['replace'],
         )
-
-        metadata = {}
-        if metadata:
-            models.CoverageMetadata.objects.create(coverage=coverage)
 
     def handle_deregister(self, identifier, **kwargs):
         """ Handle the deregistration a coverage
