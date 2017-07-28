@@ -39,30 +39,29 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
         specific tasks: create, delete
     """
     def add_arguments(self, parser):
-        create_parser = self.add_subparser(parser, 'create')
-        delete_parser = self.add_subparser(parser, 'delete')
+        create_parser = self.add_subparser(parser, 'create',
+            help='Create a new coverage type.'
+        )
+        delete_parser = self.add_subparser(parser, 'delete',
+            help='Delete a coverage type.'
+        )
 
         for parser in [create_parser, delete_parser]:
             parser.add_argument(
-                'name', nargs=1, help='The collection type name. Mandatory.'
+                'name', nargs=1, help='The coverage type name. Mandatory.'
             )
 
         create_parser.add_argument(
-            '--field-type', '-f', action='append', nargs=5,
+            '--field-type', action='append', nargs=5,
             metavar=(
                 'identifier', 'description', 'definition', 'unit-of-measure',
                 'wavelength'
             ),
             dest='field_types', default=[],
             help=(
+                'Add a field type to the coverage type.'
             )
         )
-        create_parser.add_argument(
-            '--mask-type', '-p', action='append', dest='mask_types', default=[],
-            help=(
-            )
-        )
-
         delete_parser.add_argument(
             '--force', '-f', action='store_true', default=False,
             help='Also remove all collections associated with that type.'
@@ -78,7 +77,7 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
         elif subcommand == "delete":
             self.handle_delete(name, *args, **kwargs)
 
-    def handle_create(self, name, field_types, mask_types, **kwargs):
+    def handle_create(self, name, field_types, **kwargs):
         """ Handle the creation of a new coverage type.
         """
 
@@ -93,12 +92,22 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
                 wavelength=field_type_definition[4]
             )
 
-        for mask_type_definition in mask_types:
-            models.MaskType.objects.create(name=mask_type_definition)
+        print('Successfully created coverage type %r' % name)
 
     def handle_delete(self, name, force, **kwargs):
         """ Handle the deletion of a collection type
         """
-        collection_type = models.CoverageType.objects.get(name=name)
-        collection_type.delete()
-        # TODO: force
+        try:
+            collection_type = models.CoverageType.objects.get(name=name)
+
+            if force:
+                coverages = models.Coverage.objects.filter(
+                    coverage_type=coverage_type
+                )
+                # TODO de-register coverages
+
+            collection_type.delete()
+        except models.CoverageType.DoesNotExist:
+            raise CommandError('No such coverage type: %r' % name)
+
+        print('Successfully deleted coverage type %r' % name)

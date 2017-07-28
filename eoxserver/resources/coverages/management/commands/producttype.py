@@ -48,12 +48,20 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             )
 
         create_parser.add_argument(
-            '--mask-type', '-m', action='append', dest='mask_types', default=[],
+            '--coverage-type', '-c',
+            action='append', dest='coverage_type_names', default=[],
             help=(
             )
         )
         create_parser.add_argument(
-            '--browse-type', '-b', action='append', dest='browse_types', default=[],
+            '--mask-type', '-m',
+            action='append', dest='mask_type_names', default=[],
+            help=(
+            )
+        )
+        create_parser.add_argument(
+            '--browse-type', '-b',
+            action='append', dest='browse_type_names', default=[],
             help=(
             )
         )
@@ -73,14 +81,32 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
         elif subcommand == "delete":
             self.handle_delete(name, *args, **kwargs)
 
-    def handle_create(self, name, mask_types, browse_types, *args, **kwargs):
+    def handle_create(self, name, coverage_type_names, mask_type_names,
+                      browse_type_names, *args, **kwargs):
         """ Handle the creation of a new product type.
         """
 
         product_type = models.ProductType.objects.create(name=name)
-        for mask_type_definition in mask_types:
+
+        for coverage_type_name in coverage_type_names:
+            try:
+                coverage_type = models.CoverageType.objects.get(
+                    name=coverage_type_name
+                )
+                product_type.allowed_coverage_types.add(coverage_type)
+            except models.CoverageType.DoesNotExist:
+                raise CommandError(
+                    'Coverage type %r does not exist' % coverage_type_name
+                )
+
+        for mask_type_name in mask_type_names:
             models.MaskType.objects.create(
-                name=mask_type_definition, product_type=product_type
+                name=mask_type_name, product_type=product_type
+            )
+
+        for browse_type_name in browse_type_names:
+            models.BrowseType.objects.create(
+                name=browse_type_name, product_type=product_type
             )
 
     def handle_delete(self, name, force, **kwargs):
