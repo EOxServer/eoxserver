@@ -30,7 +30,6 @@ from eoxserver.resources.coverages.metadata.product_formats.sentinel2 import (
     S2ProductFormatReader
 )
 
-
 class ProductMetadataComponent(object):
     # metadata_readers = ExtensionPoint(ProductMetadataReaderInterface)
     metadata_readers = [S2ProductFormatReader]

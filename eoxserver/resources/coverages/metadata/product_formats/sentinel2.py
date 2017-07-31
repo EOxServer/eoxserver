@@ -48,8 +48,11 @@ class S2ProductFormatReader(object):
     def read_path(self, path):
         values = {}
         with s2reader.open(path) as ds:
+            metadata = ds._product_metadata
             granule = ds.granules[0]
-            values['identifier'] = ds._product_metadata.findtext(
+            granule_metadata = granule._metadata
+
+            values['identifier'] = metadata.findtext(
                 './/PRODUCT_URI'
             )
             values['begin_time'] = ds.product_start_time
@@ -73,8 +76,8 @@ class S2ProductFormatReader(object):
             values['orbit_direction'] = ds.sensing_orbit_direction
             # values['track']
             # values['frame']
-            values['swath_identifier'] = ds._product_metadata.find('.//Product_Info/Datatake').attrib['datatakeIdentifier']
-            values['product_version'] = ds._product_metadata.findtext('.//Product_Info/PROCESSING_BASELINE')
+            values['swath_identifier'] = metadata.find('.//Product_Info/Datatake').attrib['datatakeIdentifier']
+            values['product_version'] = metadata.findtext('.//Product_Info/PROCESSING_BASELINE')
             # values['product_quality_status']
             # values['product_quality_degradation_tag']
             # values['processor_name']
@@ -83,7 +86,29 @@ class S2ProductFormatReader(object):
             # values['modification_date']
             values['processing_date'] = ds.generation_time
             # values['sensor_mode']
-            # values['archiving_center']
+            values['archiving_center'] = granule_metadata.findtext('.//ARCHIVING_CENTRE')
             # values['processing_mode']
+
+            values['availability_time'] = ds.generation_time
+            # values['acquisition_station']
+            # values['acquisition_sub_type']
+            # values['start_time_from_ascending_node']
+            # values['completion_time_from_ascending_node']
+            values['illumination_azimuth_angle'] = metadata.findtext('.//Mean_Sun_Angle/AZIMUTH_ANGLE')
+            values['illumination_zenith_angle'] = metadata.findtext('.//Mean_Sun_Angle/ZENITH_ANGLE')
+            # values['illumination_elevation_angle']
+            # values['polarisation_mode']
+            # values['polarization_channels']
+            # values['antenna_look_direction']
+            # values['minimum_incidence_angle']
+            # values['maximum_incidence_angle']
+
+            # values['doppler_frequency']
+            # values['incidence_angle_variation']
+
+            values['cloud_cover'] = metadata.findtext(".//Cloud_Coverage_Assessment")
+            # values['snow_cover']
+            # values['lowest_location']
+            # values['highest_location']
 
         return values
