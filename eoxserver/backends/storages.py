@@ -54,7 +54,7 @@ class BaseStorageHandler(object):
         """ Perform setup actions. Will be called before ``retrieve`` and
             ``list_files``.
         """
-        pass
+        return self
 
     def __exit__(self, type, value, traceback):
         """ Perform teardown actions. Will be called when the storage is no
@@ -106,6 +106,7 @@ class ZIPStorageHandler(BaseStorageHandler):
 
     def __enter__(self):
         self.zipfile = zipfile.ZipFile(self.package_filename, "r")
+        return self
 
     def __exit__(self, type, value, traceback):
         self.zipfile.close()
@@ -120,7 +121,7 @@ class ZIPStorageHandler(BaseStorageHandler):
     def list_files(self, glob_pattern=None):
         filenames = self.zipfile.namelist()
         if glob_pattern:
-            filenames = fnmatch.filter(glob_pattern)
+            filenames = fnmatch.filter(filenames, glob_pattern)
         return filenames
 
     def get_vsi_path(self, location):
@@ -146,6 +147,7 @@ class TARStorageHandler(BaseStorageHandler):
 
     def __enter__(self):
         self.tarfile = tarfile.TarFile(self.package_filename, "r")
+        return self
 
     def __exit__(self, type, value, traceback):
         self.tarfile.close()
@@ -158,7 +160,7 @@ class TARStorageHandler(BaseStorageHandler):
     def list_files(self, glob_pattern=None):
         filenames = self.tarfile.getnames()
         if glob_pattern:
-            filenames = fnmatch.filter(glob_pattern)
+            filenames = fnmatch.filter(filenames, glob_pattern)
         return filenames
 
     def get_vsi_path(self, location):
@@ -244,6 +246,7 @@ class FTPStorageHandler(BaseStorageHandler):
         self.ftp = ftplib.FTP()
         self.ftp.connect(self.parsed_url.hostname, self.parsed_url.port)
         self.ftp.login(self.parsed_url.username, self.parsed_url.password)
+        return self
 
     def __exit__(self, type, value, traceback):
         self.ftp.quit()
@@ -264,7 +267,7 @@ class FTPStorageHandler(BaseStorageHandler):
             else:
                 raise
         if glob_pattern:
-            filenames = fnmatch.filter(filenames)
+            filenames = fnmatch.filter(filenames, glob_pattern)
         return filenames
 
     def get_vsi_path(self, location):
