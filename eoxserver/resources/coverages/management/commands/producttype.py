@@ -41,6 +41,7 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
     def add_arguments(self, parser):
         create_parser = self.add_subparser(parser, 'create')
         delete_parser = self.add_subparser(parser, 'delete')
+        list_parser = self.add_subparser(parser, 'list')
 
         for parser in [create_parser, delete_parser]:
             parser.add_argument(
@@ -71,15 +72,21 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             help='Also remove all products associated with that type.'
         )
 
+        list_parser.add_argument(
+            '--no-detail', action="store_false", default=True, dest='detail',
+            help="Disable the printing of details of the product type."
+        )
+
     @transaction.atomic
-    def handle(self, subcommand, name, *args, **kwargs):
+    def handle(self, subcommand, *args, **kwargs):
         """ Dispatch sub-commands: create, delete.
         """
-        name = name[0]
         if subcommand == "create":
-            self.handle_create(name, *args, **kwargs)
+            self.handle_create(kwargs['name'][0], *args, **kwargs)
         elif subcommand == "delete":
-            self.handle_delete(name, *args, **kwargs)
+            self.handle_delete(kwargs['name'][0], *args, **kwargs)
+        elif subcommand == "list":
+            self.handle_list(*args, **kwargs)
 
     def handle_create(self, name, coverage_type_names, mask_type_names,
                       browse_type_names, *args, **kwargs):
@@ -124,5 +131,13 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
                 product.delete()
 
         product_type.delete()
+        # TODO force
 
-        # TODO: force
+    def handle_list(self, detail, *args, **kwargs):
+        """ Handle the listing of product types
+        """
+        for product_type in models.ProductType.objects.all():
+            print(product_type.name)
+            if detail:
+                for coverage_type in product_type.allowed_coverage_types.all():
+                    print("\t%s" % coverage_type.name)

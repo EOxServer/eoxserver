@@ -45,6 +45,7 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
         delete_parser = self.add_subparser(parser, 'delete',
             help='Delete a coverage type.'
         )
+        list_parser = self.add_subparser(parser, 'list')
 
         for parser in [create_parser, delete_parser]:
             parser.add_argument(
@@ -67,15 +68,21 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             help='Also remove all collections associated with that type.'
         )
 
+        list_parser.add_argument(
+            '--no-detail', action="store_false", default=True, dest='detail',
+            help="Disable the printing of details of the product type."
+        )
+
     @transaction.atomic
-    def handle(self, subcommand, name, *args, **kwargs):
+    def handle(self, subcommand, *args, **kwargs):
         """ Dispatch sub-commands: create, delete, insert and exclude.
         """
-        name = name[0]
         if subcommand == "create":
-            self.handle_create(name, *args, **kwargs)
+            self.handle_create(kwargs['name'][0], *args, **kwargs)
         elif subcommand == "delete":
-            self.handle_delete(name, *args, **kwargs)
+            self.handle_delete(kwargs['name'][0], *args, **kwargs)
+        elif subcommand == "list":
+            self.handle_list(*args, **kwargs)
 
     def handle_create(self, name, field_types, **kwargs):
         """ Handle the creation of a new coverage type.
@@ -111,3 +118,12 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             raise CommandError('No such coverage type: %r' % name)
 
         print('Successfully deleted coverage type %r' % name)
+
+    def handle_list(self, detail, *args, **kwargs):
+        """ Handle the listing of product types
+        """
+        for coverage_type in models.CoverageType.objects.all():
+            print(coverage_type.name)
+            if detail:
+                for coverage_type in coverage_type.field_types.all():
+                    print("\t%s" % coverage_type.identifier)
