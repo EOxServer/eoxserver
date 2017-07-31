@@ -164,3 +164,5 @@ class ProductRegistrator(base.BaseRegistrator):
 
             browse.full_clean()
             browse.save()
+
+        return product

@@ -45,7 +45,8 @@ class BaseRegistrator(object):
     abstract = True
 
     metadata_keys = frozenset((
-        "identifier", "footprint", "begin_time", "end_time",
+        "identifier",
+        # "footprint", "begin_time", "end_time",
         "size", "origin", "grid"
     ))
 
@@ -116,7 +117,7 @@ class BaseRegistrator(object):
 
         # check the coverage type for expected amount of fields
         if coverage_type:
-            num_fields = coverage_type.fields.count()
+            num_fields = coverage_type.field_types.count()
             if len(arraydata_items) != 1 or len(arraydata_items) != num_fields:
                 raise RegistrationError(
                     'Invalid number of data files specified. Expected 1 or %d'
@@ -176,10 +177,18 @@ class BaseRegistrator(object):
         metadata = retrieved_metadata.pop('metadata', None)
 
         coverage = self._create_coverage(
+            identifier=retrieved_metadata['identifier'],
+            footprint=retrieved_metadata.get('footprint'),
+            begin_time=retrieved_metadata.get('begin_time'),
+            end_time=retrieved_metadata.get('end_time'),
+
+            size=retrieved_metadata['size'],
+            origin=retrieved_metadata['origin'],
+            grid=retrieved_metadata['grid'],
+            coverage_type_name=coverage_type_name,
+
             arraydata_items=arraydata_items,
             metadata_items=metadata_items,
-            coverage_type_name=coverage_type_name,
-            **retrieved_metadata
         )
 
         if metadata:
