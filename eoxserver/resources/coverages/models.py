@@ -31,8 +31,10 @@
 
 import json
 from datetime import datetime
+import re
 
 from django.core.exceptions import ValidationError
+from django.core.validators import RegexValidator
 from django.contrib.gis.db import models
 from django.contrib.gis.db.models import Extent, Union
 from django.db.models import Min, Max, Q
@@ -57,13 +59,27 @@ common_value_args = dict(
     related_name="metadatas"
 )
 
+name_validators = [
+    RegexValidator(
+        re.compile(r'^[a-zA-z_][a-zA-Z0-9_]*$'),
+        message="This field must contain a valid Name."
+    )
+]
+
+identifier_validators = [
+    RegexValidator(
+        re.compile(r'^[a-zA-z_][a-zA-Z0-9_.-]*$'),
+        message="This field must contain a valid NCName."
+    )
+]
+
 # ==============================================================================
 # "Type" models
 # ==============================================================================
 
 
 class FieldType(models.Model):
-    coverage_type = models.ForeignKey('CoverageType', related_name='field_types', **mandatory)
+    coverage_type = models.ForeignKey('CoverageType', related_name='field_types', validators=name_validators, **mandatory)
     index = models.PositiveSmallIntegerField(**mandatory)
     identifier = models.CharField(max_length=512, **mandatory)
     description = models.TextField(**optional)
@@ -97,22 +113,27 @@ class NilValue(models.Model):
 
 
 class MaskType(models.Model):
-    name = models.CharField(max_length=512, **mandatory)
+    name = models.CharField(max_length=512, validators=name_validators, **mandatory)
     product_type = models.ForeignKey('ProductType', related_name='mask_types', **mandatory)
 
     def __str__(self):
         return self.name
 
+    class Meta:
+        unique_together = (
+            ('name', 'product_type'),
+        )
+
 
 class CoverageType(models.Model):
-    name = models.CharField(max_length=512, unique=True, **mandatory)
+    name = models.CharField(max_length=512, unique=True, validators=name_validators, **mandatory)
 
     def __str__(self):
         return self.name
 
 
 class ProductType(models.Model):
-    name = models.CharField(max_length=512, unique=True, **mandatory)
+    name = models.CharField(max_length=512, unique=True, validators=name_validators, **mandatory)
     allowed_coverage_types = models.ManyToManyField(CoverageType, blank=True)
 
     def __str__(self):
@@ -120,7 +141,7 @@ class ProductType(models.Model):
 
 
 class CollectionType(models.Model):
-    name = models.CharField(max_length=512, unique=True, **mandatory)
+    name = models.CharField(max_length=512, unique=True, validators=name_validators, **mandatory)
     allowed_coverage_types = models.ManyToManyField(CoverageType, blank=True)
     allowed_product_types = models.ManyToManyField(ProductType, blank=True)
 
@@ -130,15 +151,20 @@ class CollectionType(models.Model):
 
 class BrowseType(models.Model):
     product_type = models.ForeignKey(ProductType, **mandatory)
-    name = models.CharField(max_length=256, **mandatory)
+    name = models.CharField(max_length=256, validators=name_validators, **mandatory)
 
-    red_or_grey_expression = models.CharField(max_length=512, **mandatory)
+    red_or_grey_expression = models.CharField(max_length=512, **optional)
     green_expression = models.CharField(max_length=512, **optional)
     blue_expression = models.CharField(max_length=512, **optional)
     alpha_expression = models.CharField(max_length=512, **optional)
 
     def __str__(self):
         return self.name
+
+    class Meta:
+        unique_together = (
+            ('name', 'product_type'),
+        )
 
 
 # ==============================================================================
@@ -154,7 +180,7 @@ class Grid(models.Model):
     ]
 
     # allow named grids but also anonymous ones
-    name = models.CharField(max_length=256, unique=True, null=True, blank=False)
+    name = models.CharField(max_length=256, unique=True, null=True, blank=False, validators=name_validators)
 
     coordinate_reference_system = models.TextField(**mandatory)
 
@@ -174,9 +200,10 @@ class Grid(models.Model):
     axis_3_offset = models.CharField(max_length=256, **optional)
     axis_4_offset = models.CharField(max_length=256, **optional)
 
-    # TODO: find nice string representation for grid
-    # def __str__(self):
-    #     pass
+    def __str__(self):
+        if self.name:
+            return self.name
+        return super(Grid, self).__str__()
 
     def clean(self):
         validate_grid(self)
@@ -209,7 +236,7 @@ class GridFixture(models.Model):
 class EOObject(models.Model):
     """ Base class for Collections, Products and Coverages
     """
-    identifier = models.CharField(max_length=256, unique=True, **mandatory)
+    identifier = models.CharField(max_length=256, unique=True, validators=identifier_validators, **mandatory)
 
     begin_time = models.DateTimeField(**optional)
     end_time = models.DateTimeField(**optional)
@@ -455,34 +482,6 @@ class ProductMetadata(models.Model):
         (1, 'DEGRAGED')
     )
 
-    product = models.OneToOneField(Product, related_name='product_metadata')
-
-    parent_identifier = models.CharField(max_length=256, **optional_indexed)
-
-    production_status = models.PositiveSmallIntegerField(choices=PRODUCTION_STATUS_CHOICES, **optional_indexed)
-    acquisition_type = models.PositiveSmallIntegerField(choices=ACQUISITION_TYPE_CHOICES, **optional_indexed)
-
-    orbit_number = models.ForeignKey(OrbitNumber, **common_value_args)
-    orbit_direction = models.PositiveSmallIntegerField(choices=ORBIT_DIRECTION_CHOICES, **optional_indexed)
-
-    track = models.ForeignKey(Track, **common_value_args)
-    frame = models.ForeignKey(Frame, **common_value_args)
-    swath_identifier = models.ForeignKey(SwathIdentifier, **common_value_args)
-
-    product_version = models.ForeignKey(ProductVersion, **common_value_args)
-    product_quality_status = models.PositiveSmallIntegerField(choices=PRODUCT_QUALITY_STATUS_CHOICES, **optional_indexed)
-    product_quality_degradation_tag = models.ForeignKey(ProductQualityDegredationTag, **common_value_args)
-    processor_name = models.ForeignKey(ProcessorName, **common_value_args)
-    processing_center = models.ForeignKey(ProcessingCenter, **common_value_args)
-    creation_date = models.DateTimeField(**optional_indexed) # insertion into catalog
-    modification_date = models.DateTimeField(**optional_indexed) # last modification in catalog
-    processing_date = models.DateTimeField(**optional_indexed)
-    sensor_mode = models.ForeignKey(SensorMode, **common_value_args)
-    archiving_center = models.ForeignKey(ArchivingCenter, **common_value_args)
-    processing_mode = models.ForeignKey(ProcessingMode, **common_value_args)
-
-
-class CoverageMetadata(models.Model):
     POLARISATION_MODE_CHOICES = (
         (0, 'single'),
         (1, 'dual'),
@@ -513,8 +512,33 @@ class CoverageMetadata(models.Model):
         (1, 'RIGHT')
     )
 
-    coverage = models.OneToOneField(Coverage, related_name="coverage_metadata")
+    product = models.OneToOneField(Product, related_name='product_metadata')
 
+    parent_identifier = models.CharField(max_length=256, **optional_indexed)
+
+    production_status = models.PositiveSmallIntegerField(choices=PRODUCTION_STATUS_CHOICES, **optional_indexed)
+    acquisition_type = models.PositiveSmallIntegerField(choices=ACQUISITION_TYPE_CHOICES, **optional_indexed)
+
+    orbit_number = models.ForeignKey(OrbitNumber, **common_value_args)
+    orbit_direction = models.PositiveSmallIntegerField(choices=ORBIT_DIRECTION_CHOICES, **optional_indexed)
+
+    track = models.ForeignKey(Track, **common_value_args)
+    frame = models.ForeignKey(Frame, **common_value_args)
+    swath_identifier = models.ForeignKey(SwathIdentifier, **common_value_args)
+
+    product_version = models.ForeignKey(ProductVersion, **common_value_args)
+    product_quality_status = models.PositiveSmallIntegerField(choices=PRODUCT_QUALITY_STATUS_CHOICES, **optional_indexed)
+    product_quality_degradation_tag = models.ForeignKey(ProductQualityDegredationTag, **common_value_args)
+    processor_name = models.ForeignKey(ProcessorName, **common_value_args)
+    processing_center = models.ForeignKey(ProcessingCenter, **common_value_args)
+    creation_date = models.DateTimeField(**optional_indexed) # insertion into catalog
+    modification_date = models.DateTimeField(**optional_indexed) # last modification in catalog
+    processing_date = models.DateTimeField(**optional_indexed)
+    sensor_mode = models.ForeignKey(SensorMode, **common_value_args)
+    archiving_center = models.ForeignKey(ArchivingCenter, **common_value_args)
+    processing_mode = models.ForeignKey(ProcessingMode, **common_value_args)
+
+    # acquisition type metadata
     availability_time = models.DateTimeField(**optional_indexed)
     acquisition_station = models.ForeignKey(AcquisitionStation, **common_value_args)
     acquisition_sub_type = models.ForeignKey(AcquisitionSubType, **common_value_args)
@@ -536,6 +560,11 @@ class CoverageMetadata(models.Model):
     snow_cover = models.FloatField(**optional_indexed)
     lowest_location = models.FloatField(**optional_indexed)
     highest_location = models.FloatField(**optional_indexed)
+
+
+
+class CoverageMetadata(models.Model):
+    coverage = models.OneToOneField(Coverage, related_name="coverage_metadata")
 
 
 # ==============================================================================
