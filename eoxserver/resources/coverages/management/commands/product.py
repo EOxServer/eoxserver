@@ -28,11 +28,15 @@
 from django.core.management.base import CommandError, BaseCommand
 from django.db import transaction
 
+from eoxserver.backends.storages import get_handler_class_for_model
 from eoxserver.resources.coverages import models
 from eoxserver.resources.coverages.management.commands import (
     CommandOutputMixIn, SubParserMixIn
 )
 from eoxserver.resources.coverages.registration.product import ProductRegistrator
+from eoxserver.resources.coverages.registration.exceptions import (
+    RegistrationError
+)
 
 
 class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
@@ -42,6 +46,7 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
     def add_arguments(self, parser):
         register_parser = self.add_subparser(parser, 'register')
         deregister_parser = self.add_subparser(parser, 'deregister')
+        discover_parser = self.add_subparser(parser, 'discover')
 
         register_parser.add_argument(
             '--identifier', '-i', default=None,
@@ -102,9 +107,24 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             )
         )
 
-        deregister_parser.add_argument(
-            'identifier', nargs=1,
-            help='The identifier of the product to deregister.'
+        register_parser.add_argument(
+            '--print-id', '--print-identifier', dest='print_identifier',
+            default=False, action='store_true',
+            help=(
+                'When this flag is set, only the identifier of the registered '
+                'product will be printed to stdout.'
+            )
+        )
+
+        for parser in [deregister_parser, discover_parser]:
+            parser.add_argument(
+                'identifier', nargs=1,
+                help='The identifier of the product to deregister.'
+            )
+
+        discover_parser.add_argument(
+            'pattern', nargs='?', default=None,
+            help='A glob path pattern to limit the search.'
         )
 
         # TODO: only via 'browse' command?
@@ -122,25 +142,48 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             self.handle_register(*args, **kwargs)
         elif subcommand == "deregister":
             self.handle_deregister(kwargs['identifier'][0])
+        elif subcommand == "discover":
+            self.handle_discover(kwargs.pop('identifier')[0], *args, **kwargs)
 
     def handle_register(self, **kwargs):
         """ Handle the creation of a new product
         """
 
-        ProductRegistrator().register(
-            kwargs['file_handles'], kwargs['mask_handles'], kwargs['package'],
-            dict(
-                identifier=kwargs['identifier'],
-                footprint=kwargs['footprint'],
-                begin_time=kwargs['begin_time'],
-                end_time=kwargs['end_time'],
-            ), kwargs['type_name'], kwargs['extended_metadata']
-        )
+        try:
+            product = ProductRegistrator().register(
+                kwargs['file_handles'], kwargs['mask_handles'],
+                kwargs['package'],
+                dict(
+                    identifier=kwargs['identifier'],
+                    footprint=kwargs['footprint'],
+                    begin_time=kwargs['begin_time'],
+                    end_time=kwargs['end_time'],
+                ), kwargs['type_name'], kwargs['extended_metadata']
+            )
+        except RegistrationError:
+            raise CommandError('Failed to register product.')
 
-    def handle_deregister(self, identifier):
+        if kwargs['print_identifier']:
+            print(product.identifier)
+
+    def handle_deregister(self, identifier, *args, **kwargs):
         """ Handle the deregistration a product
         """
         try:
             models.Product.objects.get(identifier=identifier).delete()
         except models.Product.DoesNotExist:
             raise CommandError('No such Product %r' % identifier)
+
+    def handle_discover(self, identifier, pattern, *args, **kwargs):
+        try:
+            product = models.Product.objects.get(identifier=identifier)
+        except models.Product.DoesNotExist:
+            raise CommandError('No such Product %r' % identifier)
+
+        package = product.package
+        if package:
+            handler_cls = get_handler_class_for_model(package)
+            if handler_cls:
+                with handler_cls(package.url) as handler:
+                    for item in handler.list_files(pattern):
+                        print(item)
