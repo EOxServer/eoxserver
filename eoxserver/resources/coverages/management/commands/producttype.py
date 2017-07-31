@@ -82,9 +82,9 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
         """ Dispatch sub-commands: create, delete.
         """
         if subcommand == "create":
-            self.handle_create(kwargs['name'][0], *args, **kwargs)
+            self.handle_create(kwargs.pop('name')[0], *args, **kwargs)
         elif subcommand == "delete":
-            self.handle_delete(kwargs['name'][0], *args, **kwargs)
+            self.handle_delete(kwargs.pop('name')[0], *args, **kwargs)
         elif subcommand == "list":
             self.handle_list(*args, **kwargs)
 
@@ -116,6 +116,8 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
                 name=browse_type_name, product_type=product_type
             )
 
+        print('Successfully created product type %r' % name)
+
     def handle_delete(self, name, force, **kwargs):
         """ Handle the deletion of a product type
         """
@@ -132,6 +134,7 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
 
         product_type.delete()
         # TODO force
+        print('Successfully deleted product type %r' % name)
 
     def handle_list(self, detail, *args, **kwargs):
         """ Handle the listing of product types

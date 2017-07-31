@@ -89,6 +89,11 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             )
         )
         register_parser.add_argument(
+            "--identifier", "-i",
+            dest="identifier", default=None,
+            help="Override identifier."
+        )
+        register_parser.add_argument(
             "--begin-time", "-b",
             dest="begin_time", default=None,
             help="Override begin time. Format is ISO8601 datetime strings."
@@ -135,7 +140,7 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
                 'begin_time', 'end_time', 'footprint', 'identifier',
                 'origin', 'size', 'grid'
             ]
-            if kwargs.get('key')
+            if kwargs.get(key)
         }
 
         GDALRegistrator().register(

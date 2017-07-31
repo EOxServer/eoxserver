@@ -108,7 +108,7 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
         )
 
         register_parser.add_argument(
-            '--print-id', '--print-identifier', dest='print_identifier',
+            '--print-identifier', dest='print_identifier',
             default=False, action='store_true',
             help=(
                 'When this flag is set, only the identifier of the registered '
@@ -160,8 +160,8 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
                     end_time=kwargs['end_time'],
                 ), kwargs['type_name'], kwargs['extended_metadata']
             )
-        except RegistrationError:
-            raise CommandError('Failed to register product.')
+        except RegistrationError as e:
+            raise CommandError('Failed to register product. Error was %s' % e)
 
         if kwargs['print_identifier']:
             print(product.identifier)
