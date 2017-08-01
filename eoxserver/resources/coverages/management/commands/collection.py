@@ -165,7 +165,7 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
 
         for eo_object in objects:
             try:
-                models.collection_insert_object(collection, eo_object)
+                models.collection_insert_eo_object(collection, eo_object)
             except Exception as e:
                 raise CommandError(
                     "Could not insert object %r into collection %r. "

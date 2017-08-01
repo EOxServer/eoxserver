@@ -28,6 +28,7 @@
 from django.core.management.base import CommandError, BaseCommand
 from django.db import transaction
 
+from eoxserver.core.util.timetools import parse_iso8601
 from eoxserver.backends.storages import get_handler_class_for_model
 from eoxserver.resources.coverages import models
 from eoxserver.resources.coverages.management.commands import (
@@ -59,12 +60,12 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
         )
 
         register_parser.add_argument(
-            '--begin-time', default=None,
+            '--begin-time', default=None, type=parse_iso8601,
             help='Override the begin time of the to-be registered product.'
         )
 
         register_parser.add_argument(
-            '--end-time', default=None,
+            '--end-time', default=None, type=parse_iso8601,
             help='Override the end time of the to-be registered product.'
         )
 
@@ -106,7 +107,15 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
                 'The path to a storage (directory, ZIP-file, etc.).'
             )
         )
-
+        register_parser.add_argument(
+            "--replace", "-r",
+            dest="replace", action="store_true", default=False,
+            help=(
+                "Optional. If the product with the given identifier already "
+                "exists, replace it. Without this flag, this would result in "
+                "an error."
+            )
+        )
         register_parser.add_argument(
             '--print-identifier', dest='print_identifier',
             default=False, action='store_true',
@@ -148,9 +157,8 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
     def handle_register(self, **kwargs):
         """ Handle the creation of a new product
         """
-
         try:
-            product = ProductRegistrator().register(
+            product, replaced = ProductRegistrator().register(
                 kwargs['file_handles'], kwargs['mask_handles'],
                 kwargs['package'],
                 dict(
@@ -158,7 +166,8 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
                     footprint=kwargs['footprint'],
                     begin_time=kwargs['begin_time'],
                     end_time=kwargs['end_time'],
-                ), kwargs['type_name'], kwargs['extended_metadata']
+                ), kwargs['type_name'], kwargs['extended_metadata'],
+                replace=kwargs['replace']
             )
         except RegistrationError as e:
             raise CommandError('Failed to register product. Error was %s' % e)

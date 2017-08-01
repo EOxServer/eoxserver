@@ -28,6 +28,7 @@
 from django.core.management.base import CommandError, BaseCommand
 from django.db import transaction
 
+from eoxserver.core.util.timetools import parse_iso8601
 from eoxserver.resources.coverages import models
 from eoxserver.resources.coverages.management.commands import (
     CommandOutputMixIn, SubParserMixIn
@@ -95,13 +96,18 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
         )
         register_parser.add_argument(
             "--begin-time", "-b",
-            dest="begin_time", default=None,
+            dest="begin_time", default=None, type=parse_iso8601,
             help="Override begin time. Format is ISO8601 datetime strings."
         )
         register_parser.add_argument(
             "--end-time", "-e",
-            dest="end_time", default=None,
+            dest="end_time", default=None, type=parse_iso8601,
             help="Override end time. Format is ISO8601 datetime strings."
+        )
+        register_parser.add_argument(
+            "--product", "--product-identifier", "-p",
+            dest="product_identifier", default=None,
+            help="Add the coverage to the specified product."
         )
         register_parser.add_argument(
             "--replace", "-r",
@@ -110,6 +116,14 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
                 "Optional. If the coverage with the given identifier already "
                 "exists, replace it. Without this flag, this would result in "
                 "an error."
+            )
+        )
+        register_parser.add_argument(
+            '--print-identifier', dest='print_identifier',
+            default=False, action='store_true',
+            help=(
+                'When this flag is set, only the identifier of the registered '
+                'product will be printed to stdout.'
             )
         )
 
@@ -122,8 +136,6 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
     def handle(self, subcommand, *args, **kwargs):
         """ Dispatch sub-commands: register, deregister.
         """
-        print args
-        print kwargs
         if subcommand == "register":
             self.handle_register(*args, **kwargs)
         elif subcommand == "deregister":
@@ -143,13 +155,23 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             if kwargs.get(key)
         }
 
-        GDALRegistrator().register(
+        coverage, replaced = GDALRegistrator().register(
             data_locations=data_locations,
             metadata_locations=metadata_locations,
             coverage_type_name=coverage_type_name,
             overrides=overrides,
             replace=kwargs['replace'],
         )
+
+        product_identifier = kwargs['product_identifier']
+        if product_identifier:
+            try:
+                product = models.Product.objects.get(
+                    identifier=product_identifier
+                )
+            except models.Product.DoesNotExist:
+                raise CommandError('No such product %r' % product_identifier)
+            models.product_add_coverage(product, coverage)
 
     def handle_deregister(self, identifier, **kwargs):
         """ Handle the deregistration a coverage
