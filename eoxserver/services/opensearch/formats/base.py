@@ -306,6 +306,23 @@ class BaseFeedResultFormat(object):
                     ),
                 ])
 
+                wcs_offering = OWC("offering",
+                    OWC("operation",
+                        code="GetCapabilities", method="GET",
+                        type="application/xml", href=request.build_absolute_uri(
+                            "%s?service=WCS&version=2.0.1"
+                            "&request=GetCapabilities"
+                        )
+                    ),
+                    code="http://www.opengis.net/spec/owc-atom/1.0/req/wcs",
+                )
+                for coverage in item.coverages.all():
+                    wcs_offering.extend(self.encode_coverage_offerings(
+                        request, coverage
+                    ))
+
+                links.append(wcs_offering)
+
         if isinstance(item, models.Coverage):
             # add a link for a Describe and GetCoverage request for
             # metadata and data download
@@ -338,22 +355,39 @@ class BaseFeedResultFormat(object):
                         code="GetCapabilities", method="GET",
                         type="application/xml", href=wcs_get_capabilities
                     ),
-                    OWC("operation",
-                        code="DescribeCoverage", method="GET",
-                        type="application/xml", href=wcs_describe_coverage
-                    ),
-                    OWC("operation",
-                        code="GetCoverage", method="GET",
-                        type="image/tiff", href=wcs_get_coverage
-                        # TODO: native format
-                    ),
-                    code="http://www.opengis.net/spec/owc-atom/1.0/req/wcs",
+                    *self.encode_coverage_offerings(coverage),
+                    **{
+                        "code": "http://www.opengis.net/spec/owc-atom/1.0/req/wcs"
+                    }
                 )
             ])
         return links
 
     def encode_summary(self, request, item):
         pass
+
+    def encode_coverage_offerings(self, request, coverage):
+        wcs_describe_coverage = request.build_absolute_uri(
+            "%s?service=WCS&version=2.0.1&request=DescribeCoverage"
+            "&coverageId=%s" % (reverse("ows"), coverage.identifier)
+        )
+
+        wcs_get_coverage = request.build_absolute_uri(
+            "%s?service=WCS&version=2.0.1&request=GetCoverage"
+            "&coverageId=%s" % (reverse("ows"), coverage.identifier)
+        )
+
+        return [
+            OWC("operation",
+                code="DescribeCoverage", method="GET",
+                type="application/xml", href=wcs_describe_coverage
+            ),
+            OWC("operation",
+                code="GetCoverage", method="GET",
+                type="image/tiff", href=wcs_get_coverage
+            )
+        ]
+
 
     def encode_spatio_temporal(self, item):
         entries = []
