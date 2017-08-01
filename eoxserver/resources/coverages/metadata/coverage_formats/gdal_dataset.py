@@ -71,17 +71,25 @@ class GDALDatasetMetadataReader(object):
         # NOTE: If the projection is a non-zero string then
         #       the geocoding is given by the Geo-Trasnformation
         #       matrix - not matter what are the values.
-        if ds.GetProjection():
+        if projection:
+            sr = osr.SpatialReference(projection)
+            if sr.srid is not None:
+                projection = 'EPSG:%d' % sr.srid
+
             gt = ds.GetGeoTransform()
 
             values['origin'] = [gt[0], gt[3]]
 
             values['grid'] = {
-                'coordinate_reference_system': ds.GetProjection(),
+                'coordinate_reference_system': projection,
                 'axis_offsets': [gt[1], gt[5]],
                 'axis_types': ['spatial', 'spatial'],
                 'axis_names': ['x', 'y'],
             }
+
+            if sr.GetLinearUnitsName() in ('metre', 'meter', 'm') \
+                    and abs(gt[1]) == abs(gt[5]):
+                values['grid']['resolution'] = abs(gt[1])
 
         # --= tie-point encoded referenceable datasets =--
         # NOTE: If the GCP projection is a non-zero string and
