@@ -60,6 +60,7 @@ class WCS20DescribeEOCoverageSetHandler(Component):
 
     service = "WCS"
     versions = ("2.0.0", "2.0.1")
+    methods = ['GET', 'POST']
     request = "DescribeEOCoverageSet"
 
     index = 20

@@ -86,7 +86,7 @@ class TimeExtension(object):
                 qs = qs.filter(end_time=end)
         return qs
 
-    def get_schema(self, reference_collection=None):
+    def get_schema(self):
         return (
             dict(name="start", type="start"),
             dict(name="end", type="end"),

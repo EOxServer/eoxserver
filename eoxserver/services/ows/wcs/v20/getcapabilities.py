@@ -49,6 +49,7 @@ class WCS20GetCapabilitiesHandler(WCSGetCapabilitiesHandlerBase, Component):
     implements(VersionNegotiationInterface)
 
     versions = ("2.0.0", "2.0.1")
+    methods = ['GET', 'POST']
 
     def get_decoder(self, request):
         if request.method == "GET":

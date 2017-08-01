@@ -30,8 +30,10 @@ This module contains a set of handler base classes which shall help to implement
 a specific handler. Interface methods need to be overridden in order to work, 
 default methods can be overidden.
 """
+from django.conf import settings
 
 from eoxserver.core import ExtensionPoint
+from eoxserver.config import DEFAULT_EOXS_CAPABILITIES_RENDERERS
 from eoxserver.resources.coverages import models
 from eoxserver.services.result import to_http_response
 from eoxserver.services.ows.wcs.parameters import WCSCapabilitiesRenderParams
@@ -43,6 +45,7 @@ from eoxserver.services.ows.wcs.interfaces import (
     WCSCapabilitiesRendererInterface
 )
 
+from eoxserver.core.util.importtools import import_string
 
 class WCSGetCapabilitiesHandlerBase(object):
     """ Base for Coverage description handlers.
@@ -82,7 +85,15 @@ class WCSGetCapabilitiesHandlerBase(object):
     def get_renderer(self, params):
         """ Default implementation for a renderer retrieval.
         """
-        for renderer in self.renderers:
+        CAPABILITIES_RENDERERS = [
+            import_string(identifier)
+            for identifier in getattr(
+                settings, 'EOXS_CAPABILITIES_RENDERERS',
+                DEFAULT_EOXS_CAPABILITIES_RENDERERS
+            )
+        ]
+        for Renderer in CAPABILITIES_RENDERERS:
+            renderer = Renderer()
             if renderer.supports(params):
                 return renderer
 

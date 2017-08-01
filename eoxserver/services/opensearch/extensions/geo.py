@@ -85,7 +85,7 @@ class GeoExtension(object):
 
         return qs
 
-    def get_schema(self, reference_collection=None):
+    def get_schema(self):
         return (
             dict(name="bbox", type="box"),
             dict(name="geom", type="geometry"),
