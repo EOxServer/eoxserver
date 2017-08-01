@@ -44,7 +44,7 @@ from eoxserver.resources.coverages.registration.exceptions import (
 class ProductRegistrator(base.BaseRegistrator):
     def register(self, file_handles, mask_handles, package_path,
                  overrides, type_name=None, extended_metadata=True,
-                 discover_masks=True, discover_browses=True):
+                 discover_masks=True, discover_browses=True, replace=False):
         product_type = None
         if type_name:
             product_type = models.ProductType.objects.get(name=type_name)
@@ -103,6 +103,14 @@ class ProductRegistrator(base.BaseRegistrator):
         footprint = overrides.get('footprint') or md_footprint
         begin_time = overrides.get('begin_time') or md_begin_time
         end_time = overrides.get('end_time') or md_end_time
+
+        replaced = False
+        if replace:
+            try:
+                models.Product.objects.get(identifier=identifier).delete()
+                replaced = True
+            except models.Product.DoesNotExist:
+                pass
 
         product = models.Product.objects.create(
             identifier=identifier,
@@ -165,4 +173,4 @@ class ProductRegistrator(base.BaseRegistrator):
             browse.full_clean()
             browse.save()
 
-        return product
+        return product, replaced

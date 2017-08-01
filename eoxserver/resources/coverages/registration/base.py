@@ -343,7 +343,6 @@ class BaseRegistrator(object):
                 for id_, name in models.Grid.AXIS_TYPES
             }
 
-            print axis_type_names_to_id
             axis_types = [
                 axis_type_names_to_id[axis_type] if axis_type else None
                 for axis_type in axis_types
@@ -397,6 +396,7 @@ class BaseRegistrator(object):
                     axis_2_offset=offset_2,
                     axis_3_offset=offset_3,
                     axis_4_offset=offset_4,
+                    resolution=definition.get('resolution')
                 )
         return grid
 
