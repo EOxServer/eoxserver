@@ -200,9 +200,16 @@ class Grid(models.Model):
     axis_3_offset = models.CharField(max_length=256, **optional)
     axis_4_offset = models.CharField(max_length=256, **optional)
 
+    resolution = models.PositiveIntegerField(**optional)
+
     def __str__(self):
         if self.name:
             return self.name
+        elif self.resolution is not None \
+                and len(self.coordinate_reference_system) < 15:
+            return '%s (%d)' % (
+                self.coordinate_reference_system, self.resolution
+            )
         return super(Grid, self).__str__()
 
     def clean(self):
@@ -562,7 +569,6 @@ class ProductMetadata(models.Model):
     highest_location = models.FloatField(**optional_indexed)
 
 
-
 class CoverageMetadata(models.Model):
     coverage = models.OneToOneField(Coverage, related_name="coverage_metadata")
 
@@ -581,7 +587,17 @@ def cast_eo_object(eo_object):
     """ Casts an EOObject to its actual type.
     """
     if isinstance(eo_object, EOObject):
-        return eo_object.collection or eo_object.product or eo_object.coverage
+        try:
+            return eo_object.collection
+        except:
+            try:
+                eo_object.product
+            except:
+                try:
+                    return eo_object.coverage
+                except:
+                    pass
+
     return eo_object
 
 
@@ -816,7 +832,7 @@ def product_add_coverage(product, coverage):
             'Cannot insert object of type %r' % type(coverage).__name__
         )
 
-    coverage_type = coverage.coveraget_type
+    coverage_type = coverage.coverage_type
     allowed = product.product_type.allowed_coverage_types.filter(
         pk=coverage_type.pk
     ).exists()
