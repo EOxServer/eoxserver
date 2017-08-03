@@ -79,13 +79,14 @@ identifier_validators = [
 
 
 class FieldType(models.Model):
-    coverage_type = models.ForeignKey('CoverageType', related_name='field_types', validators=name_validators, **mandatory)
+    coverage_type = models.ForeignKey('CoverageType', related_name='field_types', **mandatory)
     index = models.PositiveSmallIntegerField(**mandatory)
-    identifier = models.CharField(max_length=512, **mandatory)
+    identifier = models.CharField(max_length=512, validators=identifier_validators, **mandatory)
     description = models.TextField(**optional)
     definition = models.CharField(max_length=512, **optional)
     unit_of_measure = models.CharField(max_length=64, **mandatory)
     wavelength = models.FloatField(**optional)
+    significant_figures = models.PositiveSmallIntegerField(**optional)
 
     class Meta:
         ordering = ('index',)
@@ -95,6 +96,12 @@ class FieldType(models.Model):
 
     def __str__(self):
         return self.identifier
+
+
+class AllowedValueRange(models.Model):
+    field_type = models.ForeignKey(FieldType, related_name='allowed_value_ranges')
+    start = models.FloatField(**mandatory)
+    end = models.FloatField(**mandatory)
 
 
 class NilValue(models.Model):
@@ -171,6 +178,20 @@ class BrowseType(models.Model):
 # Metadata models for each Collection, Product or Coverage
 # ==============================================================================
 
+
+def axis_accessor(pattern, value_map=None):
+    def _get(self):
+        values = []
+        for i in range(1, 5):
+            value = getattr(self, pattern % i)
+            if value is not None:
+                values.append(value_map[value] if value_map else value)
+            else:
+                break
+        return values
+    return _get
+
+
 class Grid(models.Model):
     AXIS_TYPES = [
         (0, 'spatial'),
@@ -202,6 +223,10 @@ class Grid(models.Model):
 
     resolution = models.PositiveIntegerField(**optional)
 
+    axis_names = property(axis_accessor('axis_%d_name'))
+    axis_types = property(axis_accessor('axis_%d_type', dict(AXIS_TYPES)))
+    axis_offsets = property(axis_accessor('axis_%d_offset'))
+
     def __str__(self):
         if self.name:
             return self.name
@@ -229,6 +254,9 @@ class GridFixture(models.Model):
     axis_2_size = models.PositiveIntegerField(**optional)
     axis_3_size = models.PositiveIntegerField(**optional)
     axis_4_size = models.PositiveIntegerField(**optional)
+
+    origin = property(axis_accessor('axis_%d_origin'))
+    size = property(axis_accessor('axis_%d_size'))
 
     class Meta:
         abstract = True
@@ -779,9 +807,11 @@ def _collection_metadata(collection, metadata_model, path):
 
     # get a list of all related common values
     for field in common_value_fields:
-        summary_metadata[field.name] = list(field.related_model.objects.filter(
-            **{"metadatas__%s__collections__in" % path: [collection]}
-        ).values_list('value', flat=True))
+        summary_metadata[field.name] = list(
+            field.related_model.objects.filter(
+                **{"metadatas__%s__collections" % path: collection}
+            ).values_list('value', flat=True).distinct()
+        )
 
     # get a list of all related choice fields
     for field in choice_fields:
