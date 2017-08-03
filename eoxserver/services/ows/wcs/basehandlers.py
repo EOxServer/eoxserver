@@ -33,7 +33,7 @@ default methods can be overidden.
 from django.conf import settings
 
 from eoxserver.core import ExtensionPoint
-from eoxserver.config import DEFAULT_EOXS_CAPABILITIES_RENDERERS
+from eoxserver.services.ows.config import DEFAULT_EOXS_WCS_CAPABILITIES_RENDERERS
 from eoxserver.resources.coverages import models
 from eoxserver.services.result import to_http_response
 from eoxserver.services.ows.wcs.parameters import WCSCapabilitiesRenderParams
@@ -89,7 +89,7 @@ class WCSGetCapabilitiesHandlerBase(object):
             import_string(identifier)
             for identifier in getattr(
                 settings, 'EOXS_CAPABILITIES_RENDERERS',
-                DEFAULT_EOXS_CAPABILITIES_RENDERERS
+                DEFAULT_EOXS_WCS_CAPABILITIES_RENDERERS
             )
         ]
         for Renderer in CAPABILITIES_RENDERERS:
@@ -172,6 +172,20 @@ class WCSDescribeCoverageHandlerBase(object):
     def get_renderer(self, params):
         """ Default implementation for a renderer retrieval.
         """
+        from eoxserver.services.ows.config import DEFAULT_EOXS_WCS_COVERAGE_DESCRIPTION_RENDERERS
+
+        DESCRIPTION_RENDERERS = [
+            import_string(identifier)
+            for identifier in getattr(
+                settings, 'EOXS_WCS_COVERAGE_DESCRIPTION_RENDERERS',
+                DEFAULT_EOXS_WCS_COVERAGE_DESCRIPTION_RENDERERS
+            )
+        ]
+        for Renderer in DESCRIPTION_RENDERERS:
+            renderer = Renderer()
+            if renderer.supports(params):
+                return renderer
+
         for renderer in self.renderers:
             if renderer.supports(params):
                 return renderer

@@ -1,12 +1,39 @@
+# ------------------------------------------------------------------------------
+#
+# Project: EOxServer <http://eoxserver.org>
+# Authors: Fabian Schindler <fabian.schindler@eox.at>
+#
+# ------------------------------------------------------------------------------
+# Copyright (C) 2017 EOX IT Services GmbH
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies of this Software or works derived from this Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+# ------------------------------------------------------------------------------
+
 import logging
 
 from django.conf import settings
 # from django.utils.module_loading import import_string
 from django.http import HttpResponse
 
-from eoxserver.config import (
-    DEFAULT_EOXS_SERVICE_HANDLERS,
-    DEFAULT_EOXS_EXCEPTION_HANDLERS
+from eoxserver.services.ows.config import (
+    DEFAULT_EOXS_OWS_SERVICE_HANDLERS,
+    DEFAULT_EOXS_OWS_EXCEPTION_HANDLERS
 )
 from eoxserver.core.util.importtools import import_string
 from eoxserver.services.ows.decoders import get_decoder
@@ -15,44 +42,54 @@ from eoxserver.services.exceptions import (
     VersionNegotiationException, OperationNotSupportedException,
     HTTPMethodNotAllowedError,
 )
-from eoxserver.services.ows.common.v20.exceptionhandler import (
+from .common.v20.exceptionhandler import (
     OWS20ExceptionHandler
 )
 
 
 logger = logging.getLogger(__name__)
 
-SERVICE_HANDLERS = [
-    import_string(identifier)
-    for identifier in getattr(
-        settings, 'EOXS_SERVICE_HANDLERS', DEFAULT_EOXS_SERVICE_HANDLERS
-    )
-]
-
-GET_SERVICE_HANDLERS = [
-    service_handler
-    for service_handler in SERVICE_HANDLERS
-    if 'GET' in service_handler.methods
-]
-
-
-POST_SERVICE_HANDLERS = [
-    service_handler
-    for service_handler in SERVICE_HANDLERS
-    if 'POST' in service_handler.methods
-]
 
 ALLOWED_HTTP_METHODS = ["GET", "POST", "OPTIONS"]
 
-EXCEPTION_HANDLERS = [
-    import_string(identifier)
-    for identifier in getattr(
-        settings, 'EOXS_EXCEPTION_HANDLERS', DEFAULT_EOXS_EXCEPTION_HANDLERS
-    )
-]
+SERVICE_HANDLERS = None
+GET_SERVICE_HANDLERS = None
+POST_SERVICE_HANDLERS = None
+EXCEPTION_HANDLERS = None
 
 
+def _setup_handlers():
+    global SERVICE_HANDLERS
+    global GET_SERVICE_HANDLERS
+    global POST_SERVICE_HANDLERS
+    global EXCEPTION_HANDLERS
 
+    SERVICE_HANDLERS = [
+        import_string(identifier)
+        for identifier in getattr(
+            settings, 'EOXS_SERVICE_HANDLERS', DEFAULT_EOXS_OWS_SERVICE_HANDLERS
+        )
+    ]
+
+    GET_SERVICE_HANDLERS = [
+        service_handler
+        for service_handler in SERVICE_HANDLERS
+        if 'GET' in service_handler.methods
+    ]
+
+    POST_SERVICE_HANDLERS = [
+        service_handler
+        for service_handler in SERVICE_HANDLERS
+        if 'POST' in service_handler.methods
+    ]
+
+    EXCEPTION_HANDLERS = [
+        import_string(identifier)
+        for identifier in getattr(
+            settings, 'EOXS_EXCEPTION_HANDLERS',
+            DEFAULT_EOXS_OWS_EXCEPTION_HANDLERS
+        )
+    ]
 
 
 class OptionsRequestHandler(object):
@@ -104,6 +141,8 @@ def query_service_handler(request):
     :raises OperationNotSupportedException: if the specified request
                                             operation is not supported
     """
+    if SERVICE_HANDLERS is None:
+        _setup_handlers()
 
     decoder = get_decoder(request)
 
@@ -178,6 +217,9 @@ def query_service_handler(request):
 
 
 def query_exception_handler(request):
+    if EXCEPTION_HANDLERS is None:
+        _setup_handlers()
+
     try:
         decoder = get_decoder(request)
         handlers = self.exception_handlers
