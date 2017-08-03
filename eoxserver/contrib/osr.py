@@ -54,6 +54,8 @@ class SpatialReference(object):
                 sr.ImportFromWkt(raw)
             elif isinstance(raw, int) or format == "EPSG":
                 sr.ImportFromEPSG(int(raw))
+            elif isinstance(raw, basestring) and raw.startswith('EPSG:'):
+                sr.ImportFromEPSG(int(raw.partition(':')[2]))
             else:
                 sr.SetFromUserInput(raw)
 
