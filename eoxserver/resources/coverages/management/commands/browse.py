@@ -32,11 +32,12 @@ from eoxserver.resources.coverages import models
 from eoxserver.resources.coverages.management.commands import (
     CommandOutputMixIn, SubParserMixIn
 )
+from eoxserver.resources.coverages.registration.browse import BrowseRegistrator
 
 
 class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
     """ Command to manage browses. This command uses sub-commands for the
-        specific tasks: register, deregister
+        specific tasks: register, generate, deregister
     """
     def add_arguments(self, parser):
         register_parser = self.add_subparser(parser, 'register')
@@ -49,13 +50,12 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             )
 
         register_parser.add_argument(
-            '--type', '--coverage-type', '-t', dest='type_name', default=None,
-            help='The name of the coverage type to associate the coverage with.'
+            'location', nargs='+',
+            help="The storage location of the browse."
         )
-
         register_parser.add_argument(
-            '--grid', '-g', dest='grid_name', default=None,
-            help='The name of the grid to associate the coverage with.'
+            '--type', '--browse-type', '-t', dest='type_name', default=None,
+            help='The name of the browse type to associate the browse with.'
         )
 
     @transaction.atomic
@@ -70,9 +70,15 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
         elif subcommand == "deregister":
             self.handle_deregister(identifier, *args, **kwargs)
 
-    def handle_register(self, identifier, **kwargs):
+    def handle_register(self, identifier, location, type_name, **kwargs):
         """ Handle the registration of an existing browse.
         """
+
+        BrowseRegistrator().register(
+            product_identifier=identifier,
+            location=location,
+            type_name=type_name
+        )
 
     def handle_generate(self, identifier, **kwargs):
         """ Handle the generation of a new browse image
