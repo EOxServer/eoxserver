@@ -109,7 +109,10 @@ class OpenSearch11DescriptionEncoder(XMLEncoder):
         parameters = list(chain(default_parameters, *[
             [
                 dict(parameter, **{"namespace": search_extension.namespace})
-                for parameter in search_extension.get_schema(type(collection))
+                for parameter in search_extension.get_schema(
+                    collection,
+                    models.Collection if collection is None else models.Product
+                )
             ] for search_extension in self.search_extensions
         ]))
 
@@ -143,6 +146,7 @@ class OpenSearch11DescriptionEncoder(XMLEncoder):
 
     def encode_parameter(self, parameter, namespace):
         options = parameter.pop("options", [])
+
         attributes = {"name": parameter["name"]}
         if namespace:
             attributes["value"] = "{%s:%s}" % (
@@ -150,6 +154,12 @@ class OpenSearch11DescriptionEncoder(XMLEncoder):
             )
         else:
             attributes["value"] = "{%s}" % parameter.pop("type")
+
+        if 'min' in parameter:
+            attributes['minInclusive'] = str(parameter['min'])
+
+        if 'max' in parameter:
+            attributes['maxInclusive'] = str(parameter['max'])
 
         pattern = parameter.get("pattern")
         if pattern:

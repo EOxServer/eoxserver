@@ -27,6 +27,7 @@
 
 import re
 import functools
+import json
 
 from eoxserver.core.decoders import kvp, enum
 from eoxserver.core.util.xmltools import NameSpace
@@ -85,20 +86,44 @@ class EarthObservationExtension(object):
 
         return qs
 
-    def get_schema(self, model_class=None):
+    def get_schema(self, collection=None, model_class=None):
         mapping, mapping_choices = filters.get_field_mapping_for_model(
-            model_class or models.RectifiedDataset
+            model_class or models.Product
         )
-        return [
-            dict(
-                name=key, type=key,
-                options=[
-                    key for key in mapping_choices[value].keys()
-                ] if value in mapping_choices else ()
-            )
-            for key, value in mapping.items()
-        ]
 
+        schema = []
+        summary = {}
+        if collection and collection.collection_metadata:
+            summary = json.loads(
+                collection.collection_metadata.product_metadata_summary
+            )
+            summary = {
+                filters._to_camel_case(key): value
+                for key, value in summary.items()
+            }
+
+        for key, value in mapping.items():
+            param = dict(
+                name=key, type=key
+            )
+
+            param_summary = summary.get(key)
+            if isinstance(param_summary, list) and param_summary:
+                param['options'] = param_summary
+            elif isinstance(param_summary, dict):
+                min_ = param_summary.get('min')
+                max_ = param_summary.get('max')
+                if min_ is not None:
+                    param['min'] = min_
+                if max_ is not None:
+                    param['max'] = max_
+
+            if 'options' not in param and value in mapping_choices:
+                param['options'] = list(mapping_choices[value].keys())
+
+            schema.append(param)
+
+        return schema
 
     # def get_schema(self, collection):
     #     return [
