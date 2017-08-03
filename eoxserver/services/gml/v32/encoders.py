@@ -119,13 +119,11 @@ class EOP20Encoder(GML32Encoder):
             )
         )
 
-    def encode_earth_observation(self, eo_metadata, contributing_datasets=None,
+    def encode_earth_observation(self, identifier, begin_time, end_time,
+                                 footprint, contributing_datasets=None,
                                  subset_polygon=None):
-        identifier = eo_metadata.identifier
-        begin_time = eo_metadata.begin_time
-        end_time = eo_metadata.end_time
-        result_time = eo_metadata.end_time
-        footprint = eo_metadata.footprint
+
+        result_time = end_time
 
         if subset_polygon is not None:
             footprint = footprint.intersection(subset_polygon)
