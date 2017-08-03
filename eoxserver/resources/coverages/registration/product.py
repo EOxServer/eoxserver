@@ -26,6 +26,7 @@
 # ------------------------------------------------------------------------------
 
 
+from django.db.models import ForeignKey
 from django.contrib.gis.geos import GEOSGeometry
 
 from eoxserver.contrib import gdal
@@ -121,10 +122,7 @@ class ProductRegistrator(base.BaseRegistrator):
             package=package,
         )
         if extended_metadata and metadata:
-            models.ProductMetadata.objects.create(
-                product=product,
-                # **metadata
-            )
+            self._create_metadata(product, metadata)
 
         # register all masks
         for mask_handle in mask_handles:
@@ -149,7 +147,7 @@ class ProductRegistrator(base.BaseRegistrator):
         for browse_handle in browse_handles:
             browse_type = None
             if browse_handle[0]:
-                print browse_handle[0]
+                # TODO: only browse types for that product type
                 browse_type = models.BrowseType.objects.get(
                     name=browse_handle[0]
                 )
@@ -174,3 +172,43 @@ class ProductRegistrator(base.BaseRegistrator):
             browse.save()
 
         return product, replaced
+
+    def _create_metadata(self, product, metadata_values):
+        metadata_values = dict(
+            (name, convert(name, value, models.ProductMetadata))
+            for name, value in metadata_values.items()
+            if value is not None and has_field(models.ProductMetadata, name)
+        )
+
+        models.ProductMetadata.objects.create(
+            product=product, **metadata_values
+        )
+
+
+def is_common_value(field):
+    try:
+        if isinstance(field, ForeignKey):
+            field.related_model._meta.get_field('value')
+            return True
+    except:
+        pass
+    return False
+
+
+def has_field(model, field_name):
+    try:
+        model._meta.get_field(field_name)
+        return True
+    except:
+        return False
+
+
+def convert(name, value, model_class):
+    field = model_class._meta.get_field(name)
+    if is_common_value(field):
+        return field.related_model.objects.get_or_create(
+            value=value
+        )[0]
+    elif field.choices:
+        return dict((v, k) for k, v in field.choices)[value]
+    return value
