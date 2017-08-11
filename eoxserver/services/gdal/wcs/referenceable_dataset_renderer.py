@@ -26,24 +26,22 @@
 #-------------------------------------------------------------------------------
 
 
-from os.path import splitext, abspath
+from os.path import abspath
 from datetime import datetime
 from uuid import uuid4
 import logging
 
 from django.contrib.gis.geos import GEOSGeometry
 
-from eoxserver.core import Component, implements
 from eoxserver.core.config import get_eoxserver_config
 from eoxserver.core.decoders import config
 from eoxserver.core.util.rect import Rect
 from eoxserver.backends.access import connect
 from eoxserver.contrib import gdal, osr
 from eoxserver.contrib.vrt import VRTBuilder
-from eoxserver.resources.coverages import models
+from eoxserver.resources.coverages.grid import is_referenceable
 from eoxserver.services.ows.version import Version
 from eoxserver.services.result import ResultFile, ResultBuffer
-from eoxserver.services.ows.wcs.interfaces import WCSCoverageRendererInterface
 from eoxserver.services.ows.wcs.v20.encoders import WCS20EOXMLEncoder
 from eoxserver.services.exceptions import (
     RenderException, OperationNotSupportedException
@@ -54,33 +52,30 @@ from eoxserver.processing.gdal import reftools
 logger = logging.getLogger(__name__)
 
 
-class GDALReferenceableDatasetRenderer(Component):
-    implements(WCSCoverageRendererInterface)
+class GDALReferenceableDatasetRenderer(object):
 
     versions = (Version(2, 0),)
 
     def supports(self, params):
         return (
-            issubclass(params.coverage.real_type, models.ReferenceableDataset)
-            and params.version in self.versions
+            is_referenceable(params.coverage) and params.version in self.versions
         )
-
 
     def render(self, params):
         # get the requested coverage, data items and range type.
         coverage = params.coverage
-        data_items = coverage.data_items.filter(semantic__startswith="bands")
+        data_items = coverage.arraydata_items.all()
         range_type = coverage.range_type
 
         subsets = params.subsets
 
-        # GDAL source dataset. Either a single file dataset or a composed VRT 
+        # GDAL source dataset. Either a single file dataset or a composed VRT
         # dataset.
         src_ds = self.get_source_dataset(
             coverage, data_items, range_type
         )
 
-        # retrieve area of interest of the source image according to given 
+        # retrieve area of interest of the source image according to given
         # subsets
         src_rect, dst_rect = self.get_source_and_dest_rect(src_ds, subsets)
 
@@ -136,7 +131,7 @@ class GDALReferenceableDatasetRenderer(Component):
 
         if params.mediatype and params.mediatype.startswith("multipart"):
             reference = "cid:coverage/%s" % result_set[0].filename
-            
+
             if subsets.has_x and subsets.has_y:
                 footprint = GEOSGeometry(reftools.get_footprint_wkt(out_ds))
                 if not subsets.srid:
@@ -159,7 +154,6 @@ class GDALReferenceableDatasetRenderer(Component):
 
         return result_set
 
-
     def get_source_dataset(self, coverage, data_items, range_type):
         if len(data_items) == 1:
             return gdal.OpenShared(abspath(connect(data_items[0])))
@@ -172,14 +166,14 @@ class GDALReferenceableDatasetRenderer(Component):
             # sort in ascending order according to semantic
             data_items = sorted(data_items, key=(lambda d: d.semantic))
 
-            gcps = []
             compound_index = 0
             for data_item in data_items:
                 path = abspath(connect(data_item))
 
                 # iterate over all bands of the data item
-                for set_index, item_index in self._data_item_band_indices(data_item):
-                    if set_index != compound_index + 1: 
+                indices = self._data_item_band_indices(data_item)
+                for set_index, item_index in indices:
+                    if set_index != compound_index + 1:
                         raise ValueError
                     compound_index = set_index
 
@@ -191,7 +185,6 @@ class GDALReferenceableDatasetRenderer(Component):
 
             return vrt.dataset
 
-
     def get_source_and_dest_rect(self, dataset, subsets):
         size_x, size_y = dataset.RasterXSize, dataset.RasterYSize
         image_rect = Rect(0, 0, size_x, size_y)
@@ -200,7 +193,7 @@ class GDALReferenceableDatasetRenderer(Component):
             subset_rect = image_rect
 
         # pixel subset
-        elif subsets.srid is None: # means "imageCRS"
+        elif subsets.srid is None:  # means "imageCRS"
             minx, miny, maxx, maxy = subsets.xy_bbox
 
             minx = int(minx) if minx is not None else image_rect.offset_x
@@ -225,13 +218,12 @@ class GDALReferenceableDatasetRenderer(Component):
         if not image_rect.intersects(subset_rect):
             raise RenderException("Subset outside coverage extent.", "subset")
 
-        src_rect = subset_rect #& image_rect # TODO: why no intersection??
+        src_rect = subset_rect  # & image_rect # TODO: why no intersection??
         dst_rect = src_rect - subset_rect.offset
 
         return src_rect, dst_rect
 
-
-    def perform_subset(self, src_ds, range_type, subset_rect, dst_rect, 
+    def perform_subset(self, src_ds, range_type, subset_rect, dst_rect,
                        rangesubset=None):
         vrt = VRTBuilder(*subset_rect.size)
 
@@ -255,13 +247,14 @@ class GDALReferenceableDatasetRenderer(Component):
 
         return vrt.dataset
 
-
     def encode(self, dataset, frmt, encoding_params):
         options = ()
         if frmt == "image/tiff":
             options = _get_gtiff_options(**encoding_params)
 
-        args = [ ("%s=%s" % key, value) for key, value in options ]
+        args = [
+            ("%s=%s" % key, value) for key, value in options
+        ]
 
         path = "/tmp/%s" % uuid4().hex
         out_driver = gdal.GetDriverByName("GTiff")
@@ -279,8 +272,8 @@ def temp_vsimem_filename():
     return "/vsimem/%s" % uuid4().hex
 
 
-def _get_gtiff_options(compression=None, jpeg_quality=None, 
-                       predictor=None, interleave=None, tiling=False, 
+def _get_gtiff_options(compression=None, jpeg_quality=None,
+                       predictor=None, interleave=None, tiling=False,
                        tilewidth=None, tileheight=None):
 
     logger.info("Applying GeoTIFF parameters.")
