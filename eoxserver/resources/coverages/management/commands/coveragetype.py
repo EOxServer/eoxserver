@@ -25,8 +25,10 @@
 # THE SOFTWARE.
 # ------------------------------------------------------------------------------
 
+import sys
+import json
 from django.core.management.base import CommandError, BaseCommand
-from django.db import transaction
+from django.db import transaction, IntegrityError
 
 from eoxserver.resources.coverages import models
 from eoxserver.resources.coverages.management.commands import (
@@ -42,6 +44,7 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
         create_parser = self.add_subparser(parser, 'create',
             help='Create a new coverage type.'
         )
+        import_parser = self.add_subparser(parser, 'import')
         delete_parser = self.add_subparser(parser, 'delete',
             help='Delete a coverage type.'
         )
@@ -63,6 +66,16 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
                 'Add a field type to the coverage type.'
             )
         )
+
+        import_parser.add_argument(
+            'locations', nargs='*',
+            help='The location(s) of the coverage type schema(s). Mandatory.'
+        )
+        import_parser.add_argument(
+            '--in, -i', dest='stdin', action="store_true", default=False,
+            help='Read the definition from stdin instead from a file.'
+        )
+
         delete_parser.add_argument(
             '--force', '-f', action='store_true', default=False,
             help='Also remove all collections associated with that type.'
@@ -79,6 +92,10 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
         """
         if subcommand == "create":
             self.handle_create(kwargs.pop('name')[0], *args, **kwargs)
+        elif subcommand == "import":
+            self.handle_import(*args, **kwargs)
+        elif subcommand == "export":
+            self.handle_export(*args, **kwargs)
         elif subcommand == "delete":
             self.handle_delete(kwargs.pop('name')[0], *args, **kwargs)
         elif subcommand == "list":
@@ -87,19 +104,46 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
     def handle_create(self, name, field_types, **kwargs):
         """ Handle the creation of a new coverage type.
         """
+        coverage_type = self._create_coverage_type(name)
 
-        coverage_type = models.CoverageType.objects.create(name=name)
-        for i, field_type_definition in enumerate(field_types):
-            models.FieldType.objects.create(
-                coverage_type=coverage_type, index=i,
+        self._create_field_types(coverage_type, [
+            dict(
                 identifier=field_type_definition[0],
                 description=field_type_definition[1],
                 definition=field_type_definition[2],
                 unit_of_measure=field_type_definition[3],
                 wavelength=field_type_definition[4]
             )
+            for field_type_definition in field_types
+        ])
 
         print('Successfully created coverage type %r' % name)
+
+    def handle_import(self, locations, *args, **kwargs):
+        def _import(definitions):
+            if isinstance(definitions, dict):
+                definitions = [definitions]
+
+            for definition in definitions:
+                self._import_definition(definition)
+
+        if kwargs['stdin']:
+            try:
+                _import(json.load(sys.stdin))
+            except ValueError:
+                raise CommandError('Could not parse JSON from stdin')
+        else:
+            for location in locations:
+                with open(location) as f:
+                    try:
+                        _import(json.load(f))
+                    except ValueError:
+                        raise CommandError(
+                            'Could not parse JSON from %r' % location
+                        )
+
+    def handle_export(self, name, *args, **kwargs):
+        pass
 
     def handle_delete(self, name, force, **kwargs):
         """ Handle the deletion of a collection type
@@ -127,3 +171,58 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             if detail:
                 for coverage_type in coverage_type.field_types.all():
                     print("\t%s" % coverage_type.identifier)
+
+    def _import_definition(self, definition):
+        name = str(definition['name'])
+        coverage_type = self._create_coverage_type(name)
+        field_type_definitions = (
+            definition.get('field_type') or definition.get('bands')
+        )
+        self._create_field_types(coverage_type, field_type_definitions)
+        self.print_msg('Successfully imported coverage type %r' % name)
+
+    def _import_coverage_type(self, defintion):
+        pass
+
+    def _create_coverage_type(self, name):
+        try:
+            return models.CoverageType.objects.create(name=name)
+        except IntegrityError:
+            raise CommandError("Coverage type %r already exists." % name)
+
+    def _create_field_types(self, coverage_type, field_type_definitions):
+        for i, field_type_definition in enumerate(field_type_definitions):
+            uom = (
+                field_type_definition.get('unit_of_measure') or
+                field_type_definition.get('uom')
+            )
+            field_type = models.FieldType.objects.create(
+                coverage_type=coverage_type,
+                index=i,
+                identifier=field_type_definition.get('identifier'),
+                description=field_type_definition.get('description'),
+                definition=field_type_definition.get('definition'),
+                unit_of_measure=uom,
+                wavelength=field_type_definition.get('wavelength'),
+                significant_figures=field_type_definition.get(
+                    'significant_figures'
+                )
+            )
+
+            nil_value_definitions = field_type_definition.get('nil_values', [])
+            for nil_value_definition in nil_value_definitions:
+                nil_value, _ = models.NilValue.objects.get_or_create(
+                    value=nil_value_definition['value'],
+                    reason=nil_value_definition['reason']
+                )
+                nil_value.field_types.add(field_type)
+
+            allowed_value_ranges = field_type_definition.get(
+                'allowed_value_ranges', []
+            )
+            for allowed_value_range_definition in allowed_value_ranges:
+                models.AllowedValueRange.objects.create(
+                    field_type=field_type,
+                    start=allowed_value_range_definition[0],
+                    end=allowed_value_range_definition[1]
+                )
