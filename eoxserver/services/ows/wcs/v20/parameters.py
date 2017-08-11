@@ -41,7 +41,7 @@ class WCS20CapabilitiesRenderParams(WCSCapabilitiesRenderParams):
             coverages, "2.0.1", sections, accept_languages, accept_formats,
             updatesequence, request
         )
-        self._dataset_series = dataset_series or ()
+        self._dataset_series = dataset_series
 
     dataset_series = property(lambda self: self._dataset_series)
 
@@ -57,8 +57,8 @@ class WCS20CoverageDescriptionRenderParams(CoverageDescriptionRenderParams):
 
 class WCS20CoverageRenderParams(CoverageRenderParams):
     def __init__(self, coverage, subsets=None, rangesubset=None, format=None,
-                 outputcrs=None, mediatype=None, interpolation=None, 
-                 scalefactor=None, scales=None, encoding_params=None, 
+                 outputcrs=None, mediatype=None, interpolation=None,
+                 scalefactor=None, scales=None, encoding_params=None,
                  http_request=None):
 
         super(WCS20CoverageRenderParams, self).__init__(coverage, "2.0.1")

@@ -25,18 +25,20 @@
 # THE SOFTWARE.
 # ------------------------------------------------------------------------------
 
-DEFAULT_EOXS_OWS_SERVICE_HANDLERS = [
-    'eoxserver.services.ows.wcs.v10.handlers.GetCapabilitiesHandler',
-    'eoxserver.services.ows.wcs.v10.handlers.DescribeCoverageHandler',
-    'eoxserver.services.ows.wcs.v10.handlers.GetCoverageHandler',
-    'eoxserver.services.ows.wcs.v11.handlers.GetCapabilitiesHandler',
-    'eoxserver.services.ows.wcs.v11.handlers.DescribeCoverageHandler',
-    'eoxserver.services.ows.wcs.v11.handlers.GetCoverageHandler',
-    'eoxserver.services.ows.wcs.v20.handlers.GetCapabilitiesHandler',
-    'eoxserver.services.ows.wcs.v20.handlers.DescribeCoverageHandler',
-    'eoxserver.services.ows.wcs.v20.handlers.GetCoverageHandler',
+DEFAULT_EOXS_CAPABILITIES_RENDERERS = [
+    'eoxserver.services.native.wcs.capabilities_renderer.NativeWCS20CapabilitiesRenderer',
+    'eoxserver.services.mapserver.wcs.capabilities_renderer.MapServerWCSCapabilitiesRenderer',
 ]
 
-DEFAULT_EOXS_OWS_EXCEPTION_HANDLERS = [
-    # ''
+DEFAULT_EOXS_COVERAGE_DESCRIPTION_RENDERERS = [
+    'eoxserver.services.mapserver.wcs.coverage_description_renderer.CoverageDescriptionMapServerRenderer',
+    'eoxserver.services.native.wcs.coverage_description_renderer.NativeWCS20CoverageDescriptionRenderer',
+]
+
+DEFAULT_EOXS_COVERAGE_RENDERERS = [
+    'eoxserver.services.mapserver.wcs.coverage_renderer.RectifiedCoverageMapServerRenderer',
+]
+
+DEFAULT_EOXS_COVERAGE_ENCODING_EXTENSIONS = [
+    'eoxserver.services.ows.wcs.v20.encodings.geotiff.WCS20GeoTIFFEncodingExtension'
 ]

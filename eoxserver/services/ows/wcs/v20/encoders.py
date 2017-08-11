@@ -42,7 +42,7 @@ from eoxserver.contrib.osr import SpatialReference
 #     RectifiedStitchedMosaic, ReferenceableDataset
 # )
 from eoxserver.resources.coverages.formats import getFormatRegistry
-from eoxserver.resources.coverages import crss, models
+from eoxserver.resources.coverages import crss
 from eoxserver.services.gml.v32.encoders import GML32Encoder, EOP20Encoder
 from eoxserver.services.ows.component import ServiceComponent, env
 from eoxserver.services.ows.common.config import CapabilitiesConfigReader
@@ -72,7 +72,19 @@ PROFILES = [
 ]
 
 
-class WCS20CapabilitiesXMLEncoder(OWS20Encoder):
+class WCS20BaseXMLEncoder(object):
+    def get_coverage_subtype(self, coverage):
+        subtype = "RectifiedDataset"
+        if not coverage.footprint or not coverage.begin_time or \
+                not coverage.end_time:
+            subtype = "RectifiedGridCoverage"
+        elif coverage.grid and coverage.grid.axis_1_offset is None:
+            subtype = "ReferenceableDataset"
+
+        return subtype
+
+
+class WCS20CapabilitiesXMLEncoder(WCS20BaseXMLEncoder, OWS20Encoder):
     def encode_service_identification(self, conf):
         # get a list of versions in descending order from all active
         # GetCapabilities handlers.
@@ -233,37 +245,37 @@ class WCS20CapabilitiesXMLEncoder(OWS20Encoder):
     def encode_contents(self, coverages_qs, dataset_series_qs):
         contents = []
 
-        if coverages_qs:
-            coverages = []
+        # reduce data transfer by only selecting required elements
+        coverages_qs = coverages_qs.only(
+             "identifier", "begin_time", "end_time", "footprint", "grid"
+        ).select_related('grid')
+        coverages = list(coverages_qs)
 
-            # reduce data transfer by only selecting required elements
-            # TODO: currently runs into a bug
-            #coverages_qs = coverages_qs.only(
-            #    "identifier", "real_content_type"
-            #)
-
-            for coverage in coverages_qs:
-                coverages.append(
-                    WCS("CoverageSummary",
-                        WCS("CoverageId", coverage.identifier),
-                        WCS("CoverageSubtype", coverage.real_type.__name__)
+        if coverages:
+            contents.extend([
+                WCS("CoverageSummary",
+                    WCS("CoverageId", coverage.identifier),
+                    WCS("CoverageSubtype",
+                        self.get_coverage_subtype(coverage)
                     )
-                )
-            contents.extend(coverages)
+                ) for coverage in coverages
+            ])
 
-        if dataset_series_qs:
-            dataset_series_set = []
-
-            # reduce data transfer by only selecting required elements
-            # TODO: currently runs into a bug
-            #dataset_series_qs = dataset_series_qs.only(
-            #    "identifier", "begin_time", "end_time", "footprint"
-            #)
-
+        # reduce data transfer by only selecting required elements
+        dataset_series_qs = dataset_series_qs.only(
+           "identifier", "begin_time", "end_time", "footprint"
+        )
+        dataset_series_set = list(dataset_series_qs)
+        if dataset_series_set:
+            dataset_series_elements = []
             for dataset_series in dataset_series_qs:
-                minx, miny, maxx, maxy = dataset_series.extent_wgs84
+                footprint = dataset_series.footprint
+                if footprint:
+                    minx, miny, maxx, maxy = footprint.extent
+                else:
+                    minx, miny, maxx, maxy = (-180, -90, 180, 90)
 
-                dataset_series_set.append(
+                dataset_series_elements.append(
                     EOWCS("DatasetSeriesSummary",
                         OWS("WGS84BoundingBox",
                             OWS("LowerCorner", "%f %f" % (miny, minx)),
@@ -280,14 +292,14 @@ class WCS20CapabilitiesXMLEncoder(OWS20Encoder):
                                 isoformat(dataset_series.end_time)
                             ),
                             **{
-                                ns_gml("id"): dataset_series.identifier
-                                + "_timeperiod"
+                                ns_gml("id"): dataset_series.identifier +
+                                "_timeperiod"
                             }
                         )
                     )
                 )
 
-            contents.append(WCS("Extension", *dataset_series_set))
+            contents.append(WCS("Extension", *dataset_series_elements))
 
         return WCS("Contents", *contents)
 
@@ -332,19 +344,7 @@ class WCS20CapabilitiesXMLEncoder(OWS20Encoder):
         return nsmap.schema_locations
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-class GMLCOV10Encoder(GML32Encoder):
+class GMLCOV10Encoder(WCS20BaseXMLEncoder, GML32Encoder):
     def __init__(self, *args, **kwargs):
         self._cache = {}
 
@@ -583,7 +583,7 @@ class WCS20CoverageDescriptionXMLEncoder(GMLCOV10Encoder):
             self.encode_domain_set(coverage, rectified=(grid is not None)),
             self.encode_range_type(self.get_range_type(coverage)),
             WCS("ServiceParameters",
-                WCS("CoverageSubtype", coverage.real_type.__name__)
+                WCS("CoverageSubtype", self.get_coverage_subtype(coverage))
             ),
             **{ns_gml("id"): self.get_gml_id(coverage.identifier)}
         )
@@ -707,7 +707,7 @@ class WCS20EOXMLEncoder(WCS20CoverageDescriptionXMLEncoder, EOP20Encoder,
             self.encode_domain_set(coverage, srid, size, extent, rectified),
             self.encode_range_type(self.get_range_type(coverage)),
             WCS("ServiceParameters",
-                WCS("CoverageSubtype", 'RectifiedDataset'),
+                WCS("CoverageSubtype", self.get_coverage_subtype(coverage)),
                 WCS(
                     "nativeFormat",
                     native_format.mimeType if native_format else ""

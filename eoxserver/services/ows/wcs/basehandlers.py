@@ -27,25 +27,23 @@
 
 """\
 This module contains a set of handler base classes which shall help to implement
-a specific handler. Interface methods need to be overridden in order to work, 
+a specific handler. Interface methods need to be overridden in order to work,
 default methods can be overidden.
 """
-from django.conf import settings
 
-from eoxserver.core import ExtensionPoint
-from eoxserver.services.ows.config import DEFAULT_EOXS_WCS_CAPABILITIES_RENDERERS
 from eoxserver.resources.coverages import models
 from eoxserver.services.result import to_http_response
 from eoxserver.services.ows.wcs.parameters import WCSCapabilitiesRenderParams
 from eoxserver.services.exceptions import (
     NoSuchCoverageException, OperationNotSupportedException
 )
-from eoxserver.services.ows.wcs.interfaces import (
-    WCSCoverageDescriptionRendererInterface, WCSCoverageRendererInterface,
-    WCSCapabilitiesRendererInterface
+from eoxserver.services.ows.wcs.renderers import (
+    get_capabilities_renderer, get_coverage_description_renderer,
+    get_coverage_renderer,
 )
 
-from eoxserver.core.util.importtools import import_string
+from eoxserver.render.coverage.objects import Coverage
+
 
 class WCSGetCapabilitiesHandlerBase(object):
     """ Base for Coverage description handlers.
@@ -56,27 +54,25 @@ class WCSGetCapabilitiesHandlerBase(object):
 
     index = 0
 
-    renderers = ExtensionPoint(WCSCapabilitiesRendererInterface)
-
     def get_decoder(self, request):
         """ Interface method to get the correct decoder for this request.
         """
 
     def lookup_coverages(self, decoder):
-        """ Default implementation of the coverage lookup. Simply returns all 
+        """ Default implementation of the coverage lookup. Simply returns all
             coverages in no specific order.
         """
         return models.Coverage.objects.filter(visible=True) \
             .order_by("identifier")
 
     def get_params(self, coverages, decoder):
-        """ Default method to return a render params object from the given 
+        """ Default method to return a render params object from the given
             coverages/decoder.
         """
 
         return WCSCapabilitiesRenderParams(coverages,
             getattr(decoder, "version", None),
-            getattr(decoder, "sections", None), 
+            getattr(decoder, "sections", None),
             getattr(decoder, "acceptlanguages", None),
             getattr(decoder, "acceptformats", None),
             getattr(decoder, "updatesequence", None),
@@ -85,28 +81,18 @@ class WCSGetCapabilitiesHandlerBase(object):
     def get_renderer(self, params):
         """ Default implementation for a renderer retrieval.
         """
-        CAPABILITIES_RENDERERS = [
-            import_string(identifier)
-            for identifier in getattr(
-                settings, 'EOXS_CAPABILITIES_RENDERERS',
-                DEFAULT_EOXS_WCS_CAPABILITIES_RENDERERS
+        renderer = get_capabilities_renderer(params)
+        if not renderer:
+            raise OperationNotSupportedException(
+                "No Capabilities renderer found for the given parameters.",
+                self.request
             )
-        ]
-        for Renderer in CAPABILITIES_RENDERERS:
-            renderer = Renderer()
-            if renderer.supports(params):
-                return renderer
-
-        raise OperationNotSupportedException(
-            "No Capabilities renderer found for the given parameters.",
-            self.request
-        )
+        return renderer
 
     def to_http_response(self, result_set):
         """ Default result to response conversion method.
         """
         return to_http_response(result_set)
-
 
     def handle(self, request):
         """ Default handler method.
@@ -139,15 +125,13 @@ class WCSDescribeCoverageHandlerBase(object):
 
     index = 1
 
-    renderers = ExtensionPoint(WCSCoverageDescriptionRendererInterface)
-
     def get_decoder(self, request):
         """ Interface method to get the correct decoder for this request.
         """
 
     def lookup_coverages(self, decoder):
         """ Default implementation of the coverage lookup. Returns a sorted list
-            of coverage models according to the decoders `coverage_ids` 
+            of coverage models according to the decoders `coverage_ids`
             attribute. Raises a `NoSuchCoverageException` if any of the given
             IDs was not found in the database.
         """
@@ -165,41 +149,26 @@ class WCSDescribeCoverageHandlerBase(object):
         return coverages
 
     def get_params(self, coverages, decoder):
-        """ Interface method to return a render params object from the given 
+        """ Interface method to return a render params object from the given
             coverages/decoder.
         """
 
     def get_renderer(self, params):
         """ Default implementation for a renderer retrieval.
         """
-        from eoxserver.services.ows.config import DEFAULT_EOXS_WCS_COVERAGE_DESCRIPTION_RENDERERS
 
-        DESCRIPTION_RENDERERS = [
-            import_string(identifier)
-            for identifier in getattr(
-                settings, 'EOXS_WCS_COVERAGE_DESCRIPTION_RENDERERS',
-                DEFAULT_EOXS_WCS_COVERAGE_DESCRIPTION_RENDERERS
+        renderer = get_coverage_description_renderer(params)
+        if not renderer:
+            raise OperationNotSupportedException(
+                "No suitable coverage description renderer found.",
+                self.request
             )
-        ]
-        for Renderer in DESCRIPTION_RENDERERS:
-            renderer = Renderer()
-            if renderer.supports(params):
-                return renderer
-
-        for renderer in self.renderers:
-            if renderer.supports(params):
-                return renderer
-
-        raise OperationNotSupportedException(
-            "No suitable coverage description renderer found.",
-            self.request
-        )
+        return renderer
 
     def to_http_response(self, result_set):
         """ Default result to response conversion method.
         """
         return to_http_response(result_set)
-
 
     def handle(self, request):
         """ Default request handling method implementation.
@@ -230,19 +199,17 @@ class WCSGetCoverageHandlerBase(object):
 
     index = 10
 
-    renderers = ExtensionPoint(WCSCoverageRendererInterface)
-
     def get_decoder(self, request):
         """ Interface method to get the correct decoder for this request.
         """
 
     def lookup_coverage(self, decoder):
         """ Default implementation of the coverage lookup. Returns the coverage
-            model for the given request decoder or raises an exception if it is 
+            model for the given request decoder or raises an exception if it is
             not found.
         """
         coverage_id = decoder.coverage_id
-        
+
         try:
             coverage = models.Coverage.objects.get(identifier=coverage_id)
         except models.Coverage.DoesNotExist:
@@ -251,21 +218,20 @@ class WCSGetCoverageHandlerBase(object):
         return coverage
 
     def get_params(self, coverages, decoder, request):
-        """ Interface method to return a render params object from the given 
+        """ Interface method to return a render params object from the given
             coverages/decoder.
         """
 
     def get_renderer(self, params):
         """ Default implementation for a renderer retrieval.
         """
-        for renderer in self.renderers:
-            if renderer.supports(params):
-                return renderer
-
-        raise OperationNotSupportedException(
-            "No renderer found for coverage '%s'." % params.coverage, 
-            self.request
-        )
+        renderer = get_coverage_renderer(params)
+        if not renderer:
+            raise OperationNotSupportedException(
+                "No renderer found for coverage '%s'." % params.coverage,
+                self.request
+            )
+        return renderer
 
     def to_http_response(self, result_set):
         """ Default result to response conversion method.
@@ -281,6 +247,8 @@ class WCSGetCoverageHandlerBase(object):
 
         # get the coverage model
         coverage = self.lookup_coverage(decoder)
+
+        coverage = Coverage.from_model(coverage)
 
         # create the render params
         params = self.get_params(coverage, decoder, request)
