@@ -102,6 +102,20 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             )
         )
         register_parser.add_argument(
+            '--no-masks', dest='discover_masks',
+            default=True, action='store_false',
+            help=(
+                'When this flag is set, no masks will be discovered.'
+            )
+        )
+        register_parser.add_argument(
+            '--no-browses', dest='discover_browses',
+            default=True, action='store_false',
+            help=(
+                'When this flag is set, no browses will be discovered.'
+            )
+        )
+        register_parser.add_argument(
             '--package', default=None,
             help=(
                 'The path to a storage (directory, ZIP-file, etc.).'
@@ -159,14 +173,20 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
         """
         try:
             product, replaced = ProductRegistrator().register(
-                kwargs['file_handles'], kwargs['mask_handles'],
-                kwargs['package'],
-                dict(
+                file_handles=kwargs['file_handles'],
+                mask_handles=kwargs['mask_handles'],
+                # kwargs['mask_handles'],
+                package_path=kwargs['package'],
+                overrides=dict(
                     identifier=kwargs['identifier'],
                     footprint=kwargs['footprint'],
                     begin_time=kwargs['begin_time'],
                     end_time=kwargs['end_time'],
-                ), kwargs['type_name'], kwargs['extended_metadata'],
+                ),
+                type_name=kwargs['type_name'],
+                extended_metadata=kwargs['extended_metadata'],
+                discover_masks=kwargs['discover_masks'],
+                discover_browses=kwargs['discover_browses'],
                 replace=kwargs['replace']
             )
         except RegistrationError as e:
