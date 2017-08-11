@@ -41,6 +41,7 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
     def add_arguments(self, parser):
         create_parser = self.add_subparser(parser, 'create')
         delete_parser = self.add_subparser(parser, 'delete')
+        list_parser = self.add_subparser(parser, 'list')
 
         # identifier is a common argument
         for parser in [create_parser, delete_parser]:
@@ -68,6 +69,11 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
         delete_parser.add_argument(
             '--force', '-f', action='store_true', default=False,
             help='Also remove all collections associated with that type.'
+        )
+
+        list_parser.add_argument(
+            '--no-detail', action="store_false", default=True, dest='detail',
+            help="Disable the printing of details of the collection type."
         )
 
     @transaction.atomic
@@ -113,9 +119,22 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
                     allowed_product_type_name
                 )
 
+        print('Successfully created collection type %r' % name)
+
     def handle_delete(self, name, force, **kwargs):
         """ Handle the deletion of a collection type
         """
         collection_type = models.CollectionType.objects.get(name=name)
         collection_type.delete()
         # TODO: force
+
+        print('Successfully deleted collection type %r' % name)
+
+    def handle_list(self, detail, *args, **kwargs):
+        """ Handle the listing of product types
+        """
+        for collection_type in models.CollectionType.objects.all():
+            print(collection_type.name)
+            # if detail:
+            #     for coverage_type in collection_type.allowed_coverage_types.all():
+            #         print("\t%s" % coverage_type.name)
