@@ -25,26 +25,22 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-from eoxserver.core import Component, implements
 from eoxserver.contrib import ogr
 from eoxserver.contrib import mapserver as ms
-from eoxserver.backends.access import connect
-from eoxserver.services.mapserver.interfaces import ConnectorInterface
+from eoxserver.backends.access import get_vsi_path
 
 
-class PolygonMaskConnector(Component):
+class PolygonMaskConnector(object):
     """ Connects polygon mask files to MapServer polygon layers. For some
         purposes this can also be done via "reverse" polygons, where the actual
         polygons are subtracted from the coverages footprint.
     """
 
-    implements(ConnectorInterface)
-
     def supports(self, data_items):
         num = len(data_items)
         return (
-            len(data_items) >= 1
-            and len(filter(
+            len(data_items) >= 1 and
+            len(filter(
                 lambda d: d.semantic.startswith("polygonmask"), data_items
             )) == num
         )
@@ -66,7 +62,7 @@ class PolygonMaskConnector(Component):
             output_polygon = ogr.Geometry(wkt=str(coverage.footprint.wkt))
 
             for mask_item in data_items:
-                ds = ogr.Open(connect(mask_item))
+                ds = ogr.Open(get_vsi_path(mask_item))
                 for i in range(ds.GetLayerCount()):
                     ogr_layer = ds.GetLayer(i)
                     if not ogr_layer:

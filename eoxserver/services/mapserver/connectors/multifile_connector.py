@@ -29,27 +29,21 @@ from os.path import join
 from uuid import uuid4
 import re
 
-from eoxserver.core import Component, implements
-from eoxserver.backends.access import connect
 from eoxserver.contrib import vsi, vrt, mapserver, gdal
 from eoxserver.resources.coverages import models
-from eoxserver.services.mapserver.interfaces import ConnectorInterface
 from eoxserver.processing.gdal import reftools
 
 
-class MultiFileConnector(Component):
+class MultiFileConnector(object):
     """ Connects multiple files containing the various bands of the coverage
         with the given layer. A temporary VRT file is used as abstraction for
         the different band files.
     """
 
-    implements(ConnectorInterface)
-
     def supports(self, data_items):
         # TODO: better checks
         return (
-            len(data_items) > 1
-            and all(
+            len(data_items) > 1 and all(
                 map(lambda d: d.semantic.startswith("bands"), data_items)
             )
         )
@@ -134,7 +128,6 @@ class MultiFileConnector(Component):
 
             layer.data = vrt_path
         """
-
 
     def disconnect(self, coverage, data_items, layer, options):
         vsi.remove(layer.data)

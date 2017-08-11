@@ -32,8 +32,9 @@ from eoxserver.core import Component
 from eoxserver.core.config import get_eoxserver_config
 from eoxserver.core.decoders import config, typelist
 from eoxserver.contrib import mapserver as ms
+from eoxserver.contrib import gdal
 from eoxserver.resources.coverages import crss
-from eoxserver.resources.coverages.models import RectifiedStitchedMosaic
+# from eoxserver.resources.coverages.models import RectifiedStitchedMosaic
 from eoxserver.resources.coverages.formats import getFormatRegistry
 
 
@@ -66,9 +67,7 @@ class BaseRenderer(Component):
         """ Helper function to query all relevant data items for any raster data
             from the database.
         """
-        return coverage.data_items.filter(
-            Q(semantic__startswith="bands") | Q(semantic="tileindex")
-        )
+        return coverage.arraydata_items.all()
 
     def layer_for_coverage(self, coverage, native_format, version=None):
         """ Helper method to generate a WCS enabled MapServer layer for a given
@@ -82,7 +81,9 @@ class BaseRenderer(Component):
         layer.name = coverage.identifier
         layer.type = ms.MS_LAYER_RASTER
 
-        layer.setProjection(coverage.spatial_reference.proj)
+        sr = coverage.grid.spatial_reference
+
+        layer.setProjection(sr.proj)
 
         extent = coverage.extent
         size = coverage.size
@@ -96,16 +97,28 @@ class BaseRenderer(Component):
             "enable_request": "*"
         }, namespace="ows")
 
+        data_type = bands[0].data_type
+
+        if bands[0].allowed_values:
+            interval = bands[0].allowed_values[0]
+        else:
+            interval = gdal.GDT_NUMERIC_LIMITS[data_type]
+
+        if bands[0].significant_figures is not None:
+            significant_figures = bands[0].significant_figures
+        else:
+            significant_figures = gdal.GDT_SIGNIFICANT_FIGURES[data_type]
+
         ms.setMetaData(layer, {
             "label": coverage.identifier,
             "extent": "%.10g %.10g %.10g %.10g" % extent,
             "resolution": "%.10g %.10g" % resolution,
             "size": "%d %d" % size,
             "bandcount": str(len(bands)),
-            "interval": "%f %f" % bands[0].allowed_values,
-            "significant_figures": "%d" % bands[0].significant_figures,
-            "rangeset_name": range_type.name,
-            "rangeset_label": range_type.name,
+            "interval": "%f %f" % interval,
+            "significant_figures": "%d" % significant_figures,
+            # "rangeset_name": range_type.name,
+            # "rangeset_label": range_type.name,
             "imagemode": ms.gdalconst_to_imagemode_string(bands[0].data_type),
             "formats": " ".join([
                 f.wcs10name if version.startswith("1.0") else f.mimeType
@@ -115,11 +128,11 @@ class BaseRenderer(Component):
 
         if version is None or version.startswith("2.0"):
             ms.setMetaData(layer, {
-                "band_names": " ".join([band.name for band in bands]),
+                "band_names": " ".join([band.identifier for band in bands]),
             }, namespace="wcs")
         else:
             ms.setMetaData(layer, {
-                "rangeset_axes": ",".join(band.name for band in bands),
+                "rangeset_axes": ",".join(band.identifier for band in bands),
             }, namespace="wcs")
 
         if native_format:
@@ -133,7 +146,7 @@ class BaseRenderer(Component):
                 "nativeformat": native_format
             }, namespace="wcs")
 
-        native_crs = "EPSG:%d" % coverage.spatial_reference.srid
+        native_crs = "EPSG:%d" % sr.srid
         all_crss = crss.getSupportedCRS_WCS(format_function=crss.asShortCode)
         if native_crs in all_crss:
             all_crss.remove(native_crs)
@@ -149,34 +162,36 @@ class BaseRenderer(Component):
             ms.setMetaData(layer, {
                 "band_description": band.description,
                 "band_definition": band.definition,
-                "band_uom": band.uom,
-            }, namespace=band.name)
+                "band_uom": band.unit_of_measure,
+            }, namespace=band.identifier)
+
+            if band.allowed_values:
+                interval = band.allowed_values[0]
+            else:
+                interval = gdal.GDT_NUMERIC_LIMITS[band.data_type]
 
             # For MS WCS 1.x interface
             ms.setMetaData(layer, {
-                "label": band.name,
-                "interval": "%d %d" % band.allowed_values
-            }, namespace="wcs_%s" % band.name)
+                "label": band.identifier,
+                "interval": "%d %d" % interval
+            }, namespace="wcs_%s" % band.identifier)
 
-        if bands[0].nil_value_set:
-            nilvalues = " ".join(
-                str(nil_value.value) for nil_value in bands[0].nil_value_set
-            )
-            nilvalues_reasons = " ".join(
-                nil_value.reason for nil_value in bands[0].nil_value_set
+        if bands[0].nil_values:
+            nilvalues, nilvalues_reasons = zip(*[
+                [nv[0], nv[1]] for nv in bands[0].nil_values]
             )
             if nilvalues:
                 ms.setMetaData(layer, {
-                    "nilvalues": nilvalues,
-                    "nilvalues_reasons": nilvalues_reasons
+                    "nilvalues": " ".join(nilvalues),
+                    "nilvalues_reasons": " ".join(nilvalues_reasons)
                 }, namespace="wcs")
 
         return layer
 
     def get_native_format(self, coverage, data_items):
-        if issubclass(coverage.real_type, RectifiedStitchedMosaic):
-            # use the default format for RectifiedStitchedMosaics
-            return getFormatRegistry().getDefaultNativeFormat().wcs10name
+        # if issubclass(coverage.real_type, RectifiedStitchedMosaic):
+        #     # use the default format for RectifiedStitchedMosaics
+        #     return getFormatRegistry().getDefaultNativeFormat().wcs10name
 
         if len(data_items) == 1:
             return data_items[0].format
