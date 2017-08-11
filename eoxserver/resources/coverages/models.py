@@ -216,7 +216,8 @@ class Grid(models.Model):
     axis_4_type = models.SmallIntegerField(choices=AXIS_TYPES, **optional)
 
     # using 'char' here, to allow a wide range of datatypes (such as time)
-    axis_1_offset = models.CharField(max_length=256, **mandatory)
+    # when axis_1_offset is null, then this grid is referenceable
+    axis_1_offset = models.CharField(max_length=256, **optional)
     axis_2_offset = models.CharField(max_length=256, **optional)
     axis_3_offset = models.CharField(max_length=256, **optional)
     axis_4_offset = models.CharField(max_length=256, **optional)
@@ -277,8 +278,8 @@ class EOObject(models.Model):
     end_time = models.DateTimeField(**optional)
     footprint = models.GeometryField(**optional)
 
-    # inserted = models.DateTimeField(auto_now_add=True)
-    # updated = models.DateTimeField(auto_now=True)
+    inserted = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
 
     objects = InheritanceManager()
 
