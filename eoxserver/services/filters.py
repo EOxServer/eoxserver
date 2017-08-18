@@ -34,19 +34,15 @@ try:
 except ImportError:
     from django.utils.datastructures import SortedDict as OrderedDict
 
-from django.db.models import Q, F, expressions, ForeignKey
-try:
-    from django.db.models import Value
-    ARITHMETIC_TYPES = (F, Value, int, float)
-except ImportError:
-    def Value(v):
-        return v
-    ARITHMETIC_TYPES = (F, int, float)
+from django.db.models import Q, F, ForeignKey, Value
 
+from django.contrib.gis.gdal import SpatialReference
 from django.contrib.gis.geos import Polygon
 from django.contrib.gis.measure import D
 
 from eoxserver.resources.coverages import models
+
+ARITHMETIC_TYPES = (F, Value, int, float)
 
 # ------------------------------------------------------------------------------
 # Filters
@@ -396,7 +392,10 @@ def bbox(lhs, minx, miny, maxx, maxy, crs=None):
     """
     assert isinstance(lhs, F)
     bbox = Polygon.from_bbox((minx, miny, maxx, maxy))
-    # TODO: CRS?
+
+    if crs:
+        bbox.srid = SpatialReference(crs).srid
+        bbox.transform(4326)
 
     return Q(**{"%s__bboverlaps" % lhs.name: bbox})
 
@@ -406,14 +405,17 @@ def bbox(lhs, minx, miny, maxx, maxy, crs=None):
 # ------------------------------------------------------------------------------
 
 
-def attribute(name, field_mapping):
+def attribute(name, field_mapping=None):
     """ Create an attribute lookup expression using a field mapping dictionary.
 
         :param name: the field filter name
         :param field_mapping: the dictionary to use as a lookup.
         :rtype: :class:`django.db.models.F`
     """
-    field = field_mapping[name]
+    if field_mapping:
+        field = field_mapping[name]
+    else:
+        field = name
     return F(field)
 
 
