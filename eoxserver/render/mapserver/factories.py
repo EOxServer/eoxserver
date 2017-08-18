@@ -28,12 +28,15 @@
 from django.conf import settings
 from django.utils.module_loading import import_string
 
+from eoxserver.contrib import mapserver as ms
 from eoxserver.render.map.objects import (
     CoverageLayer, BrowseLayer, MaskLayer, MaskedBrowseLayer, OutlinesLayer
 )
 from eoxserver.render.mapserver.config import (
     DEFAULT_EOXS_MAPSERVER_LAYER_FACTORIES,
 )
+from eoxserver.render.mapserver.raster_styles import create_raster_style
+from eoxserver.resources.coverages import crss
 
 
 class BaseMapServerLayerFactory(object):
@@ -54,7 +57,55 @@ class CoverageLayerFactory(BaseMapServerLayerFactory):
     handled_layer_types = [CoverageLayer]
 
     def create(self, map_obj, layer):
-        pass
+        coverage = layer.coverage
+        layer_obj = _create_raster_layer_obj(
+            map_obj, coverage.extent, coverage.grid.spatial_reference
+        )
+
+        fields = coverage.range_type
+
+        if layer.bands:
+            assert len(layer.bands) in (1, 3, 4)
+            try:
+                fields = [
+                    next(field for field in fields if field.identifier == band)
+                    for band in layer.bands
+                ]
+            except StopIteration:
+                raise Exception('Invalid layers.')
+        elif layer.wavelengths:
+            assert len(layer.bands) in (1, 3, 4)
+            try:
+                fields = [
+                    next(
+                        field
+                        for field in fields if field.wavelength == wavelength
+                    )
+                    for wavelength in layer.wavelengths
+                ]
+            except StopIteration:
+                raise Exception('Invalid wavelengths.')
+
+        locations = [
+            coverage.get_location_for_field(field)
+            for field in fields
+        ]
+
+        # layer_obj.setProcessingKey("SCALE", "AUTO")
+        layer_obj.setProcessingKey("CLOSE_CONNECTION", "CLOSE")
+
+        # TODO: apply subsets in time/elevation dims
+
+        if len(set(locations)) > 1:
+            # TODO: create VRT
+            raise Exception("Too many files")
+
+        else:
+            layer_obj.data = locations[0].path
+
+        if len(fields) == 1 and layer.style:
+            # TODO: get the scale from range_type?
+            create_raster_style(layer.style, layer_obj, 941, 14809)
 
 
 class BrowseLayerFactory(BaseMapServerLayerFactory):
@@ -89,9 +140,15 @@ class OutlinesLayerFactory(BaseMapServerLayerFactory):
     handled_layer_types = [OutlinesLayer]
 
     def create(self, map_obj, layer):
-        _create_polygon_layer(map_obj, )  # TODO
+        layer_obj = _create_polygon_layer(map_obj)
+        for footprint in layer.footprints:
+            shape_obj = ms.shapeObj.fromWKT(footprint.wkt)
+            # shape.initValues(1)
+            # shape.setValue(0, eo_object.identifier)
+            layer_obj.addFeature(shape_obj)
 
-        
+        class_obj = _create_geometry_class(layer.style or 'red')
+        layer_obj.insertClass(class_obj)
 
 
 # ------------------------------------------------------------------------------
@@ -102,6 +159,7 @@ class OutlinesLayerFactory(BaseMapServerLayerFactory):
 def _create_raster_layer_obj(map_obj, extent, sr):
     layer_obj = ms.layerObj(map_obj)
     layer_obj.type = ms.MS_LAYER_RASTER
+    layer_obj.status = ms.MS_ON
 
     if extent:
         layer_obj.setMetaData("wms_extent", "%f %f %f %f" % extent)
@@ -117,11 +175,19 @@ def _create_raster_layer_obj(map_obj, extent, sr):
     return layer_obj
 
 
-def _create_polygon_layer(map_obj, geometry):
+def _create_polygon_layer(map_obj):
     layer_obj = ms.layerObj(map_obj)
     layer_obj.type = ms.MS_LAYER_POLYGON
+    layer_obj.status = ms.MS_ON
 
-    # TODO
+    layer_obj.offsite = ms.colorObj(0, 0, 0)
+
+    srid = 4326
+    layer_obj.setProjection(crss.asProj4Str(srid))
+    layer_obj.setMetaData("ows_srs", crss.asShortCode(srid))
+    layer_obj.setMetaData("wms_srs", crss.asShortCode(srid))
+
+    layer_obj.dump = True
 
     return layer_obj
 

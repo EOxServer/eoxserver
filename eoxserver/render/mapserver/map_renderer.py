@@ -25,9 +25,14 @@
 # THE SOFTWARE.
 # ------------------------------------------------------------------------------
 
+import logging
+import tempfile
 
 from eoxserver.contrib import mapserver as ms
 from eoxserver.render.mapserver.factories import get_layer_factories
+
+
+logger = logging.getLogger(__name__)
 
 
 # TODO: move this to render.map.exceptions
@@ -36,23 +41,58 @@ class MapRenderError(Exception):
 
 
 class MapserverMapRenderer(object):
+
+    OUTPUTFORMATS = [
+        ('')
+    ]
+
     def render_map(self, render_map):
         # TODO: get layer creators for each layer type in the map
         map_obj = ms.mapObj()
 
+        if render_map.bgcolor:
+            map_obj.imagecolor.setHex("#" + render_map.bgcolor.lower())
+
         layers_plus_factories = self._get_layers_plus_factories(render_map)
 
         for layer, factory in layers_plus_factories:
-            pass
+            factory.create(map_obj, layer)
 
+        # TODO: create the format properly
+        outputformat_obj = ms.outputFormatObj('GDAL/PNG')
 
+        outputformat_obj.transparent = (
+            ms.MS_ON if render_map.transparent else ms.MS_OFF
+        )
+        outputformat_obj.mimetype = 'image/png'
+        map_obj.setOutputFormat(outputformat_obj)
+
+        #
+
+        map_obj.setExtent(*render_map.bbox)
+        map_obj.setSize(render_map.width, render_map.height)
+        map_obj.setProjection(render_map.crs)
+
+        # log the resulting map
+        if logger.isEnabledFor(logging.DEBUG):
+            with tempfile.NamedTemporaryFile() as f:
+                map_obj.save(f.name)
+                f.seek(0)
+                logger.debug(f.read())
+
+        # actually render the map
+        image_obj = map_obj.draw()
+
+        # disconnect
         for layer, factory in layers_plus_factories:
-            pass
+            factory.destroy(map_obj, layer)
 
-    def _get_layers_plus_factories(self, layers):
+        return image_obj.getBytes(), outputformat_obj.mimetype
+
+    def _get_layers_plus_factories(self, render_map):
         layers_plus_factories = []
         type_to_layer_factory = {}
-        for layer in layers:
+        for layer in render_map.layers:
             layer_type = type(layer)
             if layer_type in type_to_layer_factory:
                 factory = type_to_layer_factory[layer_type]
@@ -60,7 +100,7 @@ class MapserverMapRenderer(object):
                 factory = self._get_layer_factory(layer_type)
                 type_to_layer_factory[layer_type] = factory
 
-            layers_plus_factories.append(layer, factory)
+            layers_plus_factories.append((layer, factory()))
 
         return layers_plus_factories
 
