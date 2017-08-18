@@ -36,13 +36,19 @@ BROWSE_MODE_GRAYSCALE = "grayscale"
 
 
 class Browse(object):
-    def __init__(self, browse_filename, size, extent, crs, mode, footprint):
+    def __init__(self, name, browse_filename, size, extent, crs, mode,
+                 footprint):
+        self._name = name
         self._browse_filename = browse_filename
         self._size = size
         self._extent = extent
         self._crs = crs
         self._mode = mode
         self._footprint = footprint
+
+    @property
+    def name(self):
+        return self._name
 
     @property
     def browse_filename(self):
@@ -85,9 +91,17 @@ class Browse(object):
         mode = _get_ds_mode(ds)
         ds = None
 
+        if browse_model.browse_type:
+            name = '%s__%s' % (
+                product_model.identifier, browse_model.browse_type.name
+            )
+        else:
+            name = product_model.identifier
+
         return cls(
-            filename, size, extent, browse_model.coordinate_reference_system,
-            mode, product_model.footprint
+            name, filename, size, extent,
+            browse_model.coordinate_reference_system, mode,
+            product_model.footprint
         )
 
     @classmethod
@@ -97,7 +111,9 @@ class Browse(object):
         extent = gdal.get_extent(ds)
         mode = _get_ds_mode(ds)
 
-        return cls(filename, size, extent, ds.GetProjection(), mode, None)
+        return cls(
+            filename, filename, size, extent, ds.GetProjection(), mode, None
+        )
 
 
 class Mask(object):
@@ -115,9 +131,16 @@ class Mask(object):
     def geometry(self):
         return self._geometry
 
+    @classmethod
+    def from_model(cls, mask_model):
+        return cls(
+            get_vsi_path(mask_model) if mask_model.location else None,
+            mask_model.geometry
+        )
+
 
 class MaskedBrowse(Mask, Browse):
-    def __init__(self, browse_filename, size, extent, crs, mode, footprint,
+    def __init__(self, name, browse_filename, size, extent, crs, mode, footprint,
                  mask_filename=None, geometry=None):
         Browse.__init__(
             self, browse_filename, size, extent, crs, mode, footprint
@@ -129,6 +152,13 @@ class MaskedBrowse(Mask, Browse):
         return cls(
             browse.browse_filename, browse.size, browse.extent, browse.crs,
             browse.mode, browse.footprint, mask.mask_filename, mask.geometry
+        )
+
+    @classmethod
+    def from_models(cls, product_model, browse_model, mask_model):
+        return cls.from_browse_and_mask(
+            Browse.from_model(product_model, browse_model),
+            Mask.from_model(mask_model)
         )
 
 

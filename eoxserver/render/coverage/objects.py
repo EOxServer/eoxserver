@@ -37,9 +37,10 @@ from eoxserver.resources.coverages.grid import (
 
 
 class Field(object):
-    def __init__(self, identifier, description, definition, unit_of_measure,
-                 wavelength, significant_figures, allowed_values, nil_values,
-                 data_type):
+    def __init__(self, index, identifier, description, definition,
+                 unit_of_measure, wavelength, significant_figures,
+                 allowed_values, nil_values, data_type):
+        self._index = index
         self._identifier = identifier
         self._description = description
         self._definition = definition
@@ -49,6 +50,10 @@ class Field(object):
         self._allowed_values = allowed_values
         self._nil_values = nil_values
         self._data_type = data_type
+
+    @property
+    def index(self):
+        return self._index
 
     @property
     def identifier(self):
@@ -100,6 +105,7 @@ class RangeType(list):
     def from_coverage_type(cls, coverage_type):
         return cls(coverage_type.name, [
             Field(
+                index=i,
                 identifier=field_type.identifier,
                 description=field_type.description,
                 definition=field_type.definition,
@@ -116,7 +122,7 @@ class RangeType(list):
                 ],
                 data_type=gdal.GDT_Float32  # TODO
             )
-            for field_type in coverage_type.field_types.all()
+            for i, field_type in enumerate(coverage_type.field_types.all())
         ])
 
     @classmethod
@@ -127,6 +133,7 @@ class RangeType(list):
             band = ds.GetRasterBand(i + 1)
             fields.append(
                 Field(
+                    index=i,
                     identifier="%s_%d" % (base_identifier, bandoffset + i),
                     # TODO: get info from band metadata?
                     description="",
@@ -234,19 +241,51 @@ class EOMetadata(object):
         self._footprint = footprint
 
 
+class Location(object):
+    def __init__(self, path, format):
+        self._path = path
+        self._format = format
+
+    @property
+    def path(self):
+        return self._path
+
+    @property
+    def format(self):
+        return self._format
+
+
+class ArraydataLocation(Location):
+    def __init__(self, path, format, start_field, end_field):
+        super(ArraydataLocation, self).__init__(path, format)
+        self._start_field = start_field
+        self._end_field = end_field
+
+    @property
+    def start_field(self):
+        return self._start_field
+
+    @property
+    def end_field(self):
+        return self._end_field
+
+    def field_index_to_band_index(self, field_index):
+        return field_index - self.start_field
+
+
 class Coverage(object):
     """ Representation of a coverage for internal processing.
     """
     def __init__(self, identifier, eo_metadata, range_type, grid, origin, size,
-                 arraydata_items, metadata_items):
+                 arraydata_locations, metadata_locations):
         self._identifier = identifier
         self._eo_metadata = eo_metadata
         self._range_type = range_type
         self._origin = origin
         self._grid = grid
         self._size = size
-        self._arraydata_items = arraydata_items
-        self._metadata_items = metadata_items
+        self._arraydata_locations = arraydata_locations
+        self._metadata_locations = metadata_locations
 
     @property
     def identifier(self):
@@ -273,12 +312,12 @@ class Coverage(object):
         return tuple(self._size)
 
     @property
-    def arraydata_items(self):
-        return self._arraydata_items
+    def arraydata_locations(self):
+        return self._arraydata_locations
 
     @property
-    def metadata_items(self):
-        return self._metadata_items
+    def metadata_locations(self):
+        return self._metadata_locations
 
     @property
     def coverage_subtype(self):
@@ -311,6 +350,26 @@ class Coverage(object):
 
         return tuple(lows + highs)
 
+    def get_location_for_field(self, field_or_identifier):
+        if isinstance(field_or_identifier, Field):
+            field = field_or_identifier
+            if field not in self.range_type:
+                return None
+        else:
+            try:
+                field = next(
+                    field
+                    for field in self.range_type
+                    if field.identifier == field_or_identifier
+                )
+            except StopIteration:
+                return None
+
+        index = field.index
+        for location in self.arraydata_locations:
+            if index >= location.start_field and index <= location.end_field:
+                return location
+
     @classmethod
     def from_model(cls, coverage_model):
         eo_metadata = EOMetadata(None, None, None)
@@ -328,14 +387,17 @@ class Coverage(object):
                     coverage_model.footprint
                 )
 
-        arraydata_files = [
-            get_vsi_path(arraydata_item)
-            for arraydata_item in coverage_model.arraydata_items.all()
+        arraydata_locations = [
+            ArraydataLocation(
+                get_vsi_path(item), item.format,
+                item.field_index, item.field_index + item.band_count
+            )
+            for item in coverage_model.arraydata_items.all()
         ]
 
-        metadata_files = [
-            get_vsi_path(metadata_item)
-            for metadata_item in coverage_model.metadata_items.all()
+        metadata_locations = [
+            Location(get_vsi_path(item), item.format)
+            for item in coverage_model.metadata_items.all()
         ]
 
         if coverage_model.coverage_type:
@@ -343,7 +405,9 @@ class Coverage(object):
                 coverage_model.coverage_type
             )
         else:
-            range_type = RangeType.from_gdal_dataset(arraydata_files[0])
+            range_type = RangeType.from_gdal_dataset(
+                arraydata_locations[0].path
+            )
 
         grid_model = coverage_model.grid
         if is_referenceable(coverage_model):
@@ -357,6 +421,6 @@ class Coverage(object):
             identifier=coverage_model.identifier,
             eo_metadata=eo_metadata, range_type=range_type, origin=origin,
             grid=grid, size=coverage_model.size,
-            arraydata_items=coverage_model.arraydata_items,
-            metadata_items=coverage_model.metadata_items
+            arraydata_locations=arraydata_locations,
+            metadata_locations=metadata_locations
         )

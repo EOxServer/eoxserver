@@ -29,8 +29,13 @@
 class Layer(object):
     """ Abstract layer
     """
-    def __init__(self, style):
+    def __init__(self, name, style):
+        self._name = name
         self._style = style
+
+    @property
+    def name(self):
+        return self._name
 
     @property
     def style(self):
@@ -40,11 +45,14 @@ class Layer(object):
 class CoverageLayer(Layer):
     """ Representation of a coverage layer.
     """
-    def __init__(self, coverage, bands, wavelengths, style):
-        super(CoverageLayer, self).__init__(style)
+    def __init__(self, name, style, coverage, bands, wavelengths, time,
+                 elevation):
+        super(CoverageLayer, self).__init__(name, style)
         self._coverage = coverage
         self._bands = bands
         self._wavelengths = wavelengths
+        self._time = time
+        self._elevation = elevation
 
     @property
     def coverage(self):
@@ -58,10 +66,18 @@ class CoverageLayer(Layer):
     def wavelengths(self):
         return self._wavelengths
 
+    @property
+    def time(self):
+        return self._time
+
+    @property
+    def elevation(self):
+        return self._elevation
+
 
 class CoverageMosaicLayer(Layer):
-    def __init__(self, coverages, bands, wavelengths, style):
-        super(CoverageMosaicLayer, self).__init__(style)
+    def __init__(self, name, style, coverages, bands, wavelengths):
+        super(CoverageMosaicLayer, self).__init__(name, style)
         self._coverages = coverages
         self._bands = bands
         self._wavelengths = wavelengths
@@ -82,8 +98,8 @@ class CoverageMosaicLayer(Layer):
 class BrowseLayer(Layer):
     """ Representation of a browse layer.
     """
-    def __init__(self, browses, style):
-        super(BrowseLayer, self).__init__(style)
+    def __init__(self, name, style, browses):
+        super(BrowseLayer, self).__init__(name, style)
         self._browses = browses
 
     @property
@@ -94,8 +110,8 @@ class BrowseLayer(Layer):
 class MaskLayer(Layer):
     """ Representation of a mask layer.
     """
-    def __init__(self, masks, style):
-        super(MaskLayer, self).__init__(style)
+    def __init__(self, name, style, masks):
+        super(MaskLayer, self).__init__(name, style)
         self._masks = masks
 
     @property
@@ -106,8 +122,8 @@ class MaskLayer(Layer):
 class MaskedBrowseLayer(Layer):
     """ Representation of a layer.
     """
-    def __init__(self, masked_browses, style):
-        super(MaskedBrowseLayer, self).__init__(style)
+    def __init__(self, name, style, masked_browses):
+        super(MaskedBrowseLayer, self).__init__(name, style)
         self._masked_browses = masked_browses
 
     @property
@@ -118,8 +134,8 @@ class MaskedBrowseLayer(Layer):
 class OutlinesLayer(Layer):
     """ Representation of a layer.
     """
-    def __init__(self, footprints, style):
-        super(OutlinesLayer, self).__init__(style)
+    def __init__(self, name, style, footprints):
+        super(OutlinesLayer, self).__init__(name, style)
         self._footprints = footprints
 
     @property
@@ -127,16 +143,25 @@ class OutlinesLayer(Layer):
         return self._footprints
 
 
-class Map(list):
+class Map(object):
     """ Abstract interpretation of a map to be drawn.
     """
-    def __init__(self, width, height, bbox, crs, layers):
-        super(Map, self).__init__(layers)
-
-        self._width = width
-        self._height = height
+    def __init__(self, layers, width, height, format, bbox, crs, bgcolor=None,
+                 transparent=True, time=None, elevation=None):
+        self._layers = layers
+        self._width = int(width)
+        self._height = int(height)
+        self._format = format
         self._bbox = bbox
         self._crs = crs
+        self._bgcolor = bgcolor
+        self._transparent = transparent
+        self._time = time
+        self._elevation = elevation
+
+    @property
+    def layers(self):
+        return self._layers
 
     @property
     def width(self):
@@ -147,9 +172,47 @@ class Map(list):
         return self._height
 
     @property
+    def format(self):
+        return self._format
+
+    @property
     def bbox(self):
         return self._bbox
 
     @property
     def crs(self):
         return self._crs
+
+    @property
+    def bgcolor(self):
+        return self._bgcolor
+
+    @property
+    def transparent(self):
+        return self._transparent
+
+    @property
+    def time(self):
+        return self._time
+
+    @property
+    def elevation(self):
+        return self._elevation
+
+    def __repr__(self):
+        return (
+            'Map: %r '
+            'width=%r '
+            'height=%r '
+            'format=%r '
+            'bbox=%r '
+            'crs=%r '
+            'bgcolor=%r '
+            'transparent=%r '
+            'time=%r '
+            'elevation=%r' % (
+                self.layers, self.width, self.height, self.format, self.bbox,
+                self.crs, self.bgcolor, self.transparent, self.time,
+                self.elevation,
+            )
+        )
