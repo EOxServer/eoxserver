@@ -25,8 +25,10 @@
 # THE SOFTWARE.
 # ------------------------------------------------------------------------------
 
+from django.contrib.gis.geos import Polygon
+from django.contrib.gis.gdal import SpatialReference, CoordTransform, DataSource
+
 from eoxserver.contrib import gdal
-from eoxserver.contrib.osr import SpatialReference
 from eoxserver.backends.access import get_vsi_path
 
 
@@ -36,10 +38,9 @@ BROWSE_MODE_GRAYSCALE = "grayscale"
 
 
 class Browse(object):
-    def __init__(self, name, browse_filename, size, extent, crs, mode,
-                 footprint):
+    def __init__(self, name, filename, size, extent, crs, mode, footprint):
         self._name = name
-        self._browse_filename = browse_filename
+        self._filename = filename
         self._size = size
         self._extent = extent
         self._crs = crs
@@ -51,8 +52,8 @@ class Browse(object):
         return self._name
 
     @property
-    def browse_filename(self):
-        return self._browse_filename
+    def filename(self):
+        return self._filename
 
     @property
     def size(self):
@@ -76,7 +77,15 @@ class Browse(object):
 
     @property
     def footprint(self):
-        return self._footprint
+        if self._footprint:
+            return self._footprint
+        else:
+            polygon = Polygon.from_bbox(self.extent)
+            srs = SpatialReference(self.crs)
+            if srs.srid != 4326:
+                ct = CoordTransform(srs, SpatialReference(4326))
+                polygon.transform(ct)
+            return polygon
 
     @classmethod
     def from_model(cls, product_model, browse_model):
@@ -117,19 +126,29 @@ class Browse(object):
 
 
 class Mask(object):
-    def __init__(self, mask_filename=None, geometry=None):
-        assert mask_filename or geometry
+    def __init__(self, filename=None, geometry=None):
+        assert filename or geometry
 
-        self._mask_filename = mask_filename
+        self._filename = filename
         self._geometry = geometry
 
     @property
-    def mask_filename(self):
-        return self._mask_filename
+    def filename(self):
+        return self._filename
 
     @property
     def geometry(self):
         return self._geometry
+
+    def load_geometry(self):
+        ds = DataSource(self.filename)
+        layer = next(ds)
+        geometries = layer.get_geoms()
+
+        first = geometries[0]
+        for other in geometries[1:]:
+            first = first.union(other)
+        return first
 
     @classmethod
     def from_model(cls, mask_model):
@@ -139,24 +158,22 @@ class Mask(object):
         )
 
 
-class MaskedBrowse(Mask, Browse):
-    def __init__(self, name, browse_filename, size, extent, crs, mode, footprint,
-                 mask_filename=None, geometry=None):
-        Browse.__init__(
-            self, browse_filename, size, extent, crs, mode, footprint
-        )
-        Mask.__init__(self, mask_filename, geometry)
+class MaskedBrowse(object):
+    def __init__(self, browse, mask):
+        self._browse = browse
+        self._mask = mask
 
-    @classmethod
-    def from_browse_and_mask(cls, browse, mask):
-        return cls(
-            browse.browse_filename, browse.size, browse.extent, browse.crs,
-            browse.mode, browse.footprint, mask.mask_filename, mask.geometry
-        )
+    @property
+    def browse(self):
+        return self._browse
+
+    @property
+    def mask(self):
+        return self._mask
 
     @classmethod
     def from_models(cls, product_model, browse_model, mask_model):
-        return cls.from_browse_and_mask(
+        return cls(
             Browse.from_model(product_model, browse_model),
             Mask.from_model(mask_model)
         )

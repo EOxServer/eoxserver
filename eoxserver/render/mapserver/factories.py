@@ -105,7 +105,9 @@ class CoverageLayerFactory(BaseMapServerLayerFactory):
 
         if len(fields) == 1 and layer.style:
             # TODO: get the scale from range_type?
-            create_raster_style(layer.style, layer_obj, 941, 14809)
+            rng = layer.range or [941, 14809]
+
+            create_raster_style(layer.style, layer_obj, *rng)
 
 
 class BrowseLayerFactory(BaseMapServerLayerFactory):
@@ -119,21 +121,63 @@ class BrowseLayerFactory(BaseMapServerLayerFactory):
                 map_obj, browse.extent, browse.spatial_reference
             )
             layer_obj.group = group_name
-            layer_obj.data = browse.browse_filename
+            layer_obj.data = browse.filename
 
 
 class MaskLayerFactory(BaseMapServerLayerFactory):
     handled_layer_types = [MaskLayer]
 
     def create(self, map_obj, layer):
-        pass
+        layer_obj = _create_polygon_layer(map_obj)
+        for mask in layer.masks:
+            if mask.geometry:
+                shape_obj = ms.shapeObj.fromWKT(mask.geometry.wkt)
+                # shape.initValues(1)
+                # shape.setValue(0, eo_object.identifier)
+                layer_obj.addFeature(shape_obj)
+            else:
+                layer_obj.data = mask.mask_filename
+
+        layer_obj.insertClass(
+            _create_geometry_class(layer.style or 'red', fill=True)
+        )
 
 
 class MaskedBrowseLayerFactory(BaseMapServerLayerFactory):
     handled_layer_types = [MaskedBrowseLayer]
 
     def create(self, map_obj, layer):
-        pass
+        group_name = layer.name
+        for masked_browse in layer.masked_browses:
+            browse = masked_browse.browse
+            mask = masked_browse.mask
+            mask_name = 'mask__%d' % id(masked_browse)
+
+            # create mapserver layers for the mask
+            mask_layer_obj = _create_polygon_layer(map_obj)
+            mask_layer_obj.status = ms.MS_OFF
+            mask_layer_obj.insertClass(
+                _create_geometry_class("black", "white", fill=True)
+            )
+
+            mask_geom = mask.geometry if mask.geometry else mask.load_geometry()
+
+            outline = browse.footprint
+            outline = outline - mask_geom
+
+            shape_obj = ms.shapeObj.fromWKT(outline.wkt)
+            mask_layer_obj.addFeature(shape_obj)
+
+            mask_layer_obj.name = mask_name
+
+            # set up the mapserver layers required for the browses
+            browse_layer_obj = _create_raster_layer_obj(
+                map_obj, browse.extent,
+                browse.spatial_reference
+            )
+            browse_layer_obj.group = group_name
+            browse_layer_obj.data = browse.filename
+            browse_layer_obj.mask = mask_name
 
 
 class OutlinesLayerFactory(BaseMapServerLayerFactory):
@@ -160,6 +204,8 @@ def _create_raster_layer_obj(map_obj, extent, sr):
     layer_obj = ms.layerObj(map_obj)
     layer_obj.type = ms.MS_LAYER_RASTER
     layer_obj.status = ms.MS_ON
+
+    layer_obj.offsite = ms.colorObj(0, 0, 0)
 
     if extent:
         layer_obj.setMetaData("wms_extent", "%f %f %f %f" % extent)
@@ -205,21 +251,38 @@ POLYGON_COLORS = {
 }
 
 
-def _create_geometry_class(color_name, fill=False):
-    cls = ms.classObj()
-    style = ms.styleObj()
+def _create_geometry_class(color_name, background_color_name=None, fill=False):
+    cls_obj = ms.classObj()
+    style_obj = ms.styleObj()
 
     try:
         color = POLYGON_COLORS[color_name]
     except KeyError:
         raise  # TODO
 
-    style.outlinecolor = color
+    style_obj.outlinecolor = color
+
     if fill:
-        style.color = color
-    cls.insertStyle(style)
-    cls.group = color_name
-    return cls
+        style_obj.color = color
+
+    if background_color_name:
+        style_obj.backgroundcolor = POLYGON_COLORS[background_color_name]
+
+
+    # style_obj.color = ms.colorObj(255, 255, 255, 255)
+    # style_obj.backgroundcolor = ms.colorObj(0, 0, 0, 0)
+
+
+    # style_obj.backgroundcolor = ms.colorObj(255, 0, 0, 255)
+    # style_obj.color = ms.colorObj(0, 255, 0, 255)
+
+
+    # cls_obj.backgroundcolor = ms.colorObj(255, 0, 0, 255)
+    # cls_obj.color = ms.colorObj(0, 255, 0, 255)
+
+    cls_obj.insertStyle(style_obj)
+    cls_obj.group = color_name
+    return cls_obj
 
 
 # ------------------------------------------------------------------------------

@@ -46,13 +46,14 @@ class CoverageLayer(Layer):
     """ Representation of a coverage layer.
     """
     def __init__(self, name, style, coverage, bands, wavelengths, time,
-                 elevation):
+                 elevation, range):
         super(CoverageLayer, self).__init__(name, style)
         self._coverage = coverage
         self._bands = bands
         self._wavelengths = wavelengths
         self._time = time
         self._elevation = elevation
+        self._range = range
 
     @property
     def coverage(self):
@@ -73,6 +74,10 @@ class CoverageLayer(Layer):
     @property
     def elevation(self):
         return self._elevation
+
+    @property
+    def range(self):
+        return self._range
 
 
 class CoverageMosaicLayer(Layer):
