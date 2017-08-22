@@ -55,7 +55,9 @@ class LayerQuery(object):
 
     def create_map(self, layers, styles, bbox, crs, width, height, format,
                    bgcolor=None,
-                   transparent=True, time=None, bands=None, wavelengths=None,
+                   transparent=True, time=None,
+                   range=None,
+                   bands=None, wavelengths=None,
                    elevation=None, cql=None):
 
         if not styles:
@@ -81,7 +83,7 @@ class LayerQuery(object):
                 self.lookup_layer(
                     self.split_layer_suffix_name(layer)[0],
                     self.split_layer_suffix_name(layer)[1], style,
-                    filters_expressions, time, bands, wavelengths, elevation
+                    filters_expressions, time, range, bands, wavelengths, elevation
                 ) for (layer, style) in zip(layers, styles)
             ],
             width=width, height=height, format=format, bbox=bbox, crs=crs,
@@ -90,7 +92,7 @@ class LayerQuery(object):
         )
 
     def lookup_layer(self, layer_name, suffix, style, filters_expressions,
-                     time, bands, wavelengths, elevation):
+                     time, range, bands, wavelengths, elevation):
         """ Lookup the layer from the registered objects.
         """
         full_name = '%s%s%s' % (layer_name, self.SUFFIX_SEPARATOR, suffix)
@@ -110,7 +112,7 @@ class LayerQuery(object):
             return CoverageLayer(
                 full_name, style,
                 RenderCoverage.from_model(eo_object),
-                bands, wavelengths, time, elevation
+                bands, wavelengths, time, elevation, range
             )
 
         elif isinstance(eo_object, (models.Collection, models.Product)):
@@ -145,10 +147,10 @@ class LayerQuery(object):
                 return MaskedBrowseLayer(
                     name=full_name, style=style,
                     masked_browses=[
-                        MaskedBrowse.from_models(product, mask, browse)
+                        MaskedBrowse.from_models(product, browse, mask)
                         for product, browse, mask in
                         self.iter_products_browses_masks(
-                            eo_object, filters_expressions, post_suffix, style
+                            eo_object, filters_expressions, post_suffix
                         )
                     ]
                 )
@@ -178,7 +180,7 @@ class LayerQuery(object):
                         masks=[
                             Mask.from_model(mask_model)
                             for _, mask_model in self.iter_products_masks(
-                                eo_object, suffix, style
+                                eo_object, filters_expressions, suffix
                             )
                         ]
                     )
@@ -233,10 +235,10 @@ class LayerQuery(object):
             else:
                 browses = browses.filter(browse_type__isnull=True)
 
-            if style:
-                browses = browses.filter(style=style)
-            else:
-                browses = browses.filter(style__isnull=True)
+            # if style:
+            #     browses = browses.filter(style=style)
+            # else:
+            #     browses = browses.filter(style__isnull=True)
 
             yield (product, browses.first())
 
@@ -262,10 +264,10 @@ class LayerQuery(object):
 
         for product in products:
             if name:
-                mask = product.masks.first(mask_type__name=name)
+                mask = product.masks.filter(mask_type__name=name).first()
             else:
-                mask = product.masks.first(mask_type__isnull=True)
+                mask = product.masks.filter(mask_type__isnull=True).first()
 
-            browse = product.browses.first(browse_type__isnull=True)
+            browse = product.browses.filter(browse_type__isnull=True).first()
 
             yield (product, browse, mask)

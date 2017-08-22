@@ -93,6 +93,8 @@ class WMS13GetMapHandler(object):
             bgcolor=decoder.bgcolor,
             time=time,
 
+            range=decoder.dim_range,
+
             bands=None,
             wavelengths=None,
             elevation=None,
@@ -128,6 +130,10 @@ def parse_transparent(value):
     raise ValueError("Invalid value for 'transparent' parameter.")
 
 
+def parse_range(value):
+    return map(float, value.split(','))
+
+
 class WMS13GetMapDecoder(kvp.Decoder):
     layers = kvp.Parameter(type=typelist(str, ","), num=1)
     styles = kvp.Parameter(num="?")
@@ -140,5 +146,6 @@ class WMS13GetMapDecoder(kvp.Decoder):
     bgcolor = kvp.Parameter(num='?')
     transparent = kvp.Parameter(num='?', default=False, type=parse_transparent)
     dim_bands = kvp.Parameter(type=typelist(int_or_str, ","), num="?")
+    dim_range = kvp.Parameter(type=parse_range, num="?")
     elevation = kvp.Parameter(type=float, num="?")
     dimensions = kvp.MultiParameter(lambda s: s.startswith("dim_"), locator="dimension", num="*")
