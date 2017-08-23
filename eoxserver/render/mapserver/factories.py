@@ -28,14 +28,16 @@
 from django.conf import settings
 from django.utils.module_loading import import_string
 
+from eoxserver.core.util.iteratortools import pairwise_iterative
 from eoxserver.contrib import mapserver as ms
 from eoxserver.render.map.objects import (
-    CoverageLayer, BrowseLayer, MaskLayer, MaskedBrowseLayer, OutlinesLayer
+    CoverageLayer, BrowseLayer, OutlinedBrowseLayer,
+    MaskLayer, MaskedBrowseLayer, OutlinesLayer
 )
 from eoxserver.render.mapserver.config import (
     DEFAULT_EOXS_MAPSERVER_LAYER_FACTORIES,
 )
-from eoxserver.render.mapserver.raster_styles import create_raster_style
+from eoxserver.render.colors import BASE_COLORS, COLOR_SCALES
 from eoxserver.resources.coverages import crss
 
 
@@ -107,7 +109,7 @@ class CoverageLayerFactory(BaseMapServerLayerFactory):
             # TODO: get the scale from range_type?
             rng = layer.range or [941, 14809]
 
-            create_raster_style(layer.style, layer_obj, *rng)
+            _create_raster_style(layer.style, layer_obj, *rng)
 
 
 class BrowseLayerFactory(BaseMapServerLayerFactory):
@@ -124,19 +126,37 @@ class BrowseLayerFactory(BaseMapServerLayerFactory):
             layer_obj.data = browse.filename
 
 
+class OutlinedBrowseLayerFactory(BaseMapServerLayerFactory):
+    handled_layer_types = [OutlinedBrowseLayer]
+
+    def create(self, map_obj, layer):
+        group_name = layer.name
+        for browse in layer.browses:
+            # create the browse layer itself
+            browse_layer_obj = _create_raster_layer_obj(
+                map_obj, browse.extent, browse.spatial_reference
+            )
+            browse_layer_obj.group = group_name
+            browse_layer_obj.data = browse.filename
+
+            # create the outlines layer
+            outlines_layer_obj = _create_polygon_layer(map_obj)
+            shape_obj = ms.shapeObj.fromWKT(browse.footprint.wkt)
+            outlines_layer_obj.addFeature(shape_obj)
+
+            class_obj = _create_geometry_class(layer.style or 'red')
+            outlines_layer_obj.insertClass(class_obj)
+
+
 class MaskLayerFactory(BaseMapServerLayerFactory):
     handled_layer_types = [MaskLayer]
 
     def create(self, map_obj, layer):
         layer_obj = _create_polygon_layer(map_obj)
         for mask in layer.masks:
-            if mask.geometry:
-                shape_obj = ms.shapeObj.fromWKT(mask.geometry.wkt)
-                # shape.initValues(1)
-                # shape.setValue(0, eo_object.identifier)
-                layer_obj.addFeature(shape_obj)
-            else:
-                layer_obj.data = mask.mask_filename
+            mask_geom = mask.geometry if mask.geometry else mask.load_geometry()
+            shape_obj = ms.shapeObj.fromWKT(mask_geom.wkt)
+            layer_obj.addFeature(shape_obj)
 
         layer_obj.insertClass(
             _create_geometry_class(layer.style or 'red', fill=True)
@@ -187,8 +207,6 @@ class OutlinesLayerFactory(BaseMapServerLayerFactory):
         layer_obj = _create_polygon_layer(map_obj)
         for footprint in layer.footprints:
             shape_obj = ms.shapeObj.fromWKT(footprint.wkt)
-            # shape.initValues(1)
-            # shape.setValue(0, eo_object.identifier)
             layer_obj.addFeature(shape_obj)
 
         class_obj = _create_geometry_class(layer.style or 'red')
@@ -237,26 +255,13 @@ def _create_polygon_layer(map_obj):
 
     return layer_obj
 
-POLYGON_COLORS = {
-    "red": ms.colorObj(255, 0, 0),
-    "green": ms.colorObj(0, 128, 0),
-    "blue": ms.colorObj(0, 0, 255),
-    "white": ms.colorObj(255, 255, 255),
-    "black": ms.colorObj(0, 0, 0),
-    "yellow": ms.colorObj(255, 255, 0),
-    "orange": ms.colorObj(255, 165, 0),
-    "magenta": ms.colorObj(255, 0, 255),
-    "cyan": ms.colorObj(0, 255, 255),
-    "brown": ms.colorObj(165, 42, 42)
-}
-
 
 def _create_geometry_class(color_name, background_color_name=None, fill=False):
     cls_obj = ms.classObj()
     style_obj = ms.styleObj()
 
     try:
-        color = POLYGON_COLORS[color_name]
+        color = ms.colorObj(*BASE_COLORS[color_name])
     except KeyError:
         raise  # TODO
 
@@ -266,23 +271,56 @@ def _create_geometry_class(color_name, background_color_name=None, fill=False):
         style_obj.color = color
 
     if background_color_name:
-        style_obj.backgroundcolor = POLYGON_COLORS[background_color_name]
-
-
-    # style_obj.color = ms.colorObj(255, 255, 255, 255)
-    # style_obj.backgroundcolor = ms.colorObj(0, 0, 0, 0)
-
-
-    # style_obj.backgroundcolor = ms.colorObj(255, 0, 0, 255)
-    # style_obj.color = ms.colorObj(0, 255, 0, 255)
-
-
-    # cls_obj.backgroundcolor = ms.colorObj(255, 0, 0, 255)
-    # cls_obj.color = ms.colorObj(0, 255, 0, 255)
+        style_obj.backgroundcolor = ms.colorObj(
+            *BASE_COLORS[background_color_name]
+        )
 
     cls_obj.insertStyle(style_obj)
     cls_obj.group = color_name
     return cls_obj
+
+
+def _create_raster_style(name, layer, minvalue=0, maxvalue=255):
+    colors = COLOR_SCALES[name]
+
+    # Create style for values below range
+    cls = ms.classObj()
+    cls.setExpression("([pixel] <= %s)" % (minvalue))
+    cls.group = name
+    style = ms.styleObj()
+    style.color = ms.colorObj(*colors[0][1])
+    cls.insertStyle(style)
+    layer.insertClass(cls)
+
+    # Create style for values above range
+    cls = ms.classObj()
+    cls.setExpression("([pixel] > %s)" % (maxvalue))
+    cls.group = name
+    style = ms.styleObj()
+    style.color = ms.colorObj(*colors[-1][1])
+    cls.insertStyle(style)
+    layer.insertClass(cls)
+    layer.classgroup = name
+
+    interval = (maxvalue - minvalue)
+    for prev_item, next_item in pairwise_iterative(colors):
+        prev_perc, prev_color = prev_item
+        next_perc, next_color = next_item
+
+        cls = ms.classObj()
+        cls.setExpression("([pixel] >= %s AND [pixel] < %s)" % (
+            (minvalue + prev_perc * interval), (minvalue + next_perc * interval)
+        ))
+        cls.group = name
+
+        style = ms.styleObj()
+        style.mincolor = ms.colorObj(*prev_color)
+        style.maxcolor = ms.colorObj(*next_color)
+        style.minvalue = minvalue + prev_perc * interval
+        style.maxvalue = minvalue + next_perc * interval
+        style.rangeitem = ""
+        cls.insertStyle(style)
+        layer.insertClass(cls)
 
 
 # ------------------------------------------------------------------------------

@@ -112,6 +112,18 @@ class BrowseLayer(Layer):
         return self._browses
 
 
+class OutlinedBrowseLayer(Layer):
+    """ Representation of a browse layer.
+    """
+    def __init__(self, name, style, browses):
+        super(OutlinedBrowseLayer, self).__init__(name, style)
+        self._browses = browses
+
+    @property
+    def browses(self):
+        return self._browses
+
+
 class MaskLayer(Layer):
     """ Representation of a mask layer.
     """
