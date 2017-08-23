@@ -28,7 +28,8 @@
 from django.db.models import Q
 
 from eoxserver.render.map.objects import (
-    Map, CoverageLayer, OutlinesLayer, BrowseLayer, MaskLayer, MaskedBrowseLayer
+    Map, CoverageLayer, OutlinesLayer, BrowseLayer, OutlinedBrowseLayer,
+    MaskLayer, MaskedBrowseLayer
 )
 from eoxserver.render.coverage.objects import Coverage as RenderCoverage
 from eoxserver.render.browse.objects import (
@@ -55,7 +56,11 @@ class LayerQuery(object):
 
     def create_map(self, layers, styles, bbox, crs, width, height, format,
                    bgcolor=None,
-                   transparent=True, time=None,
+                   transparent=True,
+
+                   dimensions=None,
+
+                   time=None,
                    range=None,
                    bands=None, wavelengths=None,
                    elevation=None, cql=None):
@@ -73,10 +78,12 @@ class LayerQuery(object):
         )
 
         if cql:
-            mapping, mapping_choices = get_field_mapping_for_model(
+            field_mapping, mapping_choices = get_field_mapping_for_model(
                 models.Product
             )
-            filters_expressions = filters_expressions & to_filter(parse(cql), )
+            filters_expressions = filters_expressions & to_filter(
+                parse(cql), field_mapping, mapping_choices
+            )
 
         return Map(
             layers=[
@@ -122,7 +129,19 @@ class LayerQuery(object):
                     browses=[
                         Browse.from_model(product, browse)
                         for product, browse in self.iter_products_browses(
-                            eo_object, filters_expressions, suffix, style
+                            eo_object, filters_expressions, None, style
+                        )
+                        if browse
+                    ]
+                )
+
+            elif suffix == 'outlined':
+                return OutlinedBrowseLayer(
+                    name=full_name, style=style,
+                    browses=[
+                        Browse.from_model(product, browse)
+                        for product, browse in self.iter_products_browses(
+                            eo_object, filters_expressions, None, style
                         )
                         if browse
                     ]

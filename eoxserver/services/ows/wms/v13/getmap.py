@@ -98,7 +98,7 @@ class WMS13GetMapHandler(object):
             bands=None,
             wavelengths=None,
             elevation=None,
-            cql=None
+            cql=decoder.cql,
         )
 
 
@@ -149,3 +149,5 @@ class WMS13GetMapDecoder(kvp.Decoder):
     dim_range = kvp.Parameter(type=parse_range, num="?")
     elevation = kvp.Parameter(type=float, num="?")
     dimensions = kvp.MultiParameter(lambda s: s.startswith("dim_"), locator="dimension", num="*")
+
+    cql = kvp.Parameter(num="?")

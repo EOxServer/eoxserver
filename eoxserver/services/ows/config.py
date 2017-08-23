@@ -35,6 +35,8 @@ DEFAULT_EOXS_OWS_SERVICE_HANDLERS = [
     'eoxserver.services.ows.wcs.v20.handlers.GetCapabilitiesHandler',
     'eoxserver.services.ows.wcs.v20.handlers.DescribeCoverageHandler',
     'eoxserver.services.ows.wcs.v20.handlers.GetCoverageHandler',
+
+    'eoxserver.services.ows.wms.v13.getmap.WMS13GetMapHandler',
 ]
 
 DEFAULT_EOXS_OWS_EXCEPTION_HANDLERS = [
