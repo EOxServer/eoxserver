@@ -135,9 +135,16 @@ class ProductRegistrator(base.BaseRegistrator):
                 storage = self.resolve_storage(mask_handle[1:-1])
                 location = mask_handle[-1]
 
+            try:
+                mask_type = models.MaskType.objects.get(
+                    name=mask_handle[0], product_type=product_type
+                )
+            except models.MaskType.DoesNotExist:
+                continue
+
             models.Mask.objects.create(
                 product=product,
-                mask_type=models.MaskType.objects.get(name=mask_handle[0]),
+                mask_type=mask_type,
                 storage=storage,
                 location=location,
                 geometry=geometry
@@ -149,7 +156,7 @@ class ProductRegistrator(base.BaseRegistrator):
             if browse_handle[0]:
                 # TODO: only browse types for that product type
                 browse_type = models.BrowseType.objects.get(
-                    name=browse_handle[0]
+                    name=browse_handle[0], product_type=product_type
                 )
 
             browse = models.Browse(
