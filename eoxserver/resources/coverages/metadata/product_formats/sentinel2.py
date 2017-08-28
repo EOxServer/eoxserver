@@ -25,6 +25,7 @@
 # THE SOFTWARE.
 # ------------------------------------------------------------------------------
 
+import os.path
 
 try:
     import s2reader
@@ -60,11 +61,29 @@ class S2ProductFormatReader(object):
             values['footprint'] = ds.footprint.wkt
 
             values['masks'] = [
-                # ('clouds', granule.cloudmask.wkt),
-                # ('nodata', granule.nodata_mask.wkt),
+                ('clouds', granule.cloudmask.wkt),
+                ('nodata', granule.nodata_mask.wkt),
             ]
+
+            def tci_path(granule):
+                tci_paths = [
+                    path for path in granule.dataset._product_metadata.xpath(
+                        ".//Granule[@granuleIdentifier='%s']/IMAGE_FILE/text()"
+                        % granule.granule_identifier
+                    ) if path.endswith('TCI')
+                ]
+                try:
+                    return os.path.join(
+                        ds._zip_root if ds.is_zip else ds.path,
+                        tci_paths[0]
+                    ) + '.jp2'
+                except IndexError:
+                    raise IOError(
+                        "TCI path does not exist"
+                    )
+
             values['browses'] = [
-                (None, granule.tci_path)
+                (None, tci_path(granule))
             ]
 
             # TODO: extended metadata
