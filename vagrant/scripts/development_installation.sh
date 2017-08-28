@@ -27,16 +27,15 @@ fi
 cd "$EOX_ROOT/autotest/"
 
 # Prepare DBs
-python manage.py syncdb --noinput --traceback
-python manage.py loaddata auth_data.json range_types.json --traceback
+python manage.py migrate --noinput --traceback
 
 # Create admin user
-python manage.py shell 1>/dev/null 2>&1 <<EOF
+python manage.py shell 1>/dev/null 2>&1 -c "
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 if authenticate(username='admin', password='admin') is None:
     User.objects.create_user('admin','office@eox.at','admin')
-EOF
+"
 
 # Collect static files
 python manage.py collectstatic --noinput
@@ -45,11 +44,12 @@ python manage.py collectstatic --noinput
 touch "$EOX_ROOT/autotest/autotest/logs/eoxserver.log"
 
 # Load the demonstration if not already present
-SERIES="MER_FRS_1P_reduced_RGB"
-if python manage.py eoxs_id_check "$SERIES" --type DatasetSeries --traceback  ; then
-    python manage.py eoxs_collection_create --type DatasetSeries -i "$SERIES" --traceback
+COLLECTION="MER_FRS_1P_reduced_RGB"
+if python manage.py id check "$COLLECTION" --type Collection --traceback  ; then
+    cat "$EOX_ROOT/autotest/autotest/data/meris/meris_range_type_definition.json" | python manage.py coveragetype import --in
+    python manage.py collection create "$COLLECTION" --traceback
     for TIF in "$EOX_ROOT/autotest/autotest/data/meris/mosaic_MER_FRS_1P_reduced_RGB/"*.tif
     do
-        python manage.py eoxs_dataset_register -r RGB -d "$TIF" -m "${TIF//.tif/.xml}" --collection "$SERIES" --traceback
+        python manage.py coverage register -d "$TIF" -m "${TIF//.tif/.xml}" --traceback
     done
 fi

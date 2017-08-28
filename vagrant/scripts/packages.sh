@@ -30,4 +30,4 @@ pip install pyopenssl ndg-httpsclient pyasn1
 
 # Install recent version of Django (1.6, since 1.7+ requires Python 2.7)
 pip install "django>=1.11,<1.12a0" --no-binary django --force-reinstall --upgrade
-pip install django-extensions psycopg2 django-model-utils s2reader
+pip install django-extensions psycopg2 django-model-utils s2reader ply
