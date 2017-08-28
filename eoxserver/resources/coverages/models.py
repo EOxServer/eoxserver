@@ -141,7 +141,7 @@ class CoverageType(models.Model):
 
 class ProductType(models.Model):
     name = models.CharField(max_length=512, unique=True, validators=name_validators, **mandatory)
-    allowed_coverage_types = models.ManyToManyField(CoverageType, blank=True)
+    allowed_coverage_types = models.ManyToManyField(CoverageType, related_name='allowed_product_types', blank=True)
 
     def __str__(self):
         return self.name
@@ -149,8 +149,8 @@ class ProductType(models.Model):
 
 class CollectionType(models.Model):
     name = models.CharField(max_length=512, unique=True, validators=name_validators, **mandatory)
-    allowed_coverage_types = models.ManyToManyField(CoverageType, blank=True)
-    allowed_product_types = models.ManyToManyField(ProductType, blank=True)
+    allowed_coverage_types = models.ManyToManyField(CoverageType, related_name='allowed_collection_types', blank=True)
+    allowed_product_types = models.ManyToManyField(ProductType, related_name='allowed_collection_types', blank=True)
 
     def __str__(self):
         return self.name
@@ -288,7 +288,7 @@ class EOObject(models.Model):
 
 
 class Collection(EOObject):
-    collection_type = models.ForeignKey(CollectionType, **optional_protected)
+    collection_type = models.ForeignKey(CollectionType, related_name='collections', **optional_protected)
 
     grid = models.ForeignKey(Grid, **optional)
 
@@ -636,6 +636,7 @@ def collection_insert_eo_object(collection, eo_object):
         is raised when an object of the wrong type is passed.
         The collections footprint and time-stamps are adjusted when necessary.
     """
+    collection_type = collection.collection_type
     eo_object = cast_eo_object(eo_object)
     if not isinstance(eo_object, (Product, Coverage)):
         raise ManagementError(
@@ -644,9 +645,11 @@ def collection_insert_eo_object(collection, eo_object):
 
     if isinstance(eo_object, Product):
         product_type = eo_object.product_type
-        allowed = collection.collection_type.allowed_product_types.filter(
-            pk=product_type.pk
-        ).exists()
+        allowed = True
+        if collection_type:
+            allowed = collection_type.allowed_product_types.filter(
+                pk=product_type.pk
+            ).exists()
 
         if not allowed:
             raise ManagementError(
@@ -657,10 +660,12 @@ def collection_insert_eo_object(collection, eo_object):
         collection.products.add(eo_object)
 
     elif isinstance(eo_object, Coverage):
-        coverage_type = eo_object.coveraget_type
-        allowed = collection.collection_type.allowed_coverage_types.filter(
-            pk=coverage_type.pk
-        ).exists()
+        coverage_type = eo_object.coverage_type
+        allowed = True
+        if collection_type:
+            allowed = collection_type.allowed_coverage_types.filter(
+                pk=coverage_type.pk
+            ).exists()
 
         if not allowed:
             raise ManagementError(
