@@ -31,9 +31,13 @@ from eoxserver.core.util.timetools import parse_iso8601, parse_duration
 from eoxserver.contrib import gdal
 from eoxserver.contrib.osr import SpatialReference
 from eoxserver.backends.access import get_vsi_path
-from eoxserver.resources.coverages.grid import (
-    is_referenceable, GRID_TYPE_TEMPORAL
-)
+
+GRID_TYPE_ELEVATION = 1
+GRID_TYPE_TEMPORAL = 2
+
+
+def is_referenceable(grid_model):
+    return grid_model.axis_1_offset is None
 
 
 class Field(object):
@@ -219,6 +223,14 @@ class Grid(list):
     @property
     def offsets(self):
         return [axis.offset for axis in self]
+
+    @property
+    def has_elevation(self):
+        return GRID_TYPE_ELEVATION in self.types
+
+    @property
+    def has_temporal(self):
+        return GRID_TYPE_TEMPORAL in self.types
 
 
 class ReferenceableGrid(Grid):
@@ -410,7 +422,7 @@ class Coverage(object):
             )
 
         grid_model = coverage_model.grid
-        if is_referenceable(coverage_model):
+        if is_referenceable(grid_model):
             grid = ReferenceableGrid.from_model(grid_model)
         else:
             grid = Grid.from_model(grid_model)
