@@ -27,15 +27,15 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-from django.shortcuts import render_to_response
+from django.shortcuts import render
 from django.template import RequestContext
 
 from eoxserver import get_version
 
 def index(request):
-    return render_to_response(
+    return render(
+        request,
         'eoxserver_index.html', {
             "version": get_version(),
-        },
-        context_instance=RequestContext(request)
+        }
     )
