@@ -144,4 +144,10 @@ class SubParserMixIn(object):
             )
         subparser = self.subparsers.add_parser(name, *args, **kwargs)
         subparser.set_defaults(subcommand=name)
+
+        subparser.add_argument('--traceback', action="store_true", default=False)
+        subparser.add_argument('--settings', nargs=1)
+        subparser.add_argument('--pythonpath', nargs=1)
+        subparser.add_argument('--no-color', action="store_true", default=False)
+
         return subparser

@@ -80,7 +80,10 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
         if not identifiers:
             raise CommandError("Missing the mandatory identifier(s).")
 
-        base_qs = self.get_queryset(type_name).select_subclasses()
+        base_qs = self.get_queryset(type_name)
+
+        if type_name == "EOObject":
+            base_qs = base_qs.select_subclasses()
 
         used = False
         for identifier in identifiers:

@@ -110,6 +110,11 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             help="Add the coverage to the specified product."
         )
         register_parser.add_argument(
+            "--collection", "--collection-identifier", "-c",
+            dest="collection_identifiers", action="append", default=[],
+            help="Add the coverage to the specified collection."
+        )
+        register_parser.add_argument(
             "--replace", "-r",
             dest="replace", action="store_true", default=False,
             help=(
@@ -172,6 +177,19 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             except models.Product.DoesNotExist:
                 raise CommandError('No such product %r' % product_identifier)
             models.product_add_coverage(product, coverage)
+
+        for collection_identifier in kwargs['collection_identifiers']:
+
+            print collection_identifier
+            try:
+                collection = models.Collection.objects.get(
+                    identifier=collection_identifier
+                )
+            except models.Collection.DoesNotExist:
+                raise CommandError(
+                    'No such collection %r' % collection_identifier
+                )
+            models.collection_insert_eo_object(collection, coverage)
 
     def handle_deregister(self, identifier, **kwargs):
         """ Handle the deregistration a coverage

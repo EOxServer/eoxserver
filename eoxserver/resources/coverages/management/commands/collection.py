@@ -57,8 +57,8 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             )
 
         create_parser.add_argument(
-            '--type', '-t', dest='type_name', required=True,
-            help='The collection type name. Mandatory.'
+            '--type', '-t', dest='type_name',
+            help='The collection type name. Optional.'
         )
         create_parser.add_argument(
             '--grid', '-g', dest='grid_name', default=None,
@@ -128,10 +128,16 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
         else:
             grid = None
 
-        try:
-            collection_type = models.CollectionType.objects.get(name=type_name)
-        except models.CollectionType.DoesNotExist:
-            raise CommandError("Collection type %r does not exist." % type_name)
+        collection_type = None
+        if type_name:
+            try:
+                collection_type = models.CollectionType.objects.get(
+                    name=type_name
+                )
+            except models.CollectionType.DoesNotExist:
+                raise CommandError(
+                    "Collection type %r does not exist." % type_name
+                )
 
         models.Collection.objects.create(
             identifier=identifier,
