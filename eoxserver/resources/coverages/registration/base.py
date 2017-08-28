@@ -118,10 +118,11 @@ class BaseRegistrator(object):
         # check the coverage type for expected amount of fields
         if coverage_type:
             num_fields = coverage_type.field_types.count()
-            if len(arraydata_items) != 1 or len(arraydata_items) != num_fields:
+            if len(arraydata_items) != 1 and len(arraydata_items) != num_fields:
                 raise RegistrationError(
-                    'Invalid number of data files specified. Expected 1 or %d'
-                    % num_fields
+                    'Invalid number of data files specified. Expected 1 or %d '
+                    'got %d.'
+                    % (num_fields, len(arraydata_items))
                 )
 
             # TODO: lookup actual band counts
@@ -174,8 +175,6 @@ class BaseRegistrator(object):
             except models.Coverage.DoesNotExist:
                 pass
 
-        metadata = retrieved_metadata.pop('metadata', None)
-
         coverage = self._create_coverage(
             identifier=retrieved_metadata['identifier'],
             footprint=retrieved_metadata.get('footprint'),
@@ -190,9 +189,6 @@ class BaseRegistrator(object):
             arraydata_items=arraydata_items,
             metadata_items=metadata_items,
         )
-
-        if metadata:
-            self._create_metadata(coverage, metadata)
 
         # when we replaced the coverage, re-insert the newly created coverage to
         # the collections and/or product
