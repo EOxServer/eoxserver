@@ -868,10 +868,14 @@ def product_add_coverage(product, coverage):
             'Cannot insert object of type %r' % type(coverage).__name__
         )
 
+    product_type = product.product_type
     coverage_type = coverage.coverage_type
-    allowed = product.product_type.allowed_coverage_types.filter(
-        pk=coverage_type.pk
-    ).exists()
+
+    allowed = True
+    if product_type:
+        allowed = product_type.allowed_coverage_types.filter(
+            pk=coverage_type.pk
+        ).exists()
 
     if not allowed:
         raise ManagementError(
