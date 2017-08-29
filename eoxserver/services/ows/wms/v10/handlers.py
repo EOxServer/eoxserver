@@ -25,23 +25,26 @@
 # THE SOFTWARE.
 # ------------------------------------------------------------------------------
 
-DEFAULT_EOXS_OWS_SERVICE_HANDLERS = [
-    'eoxserver.services.ows.wcs.v10.handlers.GetCapabilitiesHandler',
-    'eoxserver.services.ows.wcs.v10.handlers.DescribeCoverageHandler',
-    'eoxserver.services.ows.wcs.v10.handlers.GetCoverageHandler',
-    'eoxserver.services.ows.wcs.v11.handlers.GetCapabilitiesHandler',
-    'eoxserver.services.ows.wcs.v11.handlers.DescribeCoverageHandler',
-    'eoxserver.services.ows.wcs.v11.handlers.GetCoverageHandler',
-    'eoxserver.services.ows.wcs.v20.handlers.GetCapabilitiesHandler',
-    'eoxserver.services.ows.wcs.v20.handlers.DescribeCoverageHandler',
-    'eoxserver.services.ows.wcs.v20.handlers.GetCoverageHandler',
+from eoxserver.services.ows.wms.basehandlers import (
+    WMSBaseGetCapabilitiesHandler, WMSBaseGetMapHandler, WMSBaseGetMapDecoder
+)
+from eoxserver.services.ows.wms.v10.encoders import WMS10Encoder
 
-    'eoxserver.services.ows.wms.v10.handlers.WMS10GetMapHandler',
-    'eoxserver.services.ows.wms.v10.handlers.WMS10GetCapabilitiesHandler',
-    'eoxserver.services.ows.wms.v11.handlers.WMS11GetMapHandler',
-    'eoxserver.services.ows.wms.v13.handlers.WMS13GetMapHandler',
-]
 
-DEFAULT_EOXS_OWS_EXCEPTION_HANDLERS = [
-    # ''
-]
+class WMS10GetCapabilitiesHandler(WMSBaseGetCapabilitiesHandler):
+    versions = ("1.0", "1.0.0")
+
+    def get_encoder(self):
+        return WMS10Encoder()
+
+
+class WMS10GetMapHandler(WMSBaseGetMapHandler):
+    service = ("WMS", None)
+    versions = ("1.0", "1.0.0")
+
+    def get_decoder(self, request):
+        return WMS10GetMapDecoder(request.GET)
+
+
+class WMS10GetMapDecoder(WMSBaseGetMapDecoder):
+    pass

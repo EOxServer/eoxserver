@@ -28,41 +28,233 @@
 
 """\
 This module contains a set of handler base classes which shall help to implement
-a specific handler. Interface methods need to be overridden in order to work, 
+a specific handler. Interface methods need to be overridden in order to work,
 default methods can be overidden.
 """
 
-from eoxserver.core import UniqueExtensionPoint
+from django.conf import settings
+from django.db.models import Q, Case, When, BooleanField
+from django.urls import reverse
+
+from eoxserver.core.decoders import kvp, typelist, InvalidParameterException
+from eoxserver.core.config import get_eoxserver_config
+from eoxserver.render.map.renderer import get_map_renderer
+from eoxserver.render.map.objects import Map
+from eoxserver.resources.coverages import crss
 from eoxserver.resources.coverages import models
-from eoxserver.services.ows.wms.interfaces import (
-    WMSCapabilitiesRendererInterface
-)
+from eoxserver.services.ows.wms.util import parse_bbox, parse_time, int_or_str
+from eoxserver.services.ows.common.config import CapabilitiesConfigReader
+from eoxserver.services.ows.wms.exceptions import InvalidCRS
 from eoxserver.services.result import to_http_response
+from eoxserver.services.ecql import parse, to_filter, get_field_mapping_for_model
+from eoxserver.services import filters
+from eoxserver.services.ows.wms.layerquery import LayerQuery
+from eoxserver.services import views
 
 
-class WMSGetCapabilitiesHandlerBase(object):
+class WMSBaseGetCapabilitiesHandler(object):
     """ Base for WMS capabilities handlers.
     """
 
     service = "WMS"
     request = "GetCapabilities"
 
-    renderer = UniqueExtensionPoint(WMSCapabilitiesRendererInterface)
+    methods = ["GET"]
 
     def handle(self, request):
-        collections_qs = models.Collection.objects \
-            .order_by("identifier") \
-            .exclude(
-                footprint__isnull=True, begin_time__isnull=True, 
-                end_time__isnull=True
+        qs = models.EOObject.objects.filter(
+            Q(  # include "WMS-visible" Products
+                product__isnull=False,
+                service_visibility__service='wms',
+                service_visibility__visibility=True
+            ) | Q(  # include "WMS-visible" Coverages
+                coverage__isnull=False,
+                service_visibility__service='wms',
+                service_visibility__visibility=True
+            ) | Q(  # include all Collections, exclude "WMS-invisible" later
+                collection__isnull=False
             )
-        coverages = [
-            coverage for coverage in models.Coverage.objects \
-                .filter(visible=True)
-            if not issubclass(coverage.real_type, models.Collection)
+        ).exclude(
+            collection__isnull=False,
+            service_visibility__service='wms',
+            service_visibility__visibility=False
+        ).select_subclasses()
+
+        map_renderer = get_map_renderer()
+        raster_styles = map_renderer.get_raster_styles()
+        geometry_styles = map_renderer.get_geometry_styles()
+
+        layer_query = LayerQuery()
+        layer_descriptions = [
+            layer_query.get_layer_description(
+                eo_object, raster_styles, geometry_styles
+            )
+            for eo_object in qs
         ]
 
-        result, _ = self.renderer.render(
-            collections_qs, coverages, request.GET.items(), request
-        )
+        encoder = self.get_encoder()
+        conf = CapabilitiesConfigReader(get_eoxserver_config())
+        return encoder.serialize(
+            encoder.encode_capabilities(
+                conf, request.build_absolute_uri(reverse(views.ows)),
+                crss.getSupportedCRS_WMS(format_function=crss.asShortCode),
+                layer_descriptions
+            ),
+            pretty_print=settings.DEBUG
+        ), encoder.content_type
+
+
+        # products = models.Product.objects.filter(
+        #     Q(
+        #         product__isnull=False,
+        #         service_visibility__service='wms',
+        #         service_visibility__visibility=True
+        #     ) | Q(
+        #         collection__isnull=False
+        #     )
+        # )
+
+        # collections = models.Collection.objects.exclude(
+        #     collection__isnull=False,
+        #     service_visibility__service='wms',
+        #     service_visibility__visibility=False
+        # )
+
+        # coverages = models.Coverage.objects.filter(
+        #     service_visibility__service='wms',
+        #     service_visibility__visibility=True
+        # )
+
+        # TODO look up Collections/Products + Coverages
+
+
+
+
         return to_http_response(result)
+
+
+class WMSBaseGetMapHandler(object):
+    methods = ['GET']
+    service = "WMS"
+    request = "GetMap"
+
+    def handle(self, request):
+        decoder = self.get_decoder(request)
+
+        minx, miny, maxx, maxy = decoder.bbox
+        time = decoder.time
+        crs = decoder.srs
+        layer_names = decoder.layers
+
+        if not layer_names:
+            raise InvalidParameterException("No layers specified", "layers")
+
+        srid = crss.parseEPSGCode(
+            crs, (crss.fromShortCode, crss.fromURN, crss.fromURL)
+        )
+        if srid is None:
+            raise InvalidCRS(crs, "crs")
+
+        # TODO time/bbox filtering
+
+        field_mapping, mapping_choices = get_field_mapping_for_model(
+            models.Product
+        )
+
+        filter_expressions = filters.bbox(
+            filters.attribute('footprint', field_mapping),
+            minx, miny, maxx, maxy, crs
+        )
+
+        if time:
+            filter_expressions &= filters.time_interval(time)
+
+        cql = getattr(decoder, 'cql', None)
+        if cql:
+            cql_filters = to_filter(
+                parse(cql), field_mapping, mapping_choices
+            )
+            filter_expressions &= cql_filters
+
+        # TODO: multiple sorts per layer?
+        sort_by = getattr(decoder, 'sort_by', None)
+        if sort_by:
+            sort_by = (field_mapping.get(sort_by[0], sort_by[0]), sort_by[1])
+
+        styles = decoder.styles
+
+        if styles:
+            styles = styles.split(',')
+        else:
+            styles = [None] * len(layer_names)
+
+        dimensions = {
+            "time": time,
+            "elevation": decoder.elevation,
+            "range": decoder.dim_range,
+            "bands": decoder.dim_bands,
+            "wavelengths": decoder.dim_wavelengths,
+        }
+
+        layer_query = LayerQuery()
+
+        layers = []
+        for layer_name, style in zip(layer_names, styles):
+            name, suffix = layer_query.split_layer_suffix_name(layer_name)
+            layer = layer_query.lookup_layer(
+                name, suffix, style,
+                filter_expressions, sort_by, **dimensions
+            )
+            layers.append(layer)
+
+        map_ = Map(
+            width=decoder.width, height=decoder.height, format=decoder.format,
+            bbox=(minx, miny, maxx, maxy), crs=crs,
+            bgcolor=decoder.bgcolor, transparent=decoder.transparent,
+            layers=layers
+        )
+
+        # TODO: translate to Response
+        return get_map_renderer().render_map(map_)
+
+
+def parse_transparent(value):
+    value = value.upper()
+    if value == 'TRUE':
+        return True
+    elif value == 'FALSE':
+        return False
+    raise ValueError("Invalid value for 'transparent' parameter.")
+
+
+def parse_range(value):
+    return map(float, value.split(','))
+
+
+def parse_sort_by(value):
+    items = value.strip().split()
+    assert items[1] in ['A', 'D']
+    return (items[0], 'ASC' if items[1] == 'A' else 'DESC')
+
+
+class WMSBaseGetMapDecoder(kvp.Decoder):
+    layers = kvp.Parameter(type=typelist(str, ","), num=1)
+    styles = kvp.Parameter(num="?")
+    width = kvp.Parameter(num=1)
+    height = kvp.Parameter(num=1)
+    format = kvp.Parameter(num=1)
+    bgcolor = kvp.Parameter(num='?')
+    transparent = kvp.Parameter(num='?', default=False, type=parse_transparent)
+
+    bbox = kvp.Parameter('bbox', type=parse_bbox, num=1)
+    srs = kvp.Parameter(num=1)
+
+    time = kvp.Parameter(type=parse_time, num="?")
+    elevation = kvp.Parameter(type=float, num="?")
+    dim_bands = kvp.Parameter(type=typelist(int_or_str, ","), num="?")
+    dim_wavelengths = kvp.Parameter(type=typelist(float, ","), num="?")
+    dim_range = kvp.Parameter(type=parse_range, num="?")
+
+    cql = kvp.Parameter(num="?")
+
+    sort_by = kvp.Parameter('sortBy', type=parse_sort_by, num="?")

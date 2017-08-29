@@ -25,23 +25,43 @@
 # THE SOFTWARE.
 # ------------------------------------------------------------------------------
 
-DEFAULT_EOXS_OWS_SERVICE_HANDLERS = [
-    'eoxserver.services.ows.wcs.v10.handlers.GetCapabilitiesHandler',
-    'eoxserver.services.ows.wcs.v10.handlers.DescribeCoverageHandler',
-    'eoxserver.services.ows.wcs.v10.handlers.GetCoverageHandler',
-    'eoxserver.services.ows.wcs.v11.handlers.GetCapabilitiesHandler',
-    'eoxserver.services.ows.wcs.v11.handlers.DescribeCoverageHandler',
-    'eoxserver.services.ows.wcs.v11.handlers.GetCoverageHandler',
-    'eoxserver.services.ows.wcs.v20.handlers.GetCapabilitiesHandler',
-    'eoxserver.services.ows.wcs.v20.handlers.DescribeCoverageHandler',
-    'eoxserver.services.ows.wcs.v20.handlers.GetCoverageHandler',
+from eoxserver.core.decoders import kvp
+from eoxserver.resources.coverages import crss
+from eoxserver.services.ows.wms.util import parse_bbox
+from eoxserver.services.ows.wms.exceptions import InvalidCRS
+from eoxserver.services.ows.wms.basehandlers import (
+    WMSBaseGetMapHandler, WMSBaseGetMapDecoder
+)
 
-    'eoxserver.services.ows.wms.v10.handlers.WMS10GetMapHandler',
-    'eoxserver.services.ows.wms.v10.handlers.WMS10GetCapabilitiesHandler',
-    'eoxserver.services.ows.wms.v11.handlers.WMS11GetMapHandler',
-    'eoxserver.services.ows.wms.v13.handlers.WMS13GetMapHandler',
-]
 
-DEFAULT_EOXS_OWS_EXCEPTION_HANDLERS = [
-    # ''
-]
+class WMS13GetMapHandler(WMSBaseGetMapHandler):
+    service = ("WMS", None)
+    versions = ("1.3.0", "1.3")
+
+    def get_decoder(self, request):
+        return WMS13GetMapDecoder(request.GET)
+
+
+class WMS13GetMapDecoder(WMSBaseGetMapDecoder):
+    _bbox = kvp.Parameter('bbox', type=parse_bbox, num=1)
+
+    @property
+    def bbox(self):
+        bbox = self._bbox
+        crs = self.crs
+        srid = crss.parseEPSGCode(
+            self.crs, (crss.fromShortCode, crss.fromURN, crss.fromURL)
+        )
+        if srid is None:
+            raise InvalidCRS(crs, "crs")
+
+        if crss.hasSwappedAxes(srid):
+            miny, minx, maxy, maxx = bbox
+        else:
+            minx, miny, maxx, maxy = bbox
+
+        return (minx, miny, maxx, maxy)
+
+    crs = kvp.Parameter(num=1)
+
+    srs = property(lambda self: self.crs)

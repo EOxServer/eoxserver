@@ -25,19 +25,16 @@
 # THE SOFTWARE.
 # ------------------------------------------------------------------------------
 
-from django.db.models import Q
-
 from eoxserver.render.map.objects import (
     Map, CoverageLayer, OutlinesLayer, BrowseLayer, OutlinedBrowseLayer,
-    MaskLayer, MaskedBrowseLayer
+    MaskLayer, MaskedBrowseLayer,
+    LayerDescription, RasterLayerDescription
 )
 from eoxserver.render.coverage.objects import Coverage as RenderCoverage
 from eoxserver.render.browse.objects import (
     Browse, Mask, MaskedBrowse
 )
 from eoxserver.resources.coverages import models
-from eoxserver.services.ecql import parse, to_filter, get_field_mapping_for_model
-from eoxserver.services import filters
 
 
 class NoSuchLayer(Exception):
@@ -54,52 +51,79 @@ class LayerQuery(object):
 
     SUFFIX_SEPARATOR = "__"
 
-    def create_map(self, layers, styles, bbox, crs, width, height, format,
-                   bgcolor=None,
-                   transparent=True,
+    def get_layer_description(self, eo_object, raster_styles, geometry_styles):
+        if isinstance(eo_object, models.Coverage):
+            coverage = RenderCoverage.from_model(eo_object)
+            return RasterLayerDescription.from_coverage(coverage, raster_styles)
+        elif isinstance(eo_object, (models.Product, models.Collection)):
+            mask_types = []
+            browse_types = []
+            if getattr(eo_object, "product_type", None):
+                browse_types = eo_object.product_type.browse_types.all()
+                mask_types = eo_object.product_type.mask_types.all()
+            elif getattr(eo_object, "collection_type", None):
+                browse_types = models.BrowseType.objects.filter(
+                    product_type__allowed_collection_types__collections=eo_object
+                )
+                mask_types = models.MaskType.objects.filter(
+                    product_type__allowed_collection_types__collections=eo_object
+                )
 
-                   dimensions=None,
+            sub_layers = [
+                LayerDescription(
+                    "%s%soutlines" % (
+                        eo_object.identifier, self.SUFFIX_SEPARATOR
+                    ),
+                    styles=geometry_styles,
+                    queryable=True
+                ),
+                LayerDescription(
+                    "%s%soutlined" % (
+                        eo_object.identifier, self.SUFFIX_SEPARATOR
+                    ),
+                    styles=geometry_styles,
+                    queryable=True
+                )
+            ]
+            for browse_type in browse_types:
+                sub_layers.append(
+                    RasterLayerDescription(
+                        "%s%s%s" % (
+                            eo_object.identifier, self.SUFFIX_SEPARATOR,
+                            browse_type.name
+                        ),
+                        styles=geometry_styles
+                    )
+                )
 
-                   time=None,
-                   range=None,
-                   bands=None, wavelengths=None,
-                   elevation=None, cql=None):
+            for mask_type in mask_types:
+                sub_layers.append(
+                    LayerDescription(
+                        "%s%s%s" % (
+                            eo_object.identifier, self.SUFFIX_SEPARATOR,
+                            mask_type.name
+                        ),
+                        styles=geometry_styles
+                    )
+                )
+                sub_layers.append(
+                    LayerDescription(
+                        "%s%smasked_%s" % (
+                            eo_object.identifier, self.SUFFIX_SEPARATOR,
+                            mask_type.name
+                        ),
+                        styles=geometry_styles
+                    )
+                )
 
-        if not styles:
-            styles = [None] * len(layers)
-
-        assert len(layers) == len(styles)
-
-        filters_expressions = (
-            filters.bbox(
-                filters.attribute('footprint'),
-                bbox[0], bbox[1], bbox[2], bbox[3], crs) &
-            Q()
-        )
-
-        if cql:
-            field_mapping, mapping_choices = get_field_mapping_for_model(
-                models.Product
+            return LayerDescription(
+                name=eo_object.identifier,
+                bbox=eo_object.footprint.extent if eo_object.footprint else None,
+                sub_layers=sub_layers
             )
-            filters_expressions = filters_expressions & to_filter(
-                parse(cql), field_mapping, mapping_choices
-            )
-
-        return Map(
-            layers=[
-                self.lookup_layer(
-                    self.split_layer_suffix_name(layer)[0],
-                    self.split_layer_suffix_name(layer)[1], style,
-                    filters_expressions, time, range, bands, wavelengths, elevation
-                ) for (layer, style) in zip(layers, styles)
-            ],
-            width=width, height=height, format=format, bbox=bbox, crs=crs,
-            bgcolor=bgcolor,
-            transparent=transparent, time=time, elevation=elevation
-        )
 
     def lookup_layer(self, layer_name, suffix, style, filters_expressions,
-                     time, range, bands, wavelengths, elevation):
+                     sort_by, time, range, bands, wavelengths, elevation):
         """ Lookup the layer from the registered objects.
         """
         full_name = '%s%s%s' % (layer_name, self.SUFFIX_SEPARATOR, suffix)
@@ -129,7 +153,7 @@ class LayerQuery(object):
                     browses=[
                         Browse.from_model(product, browse)
                         for product, browse in self.iter_products_browses(
-                            eo_object, filters_expressions, None, style
+                            eo_object, filters_expressions, sort_by, None, style
                         )
                         if browse
                     ]
@@ -141,7 +165,7 @@ class LayerQuery(object):
                     browses=[
                         Browse.from_model(product, browse)
                         for product, browse in self.iter_products_browses(
-                            eo_object, filters_expressions, None, style
+                            eo_object, filters_expressions, sort_by, None, style
                         )
                         if browse
                     ]
@@ -152,7 +176,7 @@ class LayerQuery(object):
                     name=full_name, style=style,
                     footprints=[
                         product.footprint for product in self.iter_products(
-                            eo_object, filters_expressions
+                            eo_object, filters_expressions, sort_by,
                         )
                     ]
                 )
@@ -169,7 +193,7 @@ class LayerQuery(object):
                         MaskedBrowse.from_models(product, browse, mask)
                         for product, browse, mask in
                         self.iter_products_browses_masks(
-                            eo_object, filters_expressions, post_suffix
+                            eo_object, filters_expressions, sort_by, post_suffix
                         )
                     ]
                 )
@@ -187,7 +211,8 @@ class LayerQuery(object):
 
                             else Browse.generate(product, browse_type)
                             for product, browse in self.iter_products_browses(
-                                eo_object, filters_expressions, suffix, style
+                                eo_object, filters_expressions, sort_by, suffix,
+                                style
                             )
                         ]
                     )
@@ -199,7 +224,7 @@ class LayerQuery(object):
                         masks=[
                             Mask.from_model(mask_model)
                             for _, mask_model in self.iter_products_masks(
-                                eo_object, filters_expressions, suffix
+                                eo_object, filters_expressions, sort_by, suffix
                             )
                         ]
                     )
@@ -233,18 +258,28 @@ class LayerQuery(object):
     # iteration methods
     #
 
-    def iter_products(self, eo_object, filters_expressions):
+    def iter_products(self, eo_object, filters_expressions, sort_by=None):
         if isinstance(eo_object, models.Collection):
             base_filter = dict(collections=eo_object)
         else:
             base_filter = dict(product=eo_object)
 
-        return models.Product.objects.filter(filters_expressions, **base_filter)
+        qs = models.Product.objects.filter(filters_expressions, **base_filter)
 
-    def iter_products_browses(self, eo_object, filters_expressions,
+        if sort_by:
+            qs = qs.order_by('%s%s' % (
+                '-' if sort_by[1] == 'DESC' else '',
+                sort_by[0]
+            ))
+
+        print qs
+
+        return qs
+
+    def iter_products_browses(self, eo_object, filters_expressions, sort_by,
                               name=None, style=None):
         products = self.iter_products(
-            eo_object, filters_expressions
+            eo_object, filters_expressions, sort_by
         ).prefetch_related('browses')
 
         for product in products:
@@ -261,9 +296,10 @@ class LayerQuery(object):
 
             yield (product, browses.first())
 
-    def iter_products_masks(self, eo_object, filters_expressions, name=None):
+    def iter_products_masks(self, eo_object, filters_expressions, sort_by,
+                            name=None):
         products = self.iter_products(
-            eo_object, filters_expressions
+            eo_object, filters_expressions, sort_by
         ).prefetch_related('masks')
 
         for product in products:
@@ -276,9 +312,9 @@ class LayerQuery(object):
             yield (product, mask)
 
     def iter_products_browses_masks(self, eo_object, filters_expressions,
-                                    name=None):
+                                    sort_by, name=None):
         products = self.iter_products(
-            eo_object, filters_expressions
+            eo_object, filters_expressions, sort_by
         ).prefetch_related('masks', 'browses')
 
         for product in products:
