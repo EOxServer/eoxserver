@@ -68,7 +68,10 @@ class ProductMetadataComponent(object):
             if hasattr(reader, 'read_path'):
                 return reader.read_path(path)
             else:
-                with open(path) as f:
-                    return reader.read(f)
+                try:
+                    with open(path) as f:
+                        return reader.read(f)
+                except IOError:
+                    pass
 
         raise Exception('No suitable metadata reader found.')
