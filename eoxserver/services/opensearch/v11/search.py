@@ -97,7 +97,9 @@ class OpenSearch11SearchHandler(object):
 
             params = dict(
                 (parameter["type"], request_parameters[parameter["name"]])
-                for parameter in search_extension.get_schema(qs.model)
+                for parameter in search_extension.get_schema(
+                    model_class=qs.model
+                )
                 if parameter["name"] in request_parameters
             )
 
