@@ -40,6 +40,8 @@ from django.contrib.gis.gdal import SpatialReference
 from django.contrib.gis.geos import Polygon
 from django.contrib.gis.measure import D
 
+from eoxserver.core.config import get_eoxserver_config
+from eoxserver.core.decoders import config, enum
 from eoxserver.resources.coverages import models
 
 ARITHMETIC_TYPES = (F, Value, int, float)
@@ -326,6 +328,65 @@ def temporal(lhs, time_or_period, op):
         return Q(**{"%s__lte" % lhs.name: high})
 
 
+def time_interval(time_or_period, containment='overlaps',
+                  begin_time_field='begin_time', end_time_field='end_time'):
+    """
+    """
+    config = get_eoxserver_config()
+    reader = SubsetConfigReader(config)
+
+    if reader.time_interval_interpretation == "closed":
+        gt_op = "__gte"
+        lt_op = "__lte"
+    else:
+        gt_op = "__gt"
+        lt_op = "__lt"
+
+    is_slice = len(time_or_period) == 1
+    if len(time_or_period) == 1:
+        is_slice = True
+        value = time_or_period[0]
+    else:
+        is_slice = False
+        low, high = time_or_period
+
+    if is_slice or (high == low and containment == "overlaps"):
+        return Q(**{
+            begin_time_field + "__lte": time_or_period[0],
+            end_time_field + "__gte": time_or_period[0]
+        })
+
+    elif high == low:
+        return Q(**{
+            begin_time_field + "__gte": value,
+            end_time_field + "__lte": value
+        })
+
+    else:
+        q = Q()
+        # check if the temporal bounds must be strictly contained
+        if containment == "contains":
+            if high is not None:
+                q = Q(**{
+                    end_time_field + lt_op: high
+                })
+            if low is not None:
+                q = Q(**{
+                    begin_time_field + gt_op: low
+                })
+        # or just overlapping
+        else:
+            if high is not None:
+                q = Q(**{
+                    begin_time_field + lt_op: high
+                })
+            if low is not None:
+                q = Q(**{
+                    end_time_field + gt_op: low
+                })
+        return q
+
+
 UNITS_LOOKUP = {
     "kilometers": "km",
     "meters": "m"
@@ -391,14 +452,24 @@ def bbox(lhs, minx, miny, maxx, maxy, crs=None):
         :rtype: :class:`django.db.models.Q`
     """
     assert isinstance(lhs, F)
-    bbox = Polygon.from_bbox((minx, miny, maxx, maxy))
+    box = Polygon.from_bbox((minx, miny, maxx, maxy))
 
     if crs:
-        bbox.srid = SpatialReference(crs).srid
-        bbox.transform(4326)
+        box.srid = SpatialReference(crs).srid
+        box.transform(4326)
 
-    return Q(**{"%s__bboverlaps" % lhs.name: bbox})
+    return Q(**{"%s__bboverlaps" % lhs.name: box})
 
+
+# ------------------------------------------------------------------------------
+# Configuration
+# ------------------------------------------------------------------------------
+
+class SubsetConfigReader(config.Reader):
+    section = "services.owscommon"
+    time_interval_interpretation = config.Option(
+        default="closed", type=enum(("closed", "open"), False)
+    )
 
 # ------------------------------------------------------------------------------
 # Expressions
@@ -413,7 +484,7 @@ def attribute(name, field_mapping=None):
         :rtype: :class:`django.db.models.F`
     """
     if field_mapping:
-        field = field_mapping[name]
+        field = field_mapping.get(name, name)
     else:
         field = name
     return F(field)
