@@ -292,16 +292,6 @@ def _create_raster_style(name, layer, minvalue=0, maxvalue=255):
     cls.insertStyle(style)
     layer.insertClass(cls)
 
-    # Create style for values above range
-    cls = ms.classObj()
-    cls.setExpression("([pixel] > %s)" % (maxvalue))
-    cls.group = name
-    style = ms.styleObj()
-    style.color = ms.colorObj(*colors[-1][1])
-    cls.insertStyle(style)
-    layer.insertClass(cls)
-    layer.classgroup = name
-
     interval = (maxvalue - minvalue)
     for prev_item, next_item in pairwise_iterative(colors):
         prev_perc, prev_color = prev_item
@@ -322,6 +312,15 @@ def _create_raster_style(name, layer, minvalue=0, maxvalue=255):
         cls.insertStyle(style)
         layer.insertClass(cls)
 
+    # Create style for values above range
+    cls = ms.classObj()
+    cls.setExpression("([pixel] > %s)" % (maxvalue))
+    cls.group = name
+    style = ms.styleObj()
+    style.color = ms.colorObj(*colors[-1][1])
+    cls.insertStyle(style)
+    layer.insertClass(cls)
+    layer.classgroup = name
 
 # ------------------------------------------------------------------------------
 # Layer factories
