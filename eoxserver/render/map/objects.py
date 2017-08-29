@@ -26,6 +26,11 @@
 # ------------------------------------------------------------------------------
 
 
+from eoxserver.render.coverage.objects import (
+    GRID_TYPE_TEMPORAL, GRID_TYPE_ELEVATION
+)
+
+
 class Layer(object):
     """ Abstract layer
     """
@@ -233,3 +238,104 @@ class Map(object):
                 self.elevation,
             )
         )
+
+
+class LayerDescription(object):
+    """ Abstract layer description
+    """
+
+    is_raster = False
+
+    def __init__(self, name, bbox=None, dimensions=None, queryable=False,
+                 styles=None, sub_layers=None):
+        self._name = name
+        self._bbox = bbox
+        self._dimensions = dimensions
+        self._queryable = queryable
+        self._styles = styles if styles is not None else []
+        self._sub_layers = sub_layers if sub_layers is not None else []
+
+    @property
+    def name(self):
+        return self._name
+
+    @property
+    def bbox(self):
+        return self._bbox
+
+    @property
+    def dimensions(self):
+        return self._dimensions
+
+    @property
+    def queryable(self):
+        return self._queryable
+
+    @property
+    def styles(self):
+        return self._styles
+
+    @property
+    def sub_layers(self):
+        return self._sub_layers
+
+
+class RasterLayerDescription(LayerDescription):
+    is_raster = True
+
+    def __init__(self, name, bbox=None, dimensions=None, styles=None):
+        super(RasterLayerDescription, self).__init__(
+            name, bbox=bbox, dimensions=dimensions, styles=styles
+        )
+
+    @classmethod
+    def from_coverage(cls, coverage, styles):
+        extent = coverage.extent
+        grid = coverage.grid
+
+        dimensions = {}
+        if GRID_TYPE_ELEVATION in grid.types:
+            elevation_dim = grid.types.index(GRID_TYPE_ELEVATION)
+            dimensions['elevation'] = {
+                'min': extent[elevation_dim],
+                'max': extent[len(extent) / 2 + elevation_dim],
+                'step': grid.offsets[elevation_dim],
+                'default': extent[len(extent) / 2 + elevation_dim],
+                'units': 'ISO8601'
+            }
+
+        if GRID_TYPE_TEMPORAL in grid.types:
+            temporal_dim = grid.types.index(GRID_TYPE_TEMPORAL)
+            dimensions['time'] = {
+                'min': extent[temporal_dim],
+                'max': extent[len(extent) / 2 + temporal_dim],
+                'step': grid.offsets[temporal_dim],
+                'default': extent[len(extent) / 2 + temporal_dim],
+                'units': 'CRS:'  # TODO: get vertical part of crs
+            }
+
+        range_type = coverage.range_type
+        band_names = [
+            field.identifier for field in range_type
+        ]
+        wavelengths = [
+            field.wavelength
+            for field in range_type
+            if field.wavelength is not None
+        ]
+
+        dimensions['bands'] = {'values': band_names}
+
+        if wavelengths:
+            dimensions['wavelength'] = {'values': wavelengths}
+
+        return cls(
+            coverage.identifier,
+            bbox=coverage.footprint.extent if coverage.footprint else None,
+            dimensions=dimensions,
+            styles=styles
+        )
+
+    @property
+    def from_browse_type(cls, eo_object, browse_type):
+        browse_type

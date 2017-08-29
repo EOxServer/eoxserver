@@ -252,6 +252,18 @@ class EOMetadata(object):
         self._end_time = end_time
         self._footprint = footprint
 
+    @property
+    def footprint(self):
+        return self._footprint
+
+    @property
+    def begin_time(self):
+        return self._begin_time
+
+    @property
+    def end_time(self):
+        return self._end_time
+
 
 class Location(object):
     def __init__(self, path, format):
@@ -306,6 +318,18 @@ class Coverage(object):
     @property
     def eo_metadata(self):
         return self._eo_metadata
+
+    @property
+    def footprint(self):
+        return self._eo_metadata.footprint if self._eo_metadata else None
+
+    @property
+    def begin_time(self):
+        return self._eo_metadata.begin_time if self._eo_metadata else None
+
+    @property
+    def end_time(self):
+        return self._eo_metadata.end_time if self._eo_metadata else None
 
     @property
     def range_type(self):
