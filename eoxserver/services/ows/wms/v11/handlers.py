@@ -26,8 +26,17 @@
 # ------------------------------------------------------------------------------
 
 from eoxserver.services.ows.wms.basehandlers import (
-    WMSBaseGetMapHandler, WMSBaseGetMapDecoder
+    WMSBaseGetCapabilitiesHandler, WMSBaseGetMapHandler, WMSBaseGetMapDecoder
 )
+
+from eoxserver.services.ows.wms.v11.encoders import WMS11Encoder
+
+
+class WMS11GetCapabilitiesHandler(WMSBaseGetCapabilitiesHandler):
+    versions = ("1.1", "1.1.0", "1.1.1")
+
+    def get_encoder(self):
+        return WMS11Encoder()
 
 
 class WMS11GetMapHandler(WMSBaseGetMapHandler):

@@ -25,16 +25,21 @@
 # THE SOFTWARE.
 # ------------------------------------------------------------------------------
 
+from eoxserver.core.util.timetools import isoformat
 from eoxserver.render.map.objects import (
-    Map, CoverageLayer, OutlinesLayer, BrowseLayer, OutlinedBrowseLayer,
+    CoverageLayer, OutlinesLayer, BrowseLayer, OutlinedBrowseLayer,
     MaskLayer, MaskedBrowseLayer,
-    LayerDescription, RasterLayerDescription
+    LayerDescription,
 )
 from eoxserver.render.coverage.objects import Coverage as RenderCoverage
 from eoxserver.render.browse.objects import (
     Browse, Mask, MaskedBrowse
 )
 from eoxserver.resources.coverages import models
+
+
+class UnsupportedObject(Exception):
+    pass
 
 
 class NoSuchLayer(Exception):
@@ -45,16 +50,18 @@ class NoSuchPrefix(NoSuchLayer):
     pass
 
 
-class LayerQuery(object):
-    """
+class LayerMapper(object):
+    """ Default layer mapper.
     """
 
-    SUFFIX_SEPARATOR = "__"
+    def __init__(self, supported_layer_types, suffix_separator):
+        self.supported_layer_types = supported_layer_types
+        self.suffix_separator = suffix_separator
 
     def get_layer_description(self, eo_object, raster_styles, geometry_styles):
         if isinstance(eo_object, models.Coverage):
             coverage = RenderCoverage.from_model(eo_object)
-            return RasterLayerDescription.from_coverage(coverage, raster_styles)
+            return LayerDescription.from_coverage(coverage, raster_styles)
         elif isinstance(eo_object, (models.Product, models.Collection)):
             mask_types = []
             browse_types = []
@@ -72,14 +79,14 @@ class LayerQuery(object):
             sub_layers = [
                 LayerDescription(
                     "%s%soutlines" % (
-                        eo_object.identifier, self.SUFFIX_SEPARATOR
+                        eo_object.identifier, self.suffix_separator
                     ),
                     styles=geometry_styles,
                     queryable=True
                 ),
                 LayerDescription(
                     "%s%soutlined" % (
-                        eo_object.identifier, self.SUFFIX_SEPARATOR
+                        eo_object.identifier, self.suffix_separator
                     ),
                     styles=geometry_styles,
                     queryable=True
@@ -87,9 +94,9 @@ class LayerQuery(object):
             ]
             for browse_type in browse_types:
                 sub_layers.append(
-                    RasterLayerDescription(
+                    LayerDescription(
                         "%s%s%s" % (
-                            eo_object.identifier, self.SUFFIX_SEPARATOR,
+                            eo_object.identifier, self.suffix_separator,
                             browse_type.name
                         ),
                         styles=geometry_styles
@@ -100,7 +107,7 @@ class LayerQuery(object):
                 sub_layers.append(
                     LayerDescription(
                         "%s%s%s" % (
-                            eo_object.identifier, self.SUFFIX_SEPARATOR,
+                            eo_object.identifier, self.suffix_separator,
                             mask_type.name
                         ),
                         styles=geometry_styles
@@ -109,24 +116,39 @@ class LayerQuery(object):
                 sub_layers.append(
                     LayerDescription(
                         "%s%smasked_%s" % (
-                            eo_object.identifier, self.SUFFIX_SEPARATOR,
+                            eo_object.identifier, self.suffix_separator,
                             mask_type.name
                         ),
                         styles=geometry_styles
                     )
                 )
 
+            dimensions = {}
+            if eo_object.begin_time and eo_object.end_time:
+                dimensions["time"] = {
+                    'min': isoformat(eo_object.begin_time),
+                    'max': isoformat(eo_object.end_time),
+                    'step': 'PT1S',
+                    'default': isoformat(eo_object.end_time),
+                    'units': 'ISO8601'
+                }
+
             return LayerDescription(
                 name=eo_object.identifier,
                 bbox=eo_object.footprint.extent if eo_object.footprint else None,
+                dimensions=dimensions,
                 sub_layers=sub_layers
             )
+
+        raise UnsupportedObject(
+            "Object %r cannot be mapped to a layer." % eo_object
+        )
 
     def lookup_layer(self, layer_name, suffix, style, filters_expressions,
                      sort_by, time, range, bands, wavelengths, elevation):
         """ Lookup the layer from the registered objects.
         """
-        full_name = '%s%s%s' % (layer_name, self.SUFFIX_SEPARATOR, suffix)
+        full_name = '%s%s%s' % (layer_name, self.suffix_separator, suffix)
 
         try:
             eo_object = models.EOObject.objects.select_subclasses(
@@ -232,7 +254,7 @@ class LayerQuery(object):
                 raise NoSuchLayer('Invalid layer suffix %r' % suffix)
 
     def split_layer_suffix_name(self, layer_name):
-        return layer_name.partition(self.SUFFIX_SEPARATOR)[::2]
+        return layer_name.partition(self.suffix_separator)[::2]
 
     def get_browse_type(self, eo_object, name):
         if isinstance(eo_object, models.Product):
@@ -271,8 +293,6 @@ class LayerQuery(object):
                 '-' if sort_by[1] == 'DESC' else '',
                 sort_by[0]
             ))
-
-        print qs
 
         return qs
 

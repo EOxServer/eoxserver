@@ -26,12 +26,16 @@
 # ------------------------------------------------------------------------------
 
 
-from lxml.builder import E
+from lxml.builder import E, ElementMaker
 
-from eoxserver.core.util.xmltools import XMLEncoder
+from eoxserver.core.util.xmltools import XMLEncoder, NameSpace, NameSpaceMap
+
+ns_xlink = NameSpace("http://www.w3.org/1999/xlink", "xlink")
+nsmap = NameSpaceMap(ns_xlink)
+E_WITH_XLINK = ElementMaker(nsmap=nsmap)
 
 
-class WMS10Encoder(XMLEncoder):
+class WMS11Encoder(XMLEncoder):
     def encode_capabilities(self, config, ows_url, srss, formats, info_formats,
                             layer_descriptions):
 
@@ -48,53 +52,62 @@ class WMS10Encoder(XMLEncoder):
                 E("Name", config.name),
                 E("Title", config.title),
                 E("Abstract", config.abstract),
-                E("Keywords", " ".join(config.keywords)),
+                E("KeywordList", *[
+                    E("Keyword", keyword)
+                    for keyword in config.keywords
+                ]),
                 E("OnlineResource", config.onlineresource),
+
+                E("ContactInformation",
+                    E("ContactPersonPrimary",
+                        E("ContactPerson", config.individual_name),
+                        E("ContactOrganization",  config.provider_name),
+                    ),
+                    E("ContactPosition", config.position_name),
+                    E("ContactAddress",
+                        E("AddressType", "postal"),
+                        E("Address", config.delivery_point),
+                        E("City", config.city),
+                        E("StateOrProvince", config.administrative_area),
+                        E("PostCode", config.postal_code),
+                        E("Country", config.country),
+                    ),
+                    E("ContactVoiceTelephone", config.phone_voice),
+                    E("ContactFacsimileTelephone", config.phone_facsimile),
+                    E("ContactElectronicMailAddress",
+                        config.electronic_mail_address
+                    ),
+                ),
                 E("Fees", config.fees),
                 E("AccessConstraints", config.access_constraints),
             ),
             E("Capability",
                 E("Request",
-                    E("Map",
+                    E("GetCapabilities",
+                        E("Format", "application/vnd.ogc.wms_xml"),
+                        self.encode_dcptype(ows_url)
+                    ),
+                    E("GetMap",
                         E("Format", *[
                                 E(mime_to_name[frmt.mimeType])
                                 for frmt in formats
                                 if frmt.mimeType in mime_to_name
                             ]
                         ),
-                        E("DCPType",
-                            E("HTTP",
-                                E("Get", onlineResource=ows_url)
-                            )
-                        )
+                        self.encode_dcptype(ows_url)
                     ),
-                    E("Capabilities",
-                        E("Format",
-                            E("WMS_XML")
-                        ),
-                        E("DCPType",
-                            E("HTTP",
-                                E("Get", onlineResource=ows_url)
-                            )
-                        )
-                    ),
-                    E("FeatureInfo",
+                    E("GetFeatureInfo",
                         E("Format",
                             # TODO
                         ),
-                        E("DCPType",
-                            E("HTTP",
-                                E("Get", onlineResource=ows_url)
-                            )
-                        )
+                        self.encode_dcptype(ows_url)
                     ),
+                    # TODO: describe layer?
                 ),
                 E("Exception",
-                    E("Format",
-                        E("BLANK"),
-                        E("INIMAGE"),
-                        E("WMS_XML")
-                    ),
+                    E("Format", "application/vnd.ogc.se_xml"),
+                    E("Format", "application/vnd.ogc.se_inimage"),
+                    E("Format", "application/vnd.ogc.se_blank"),
                 ),
                 E("Layer",
                     E("Title", config.title),
@@ -109,7 +122,19 @@ class WMS10Encoder(XMLEncoder):
                     ])
                 )
             ),
-            version="1.0.0", updateSequence=config.update_sequence
+            version="1.1.1", updateSequence=config.update_sequence
+        )
+
+    def encode_dcptype(self, ows_url):
+        return E("DCPType",
+            E("HTTP",
+                E("Get",
+                    E_WITH_XLINK("OnlineResource", **{
+                        ns_xlink("href"): ows_url,
+                        ns_xlink("type"): "simple"
+                    })
+                )
+            )
         )
 
     def encode_layer(self, layer_description):
@@ -136,6 +161,30 @@ class WMS10Encoder(XMLEncoder):
             self.encode_layer(sub_layer)
             for sub_layer in layer_description.sub_layers
         )
+
+        dimensions = []
+        extents = []
+
+        for dimension_name, dimension in layer_description.dimensions.items():
+            dimension_elem = E("Dimension", name=dimension_name)
+            if "units" in dimension:
+                dimension_elem.attrib["units"] = dimension["units"]
+            dimensions.append(dimension_elem)
+
+            if "min" in dimension and "max" in dimension and "step" in dimension:
+                extent_text = "%s/%s/%s" % (
+                    dimension["min"], dimension["max"], dimension["step"]
+                )
+            elif "values" in dimension:
+                extent_text = ",".join(dimension["values"])
+
+            extent_elem = E("Extent", extent_text, name=dimension_name)
+            if "default" in dimension:
+                extent_elem.attrib["default"] = dimension["default"]
+            extents.append(extent_elem)
+
+        elems.extend(dimensions)
+        elems.extend(extents)
 
         return E("Layer",
             *elems,

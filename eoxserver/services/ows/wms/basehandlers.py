@@ -33,7 +33,7 @@ default methods can be overidden.
 """
 
 from django.conf import settings
-from django.db.models import Q, Case, When, BooleanField
+from django.db.models import Q
 from django.urls import reverse
 
 from eoxserver.core.decoders import kvp, typelist, InvalidParameterException
@@ -45,10 +45,9 @@ from eoxserver.resources.coverages import models
 from eoxserver.services.ows.wms.util import parse_bbox, parse_time, int_or_str
 from eoxserver.services.ows.common.config import CapabilitiesConfigReader
 from eoxserver.services.ows.wms.exceptions import InvalidCRS
-from eoxserver.services.result import to_http_response
 from eoxserver.services.ecql import parse, to_filter, get_field_mapping_for_model
 from eoxserver.services import filters
-from eoxserver.services.ows.wms.layerquery import LayerQuery
+from eoxserver.services.ows.wms.layermapper import LayerMapper
 from eoxserver.services import views
 
 
@@ -62,6 +61,7 @@ class WMSBaseGetCapabilitiesHandler(object):
     methods = ["GET"]
 
     def handle(self, request):
+        # lookup Collections, Products and Coverages
         qs = models.EOObject.objects.filter(
             Q(  # include "WMS-visible" Products
                 product__isnull=False,
@@ -80,13 +80,16 @@ class WMSBaseGetCapabilitiesHandler(object):
             service_visibility__visibility=False
         ).select_subclasses()
 
+        #
         map_renderer = get_map_renderer()
         raster_styles = map_renderer.get_raster_styles()
         geometry_styles = map_renderer.get_geometry_styles()
 
-        layer_query = LayerQuery()
+        layer_mapper = LayerMapper(
+            map_renderer.get_supported_layer_types(), "__"
+        )
         layer_descriptions = [
-            layer_query.get_layer_description(
+            layer_mapper.get_layer_description(
                 eo_object, raster_styles, geometry_styles
             )
             for eo_object in qs
@@ -98,39 +101,11 @@ class WMSBaseGetCapabilitiesHandler(object):
             encoder.encode_capabilities(
                 conf, request.build_absolute_uri(reverse(views.ows)),
                 crss.getSupportedCRS_WMS(format_function=crss.asShortCode),
+                map_renderer.get_supported_formats(), [],
                 layer_descriptions
             ),
             pretty_print=settings.DEBUG
         ), encoder.content_type
-
-
-        # products = models.Product.objects.filter(
-        #     Q(
-        #         product__isnull=False,
-        #         service_visibility__service='wms',
-        #         service_visibility__visibility=True
-        #     ) | Q(
-        #         collection__isnull=False
-        #     )
-        # )
-
-        # collections = models.Collection.objects.exclude(
-        #     collection__isnull=False,
-        #     service_visibility__service='wms',
-        #     service_visibility__visibility=False
-        # )
-
-        # coverages = models.Coverage.objects.filter(
-        #     service_visibility__service='wms',
-        #     service_visibility__visibility=True
-        # )
-
-        # TODO look up Collections/Products + Coverages
-
-
-
-
-        return to_http_response(result)
 
 
 class WMSBaseGetMapHandler(object):
@@ -196,12 +171,16 @@ class WMSBaseGetMapHandler(object):
             "wavelengths": decoder.dim_wavelengths,
         }
 
-        layer_query = LayerQuery()
+        map_renderer = get_map_renderer()
+
+        layer_mapper = LayerMapper(
+            map_renderer.get_supported_layer_types(), "__"
+        )
 
         layers = []
         for layer_name, style in zip(layer_names, styles):
-            name, suffix = layer_query.split_layer_suffix_name(layer_name)
-            layer = layer_query.lookup_layer(
+            name, suffix = layer_mapper.split_layer_suffix_name(layer_name)
+            layer = layer_mapper.lookup_layer(
                 name, suffix, style,
                 filter_expressions, sort_by, **dimensions
             )
@@ -215,7 +194,7 @@ class WMSBaseGetMapHandler(object):
         )
 
         # TODO: translate to Response
-        return get_map_renderer().render_map(map_)
+        return map_renderer.render_map(map_)
 
 
 def parse_transparent(value):

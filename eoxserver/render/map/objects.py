@@ -250,7 +250,7 @@ class LayerDescription(object):
                  styles=None, sub_layers=None):
         self._name = name
         self._bbox = bbox
-        self._dimensions = dimensions
+        self._dimensions = dimensions if dimensions is not None else {}
         self._queryable = queryable
         self._styles = styles if styles is not None else []
         self._sub_layers = sub_layers if sub_layers is not None else []
@@ -279,15 +279,6 @@ class LayerDescription(object):
     def sub_layers(self):
         return self._sub_layers
 
-
-class RasterLayerDescription(LayerDescription):
-    is_raster = True
-
-    def __init__(self, name, bbox=None, dimensions=None, styles=None):
-        super(RasterLayerDescription, self).__init__(
-            name, bbox=bbox, dimensions=dimensions, styles=styles
-        )
-
     @classmethod
     def from_coverage(cls, coverage, styles):
         extent = coverage.extent
@@ -301,7 +292,7 @@ class RasterLayerDescription(LayerDescription):
                 'max': extent[len(extent) / 2 + elevation_dim],
                 'step': grid.offsets[elevation_dim],
                 'default': extent[len(extent) / 2 + elevation_dim],
-                'units': 'ISO8601'
+                'units': 'CRS:'  # TODO: get vertical part of crs
             }
 
         if GRID_TYPE_TEMPORAL in grid.types:
@@ -311,7 +302,7 @@ class RasterLayerDescription(LayerDescription):
                 'max': extent[len(extent) / 2 + temporal_dim],
                 'step': grid.offsets[temporal_dim],
                 'default': extent[len(extent) / 2 + temporal_dim],
-                'units': 'CRS:'  # TODO: get vertical part of crs
+                'units': 'ISO8601'
             }
 
         range_type = coverage.range_type
@@ -319,7 +310,7 @@ class RasterLayerDescription(LayerDescription):
             field.identifier for field in range_type
         ]
         wavelengths = [
-            field.wavelength
+            str(field.wavelength)
             for field in range_type
             if field.wavelength is not None
         ]
