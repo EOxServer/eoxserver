@@ -38,15 +38,6 @@ E_WITH_XLINK = ElementMaker(nsmap=nsmap)
 class WMS11Encoder(XMLEncoder):
     def encode_capabilities(self, config, ows_url, srss, formats, info_formats,
                             layer_descriptions):
-
-        mime_to_name = {
-            "image/gif": "GIF",
-            "image/png": "PNG",
-            "image/jpeg": "JPEG",
-            "image/tiff": "GeoTIFF",
-
-        }
-
         return E("WMT_MS_Capabilities",
             E("Service",
                 E("Name", config.name),
@@ -87,14 +78,12 @@ class WMS11Encoder(XMLEncoder):
                         E("Format", "application/vnd.ogc.wms_xml"),
                         self.encode_dcptype(ows_url)
                     ),
-                    E("GetMap",
-                        E("Format", *[
-                                E(mime_to_name[frmt.mimeType])
-                                for frmt in formats
-                                if frmt.mimeType in mime_to_name
-                            ]
-                        ),
-                        self.encode_dcptype(ows_url)
+                    E("GetMap", *[
+                            E("Format", frmt.mimeType)
+                            for frmt in formats
+                        ] + [
+                            self.encode_dcptype(ows_url)
+                        ]
                     ),
                     E("GetFeatureInfo",
                         E("Format",
