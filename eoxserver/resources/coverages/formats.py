@@ -101,6 +101,9 @@ class Format(object):
 
 # ------------------------------------------------------------------------------
 
+__FORMAT_REGISTRY = None
+
+
 class FormatRegistry(object):
     """
     The :class:`FormatRegistry` class represents cofiguration of file supported
