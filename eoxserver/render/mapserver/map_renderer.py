@@ -31,6 +31,7 @@ import tempfile
 from eoxserver.contrib import mapserver as ms
 from eoxserver.render.colors import BASE_COLORS, COLOR_SCALES
 from eoxserver.render.mapserver.factories import get_layer_factories
+from eoxserver.resources.coverages.formats import getFormatRegistry
 
 
 logger = logging.getLogger(__name__)
@@ -52,6 +53,15 @@ class MapserverMapRenderer(object):
 
     def get_raster_styles(self):
         return COLOR_SCALES.keys()
+
+    def get_supported_layer_types(self):
+        layer_types = []
+        for layer_factory in get_layer_factories():
+            layer_types.extend(layer_factory.handled_layer_types)
+        return set(layer_types)
+
+    def get_supported_formats(self):
+        return getFormatRegistry().getSupportedFormatsWMS()
 
     def render_map(self, render_map):
         # TODO: get layer creators for each layer type in the map
