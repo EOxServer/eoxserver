@@ -442,7 +442,8 @@ class Coverage(object):
             )
         else:
             range_type = RangeType.from_gdal_dataset(
-                arraydata_locations[0].path
+                gdal.OpenShared(arraydata_locations[0].path),
+                coverage_model.identifier
             )
 
         grid_model = coverage_model.grid
