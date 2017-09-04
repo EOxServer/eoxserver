@@ -47,6 +47,19 @@ BASE_COLORS = {
     "brown": (165, 42, 42)
 }
 
+# some color scales require a specific offsite color to not interfere with the
+# colors and accidentially produce transparent pixels
+OFFSITE_COLORS = {
+    "blackwhite": (255, 0, 0),
+    "diverging_2": (255, 0, 0),
+    "hot": (0, 0, 255),
+    "bone": (255, 0, 0),
+    "copper": (255, 0, 0),
+    "greys": (255, 0, 0),
+    "blackbody": (255, 0, 0),
+    "electric": (255, 0, 0),
+}
+
 COLOR_SCALES = {
     "blackwhite": linear([
         (0, 0, 0),

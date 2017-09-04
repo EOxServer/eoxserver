@@ -37,7 +37,7 @@ from eoxserver.render.map.objects import (
 from eoxserver.render.mapserver.config import (
     DEFAULT_EOXS_MAPSERVER_LAYER_FACTORIES,
 )
-from eoxserver.render.colors import BASE_COLORS, COLOR_SCALES
+from eoxserver.render.colors import BASE_COLORS, COLOR_SCALES, OFFSITE_COLORS
 from eoxserver.resources.coverages import crss
 
 
@@ -106,10 +106,21 @@ class CoverageLayerFactory(BaseMapServerLayerFactory):
             layer_obj.data = locations[0].path
 
         if len(fields) == 1 and layer.style:
-            # TODO: get the scale from range_type?
-            rng = layer.range or [941, 14809]
+            field = fields[0]
 
-            _create_raster_style(layer.style, layer_obj, *rng)
+            if layer.range:
+                range_ = layer.range
+            elif len(field.allowed_values) == 1:
+                range_ = field.allowed_values[0]
+            else:
+                # TODO: from datatype
+                range_ = (0, 255)
+
+            _create_raster_style(
+                layer.style, layer_obj, range_[0], range_[1], [
+                    nil_value[0] for nil_value in field.nil_values
+                ]
+            )
 
 
 class BrowseLayerFactory(BaseMapServerLayerFactory):
@@ -223,8 +234,6 @@ def _create_raster_layer_obj(map_obj, extent, sr):
     layer_obj.type = ms.MS_LAYER_RASTER
     layer_obj.status = ms.MS_ON
 
-    layer_obj.offsite = ms.colorObj(0, 0, 0)
-
     if extent:
         layer_obj.setMetaData("wms_extent", "%f %f %f %f" % extent)
         layer_obj.setExtent(*extent)
@@ -280,8 +289,24 @@ def _create_geometry_class(color_name, background_color_name=None, fill=False):
     return cls_obj
 
 
-def _create_raster_style(name, layer, minvalue=0, maxvalue=255):
+def _create_raster_style(name, layer, minvalue=0, maxvalue=255, nil_values=None):
     colors = COLOR_SCALES[name]
+
+    if nil_values:
+        offsite = ms.colorObj(*OFFSITE_COLORS.get(name, (0, 0, 0)))
+        layer.offsite = offsite
+
+        for nil_value in nil_values:
+            cls = ms.classObj()
+            cls.setExpression("([pixel] = %s)" % nil_value)
+            cls.group = name
+
+            style = ms.styleObj()
+            style.color = offsite
+            style.opacity = 0
+            style.rangeitem = ""
+            cls.insertStyle(style)
+            layer.insertClass(cls)
 
     # Create style for values below range
     cls = ms.classObj()

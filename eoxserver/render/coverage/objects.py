@@ -135,6 +135,12 @@ class RangeType(list):
         bandoffset = 0
         for i in range(ds.RasterCount):
             band = ds.GetRasterBand(i + 1)
+            nodata_value = band.GetNoDataValue()
+            if nodata_value is not None:
+                nil_values = [(nodata_value, "")]
+            else:
+                nil_values = []
+
             fields.append(
                 Field(
                     index=i,
@@ -151,7 +157,7 @@ class RangeType(list):
                         gdal.GDT_NUMERIC_LIMITS[band.DataType]
                     ]
                     if band.DataType in gdal.GDT_NUMERIC_LIMITS else [],
-                    nil_values=[],  # TODO: use nodata value?
+                    nil_values=nil_values,
                     data_type=band.DataType
                 )
             )
