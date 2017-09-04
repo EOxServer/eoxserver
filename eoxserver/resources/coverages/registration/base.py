@@ -26,6 +26,8 @@
 # ------------------------------------------------------------------------------
 
 from django.db.models import ForeignKey, Q
+from django.contrib.gis.geos import Polygon
+from django.contrib.gis.gdal import SpatialReference, CoordTransform
 
 from eoxserver.backends import models as backends
 from eoxserver.backends.access import vsi_open
@@ -51,7 +53,7 @@ class BaseRegistrator(object):
     ))
 
     def register(self, data_locations, metadata_locations,
-                 coverage_type_name=None,
+                 coverage_type_name=None, footprint_from_extent=False,
                  overrides=None, replace=False, cache=None):
         """ Main registration method
 
@@ -175,6 +177,14 @@ class BaseRegistrator(object):
             except models.Coverage.DoesNotExist:
                 pass
 
+        # calculate the footprint from the extent
+        if footprint_from_extent:
+            footprint = self._footprint_from_grid(
+                retrieved_metadata['grid'], retrieved_metadata['origin'],
+                retrieved_metadata['size']
+            )
+            retrieved_metadata['footprint'] = footprint
+
         coverage = self._create_coverage(
             identifier=retrieved_metadata['identifier'],
             footprint=retrieved_metadata.get('footprint'),
@@ -221,6 +231,29 @@ class BaseRegistrator(object):
     def _read_metadata_from_data(self, data_item, retrieved_metadata, cache):
         "Interface method to be overridden in subclasses"
         raise NotImplementedError
+
+    def _footprint_from_grid(self, grid, origin, size):
+        "Calculate the footprint from the grid"
+        if grid['axis_types'][:2] != ['spatial', 'spatial']:
+            raise RegistrationError("Cannot compute footprint from given grid")
+
+        x1, y1 = origin[:2]
+        dx, dy = grid['axis_offsets']
+        sx, sy = size[:2]
+        x2, y2 = (x1 + sx * dx, y1 + sy * dy)
+
+        footprint = Polygon.from_bbox((
+            min(x1, x2), min(y1, y2),
+            max(x1, x2), max(y1, y2)
+        ))
+
+        footprint.transform(
+            CoordTransform(
+                SpatialReference(grid['coordinate_reference_system']),
+                SpatialReference(4326)
+            )
+        )
+        return footprint
 
     def _create_coverage(self, identifier, footprint, begin_time, end_time,
                          size, origin, grid, coverage_type_name, arraydata_items,

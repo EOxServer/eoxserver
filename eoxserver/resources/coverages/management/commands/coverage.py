@@ -90,6 +90,14 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             )
         )
         register_parser.add_argument(
+            "--footprint-from-extent",
+            dest="footprint_from_extent", action="store_true", default=False,
+            help=(
+                "Create the footprint from the coverages extent, reprojected "
+                "to WGS 84"
+            )
+        )
+        register_parser.add_argument(
             "--identifier", "-i",
             dest="identifier", default=None,
             help="Override identifier."
@@ -164,6 +172,7 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             data_locations=data_locations,
             metadata_locations=metadata_locations,
             coverage_type_name=coverage_type_name,
+            footprint_from_extent=kwargs['footprint_from_extent'],
             overrides=overrides,
             replace=kwargs['replace'],
         )
