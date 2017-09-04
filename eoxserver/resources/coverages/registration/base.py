@@ -40,6 +40,14 @@ from eoxserver.resources.coverages.registration.exceptions import (
 )
 
 
+class RegistrationReport(object):
+    def __init__(self, coverage, replaced, metadata_parsers, retrieved_metadata):
+        self.coverage = coverage
+        self.replaced = replaced
+        self.metadata_parsers = metadata_parsers
+        self.retrieved_metadata = retrieved_metadata
+
+
 class BaseRegistrator(object):
     """ Abstract base component to be used by specialized registrators.
     """
@@ -64,6 +72,8 @@ class BaseRegistrator(object):
                                    by best guess.
             :param metadata_locations:
             :param overrides:
+            :returns: A registration report
+            :rtype: `RegistrationReport`
         """
         replaced = False
         retrieved_metadata = overrides or {}
@@ -111,11 +121,17 @@ class BaseRegistrator(object):
                 )
             )
 
+        metadata_parsers = []
+
         # read metadata until we are satisfied or run out of metadata items
         for metadata_item in metadata_items:
             if not self.missing_metadata_keys(retrieved_metadata):
                 break
-            self._read_metadata(metadata_item, retrieved_metadata, cache)
+            metadata_parsers.append(
+                self._read_metadata(
+                    metadata_item, retrieved_metadata, cache
+                )
+            )
 
         # check the coverage type for expected amount of fields
         if coverage_type:
@@ -148,8 +164,10 @@ class BaseRegistrator(object):
         for arraydata_item in arraydata_items:
             if not self.missing_metadata_keys(retrieved_metadata):
                 break
-            self._read_metadata_from_data(
-                arraydata_item, retrieved_metadata, cache
+            metadata_parsers.append(
+                self._read_metadata_from_data(
+                    arraydata_item, retrieved_metadata, cache
+                )
             )
 
         if self.missing_metadata_keys(retrieved_metadata):
@@ -208,7 +226,9 @@ class BaseRegistrator(object):
         if product:
             models.product_add_coverage(coverage)
 
-        return coverage, replaced
+        return RegistrationReport(
+            coverage, replaced, metadata_parsers, retrieved_metadata
+        )
 
     def _read_metadata(self, metadata_item, retrieved_metadata, cache):
         """ Read all available metadata of a ``data_item`` into the
@@ -227,6 +247,10 @@ class BaseRegistrator(object):
 
                 for key, value in values.items():
                     retrieved_metadata.setdefault(key, value)
+
+                if values:
+                    return reader, values
+            return None
 
     def _read_metadata_from_data(self, data_item, retrieved_metadata, cache):
         "Interface method to be overridden in subclasses"

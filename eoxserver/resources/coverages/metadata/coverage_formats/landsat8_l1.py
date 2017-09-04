@@ -1,4 +1,4 @@
-# ------------------------------------------------------------------------------
+#------# ------------------------------------------------------------------------------
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
@@ -25,22 +25,36 @@
 # THE SOFTWARE.
 # ------------------------------------------------------------------------------
 
+from django.contrib.gis.geos import Polygon
 
-DEFAULT_EOXS_COVERAGE_METADATA_FORMAT_READERS = [
-    'eoxserver.resources.coverages.metadata.coverage_formats.dimap_general.DimapGeneralFormatReader',
-    'eoxserver.resources.coverages.metadata.coverage_formats.eoom.EOOMFormatReader',
-    'eoxserver.resources.coverages.metadata.coverage_formats.gdal_dataset.GDALDatasetMetadataReader',
-    'eoxserver.resources.coverages.metadata.coverage_formats.inspire.InspireFormatReader',
-    'eoxserver.resources.coverages.metadata.coverage_formats.native.NativeFormat',
-    'eoxserver.resources.coverages.metadata.coverage_formats.native_config.NativeConfigFormatReader',
-    'eoxserver.resources.coverages.metadata.coverage_formats.landsat8_l1.Landsat8L1CoverageMetadataReader',
-]
+from eoxserver.core.util.timetools import parse_iso8601
+from eoxserver.resources.coverages.metadata.utils.landsat8_l1 import (
+    is_landsat8_l1_metadata_content, parse_landsat8_l1_metadata_content
+)
 
-DEFAULT_EOXS_COVERAGE_METADATA_GDAL_DATASET_FORMAT_READERS = [
-    'eoxserver.resources.coverages.metadata.coverage_formats.gdal_dataset_envisat.GDALDatasetEnvisatMetadataFormatReader',
-]
 
-DEFAULT_EOXS_PRODUCT_METADATA_FORMAT_READERS = [
-    'eoxserver.resources.coverages.metadata.product_formats.sentinel2.S2ProductFormatReader',
-    'eoxserver.resources.coverages.metadata.product_formats.landsat8_l1.Landsat8L1ProductMetadataReader',
-]
+class Landsat8L1CoverageMetadataReader(object):
+    def test(self, obj):
+        return is_landsat8_l1_metadata_content(obj)
+
+    def get_format_name(self, obj):
+        return "Landsat-8"
+
+    def read(self, obj):
+        md = parse_landsat8_l1_metadata_content(obj)
+
+        p = md['PRODUCT_METADATA']
+        ul = float(p['CORNER_UL_LON_PRODUCT']), float(p['CORNER_UL_LAT_PRODUCT'])
+        ur = float(p['CORNER_UR_LON_PRODUCT']), float(p['CORNER_UR_LAT_PRODUCT'])
+        ll = float(p['CORNER_LL_LON_PRODUCT']), float(p['CORNER_LL_LAT_PRODUCT'])
+        lr = float(p['CORNER_LR_LON_PRODUCT']), float(p['CORNER_LR_LAT_PRODUCT'])
+
+        values = {}
+        values['identifier'] = md['METADATA_FILE_INFO']['LANDSAT_SCENE_ID']
+        values['footprint'] = Polygon([ul, ur, lr, ll, ul])
+        time = parse_iso8601('%sT%s' % (
+            p['DATE_ACQUIRED'], p['SCENE_CENTER_TIME']
+        ))
+        values['begin_time'] = values['end_time'] = time
+
+        return values
