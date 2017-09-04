@@ -30,8 +30,16 @@ from eoxserver.resources.coverages import crss
 from eoxserver.services.ows.wms.util import parse_bbox
 from eoxserver.services.ows.wms.exceptions import InvalidCRS
 from eoxserver.services.ows.wms.basehandlers import (
-    WMSBaseGetMapHandler, WMSBaseGetMapDecoder
+    WMSBaseGetCapabilitiesHandler, WMSBaseGetMapHandler, WMSBaseGetMapDecoder
 )
+from eoxserver.services.ows.wms.v13.encoders import WMS13Encoder
+
+
+class WMS13GetCapabilitiesHandler(WMSBaseGetCapabilitiesHandler):
+    versions = ("1.3", "1.3.0")
+
+    def get_encoder(self):
+        return WMS13Encoder()
 
 
 class WMS13GetMapHandler(WMSBaseGetMapHandler):
