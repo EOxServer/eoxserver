@@ -25,6 +25,8 @@
 # THE SOFTWARE.
 # ------------------------------------------------------------------------------
 
+from pprint import pprint
+
 from django.core.management.base import CommandError, BaseCommand
 from django.db import transaction
 
@@ -152,7 +154,7 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
         if subcommand == "register":
             self.handle_register(*args, **kwargs)
         elif subcommand == "deregister":
-            self.handle_deregister(kwargs['identifier'][0], *args, **kwargs)
+            self.handle_deregister(kwargs.pop('identifier')[0], *args, **kwargs)
 
     def handle_register(self, coverage_type_name,
                         data_locations, metadata_locations,
@@ -168,7 +170,7 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             if kwargs.get(key)
         }
 
-        coverage, replaced = GDALRegistrator().register(
+        report = GDALRegistrator().register(
             data_locations=data_locations,
             metadata_locations=metadata_locations,
             coverage_type_name=coverage_type_name,
@@ -185,11 +187,9 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
                 )
             except models.Product.DoesNotExist:
                 raise CommandError('No such product %r' % product_identifier)
-            models.product_add_coverage(product, coverage)
+            models.product_add_coverage(product, report.coverage)
 
         for collection_identifier in kwargs['collection_identifiers']:
-
-            print collection_identifier
             try:
                 collection = models.Collection.objects.get(
                     identifier=collection_identifier
@@ -198,7 +198,14 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
                 raise CommandError(
                     'No such collection %r' % collection_identifier
                 )
-            models.collection_insert_eo_object(collection, coverage)
+            models.collection_insert_eo_object(collection, report.coverage)
+
+        if kwargs['print_identifier']:
+            print(report.coverage.identifier)
+
+        elif int(kwargs.get('verbosity', 0)) > 1:
+            pprint(report.metadata_parsers)
+            pprint(report.retrieved_metadata)
 
     def handle_deregister(self, identifier, **kwargs):
         """ Handle the deregistration a coverage
@@ -207,4 +214,3 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             models.Coverage.objects.get(identifier=identifier).delete()
         except models.Coverage.DoesNotExist:
             raise CommandError('No such Coverage %r' % identifier)
-        raise NotImplementedError

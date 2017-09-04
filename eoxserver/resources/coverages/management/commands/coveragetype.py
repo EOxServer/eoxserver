@@ -149,15 +149,15 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
         """ Handle the deletion of a collection type
         """
         try:
-            collection_type = models.CoverageType.objects.get(name=name)
+            coverage_type = models.CoverageType.objects.get(name=name)
 
             if force:
                 coverages = models.Coverage.objects.filter(
                     coverage_type=coverage_type
                 )
-                # TODO de-register coverages
+                coverages.delete()
 
-            collection_type.delete()
+            coverage_type.delete()
         except models.CoverageType.DoesNotExist:
             raise CommandError('No such coverage type: %r' % name)
 
