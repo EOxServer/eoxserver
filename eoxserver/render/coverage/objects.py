@@ -412,6 +412,26 @@ class Coverage(object):
             if index >= location.start_field and index <= location.end_field:
                 return location
 
+    def get_band_index_for_field(self, field_or_identifier):
+        if isinstance(field_or_identifier, Field):
+            field = field_or_identifier
+            if field not in self.range_type:
+                return None
+        else:
+            try:
+                field = next(
+                    field
+                    for field in self.range_type
+                    if field.identifier == field_or_identifier
+                )
+            except StopIteration:
+                return None
+
+        index = field.index
+        for location in self.arraydata_locations:
+            if index >= location.start_field and index <= location.end_field:
+                return index - location.start_field + 1
+
     @classmethod
     def from_model(cls, coverage_model):
         eo_metadata = EOMetadata(None, None, None)
@@ -432,7 +452,7 @@ class Coverage(object):
         arraydata_locations = [
             ArraydataLocation(
                 get_vsi_path(item), item.format,
-                item.field_index, item.field_index + item.band_count
+                item.field_index, item.field_index + (item.band_count - 1)
             )
             for item in coverage_model.arraydata_items.all()
         ]
