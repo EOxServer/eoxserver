@@ -32,7 +32,7 @@ def is_landsat8_l1_metadata_file(path):
     """ Checks whether the referenced file is a Landsat 8 metadata file """
     try:
         with open(path) as f:
-            return next(f) == "GROUP = L1_METADATA_FILE"
+            return next(f).strip() == "GROUP = L1_METADATA_FILE"
     except (ValueError, StopIteration):
         return False
 
