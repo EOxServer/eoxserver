@@ -284,7 +284,7 @@ class LayerMapper(object):
         if isinstance(eo_object, models.Collection):
             base_filter = dict(collections=eo_object)
         else:
-            base_filter = dict(product=eo_object)
+            base_filter = dict(pk=eo_object.pk)
 
         qs = models.Product.objects.filter(filters_expressions, **base_filter)
 
