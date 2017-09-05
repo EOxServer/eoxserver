@@ -150,8 +150,8 @@ class BaseRegistrator(object):
 
             else:
                 for i, arraydata_item in enumerate(arraydata_items):
-                    arraydata_items[0].field_index = i
-                    arraydata_items[0].band_count = 1
+                    arraydata_item.field_index = i
+                    arraydata_item.band_count = 1
 
         elif len(arraydata_items) != 1:
             raise RegistrationError(
