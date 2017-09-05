@@ -70,7 +70,8 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
         )
 
         register_parser.add_argument(
-            '--metadata-file', dest='file_handles', default=[], action='append',
+            '--metadata-file',
+            dest='metadata_locations', nargs='+', default=[], action='append',
             help=(
                 'Add metadata file to associate with the product. '
                 'List of items. Can be specified multiple times.'
@@ -86,7 +87,7 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
         )
 
         register_parser.add_argument(
-            '--mask', '-m', dest='mask_handles', default=[], action='append',
+            '--mask', '-m', dest='mask_locations', default=[], action='append',
             help=(
                 'Add a mask to associate with the product. List of items, '
                 'first one is the mask name, the rest is the location '
@@ -116,7 +117,7 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             )
         )
         register_parser.add_argument(
-            '--package', default=None,
+            '--package', '-p', default=None,
             help=(
                 'The path to a storage (directory, ZIP-file, etc.).'
             )
@@ -173,9 +174,8 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
         """
         try:
             product, replaced = ProductRegistrator().register(
-                file_handles=kwargs['file_handles'],
-                mask_handles=kwargs['mask_handles'],
-                # kwargs['mask_handles'],
+                metadata_locations=kwargs['metadata_locations'],
+                mask_locations=kwargs['mask_locations'],
                 package_path=kwargs['package'],
                 overrides=dict(
                     identifier=kwargs['identifier'],

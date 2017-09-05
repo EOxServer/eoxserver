@@ -31,7 +31,8 @@ from django.contrib.gis.geos import GEOSGeometry
 
 from eoxserver.contrib import gdal
 from eoxserver.backends import models as backends
-from eoxserver.backends.access import retrieve, get_vsi_path
+from eoxserver.backends.storages import get_handler_by_test
+from eoxserver.backends.access import vsi_open, get_vsi_path
 from eoxserver.resources.coverages import models
 from eoxserver.resources.coverages.registration import base
 from eoxserver.resources.coverages.metadata.component import (
@@ -43,7 +44,7 @@ from eoxserver.resources.coverages.registration.exceptions import (
 
 
 class ProductRegistrator(base.BaseRegistrator):
-    def register(self, file_handles, mask_handles, package_path,
+    def register(self, metadata_locations, mask_locations, package_path,
                  overrides, type_name=None, extended_metadata=True,
                  discover_masks=True, discover_browses=True, replace=False):
         product_type = None
@@ -53,13 +54,11 @@ class ProductRegistrator(base.BaseRegistrator):
         component = ProductMetadataComponent()
 
         browse_handles = []
-        mask_handles = []
+        mask_locations = []
         metadata = {}
 
         package = None
         if package_path:
-            # TODO: identify type of package
-            from eoxserver.backends.storages import get_handler_by_test
             handler = get_handler_by_test(package_path)
             if not handler:
                 raise RegistrationError(
@@ -76,28 +75,35 @@ class ProductRegistrator(base.BaseRegistrator):
                     for browse_type, browse_path in metadata.pop('browses', [])
                 ])
             if discover_masks:
-                mask_handles.extend([
+                mask_locations.extend([
                     (mask_type, package_path, mask_path)
                     for mask_type, mask_path in metadata.pop('mask_files', [])
                 ])
 
-                mask_handles.extend([
+                mask_locations.extend([
                     (mask_type, geometry)
                     for mask_type, geometry in metadata.pop('masks', [])
                 ])
 
-        data_items = []
-        for file_handle in file_handles:
-            data_items.append(retrieve(*file_handle))
+        metadata_items = [
+            models.MetaDataItem(
+                location=location[-1],
+                storage=self.resolve_storage(location[:-1])
+            )
+            for location in metadata_locations
+        ]
 
-        new_metadata = component.collect_metadata(data_items)
-        new_metadata.update(metadata)
+        new_metadata = {}
+        for metadata_item in reversed(metadata_items):
+            new_metadata.update(self._read_product_metadata(
+                component, metadata_item
+            ))
 
         md_identifier = new_metadata.pop('identifier', None)
         md_footprint = new_metadata.pop('footprint', None)
         md_begin_time = new_metadata.pop('begin_time', None)
         md_end_time = new_metadata.pop('end_time', None)
-        mask_handles.extend(new_metadata.pop('masks', []))
+        mask_locations.extend(new_metadata.pop('masks', []))
 
         # apply overrides
         identifier = overrides.get('identifier') or md_identifier
@@ -125,7 +131,7 @@ class ProductRegistrator(base.BaseRegistrator):
             self._create_metadata(product, metadata)
 
         # register all masks
-        for mask_handle in mask_handles:
+        for mask_handle in mask_locations:
             geometry = None
             storage = None
             location = ''
@@ -178,7 +184,16 @@ class ProductRegistrator(base.BaseRegistrator):
             browse.full_clean()
             browse.save()
 
+        for metadata_item in metadata_items:
+            metadata_item.eo_object = product
+            metadata_item.full_clean()
+            metadata_item.save()
+
         return product, replaced
+
+    def _read_product_metadata(self, component, metadata_item):
+        path = get_vsi_path(metadata_item)
+        return component.read_product_metadata_file(path)
 
     def _create_metadata(self, product, metadata_values):
         metadata_values = dict(

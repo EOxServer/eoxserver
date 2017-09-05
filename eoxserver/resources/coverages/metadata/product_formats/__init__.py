@@ -42,18 +42,27 @@ def _setup_readers():
         settings, 'EOXS_PRODUCT_METADATA_FORMAT_READERS',
         DEFAULT_EOXS_PRODUCT_METADATA_FORMAT_READERS
     )
+
+    print specifiers
+
     PRODUCT_METADATA_FORMAT_READERS = [
-        import_string(specifier)()
+        import_string(specifier)
         for specifier in specifiers
     ]
 
 
-def get_reader_by_test(path, obj):
+def get_readers():
     if PRODUCT_METADATA_FORMAT_READERS is None:
         _setup_readers()
+    return PRODUCT_METADATA_FORMAT_READERS
 
-    for reader in PRODUCT_METADATA_FORMAT_READERS:
-        if hasattr(reader, 'test_path') and reader.test_path(path):
-            return reader
-        elif hasattr(reader, 'test') and reader.test(obj):
-            return reader
+
+# def get_reader_by_test(path, obj):
+#     if PRODUCT_METADATA_FORMAT_READERS is None:
+#         _setup_readers()
+
+#     for reader in PRODUCT_METADATA_FORMAT_READERS:
+#         if hasattr(reader, 'test_path') and reader.test_path(path):
+#             return reader
+#         elif hasattr(reader, 'test') and reader.test(obj):
+#             return reader

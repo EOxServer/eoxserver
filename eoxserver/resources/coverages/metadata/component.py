@@ -26,51 +26,30 @@
 #-------------------------------------------------------------------------------
 
 
-from eoxserver.resources.coverages.metadata.product_formats.sentinel2 import (
-    S2ProductFormatReader
-)
+from eoxserver.resources.coverages.metadata.product_formats import get_readers
 
 
 class ProductMetadataComponent(object):
-    # metadata_readers = ExtensionPoint(ProductMetadataReaderInterface)
-    metadata_readers = [S2ProductFormatReader]
-
-    def get_reader_by_test(self, path):
+    def read_product_metadata_file(self, path):
         try:
             f = open(path)
         except IOError:
             f = None
 
-        for reader_cls in self.metadata_readers:
+        for reader_cls in get_readers():
             reader = reader_cls()
+
             if hasattr(reader, 'test_path') and reader.test_path(path):
-                return reader
+                return reader.read_path(path)
             elif hasattr(reader, 'test') and f and reader.test(f):
-                return reader
+                return reader.read(f)
 
         if f:
             f.close()
 
-        return None
-
-    def collect_metadata(self, data_items, cache=None):
-        collected_metadata = {}
-        for data_item in data_items:
-            path = retrieve(data_item, cache)
-            reader = self.get_reader_by_test(path)
-            if reader:
-                if hasattr(reader, 'read_path'):
-                    metadata = reader.read_path(path)
-                else:
-                    with open(path) as f:
-                        metadata = reader.read(f)
-
-                metadata.update(collected_metadata)
-                collected_metadata = metadata
-        return collected_metadata
+        return {}
 
     def collect_package_metadata(self, storage, cache=None):
-        # path = retrieve(storage, cache)
         path = storage.url
         reader = self.get_reader_by_test(path)
         if reader:
