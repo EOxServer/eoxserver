@@ -181,9 +181,6 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
         self._create_field_types(coverage_type, field_type_definitions)
         self.print_msg('Successfully imported coverage type %r' % name)
 
-    def _import_coverage_type(self, defintion):
-        pass
-
     def _create_coverage_type(self, name):
         try:
             return models.CoverageType.objects.create(name=name)
