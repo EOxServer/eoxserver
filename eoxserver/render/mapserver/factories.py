@@ -25,11 +25,15 @@
 # THE SOFTWARE.
 # ------------------------------------------------------------------------------
 
+from os.path import join
+from uuid import uuid4
+
 from django.conf import settings
 from django.utils.module_loading import import_string
 
 from eoxserver.core.util.iteratortools import pairwise_iterative
 from eoxserver.contrib import mapserver as ms
+from eoxserver.contrib import vsi, vrt, gdal
 from eoxserver.render.map.objects import (
     CoverageLayer, BrowseLayer, OutlinedBrowseLayer,
     MaskLayer, MaskedBrowseLayer, OutlinesLayer
@@ -51,7 +55,7 @@ class BaseMapServerLayerFactory(object):
     def create(self, map_obj, layer):
         pass
 
-    def destroy(self, map_obj, layer):
+    def destroy(self, map_obj, layer, data):
         pass
 
 
@@ -98,18 +102,22 @@ class CoverageLayerFactory(BaseMapServerLayerFactory):
 
         # TODO: apply subsets in time/elevation dims
 
-        if len(set(locations)) > 1:
-            # TODO: create VRT
-            raise Exception("Too many files")
-
-        else:
+        num_locations = len(set(locations))
+        if num_locations == 1:
             layer_obj.data = locations[0].path
+            layer_obj.setProcessingKey("BANDS", ",".join([
+                str(field.index + 1) for field in fields
+            ]))
 
-        if len(fields) == 1 and layer.style:
+        elif num_locations > 1:
+            layer_obj.data = _build_vrt(coverage.size, locations)
+
+        # make a color-scaled layer
+        if len(fields) == 1:
             field = fields[0]
 
             if layer.range:
-                range_ = layer.range
+                range_ = tuple(layer.range)
             elif len(field.allowed_values) == 1:
                 range_ = field.allowed_values[0]
             else:
@@ -117,10 +125,31 @@ class CoverageLayerFactory(BaseMapServerLayerFactory):
                 range_ = (0, 255)
 
             _create_raster_style(
-                layer.style, layer_obj, range_[0], range_[1], [
+                layer.style or "blackwhite", layer_obj, range_[0], range_[1], [
                     nil_value[0] for nil_value in field.nil_values
                 ]
             )
+        elif len(fields) in (3, 4):
+            for i, field in enumerate(fields, start=1):
+                if layer.range:
+                    range_ = tuple(layer.range)
+                elif len(field.allowed_values) == 1:
+                    range_ = field.allowed_values[0]
+                else:
+                    # TODO: from datatype
+                    range_ = (0, 255)
+                layer_obj.setProcessingKey("SCALE_%d" % i, "%s,%s" % range_)
+                layer_obj.offsite = ms.colorObj(0, 0, 0)
+
+        else:
+            raise Exception("Too many bands specified")
+
+        return layer_obj
+
+    def destroy(self, map_obj, layer, layer_obj):
+        path = layer_obj.data
+        if path.startswith("/vsimem"):
+            vsi.remove(path)
 
 
 class BrowseLayerFactory(BaseMapServerLayerFactory):
@@ -287,6 +316,33 @@ def _create_geometry_class(color_name, background_color_name=None, fill=False):
     cls_obj.insertStyle(style_obj)
     cls_obj.group = color_name
     return cls_obj
+
+
+def _build_vrt(size, locations):
+    path = join("/vsimem", uuid4().hex)
+    size_x, size_y = size[:2]
+
+    vrt_builder = vrt.VRTBuilder(size_x, size_y, vrt_filename=path)
+
+    current = 1
+    for location in locations:
+        start = location.start_field
+        end = location.end_field
+        num = end - start + 1
+        dst_band_indices = range(current, current + num)
+        src_band_indices = range(1, num + 1)
+
+        current += num
+
+        for src_index, dst_index in zip(src_band_indices, dst_band_indices):
+            vrt_builder.add_band(gdal.GDT_Float32)
+            vrt_builder.add_simple_source(
+                dst_index, location.path, src_index
+            )
+
+    del vrt_builder
+
+    return path
 
 
 def _create_raster_style(name, layer, minvalue=0, maxvalue=255, nil_values=None):

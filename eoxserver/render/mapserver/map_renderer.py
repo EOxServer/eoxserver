@@ -72,8 +72,10 @@ class MapserverMapRenderer(object):
 
         layers_plus_factories = self._get_layers_plus_factories(render_map)
 
-        for layer, factory in layers_plus_factories:
-            factory.create(map_obj, layer)
+        layers_plus_factories_plus_data = [
+            (layer, factory, factory.create(map_obj, layer))
+            for layer, factory in layers_plus_factories
+        ]
 
         # TODO: create the format properly
         outputformat_obj = ms.outputFormatObj('GDAL/PNG')
@@ -101,8 +103,8 @@ class MapserverMapRenderer(object):
         image_obj = map_obj.draw()
 
         # disconnect
-        for layer, factory in layers_plus_factories:
-            factory.destroy(map_obj, layer)
+        for layer, factory, data in layers_plus_factories_plus_data:
+            factory.destroy(map_obj, layer, data)
 
         return image_obj.getBytes(), outputformat_obj.mimetype
 
