@@ -97,8 +97,8 @@ class BaseCoverageLayerFactory(BaseMapServerLayerFactory):
             map_obj, coverage.extent, coverage.grid.spatial_reference
         )
 
-        locations = [
-            coverage.get_location_for_field(field)
+        field_locations = [
+            (field, coverage.get_location_for_field(field))
             for field in fields
         ]
 
@@ -107,27 +107,20 @@ class BaseCoverageLayerFactory(BaseMapServerLayerFactory):
 
         # TODO: apply subsets in time/elevation dims
 
-        num_locations = len(set(locations))
+        num_locations = len(set(field_locations))
         if num_locations == 1:
-            layer_obj.data = locations[0].path
+            layer_obj.data = field_locations[0][1].path
             layer_obj.setProcessingKey("BANDS", ",".join([
                 str(coverage.get_band_index_for_field(field)) for field in fields
             ]))
 
         elif num_locations > 1:
-            layer_obj.data = _build_vrt(coverage.size, locations)
+            layer_obj.data = _build_vrt(coverage.size, field_locations)
 
         # make a color-scaled layer
         if len(fields) == 1:
             field = fields[0]
-
-            if range_:
-                range_ = tuple(range_)
-            elif len(field.allowed_values) == 1:
-                range_ = field.allowed_values[0]
-            else:
-                # TODO: from datatype
-                range_ = (0, 255)
+            range_ = _get_range(field, range_)
 
             _create_raster_style(
                 style or "blackwhite", layer_obj, range_[0], range_[1], [
@@ -136,13 +129,7 @@ class BaseCoverageLayerFactory(BaseMapServerLayerFactory):
             )
         elif len(fields) in (3, 4):
             for i, field in enumerate(fields, start=1):
-                if range_:
-                    range_ = tuple(range_)
-                elif len(field.allowed_values) == 1:
-                    range_ = field.allowed_values[0]
-                else:
-                    # TODO: from datatype
-                    range_ = (0, 255)
+                range_ = _get_range(field, range_)
                 layer_obj.setProcessingKey("SCALE_%d" % i, "%s,%s" % range_)
                 layer_obj.offsite = ms.colorObj(0, 0, 0)
 
@@ -359,14 +346,14 @@ def _create_geometry_class(color_name, background_color_name=None, fill=False):
     return cls_obj
 
 
-def _build_vrt(size, locations):
+def _build_vrt(size, field_locations):
     path = join("/vsimem", uuid4().hex)
     size_x, size_y = size[:2]
 
     vrt_builder = vrt.VRTBuilder(size_x, size_y, vrt_filename=path)
 
     current = 1
-    for location in locations:
+    for field, location in field_locations:
         start = location.start_field
         end = location.end_field
         num = end - start + 1
@@ -376,7 +363,7 @@ def _build_vrt(size, locations):
         current += num
 
         for src_index, dst_index in zip(src_band_indices, dst_band_indices):
-            vrt_builder.add_band(gdal.GDT_Float32)
+            vrt_builder.add_band(field.data_type)
             vrt_builder.add_simple_source(
                 dst_index, location.path, src_index
             )
@@ -443,6 +430,19 @@ def _create_raster_style(name, layer, minvalue=0, maxvalue=255, nil_values=None)
     cls.insertStyle(style)
     layer.insertClass(cls)
     layer.classgroup = name
+
+
+def _get_range(field, range_=None):
+    """ Gets the numeric range of a field
+    """
+    if range_:
+        return tuple(range_)
+    elif len(field.allowed_values) == 1:
+        return field.allowed_values[0]
+    elif field.data_type_range:
+        return field.data_type_range
+    elif field.data_type is not None:
+        return gdal.GDT_NUMERIC_LIMITS.get(field.data_type) or (0, 255)
 
 # ------------------------------------------------------------------------------
 # Layer factories
