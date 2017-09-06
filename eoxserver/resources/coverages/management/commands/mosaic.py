@@ -140,7 +140,7 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             missing = set(coverage_identifiers) - actual
             raise CommandError(
                 "No such coverage with ID%s: %s"
-                % (len(missing) > 1, ", ".join(missing))
+                % ("s" if len(missing) > 1 else "", ", ".join(missing))
             )
 
         for coverage in coverages:
