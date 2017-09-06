@@ -872,7 +872,7 @@ def mosaic_insert_coverage(mosaic, coverage):
     """
 
     mosaic = cast_eo_object(mosaic)
-    coverage = cast_eo_object(Coverage)
+    coverage = cast_eo_object(coverage)
 
     assert isinstance(mosaic, Mosaic)
     assert isinstance(coverage, Coverage)
