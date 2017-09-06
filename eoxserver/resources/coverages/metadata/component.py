@@ -51,7 +51,8 @@ class ProductMetadataComponent(object):
 
     def collect_package_metadata(self, storage, cache=None):
         path = storage.url
-        for reader in get_readers():
+        for reader_cls in get_readers():
+            reader = reader_cls()
             if hasattr(reader, 'test_path'):
                 if reader.test_path(path):
                     return reader.read_path(path)

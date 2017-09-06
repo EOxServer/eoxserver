@@ -32,7 +32,7 @@ from django.contrib.gis.geos import GEOSGeometry
 from eoxserver.contrib import gdal
 from eoxserver.backends import models as backends
 from eoxserver.backends.storages import get_handler_by_test
-from eoxserver.backends.access import vsi_open, get_vsi_path
+from eoxserver.backends.access import get_vsi_path
 from eoxserver.resources.coverages import models
 from eoxserver.resources.coverages.registration import base
 from eoxserver.resources.coverages.metadata.component import (
