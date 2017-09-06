@@ -130,8 +130,6 @@ class WMSBaseGetMapHandler(object):
         if srid is None:
             raise InvalidCRS(crs, "crs")
 
-        # TODO time/bbox filtering
-
         field_mapping, mapping_choices = get_field_mapping_for_model(
             models.Product
         )

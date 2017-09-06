@@ -35,7 +35,7 @@ from eoxserver.core.util.iteratortools import pairwise_iterative
 from eoxserver.contrib import mapserver as ms
 from eoxserver.contrib import vsi, vrt, gdal
 from eoxserver.render.map.objects import (
-    CoverageLayer, BrowseLayer, OutlinedBrowseLayer,
+    CoverageLayer, MosaicLayer, BrowseLayer, OutlinedBrowseLayer,
     MaskLayer, MaskedBrowseLayer, OutlinesLayer
 )
 from eoxserver.render.mapserver.config import (
@@ -59,38 +59,43 @@ class BaseMapServerLayerFactory(object):
         pass
 
 
-class CoverageLayerFactory(BaseMapServerLayerFactory):
-    handled_layer_types = [CoverageLayer]
-
-    def create(self, map_obj, layer):
-        coverage = layer.coverage
-        layer_obj = _create_raster_layer_obj(
-            map_obj, coverage.extent, coverage.grid.spatial_reference
-        )
-
-        fields = coverage.range_type
-
-        if layer.bands:
-            assert len(layer.bands) in (1, 3, 4)
+class BaseCoverageLayerFactory(BaseMapServerLayerFactory):
+    """ Base class for factories dealing with coverages.
+    """
+    def get_fields(self, fields, bands, wavelengths):
+        """ Get the field subset for the given bands/wavelengths selection
+        """
+        if bands:
+            assert len(bands) in (1, 3, 4)
             try:
                 fields = [
                     next(field for field in fields if field.identifier == band)
-                    for band in layer.bands
+                    for band in bands
                 ]
             except StopIteration:
                 raise Exception('Invalid layers.')
-        elif layer.wavelengths:
-            assert len(layer.bands) in (1, 3, 4)
+        elif wavelengths:
+            assert len(bands) in (1, 3, 4)
             try:
                 fields = [
                     next(
                         field
                         for field in fields if field.wavelength == wavelength
                     )
-                    for wavelength in layer.wavelengths
+                    for wavelength in wavelengths
                 ]
             except StopIteration:
                 raise Exception('Invalid wavelengths.')
+
+        return fields
+
+    def create_coverage_layer(self, map_obj, coverage, fields,
+                              style=None, range_=None):
+        """ Creates a mapserver layer object for the given coverage
+        """
+        layer_obj = _create_raster_layer_obj(
+            map_obj, coverage.extent, coverage.grid.spatial_reference
+        )
 
         locations = [
             coverage.get_location_for_field(field)
@@ -106,7 +111,7 @@ class CoverageLayerFactory(BaseMapServerLayerFactory):
         if num_locations == 1:
             layer_obj.data = locations[0].path
             layer_obj.setProcessingKey("BANDS", ",".join([
-                str(field.index + 1) for field in fields
+                str(coverage.get_band_index_for_field(field)) for field in fields
             ]))
 
         elif num_locations > 1:
@@ -116,8 +121,8 @@ class CoverageLayerFactory(BaseMapServerLayerFactory):
         if len(fields) == 1:
             field = fields[0]
 
-            if layer.range:
-                range_ = tuple(layer.range)
+            if range_:
+                range_ = tuple(range_)
             elif len(field.allowed_values) == 1:
                 range_ = field.allowed_values[0]
             else:
@@ -125,14 +130,14 @@ class CoverageLayerFactory(BaseMapServerLayerFactory):
                 range_ = (0, 255)
 
             _create_raster_style(
-                layer.style or "blackwhite", layer_obj, range_[0], range_[1], [
+                style or "blackwhite", layer_obj, range_[0], range_[1], [
                     nil_value[0] for nil_value in field.nil_values
                 ]
             )
         elif len(fields) in (3, 4):
             for i, field in enumerate(fields, start=1):
-                if layer.range:
-                    range_ = tuple(layer.range)
+                if range_:
+                    range_ = tuple(range_)
                 elif len(field.allowed_values) == 1:
                     range_ = field.allowed_values[0]
                 else:
@@ -146,10 +151,46 @@ class CoverageLayerFactory(BaseMapServerLayerFactory):
 
         return layer_obj
 
-    def destroy(self, map_obj, layer, layer_obj):
+    def destroy_coverage_layer(self, layer_obj):
         path = layer_obj.data
         if path.startswith("/vsimem"):
             vsi.remove(path)
+
+
+class CoverageLayerFactory(BaseCoverageLayerFactory):
+    handled_layer_types = [CoverageLayer]
+
+    def create(self, map_obj, layer):
+        coverage = layer.coverage
+        fields = self.get_fields(
+            coverage.range_type, layer.bands, layer.wavelengths
+        )
+        return self.create_coverage_layer(
+            map_obj, coverage, fields, layer.style, layer.range
+        )
+
+    def destroy(self, map_obj, layer, data):
+        self.destroy_coverage_layer(data)
+
+
+class MosaicLayerFactory(BaseCoverageLayerFactory):
+    handled_layer_types = [MosaicLayer]
+
+    def create(self, map_obj, layer):
+        mosaic = layer.mosaic
+        fields = self.get_fields(
+            mosaic.range_type, layer.bands, layer.wavelengths
+        )
+        return [
+            self.create_coverage_layer(
+                map_obj, coverage, fields, layer.style, layer.range
+            )
+            for coverage in layer.coverages
+        ]
+
+    def destroy(self, map_obj, layer, data):
+        for layer_obj in data:
+            self.destroy_coverage_layer(layer_obj)
 
 
 class BrowseLayerFactory(BaseMapServerLayerFactory):

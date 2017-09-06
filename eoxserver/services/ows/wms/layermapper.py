@@ -27,11 +27,12 @@
 
 from eoxserver.core.util.timetools import isoformat
 from eoxserver.render.map.objects import (
-    CoverageLayer, OutlinesLayer, BrowseLayer, OutlinedBrowseLayer,
+    CoverageLayer, MosaicLayer, OutlinesLayer, BrowseLayer, OutlinedBrowseLayer,
     MaskLayer, MaskedBrowseLayer,
     LayerDescription,
 )
 from eoxserver.render.coverage.objects import Coverage as RenderCoverage
+from eoxserver.render.coverage.objects import Mosaic as RenderMosaic
 from eoxserver.render.browse.objects import (
     Browse, Mask, MaskedBrowse
 )
@@ -62,6 +63,9 @@ class LayerMapper(object):
         if isinstance(eo_object, models.Coverage):
             coverage = RenderCoverage.from_model(eo_object)
             return LayerDescription.from_coverage(coverage, raster_styles)
+        elif isinstance(eo_object, models.Mosaic):
+            coverage = RenderCoverage.from_model(eo_object)
+            return LayerDescription.from_mosaic(coverage, raster_styles)
         elif isinstance(eo_object, (models.Product, models.Collection)):
             mask_types = []
             browse_types = []
@@ -152,7 +156,8 @@ class LayerMapper(object):
 
         try:
             eo_object = models.EOObject.objects.select_subclasses(
-                models.Collection, models.Product, models.Coverage
+                models.Collection, models.Product, models.Coverage,
+                models.Mosaic
             ).get(
                 identifier=layer_name
             )
@@ -166,6 +171,17 @@ class LayerMapper(object):
                 full_name, style,
                 RenderCoverage.from_model(eo_object),
                 bands, wavelengths, time, elevation, range
+            )
+
+        elif isinstance(eo_object, models.Mosaic):
+            return MosaicLayer(
+                full_name, style,
+                RenderMosaic.from_model(eo_object), [
+                    RenderCoverage.from_model(coverage)
+                    for coverage in self.iter_coverages(
+                        eo_object, filters_expressions, sort_by
+                    )
+                ], bands, wavelengths, time, elevation, range
             )
 
         elif isinstance(eo_object, (models.Collection, models.Product)):
@@ -279,6 +295,21 @@ class LayerMapper(object):
     #
     # iteration methods
     #
+
+    def iter_coverages(self, eo_object, filters_expressions, sort_by=None):
+        if isinstance(eo_object, models.Mosaic):
+            base_filter = dict(mosaics=eo_object)
+        else:
+            pass  # TODO
+
+        qs = models.Coverage.objects.filter(filters_expressions, **base_filter)
+        if sort_by:
+            qs = qs.order_by('%s%s' % (
+                '-' if sort_by[1] == 'DESC' else '',
+                sort_by[0]
+            ))
+
+        return qs
 
     def iter_products(self, eo_object, filters_expressions, sort_by=None):
         if isinstance(eo_object, models.Collection):

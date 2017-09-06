@@ -85,12 +85,21 @@ class CoverageLayer(Layer):
         return self._range
 
 
-class CoverageMosaicLayer(Layer):
-    def __init__(self, name, style, coverages, bands, wavelengths):
-        super(CoverageMosaicLayer, self).__init__(name, style)
+class MosaicLayer(Layer):
+    def __init__(self, name, style, mosaic, coverages, bands, wavelengths, time,
+                 elevation, range):
+        super(MosaicLayer, self).__init__(name, style)
+        self._mosaic = mosaic
         self._coverages = coverages
         self._bands = bands
         self._wavelengths = wavelengths
+        self._time = time
+        self._elevation = elevation
+        self._range = range
+
+    @property
+    def mosaic(self):
+        return self._mosaic
 
     @property
     def coverages(self):
@@ -103,6 +112,18 @@ class CoverageMosaicLayer(Layer):
     @property
     def wavelengths(self):
         return self._wavelengths
+
+    @property
+    def time(self):
+        return self._time
+
+    @property
+    def elevation(self):
+        return self._elevation
+
+    @property
+    def range(self):
+        return self._range
 
 
 class BrowseLayer(Layer):

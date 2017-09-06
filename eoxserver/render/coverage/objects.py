@@ -95,6 +95,22 @@ class Field(object):
     def data_type(self):
         return self._data_type
 
+    def __eq__(self, other):
+        try:
+            return (
+                self._identifier == other._identifier and
+                self._description == other._description and
+                self._definition == other._definition and
+                self._unit_of_measure == other._unit_of_measure and
+                self._wavelength == other._wavelength and
+                self._significant_figures == other._significant_figures and
+                self._allowed_values == other._allowed_values and
+                self._nil_values == other._nil_values and
+                self._data_type == other._data_type
+            )
+        except AttributeError:
+            return False
+
 
 class RangeType(list):
     def __init__(self, name, fields):
@@ -486,4 +502,115 @@ class Coverage(object):
             grid=grid, size=coverage_model.size,
             arraydata_locations=arraydata_locations,
             metadata_locations=metadata_locations
+        )
+
+
+class Mosaic(object):
+    def __init__(self, identifier, eo_metadata, range_type, grid, origin, size):
+        self._identifier = identifier
+        self._eo_metadata = eo_metadata
+        self._range_type = range_type
+        self._origin = origin
+        self._grid = grid
+        self._size = size
+
+    @property
+    def identifier(self):
+        return self._identifier
+
+    @property
+    def eo_metadata(self):
+        return self._eo_metadata
+
+    @property
+    def footprint(self):
+        return self._eo_metadata.footprint if self._eo_metadata else None
+
+    @property
+    def begin_time(self):
+        return self._eo_metadata.begin_time if self._eo_metadata else None
+
+    @property
+    def end_time(self):
+        return self._eo_metadata.end_time if self._eo_metadata else None
+
+    @property
+    def range_type(self):
+        return self._range_type
+
+    @property
+    def origin(self):
+        return self._origin
+
+    @property
+    def grid(self):
+        return self._grid
+
+    @property
+    def size(self):
+        return tuple(self._size)
+
+    # @property
+    # def coverage_subtype(self):
+    #     subtype = "DatasetSeries"
+    #     if not self.footprint or not self.begin_time or not self.end_time:
+    #         subtype = "RectifiedStitchedMosaic"
+    #     elif self.grid.is_referenceable:
+    #         subtype = "ReferenceableStitchedMosaic"
+    #     return subtype
+
+    # @property
+    # def extent(self):
+    #     if not self.grid and self.footprint:
+    #         return self.footprint.extent
+
+    #     types = self.grid.types
+    #     offsets = self.grid.offsets
+
+    #     lows = []
+    #     highs = []
+
+    #     axes = izip_longest(types, offsets, self.origin, self.size)
+    #     for type_, offset, origin, size in axes:
+    #         a = origin
+    #         b = origin + size * offset
+
+    #         if offset > 0:
+    #             lows.append(a)
+    #             highs.append(b)
+    #         else:
+    #             lows.append(b)
+    #             highs.append(a)
+
+    #     return tuple(lows + highs)
+
+    @classmethod
+    def from_model(cls, mosaic_model):
+        eo_metadata = EOMetadata(None, None, None)
+        if mosaic_model.begin_time and mosaic_model.end_time and \
+                mosaic_model.footprint:
+            eo_metadata = EOMetadata(
+                mosaic_model.begin_time, mosaic_model.end_time,
+                mosaic_model.footprint
+            )
+
+        range_type = RangeType.from_coverage_type(
+            mosaic_model.coverage_type
+        )
+
+        grid_model = mosaic_model.grid
+        grid = None
+        origin = None
+        if grid_model:
+            if is_referenceable(grid_model):
+                grid = ReferenceableGrid.from_model(grid_model)
+            else:
+                grid = Grid.from_model(grid_model)
+
+            origin = Origin.from_description(grid.types, mosaic_model.origin)
+
+        return cls(
+            identifier=mosaic_model.identifier,
+            eo_metadata=eo_metadata, range_type=range_type, origin=origin,
+            grid=grid, size=mosaic_model.size,
         )
