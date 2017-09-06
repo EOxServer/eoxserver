@@ -84,9 +84,12 @@ class FieldType(models.Model):
     identifier = models.CharField(max_length=512, validators=identifier_validators, **mandatory)
     description = models.TextField(**optional)
     definition = models.CharField(max_length=512, **optional)
-    unit_of_measure = models.CharField(max_length=64, **mandatory)
+    unit_of_measure = models.CharField(max_length=64, **optional)
     wavelength = models.FloatField(**optional)
     significant_figures = models.PositiveSmallIntegerField(**optional)
+    numbits = models.PositiveSmallIntegerField(**optional)
+    signed = models.BooleanField(default=True, **mandatory)
+    is_float = models.BooleanField(default=False, **mandatory)
 
     class Meta:
         ordering = ('index',)

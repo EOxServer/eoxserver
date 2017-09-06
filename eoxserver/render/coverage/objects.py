@@ -43,7 +43,7 @@ def is_referenceable(grid_model):
 class Field(object):
     def __init__(self, index, identifier, description, definition,
                  unit_of_measure, wavelength, significant_figures,
-                 allowed_values, nil_values, data_type):
+                 allowed_values, nil_values, data_type, data_type_range):
         self._index = index
         self._identifier = identifier
         self._description = description
@@ -54,6 +54,7 @@ class Field(object):
         self._allowed_values = allowed_values
         self._nil_values = nil_values
         self._data_type = data_type
+        self._data_type_range = data_type_range
 
     @property
     def index(self):
@@ -95,6 +96,10 @@ class Field(object):
     def data_type(self):
         return self._data_type
 
+    @property
+    def data_type_range(self):
+        return self._data_type_range
+
     def __eq__(self, other):
         try:
             return (
@@ -106,7 +111,8 @@ class Field(object):
                 self._significant_figures == other._significant_figures and
                 self._allowed_values == other._allowed_values and
                 self._nil_values == other._nil_values and
-                self._data_type == other._data_type
+                self._data_type == other._data_type and
+                self._data_type_range == other._data_type_range
             )
         except AttributeError:
             return False
@@ -123,6 +129,50 @@ class RangeType(list):
 
     @classmethod
     def from_coverage_type(cls, coverage_type):
+        def get_data_type(field_type):
+            numbits = (
+                field_type.numbits if field_type.numbits is not None else 32
+            )
+            signed = field_type.signed
+            is_float = field_type.is_float
+
+            if is_float:
+                if numbits <= 32:
+                    return gdal.GDT_Float32
+                return gdal.GDT_Float64
+            elif signed:
+                if numbits <= 8:
+                    return gdal.GDT_Byte
+                elif numbits <= 16:
+                    return gdal.GDT_Int16
+                else:
+                    return gdal.GDT_Int32
+            else:
+                if numbits <= 8:
+                    return gdal.GDT_Byte
+                elif numbits <= 16:
+                    return gdal.GDT_UInt16
+                else:
+                    return gdal.GDT_UInt32
+            return gdal.GDT_Unknown
+
+        def get_data_type_range(field_type):
+            numbits = (
+                field_type.numbits if field_type.numbits is not None else 32
+            )
+            signed = field_type.signed
+            is_float = field_type.is_float
+            if is_float:
+                if numbits == 32:
+                    return gdal.GDT_NUMERIC_LIMITS[gdal.GDT_Float32]
+                elif numbits == 64:
+                    return gdal.GDT_NUMERIC_LIMITS[gdal.GDT_Float64]
+            elif signed:
+                max_ = 2 ** (numbits - 1)
+                return (-max_, max_ - 1)
+            else:
+                return (0, 2 ** numbits)
+
         return cls(coverage_type.name, [
             Field(
                 index=i,
@@ -140,7 +190,8 @@ class RangeType(list):
                     (nil_value.value, nil_value.reason)
                     for nil_value in field_type.nil_values.all()
                 ],
-                data_type=gdal.GDT_Float32  # TODO
+                data_type=get_data_type(field_type),
+                data_type_range=get_data_type_range(field_type)
             )
             for i, field_type in enumerate(coverage_type.field_types.all())
         ])
@@ -174,7 +225,8 @@ class RangeType(list):
                     ]
                     if band.DataType in gdal.GDT_NUMERIC_LIMITS else [],
                     nil_values=nil_values,
-                    data_type=band.DataType
+                    data_type=band.DataType,
+                    data_type_range=gdal.GDT_NUMERIC_LIMITS.get(band.DataType)
                 )
             )
             bandoffset += 1

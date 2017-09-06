@@ -27,6 +27,8 @@
 
 import sys
 import json
+import re
+
 from django.core.management.base import CommandError, BaseCommand
 from django.db import transaction, IntegrityError
 
@@ -193,7 +195,8 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
                 field_type_definition.get('unit_of_measure') or
                 field_type_definition.get('uom')
             )
-            field_type = models.FieldType.objects.create(
+
+            field_type = models.FieldType(
                 coverage_type=coverage_type,
                 index=i,
                 identifier=field_type_definition.get('identifier'),
@@ -205,6 +208,20 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
                     'significant_figures'
                 )
             )
+
+            if 'numbits' in field_type_definition:
+                field_type.numbits = field_type_definition['numbits']
+            if 'signed' in field_type_definition:
+                field_type.signed = field_type_definition['signed']
+            if 'is_float' in field_type_definition:
+                field_type.is_float = field_type_definition['is_float']
+
+            if 'data_type' in field_type_definition:
+                field_type.numbits, field_type.signed, field_type.is_float = \
+                    self._parse_data_type(field_type_definition['data_type'])
+
+            field_type.full_clean()
+            field_type.save()
 
             nil_value_definitions = field_type_definition.get('nil_values', [])
             for nil_value_definition in nil_value_definitions:
@@ -223,3 +240,20 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
                     start=allowed_value_range_definition[0],
                     end=allowed_value_range_definition[1]
                 )
+
+    def _parse_data_type(self, data_type):
+        data_type = data_type.lower()
+        is_float = data_type.startswith('float')
+        signed = data_type.startswith('float') or data_type.startswith('int')
+        try:
+            if data_type == 'byte':
+                numbits = 8
+            else:
+                numbits = int(
+                    re.search(r'[a-zA-Z]+(\d*)', data_type).groups()[0]
+                )
+        except ValueError:
+            numbits = None
+        except AttributeError:
+            raise CommandError('Invalid data type description %r' % data_type)
+        return numbits, signed, is_float
