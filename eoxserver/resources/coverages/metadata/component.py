@@ -51,14 +51,15 @@ class ProductMetadataComponent(object):
 
     def collect_package_metadata(self, storage, cache=None):
         path = storage.url
-        reader = self.get_reader_by_test(path)
-        if reader:
-            if hasattr(reader, 'read_path'):
-                return reader.read_path(path)
+        for reader in get_readers():
+            if hasattr(reader, 'test_path'):
+                if reader.test_path(path):
+                    return reader.read_path(path)
             else:
                 try:
                     with open(path) as f:
-                        return reader.read(f)
+                        if hasattr(reader, 'test') and f and reader.test(f):
+                            return reader.read(f)
                 except IOError:
                     pass
 
