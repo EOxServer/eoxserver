@@ -293,16 +293,24 @@ class Collection(EOObject):
     grid = models.ForeignKey(Grid, **optional)
 
 
+class Mosaic(EOObject, GridFixture):
+    coverage_type = models.ForeignKey(CoverageType, related_name='mosaics', **mandatory_protected)
+
+    collections = models.ManyToManyField(Collection, related_name='mosaics', blank=True)
+
+
 class Product(EOObject):
-    product_type = models.ForeignKey(ProductType, **optional_protected)
+    product_type = models.ForeignKey(ProductType, related_name='products', **optional_protected)
+
     collections = models.ManyToManyField(Collection, related_name='products', blank=True)
     package = models.OneToOneField(backends.Storage, **optional_protected)
 
 
 class Coverage(EOObject, GridFixture):
-    coverage_type = models.ForeignKey(CoverageType, **optional_protected)
+    coverage_type = models.ForeignKey(CoverageType, related_name='coverages', **optional_protected)
 
     collections = models.ManyToManyField(Collection, related_name='coverages', blank=True)
+    mosaics = models.ManyToManyField(Mosaic, related_name='coverages', blank=True)
     parent_product = models.ForeignKey(Product, related_name='coverages', **optional)
 
 
@@ -620,12 +628,15 @@ def cast_eo_object(eo_object):
             return eo_object.collection
         except:
             try:
-                eo_object.product
+                return eo_object.mosaic
             except:
                 try:
-                    return eo_object.coverage
+                    return eo_object.product
                 except:
-                    pass
+                    try:
+                        return eo_object.coverage
+                    except:
+                        pass
 
     return eo_object
 
@@ -856,8 +867,90 @@ def _collection_metadata(collection, metadata_model, path):
     return summary_metadata
 
 
+def mosaic_insert_coverage(mosaic, coverage):
+    """ Insert a coverage into a mosaic.
+    """
+
+    mosaic = cast_eo_object(mosaic)
+    coverage = cast_eo_object(Coverage)
+
+    assert isinstance(mosaic, Mosaic)
+    assert isinstance(coverage, Coverage)
+
+    grid = mosaic.grid
+
+    if mosaic.coverage_type != coverage.coverage_type:
+        raise ManagementError(
+            'Cannot insert Coverage %s as its coverage type does not match '
+            'the Mosaics coverage type.' % coverage
+        )
+    elif grid and grid != coverage.grid:
+        raise ManagementError(
+            'Cannot insert Coverage %s as its grid does not match '
+            'the Mosaics grid.' % coverage
+        )
+
+    mosaic.coverages.add(coverage)
+
+    # compute EO metadata
+    mosaic.begin_time = (
+        min(mosaic.begin_time, coverage.begin_time)
+        if mosaic.begin_time else coverage.begin_time
+    )
+    mosaic.end_time = (
+        max(mosaic.end_time, coverage.end_time)
+        if mosaic.end_time else coverage.end_time
+    )
+    mosaic.footprint = (
+        mosaic.footprint.union(coverage.footprint)
+        if mosaic.footprint else coverage.footprint
+    )
+
+    if grid:
+        # compute new origins and size
+        for i in range(1, 5):
+            if getattr(grid, 'axis_%d_type' % i) is None:
+                break
+
+            # TODO: make this more reliable
+
+            # if origin and size were null, use the ones from the coverage
+            if getattr(mosaic, 'axis_%d_origin' % i) is None:
+                setattr(mosaic, 'axis_%d_origin' % i,
+                    getattr(coverage, 'axis_%d_origin' % i)
+                )
+                setattr(mosaic, 'axis_%d_size' % i,
+                    getattr(coverage, 'axis_%d_size' % i)
+                )
+
+            else:
+                offset = float(getattr(grid, 'axis_%d_offset' % i))
+                o_c = float(getattr(coverage, 'axis_%d_origin' % i))
+                o_m = float(getattr(mosaic, 'axis_%d_origin' % i))
+
+                # calculate new origin
+                if offset < 0:
+                    setattr(mosaic, 'axis_%d_origin' % i, max(o_c, o_m))
+                else:
+                    setattr(mosaic, 'axis_%d_origin' % i, min(o_c, o_m))
+
+                # calculate new size
+
+                # TODO: this is flawed. Use all coverages within the mosaic
+
+                if o_c > o_m:
+                    add_size = float(getattr(coverage, 'axis_%d_size' % i))
+                else:
+                    add_size = float(getattr(mosaic, 'axis_%d_size' % i))
+
+                setattr(
+                    mosaic, 'axis_%d_size' % i,
+                    (max(o_c, o_m) - min(o_c, o_m)) / offset + add_size
+                )
+
+
 def product_add_coverage(product, coverage):
-    """ Inserts a Coverage into a collection.
+    """ Add a Coverage to a product.
         When an EOObject is passed, it is downcast to its actual type. An error
         is raised when an object of the wrong type is passed.
         The collections footprint and time-stamps are adjusted when necessary.
