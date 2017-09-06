@@ -114,7 +114,8 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
 
         models.Mosaic.objects.create(
             identifier=identifier,
-            coverage_type=coverage_type, grid=grid
+            coverage_type=coverage_type, grid=grid,
+            axis_1_size=0,
         )
 
     def handle_delete(self, identifier, **kwargs):
