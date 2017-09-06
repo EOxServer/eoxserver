@@ -43,8 +43,6 @@ def _setup_readers():
         DEFAULT_EOXS_PRODUCT_METADATA_FORMAT_READERS
     )
 
-    print specifiers
-
     PRODUCT_METADATA_FORMAT_READERS = [
         import_string(specifier)
         for specifier in specifiers
