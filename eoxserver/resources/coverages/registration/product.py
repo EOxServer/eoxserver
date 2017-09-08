@@ -135,9 +135,9 @@ class ProductRegistrator(base.BaseRegistrator):
             geometry = None
             storage = None
             location = ''
-            try:
+            if isinstance(mask_handle[1], GEOSGeometry):
                 geometry = GEOSGeometry(mask_handle[1])
-            except:
+            else:
                 storage = self.resolve_storage(mask_handle[1:-1])
                 location = mask_handle[-1]
 

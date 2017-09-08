@@ -27,6 +27,12 @@
 
 import os.path
 
+from lxml.etree import parse, fromstring
+from django.contrib.gis.geos import MultiPolygon, Polygon
+
+from eoxserver.resources.coverages import crss
+
+
 try:
     import s2reader
     HAVE_S2READER = True
@@ -61,8 +67,8 @@ class S2ProductFormatReader(object):
             values['footprint'] = ds.footprint.wkt
 
             values['masks'] = [
-                ('clouds', granule.cloudmask.wkt),
-                ('nodata', granule.nodata_mask.wkt),
+                ('clouds', self._read_mask(granule, 'MSK_CLOUDS')),
+                ('nodata', self._read_mask(granule, 'MSK_NODATA')),
             ]
 
             def tci_path(granule):
@@ -131,3 +137,72 @@ class S2ProductFormatReader(object):
             # values['highest_location']
 
         return values
+
+    def _read_mask(self, granule, mask_type):
+        for item in granule._metadata.iter("Pixel_Level_QI").next():
+            if item.attrib.get("type") == mask_type:
+                gml_filename = os.path.join(
+                    granule.granule_path, "QI_DATA", os.path.basename(item.text)
+                )
+
+        if granule.dataset.is_zip:
+            root = fromstring(granule.dataset._zipfile.read(gml_filename))
+        else:
+            root = parse(gml_filename).getroot()
+        return parse_mask(root)
+
+
+def parse_mask(mask_elem):
+    nsmap = {k: v for k, v in mask_elem.nsmap.iteritems() if k}
+    # name = mask_elem.xpath('gml:name/text()', namespaces=nsmap)[0]
+    try:
+        crs = mask_elem.xpath(
+            'gml:boundedBy/gml:Envelope/@srsName', namespaces=nsmap
+        )[0]
+    except IndexError:
+        # just return an empty polygon when no mask available
+        return MultiPolygon()
+
+    srid = crss.parseEPSGCode(crs, [crss.fromURN])
+    swap = crss.hasSwappedAxes(srid)
+
+    mask_features = [
+        parse_polygon(polygon_elem, nsmap, swap)
+        for polygon_elem in mask_elem.xpath(
+            'eop:maskMembers/eop:MaskFeature/eop:extentOf/gml:Polygon',
+            namespaces=nsmap
+        )
+    ]
+    return MultiPolygon(mask_features, srid=srid)
+
+
+def parse_polygon(polygon_elem, nsmap, swap_axes):
+    return Polygon(*[
+            parse_pos_list(
+                polygon_elem.xpath(
+                    'gml:exterior/gml:LinearRing/gml:posList', namespaces=nsmap
+                )[0], swap_axes
+            )
+        ] + [
+            parse_pos_list(pos_list_elem, swap_axes)
+            for pos_list_elem in polygon_elem.xpath(
+                'gml:interior/gml:LinearRing/gml:posList', namespaces=nsmap
+            )
+        ]
+    )
+
+
+def parse_pos_list(pos_list_elem, swap_axes):
+    # retrieve the number of elements per point
+    dims = int(pos_list_elem.attrib.get('srsDimension', '2'))
+    parts = [float(coord) for coord in pos_list_elem.text.strip().split()]
+
+    ring = []
+    i = 0
+    while i < len(parts):
+        ring.append(
+            (parts[i + 1], parts[i]) if swap_axes else (parts[i], parts[i + 1])
+        )
+        i += dims
+
+    return ring
