@@ -27,17 +27,10 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-from django.core.exceptions import ValidationError, MultipleObjectsReturned
-from django.contrib.gis import forms
 from django.contrib.gis import admin
-from django.contrib import messages
-from django.urls import reverse
 
-# from eoxserver.contrib import gdal
-# from eoxserver.backends import models as backends
 from eoxserver.resources.coverages import models
-from eoxserver.resources.coverages import views
-# from eoxserver.backends.admin import LocationForm
+
 
 # ==============================================================================
 # Inline "Type" model admins
@@ -72,18 +65,6 @@ class BrowseInline(admin.StackedInline):
     model = models.Browse
     extra = 0
 
-    # fields = ( 'image_tag', )
-    readonly_fields = ('browse_image_tag',)
-
-    def browse_image_tag(self, obj):
-        return u'<img src="%s" />' % reverse(
-            views.browse_view, kwargs={'identifier': obj.product.identifier}
-        )
-
-    browse_image_tag.short_description = 'Image'
-    browse_image_tag.allow_tags = True
-    browse_image_tag.empty_value_display = ''
-
 
 class MetaDataItemInline(admin.StackedInline):
     model = models.MetaDataItem
@@ -114,8 +95,14 @@ class CollectionMetadataInline(admin.StackedInline):
 # Abstract admins
 # ==============================================================================
 
-class EOObjectAdmin(admin.ModelAdmin):
-    pass
+class EOObjectAdmin(admin.GeoModelAdmin):
+    date_hierarchy = 'inserted'
+
+    wms_name = 'EOX Maps'
+    wms_url = '//tiles.maps.eox.at/wms/'
+    wms_layer = 'terrain-light'
+    default_lon = 16
+    default_lat = 48
 
 # ==============================================================================
 # "Type" model admins
@@ -190,6 +177,7 @@ class CollectionAdmin(EOObjectAdmin):
     summary.short_description = (
         "Update the summary information for each collection"
     )
+
 
 admin.site.register(models.Collection, CollectionAdmin)
 
