@@ -106,10 +106,22 @@ class ProductRegistrator(base.BaseRegistrator):
         mask_locations.extend(new_metadata.pop('masks', []))
 
         # apply overrides
-        identifier = overrides.get('identifier') or md_identifier
-        footprint = overrides.get('footprint') or md_footprint
-        begin_time = overrides.get('begin_time') or md_begin_time
-        end_time = overrides.get('end_time') or md_end_time
+        identifier = (
+            overrides.get('identifier') or metadata.get('identifier') or
+            md_identifier
+        )
+        footprint = (
+            overrides.get('footprint') or metadata.get('footprint') or
+            md_footprint
+        )
+        begin_time = (
+            overrides.get('begin_time') or metadata.get('begin_time') or
+            md_begin_time
+        )
+        end_time = (
+            overrides.get('end_time') or metadata.get('end_time') or
+            md_end_time
+        )
 
         replaced = False
         if replace:
