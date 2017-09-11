@@ -257,10 +257,9 @@ class Grid(list):
         super(Grid, self).__init__(axes)
         self._coordinate_reference_system = coordinate_reference_system
 
-    is_referenceable = False
-
     @classmethod
     def from_model(cls, grid_model):
+        is_ref = is_referenceable(grid_model)
         names = grid_model.axis_names
         types = grid_model.axis_types
         offsets = grid_model.axis_offsets
@@ -269,7 +268,9 @@ class Grid(list):
 
         axes_iter = izip_longest(names, types, offsets)
         for name, type_, offset in axes_iter:
-            if type_ == GRID_TYPE_TEMPORAL:
+            if is_ref:
+                offset = None
+            elif type_ == GRID_TYPE_TEMPORAL:
                 offset = parse_duration(offset)
             else:
                 offset = float(offset)
@@ -306,9 +307,9 @@ class Grid(list):
     def has_temporal(self):
         return GRID_TYPE_TEMPORAL in self.types
 
-
-class ReferenceableGrid(Grid):
-    is_referenceable = True
+    @property
+    def is_referenceable(self):
+        return self[0].offset is None
 
 
 class Origin(list):
@@ -540,11 +541,7 @@ class Coverage(object):
                 coverage_model.identifier
             )
 
-        grid_model = coverage_model.grid
-        if is_referenceable(grid_model):
-            grid = ReferenceableGrid.from_model(grid_model)
-        else:
-            grid = Grid.from_model(grid_model)
+        grid = Grid.from_model(coverage_model.grid)
 
         origin = Origin.from_description(grid.types, coverage_model.origin)
 
