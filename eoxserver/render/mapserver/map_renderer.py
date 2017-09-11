@@ -70,20 +70,17 @@ class MapserverMapRenderer(object):
         if render_map.bgcolor:
             map_obj.imagecolor.setHex("#" + render_map.bgcolor.lower())
 
-        layers_plus_factories = self._get_layers_plus_factories(render_map)
+        frmt = getFormatRegistry().getFormatByMIME(render_map.format)
 
-        layers_plus_factories_plus_data = [
-            (layer, factory, factory.create(map_obj, layer))
-            for layer, factory in layers_plus_factories
-        ]
+        if not frmt:
+            raise MapRenderError('No such format %r' % render_map.format)
 
-        # TODO: create the format properly
-        outputformat_obj = ms.outputFormatObj('GDAL/PNG')
+        outputformat_obj = ms.outputFormatObj(frmt.driver)
 
         outputformat_obj.transparent = (
             ms.MS_ON if render_map.transparent else ms.MS_OFF
         )
-        outputformat_obj.mimetype = 'image/png'
+        outputformat_obj.mimetype = frmt.mimeType
         map_obj.setOutputFormat(outputformat_obj)
 
         #
@@ -91,6 +88,13 @@ class MapserverMapRenderer(object):
         map_obj.setExtent(*render_map.bbox)
         map_obj.setSize(render_map.width, render_map.height)
         map_obj.setProjection(render_map.crs)
+
+        layers_plus_factories = self._get_layers_plus_factories(render_map)
+
+        layers_plus_factories_plus_data = [
+            (layer, factory, factory.create(map_obj, layer))
+            for layer, factory in layers_plus_factories
+        ]
 
         # log the resulting map
         if logger.isEnabledFor(logging.DEBUG):

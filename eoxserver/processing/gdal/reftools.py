@@ -34,6 +34,8 @@ import math
 
 from eoxserver.contrib import gdal, osr
 from eoxserver.core.util.rect import Rect
+from eoxserver.core.util.xmltools import parse, etree
+from eoxserver.contrib import vsi
 
 #-------------------------------------------------------------------------------
 # approximation transformer's threshold in pixel units
@@ -578,7 +580,8 @@ def rect_from_subset(path_or_ds, srid, minx, miny, maxx, maxy,
 
 def create_rectified_vrt(path_or_ds, vrt_path, srid=None,
                          resample=0, memory_limit=0.0,
-                         max_error=APPROX_ERR_TOL, method=METHOD_GCP, order=0):
+                         max_error=APPROX_ERR_TOL, method=METHOD_GCP, order=0,
+                         size=None, resolution=None):
 
     """ Creates a VRT dataset that symbolizes a rectified version of the
     passed "referenceable" GDAL dataset.
@@ -597,6 +600,9 @@ def create_rectified_vrt(path_or_ds, vrt_path, srid=None,
                   reference
     """
 
+    if size and resolution:
+        raise ValueError('size and resolution ar mutually exclusive')
+
     ds = _open_ds(path_or_ds)
     ptr = C.c_void_p(long(ds.this))
 
@@ -608,54 +614,159 @@ def create_rectified_vrt(path_or_ds, vrt_path, srid=None,
     else:
         wkt = ds.GetGCPProjection()
 
-    transformer = _create_generic_transformer(
-        ds, None, None, wkt, method, order
-    )
+    # transformer = _create_generic_transformer(
+    #     ds, None, None, wkt, method, order
+    # )
 
-    x_size = C.c_int()
-    y_size = C.c_int()
-    geotransform = (C.c_double * 6)()
+    # x_size = C.c_int()
+    # y_size = C.c_int()
+    # geotransform = (C.c_double * 6)()
 
-    GDALSuggestedWarpOutput(
-        ptr,
-        GDALGenImgProjTransform, transformer, geotransform,
-        C.byref(x_size), C.byref(y_size)
-    )
+    # GDALSuggestedWarpOutput(
+    #     ptr,
+    #     GDALGenImgProjTransform, transformer, geotransform,
+    #     C.byref(x_size), C.byref(y_size)
+    # )
 
-    GDALSetGenImgProjTransformerDstGeoTransform(transformer, geotransform)
+    # GDALSetGenImgProjTransformerDstGeoTransform(transformer, geotransform)
 
-    options = GDALCreateWarpOptions()
-    options.dfWarpMemoryLimit = memory_limit
-    options.eResampleAlg = resample
-    options.pfnTransformer = GDALGenImgProjTransform
-    options.pTransformerArg = transformer
-    options.hDstDS = ds.this
+    # options = GDALCreateWarpOptions()
+    # options.dfWarpMemoryLimit = memory_limit
+    # options.eResampleAlg = resample
+    # options.pfnTransformer = GDALGenImgProjTransform
+    # options.pTransformerArg = transformer
+    # options.hDstDS = C.c_void_p(long(ds.this))
 
-    nb = options.nBandCount = ds.RasterCount
-    options.panSrcBands = CPLMalloc(C.sizeof(C.c_int) * nb)
-    options.panDstBands = CPLMalloc(C.sizeof(C.c_int) * nb)
+    # nb = options.nBandCount = ds.RasterCount
 
-    # TODO: nodata value setup
-    #for i in xrange(nb):
-    #    band = ds.GetRasterBand(i+1)
+    # src_bands = C.cast(CPLMalloc(C.sizeof(C.c_int) * nb), C.POINTER(C.c_int))
+    # dst_bands = C.cast(CPLMalloc(C.sizeof(C.c_int) * nb), C.POINTER(C.c_int))
 
-    if max_error > 0:
-        GDALApproxTransform = _libgdal.GDALApproxTransform
+    # # ctypes.cast(x, ctypes.POINTER(ctypes.c_ulong))
 
-        options.pTransformerArg = GDALCreateApproxTransformer(
-            options.pfnTransformer, options.pTransformerArg, max_error
-        )
-        options.pfnTransformer = GDALApproxTransform
+    # options.panSrcBands = src_bands
+    # options.panDstBands = dst_bands
+
+    # # TODO: nodata value setup
+    # for i in xrange(nb):
+    #     options.panSrcBands[i] = i + 1
+    #     options.panDstBands[i] = i + 1
+
+    # if max_error > 0:
+    #     GDALApproxTransform = _libgdal.GDALApproxTransform
+
+    #     options.pTransformerArg = GDALCreateApproxTransformer(
+    #         options.pfnTransformer, options.pTransformerArg, max_error
+    #     )
+    #     options.pfnTransformer = GDALApproxTransform
         # TODO: correct for python
         #GDALApproxTransformerOwnsSubtransformer(options.pTransformerArg, False)
 
-    #options=GDALCreateWarpOptions()
-    #vrt_ds = GDALCreateWarpedVRT(ptr, x_size, y_size, geotransform, options)
+    # if size:
+    #     extent = _to_extent(x_size.value, y_size.value, geotransform)
+    #     size_x, size_y = size
+    #     x_size.value = size_x
+    #     y_size.value = size_y
+    #     geotransform = _to_gt(size[0], size[1], extent)
+
+    # elif resolution:
+    #     extent = _to_extent(x_size.value, y_size.value, geotransform)
+
+    #     geotransform[1] = resolution[0]
+    #     geotransform[5] = resolution[1]
+
+    #     size_x, size_y = _to_size(geotransform, extent)
+    #     x_size.value = size_x
+    #     y_size.value = size_y
+
+    # vrt_ds = GDALCreateWarpedVRT(ptr, x_size, y_size, geotransform, options)
     vrt_ds = GDALAutoCreateWarpedVRT(ptr, None, wkt, resample, max_error, None)
-    GDALSetProjection(vrt_ds, wkt)
+    # GDALSetProjection(vrt_ds, wkt)
     GDALSetDescription(vrt_ds, vrt_path)
     GDALClose(vrt_ds)
-    GDALDestroyWarpOptions(options)
+    # GDALDestroyWarpOptions(options)
+
+    # if size of resolution is overridden parse the VRT and adjust settings
+    if size or resolution:
+        with vsi.open(vrt_path) as f:
+            root = parse(f).getroot()
+
+        size_x = int(root.attrib['rasterXSize'])
+        size_y = int(root.attrib['rasterYSize'])
+        gt_elem = root.find('GeoTransform')
+
+        gt = [
+            float(value.strip())
+            for value in gt_elem.text.strip().split(',')
+        ]
+
+        if size:
+            extent = _to_extent(size_x, size_y, gt)
+            size_x, size_y = size
+            gt = _to_gt(size[0], size[1], extent)
+
+        elif resolution:
+            extent = _to_extent(size_x, size_y, gt)
+
+            gt[1] = resolution[0]
+            gt[5] = resolution[1]
+
+            size_x, size_y = _to_size(gt, extent)
+
+        # Adjust XML
+        root.attrib['rasterXSize'] = str(size_x)
+        root.attrib['rasterYSize'] = str(size_y)
+
+        gt_str = ",".join(str(v) for v in gt)
+        gt_elem.text = gt_str
+        root.find(
+            'GDALWarpOptions/Transformer/ApproxTransformer/'
+            'BaseTransformer/GenImgProjTransformer/DstGeoTransform'
+        ).text = gt_str
+
+        inv_gt = gdal.InvGeoTransform(gt)[1]
+        root.find(
+            'GDALWarpOptions/Transformer/ApproxTransformer/'
+            'BaseTransformer/GenImgProjTransformer/DstInvGeoTransform'
+        ).text = ",".join(str(v) for v in inv_gt)
+
+        # write XML back to file
+        with vsi.open(vrt_path, "w") as f:
+            f.write(etree.tostring(root, pretty_print=True))
+
+
+def _to_extent(size_x, size_y, gt):
+    x_a = gt[0]
+    x_b = gt[0] + gt[1] * size_x
+    y_a = gt[3]
+    y_b = gt[3] + gt[5] * size_y
+
+    return (min(x_a, x_b), min(y_a, y_b), max(x_a, x_b), max(y_a, y_b))
+
+
+def _to_gt(size_x, size_y, extent):
+    ex = extent[2] - extent[0]
+    ey = extent[3] - extent[1]
+    return [
+        extent[0],
+        ex / float(size_x),
+        0.0,
+        extent[3],
+        0.0,
+        ey / float(size_y) * -1
+    ]
+
+
+def _to_size(gt, extent):
+    dx = abs(gt[1])
+    dy = abs(gt[5])
+
+    ex = extent[2] - extent[0]
+    ey = extent[3] - extent[1]
+
+    return int(ex / dx), int(ey / dy)
+
+
 
 
 def suggested_warp_output(ds, src_wkt, dst_wkt, method=METHOD_GCP, order=0):

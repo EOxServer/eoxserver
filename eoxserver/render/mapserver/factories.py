@@ -33,7 +33,7 @@ from django.utils.module_loading import import_string
 
 from eoxserver.core.util.iteratortools import pairwise_iterative
 from eoxserver.contrib import mapserver as ms
-from eoxserver.contrib import vsi, vrt, gdal
+from eoxserver.contrib import vsi, vrt, gdal, osr
 from eoxserver.render.map.objects import (
     CoverageLayer, MosaicLayer, BrowseLayer, OutlinedBrowseLayer,
     MaskLayer, MaskedBrowseLayer, OutlinesLayer
@@ -43,6 +43,7 @@ from eoxserver.render.mapserver.config import (
 )
 from eoxserver.render.colors import BASE_COLORS, COLOR_SCALES, OFFSITE_COLORS
 from eoxserver.resources.coverages import crss
+from eoxserver.processing.gdal import reftools
 
 
 class BaseMapServerLayerFactory(object):
@@ -94,7 +95,9 @@ class BaseCoverageLayerFactory(BaseMapServerLayerFactory):
         """ Creates a mapserver layer object for the given coverage
         """
         layer_obj = _create_raster_layer_obj(
-            map_obj, coverage.extent, coverage.grid.spatial_reference
+            map_obj,
+            coverage.extent if not coverage.grid.is_referenceable else None,
+            coverage.grid.spatial_reference
         )
 
         field_locations = [
@@ -109,9 +112,31 @@ class BaseCoverageLayerFactory(BaseMapServerLayerFactory):
 
         num_locations = len(set(field_locations))
         if num_locations == 1:
-            layer_obj.data = field_locations[0][1].path
+            if not coverage.grid.is_referenceable:
+                layer_obj.data = field_locations[0][1].path
+            else:
+                vrt_path = join("/vsimem", uuid4().hex)
+
+                # TODO: calculate map resolution
+
+                e = map_obj.extent
+
+                resx = (e.maxx - e.minx) / map_obj.width
+                resy = (e.maxy - e.miny) / map_obj.height
+
+                srid = osr.SpatialReference(map_obj.getProjection()).srid
+
+                reftools.create_rectified_vrt(
+                    field_locations[0][1].path, vrt_path, order=1, max_error=10,
+                    resolution=(resx, -resy), srid=srid
+                )
+                layer_obj.data = vrt_path
+
+                layer_obj.setMetaData("eoxs_ref_data", vrt_path)
+
             layer_obj.setProcessingKey("BANDS", ",".join([
-                str(coverage.get_band_index_for_field(field)) for field in fields
+                str(coverage.get_band_index_for_field(field))
+                for field in fields
             ]))
 
         elif num_locations > 1:
@@ -142,6 +167,10 @@ class BaseCoverageLayerFactory(BaseMapServerLayerFactory):
         path = layer_obj.data
         if path.startswith("/vsimem"):
             vsi.remove(path)
+
+        ref_data = layer_obj.getMetaData("eoxs_ref_data")
+        if ref_data and ref_data.startswith("/vsimem"):
+            vsi.remove(ref_data)
 
 
 class CoverageLayerFactory(BaseCoverageLayerFactory):
@@ -295,10 +324,10 @@ def _create_raster_layer_obj(map_obj, extent, sr):
         layer_obj.setMetaData("wms_extent", "%f %f %f %f" % extent)
         layer_obj.setExtent(*extent)
 
-    if sr.srid is not None:
-        short_epsg = "EPSG:%d" % sr.srid
-        layer_obj.setMetaData("ows_srs", short_epsg)
-        layer_obj.setMetaData("wms_srs", short_epsg)
+        if sr.srid is not None:
+            short_epsg = "EPSG:%d" % sr.srid
+            layer_obj.setMetaData("ows_srs", short_epsg)
+            layer_obj.setMetaData("wms_srs", short_epsg)
 
     layer_obj.setProjection(sr.proj)
 
@@ -441,8 +470,7 @@ def _get_range(field, range_=None):
         return field.allowed_values[0]
     elif field.data_type_range:
         return field.data_type_range
-    elif field.data_type is not None:
-        return gdal.GDT_NUMERIC_LIMITS.get(field.data_type) or (0, 255)
+    return gdal.GDT_NUMERIC_LIMITS.get(field.data_type) or (0, 255)
 
 # ------------------------------------------------------------------------------
 # Layer factories
