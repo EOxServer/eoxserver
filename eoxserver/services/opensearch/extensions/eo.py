@@ -53,8 +53,6 @@ class EarthObservationExtension(object):
         for filter_name, db_accessor in mapping.items():
             value = getattr(decoder, filter_name, None)
 
-            print filter_name, value
-
             if value:
                 attr = filters.attribute(filter_name, mapping)
                 if isinstance(value, list):

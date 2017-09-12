@@ -355,7 +355,7 @@ class BaseFeedResultFormat(object):
                         code="GetCapabilities", method="GET",
                         type="application/xml", href=wcs_get_capabilities
                     ),
-                    *self.encode_coverage_offerings(coverage),
+                    *self.encode_coverage_offerings(request, item),
                     **{
                         "code": "http://www.opengis.net/spec/owc-atom/1.0/req/wcs"
                     }
