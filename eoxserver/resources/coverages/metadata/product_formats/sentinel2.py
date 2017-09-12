@@ -63,8 +63,6 @@ class S2ProductFormatReader(object):
                 './/PRODUCT_URI'
             )
 
-            print values['identifier']
-
             values['begin_time'] = ds.product_start_time
             values['end_time'] = ds.product_stop_time
             values['footprint'] = ds.footprint.wkt
