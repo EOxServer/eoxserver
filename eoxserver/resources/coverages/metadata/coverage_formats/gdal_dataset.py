@@ -98,31 +98,39 @@ class GDALDatasetMetadataReader(object):
         #       footprint. The fooprint must not be wrapped arround
         #       the date-line!
         elif ds.GetGCPProjection() and ds.GetGCPCount() > 0:
-            # values["coverage_type"] = "ReferenceableDataset"
-            # projection = ds.GetGCPProjection()
-            # values["projection"] = (projection, "WKT")
+            projection = ds.GetGCPProjection()
+            sr = osr.SpatialReference(projection)
+            if sr.srid is not None:
+                projection = 'EPSG:%d' % sr.srid
+
+            values['grid'] = {
+                'coordinate_reference_system': projection,
+                'axis_offsets': [None, None],
+                'axis_types': ['spatial', 'spatial'],
+                'axis_names': ['x', 'y']
+            }
+            values['origin'] = [None, None]
 
             # # parse the spatial reference to get the EPSG code
-            # sr = osr.SpatialReference(projection, "WKT")
+            sr = osr.SpatialReference(ds.GetGCPProjection(), "WKT")
 
-            # # NOTE: GeosGeometry can't handle non-EPSG geometry projections.
-            # if sr.GetAuthorityName(None) == "EPSG":
-            #     srid = int(sr.GetAuthorityCode(None))
+            # NOTE: GeosGeometry can't handle non-EPSG geometry projections.
+            if sr.GetAuthorityName(None) == "EPSG":
+                srid = int(sr.GetAuthorityCode(None))
 
-            #     # get the footprint
-            #     rt_prm = rt.suggest_transformer(ds)
-            #     fp_wkt = rt.get_footprint_wkt(ds, **rt_prm)
-            #     footprint = GEOSGeometry(fp_wkt, srid)
+                # get the footprint
+                rt_prm = rt.suggest_transformer(ds)
+                fp_wkt = rt.get_footprint_wkt(ds, **rt_prm)
+                footprint = GEOSGeometry(fp_wkt, srid)
 
-            #     if isinstance(footprint, Polygon):
-            #         footprint = MultiPolygon(footprint)
-            #     elif not isinstance(footprint, MultiPolygon):
-            #         raise TypeError(
-            #             "Got invalid geometry %s" % type(footprint).__name__
-            #         )
+                if isinstance(footprint, Polygon):
+                    footprint = MultiPolygon(footprint)
+                elif not isinstance(footprint, MultiPolygon):
+                    raise TypeError(
+                        "Got invalid geometry %s" % type(footprint).__name__
+                    )
 
-            #     values["footprint"] = footprint
-            #     values["extent"] = footprint.extent
+                values['footprint'] = footprint
             pass
 
         # --= dataset with no geocoding =--
