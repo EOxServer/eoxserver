@@ -608,30 +608,30 @@ class Mosaic(object):
     #         subtype = "ReferenceableStitchedMosaic"
     #     return subtype
 
-    # @property
-    # def extent(self):
-    #     if not self.grid and self.footprint:
-    #         return self.footprint.extent
+    @property
+    def extent(self):
+        if not self.grid:
+            return None
 
-    #     types = self.grid.types
-    #     offsets = self.grid.offsets
+        types = self.grid.types
+        offsets = self.grid.offsets
 
-    #     lows = []
-    #     highs = []
+        lows = []
+        highs = []
 
-    #     axes = izip_longest(types, offsets, self.origin, self.size)
-    #     for type_, offset, origin, size in axes:
-    #         a = origin
-    #         b = origin + size * offset
+        axes = izip_longest(types, offsets, self.origin, self.size)
+        for type_, offset, origin, size in axes:
+            a = origin
+            b = origin + size * offset
 
-    #         if offset > 0:
-    #             lows.append(a)
-    #             highs.append(b)
-    #         else:
-    #             lows.append(b)
-    #             highs.append(a)
+            if offset > 0:
+                lows.append(a)
+                highs.append(b)
+            else:
+                lows.append(b)
+                highs.append(a)
 
-    #     return tuple(lows + highs)
+        return tuple(lows + highs)
 
     @classmethod
     def from_model(cls, mosaic_model):
@@ -651,11 +651,7 @@ class Mosaic(object):
         grid = None
         origin = None
         if grid_model:
-            if is_referenceable(grid_model):
-                grid = ReferenceableGrid.from_model(grid_model)
-            else:
-                grid = Grid.from_model(grid_model)
-
+            grid = Grid.from_model(grid_model)
             origin = Origin.from_description(grid.types, mosaic_model.origin)
 
         return cls(

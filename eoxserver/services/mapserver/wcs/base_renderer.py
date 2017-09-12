@@ -33,6 +33,7 @@ from eoxserver.core.config import get_eoxserver_config
 from eoxserver.core.decoders import config, typelist
 from eoxserver.contrib import mapserver as ms
 from eoxserver.contrib import gdal
+from eoxserver.render.coverage.objects import Coverage
 from eoxserver.resources.coverages import crss
 # from eoxserver.resources.coverages.models import RectifiedStitchedMosaic
 from eoxserver.resources.coverages.formats import getFormatRegistry
@@ -63,11 +64,13 @@ class BaseRenderer(Component):
         )
         return map_
 
-    def data_items_for_coverage(self, coverage):
+    def arraydata_locations_for_coverage(self, coverage):
         """ Helper function to query all relevant data items for any raster data
             from the database.
         """
-        return coverage.arraydata_items.all()
+        if isinstance(coverage, Coverage):
+            return coverage.arraydata_locations
+        return []
 
     def layer_for_coverage(self, coverage, native_format, version=None):
         """ Helper method to generate a WCS enabled MapServer layer for a given
@@ -117,8 +120,8 @@ class BaseRenderer(Component):
             "bandcount": str(len(bands)),
             "interval": "%f %f" % interval,
             "significant_figures": "%d" % significant_figures,
-            # "rangeset_name": range_type.name,
-            # "rangeset_label": range_type.name,
+            "rangeset_name": range_type.name,
+            "rangeset_label": range_type.name,
             "imagemode": ms.gdalconst_to_imagemode_string(bands[0].data_type),
             "formats": " ".join([
                 f.wcs10name if version.startswith("1.0") else f.mimeType
@@ -188,13 +191,13 @@ class BaseRenderer(Component):
 
         return layer
 
-    def get_native_format(self, coverage, data_items):
+    def get_native_format(self, coverage, data_locations):
         # if issubclass(coverage.real_type, RectifiedStitchedMosaic):
         #     # use the default format for RectifiedStitchedMosaics
         #     return getFormatRegistry().getDefaultNativeFormat().wcs10name
 
-        if len(data_items) == 1:
-            return data_items[0].format
+        if len(data_locations) == 1:
+            return data_locations[0].format
 
         return None
 

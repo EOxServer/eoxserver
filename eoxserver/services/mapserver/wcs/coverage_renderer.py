@@ -103,7 +103,7 @@ class RectifiedCoverageMapServerRenderer(BaseRenderer):
         if params.coverage.grid.is_referenceable:
             raise NoSuchCoverageException((coverage.identifier,))
 
-        data_items = self.data_items_for_coverage(coverage)
+        data_locations = self.arraydata_locations_for_coverage(coverage)
 
         range_type = coverage.range_type
         bands = list(range_type)
@@ -117,7 +117,7 @@ class RectifiedCoverageMapServerRenderer(BaseRenderer):
         map_ = self.create_map()
 
         # configure outputformat
-        native_format = self.get_native_format(coverage, data_items)
+        native_format = self.get_native_format(coverage, data_locations)
         if get_format_by_mime(native_format) is None:
             native_format = "image/tiff"
 
@@ -145,7 +145,7 @@ class RectifiedCoverageMapServerRenderer(BaseRenderer):
         map_.insertLayer(layer)
 
         from eoxserver.services.mapserver.connectors import get_connector_by_test
-        connector = get_connector_by_test(data_items)
+        connector = get_connector_by_test(data_locations)
 
         if not connector:
             raise OperationNotSupportedException(
@@ -153,7 +153,7 @@ class RectifiedCoverageMapServerRenderer(BaseRenderer):
             )
 
         try:
-            connector.connect(coverage, data_items, layer, {})
+            connector.connect(coverage, data_locations, layer, {})
             # create request object and dispatch it against the map
             request = ms.create_request(
                 self.translate_params(params, range_type)
@@ -163,7 +163,7 @@ class RectifiedCoverageMapServerRenderer(BaseRenderer):
 
         finally:
             # perform any required layer related cleanup
-            connector.disconnect(coverage, data_items, layer, {})
+            connector.disconnect(coverage, data_locations, layer, {})
 
         result_set = result_set_from_raw_data(raw_result)
 

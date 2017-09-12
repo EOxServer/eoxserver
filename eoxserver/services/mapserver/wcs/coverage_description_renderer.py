@@ -40,7 +40,11 @@ class CoverageDescriptionMapServerRenderer(BaseRenderer):
 
     def supports(self, params):
         return (
-            params.version in self.versions
+            params.version in self.versions and
+            all(
+                not coverage.grid.is_referenceable
+                for coverage in params.coverages
+            )
         )
 
     def render(self, params):
@@ -54,8 +58,8 @@ class CoverageDescriptionMapServerRenderer(BaseRenderer):
             if coverage.grid.is_referenceable:
                 raise NoSuchCoverageException((coverage.identifier,))
 
-            data_items = self.data_items_for_coverage(coverage)
-            native_format = self.get_native_format(coverage, data_items)
+            data_locations = self.arraydata_locations_for_coverage(coverage)
+            native_format = self.get_native_format(coverage, data_locations)
             layer = self.layer_for_coverage(
                 coverage, native_format, params.version
             )

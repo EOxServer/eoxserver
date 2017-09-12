@@ -30,6 +30,7 @@ This module contains a set of handler base classes which shall help to implement
 a specific handler. Interface methods need to be overridden in order to work,
 default methods can be overidden.
 """
+from django.db.models import Q
 
 from eoxserver.resources.coverages import models
 from eoxserver.services.result import to_http_response
@@ -42,7 +43,7 @@ from eoxserver.services.ows.wcs.renderers import (
     get_coverage_renderer,
 )
 
-from eoxserver.render.coverage.objects import Coverage
+from eoxserver.render.coverage.objects import Coverage, Mosaic
 
 
 class WCSGetCapabilitiesHandlerBase(object):
@@ -136,17 +137,29 @@ class WCSDescribeCoverageHandlerBase(object):
             IDs was not found in the database.
         """
         ids = decoder.coverage_ids
-        coverages = sorted(
-            models.Coverage.objects.filter(identifier__in=ids),
+
+        # qs = models.Coverage.objects.filter(identifier__in=ids)
+        qs = models.EOObject.objects.filter(
+            identifier__in=ids,
+        ).filter(
+            Q(coverage__isnull=False) | Q(mosaic__isnull=False)
+        ).select_subclasses()
+
+        objects = sorted(
+            qs,
             key=(lambda coverage: ids.index(coverage.identifier))
         )
 
         # check correct number
-        if len(coverages) < len(ids):
-            available_ids = set([coverage.identifier for coverage in coverages])
+        if len(objects) < len(ids):
+            available_ids = set([coverage.identifier for coverage in objects])
             raise NoSuchCoverageException(set(ids) - available_ids)
 
-        return coverages
+        return [
+            Coverage.from_model(obj)
+            if isinstance(obj, models.Coverage) else Mosaic.from_model(obj)
+            for obj in objects
+        ]
 
     def get_params(self, coverages, decoder):
         """ Interface method to return a render params object from the given
