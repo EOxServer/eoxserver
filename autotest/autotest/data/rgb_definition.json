@@ -1,0 +1,48 @@
+[{
+    "bands": [
+        {
+            "definition": "http://www.opengis.net/def/property/OGC/0/Radiance",
+            "description": "Red Channel",
+            "gdal_interpretation": "RedBand",
+            "identifier": "red",
+            "name": "red",
+            "nil_values": [
+                {
+                    "reason": "http://www.opengis.net/def/nil/OGC/0/unknown",
+                    "value": 0
+                }
+            ],
+            "uom": "W.m-2.Sr-1"
+        },
+        {
+            "definition": "http://www.opengis.net/def/property/OGC/0/Radiance",
+            "description": "Green Channel",
+            "gdal_interpretation": "GreenBand",
+            "identifier": "green",
+            "name": "green",
+            "nil_values": [
+                {
+                    "reason": "http://www.opengis.net/def/nil/OGC/0/unknown",
+                    "value": 0
+                }
+            ],
+            "uom": "W.m-2.Sr-1"
+        },
+        {
+            "definition": "http://www.opengis.net/def/property/OGC/0/Radiance",
+            "description": "Blue Channel",
+            "gdal_interpretation": "BlueBand",
+            "identifier": "blue",
+            "name": "blue",
+            "nil_values": [
+                {
+                    "reason": "http://www.opengis.net/def/nil/OGC/0/unknown",
+                    "value": 0
+                }
+            ],
+            "uom": "W.m-2.Sr-1"
+        }
+    ],
+    "data_type": "Byte",
+    "name": "RGB"
+}]
