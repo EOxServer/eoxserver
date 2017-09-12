@@ -108,7 +108,7 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
         """
         coverage_type = self._create_coverage_type(name)
 
-        self._create_field_types(coverage_type, [
+        self._create_field_types(coverage_type, {}, [
             dict(
                 identifier=field_type_definition[0],
                 description=field_type_definition[1],
@@ -180,7 +180,9 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
         field_type_definitions = (
             definition.get('field_type') or definition.get('bands')
         )
-        self._create_field_types(coverage_type, field_type_definitions)
+        self._create_field_types(
+            coverage_type, definition, field_type_definitions
+        )
         self.print_msg('Successfully imported coverage type %r' % name)
 
     def _create_coverage_type(self, name):
@@ -189,7 +191,8 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
         except IntegrityError:
             raise CommandError("Coverage type %r already exists." % name)
 
-    def _create_field_types(self, coverage_type, field_type_definitions):
+    def _create_field_types(self, coverage_type, coverage_type_definition,
+                            field_type_definitions):
         for i, field_type_definition in enumerate(field_type_definitions):
             uom = (
                 field_type_definition.get('unit_of_measure') or
@@ -216,9 +219,15 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             if 'is_float' in field_type_definition:
                 field_type.is_float = field_type_definition['is_float']
 
+            # per field data type
             if 'data_type' in field_type_definition:
                 field_type.numbits, field_type.signed, field_type.is_float = \
                     self._parse_data_type(field_type_definition['data_type'])
+
+            # global data type
+            elif 'data_type' in coverage_type_definition:
+                field_type.numbits, field_type.signed, field_type.is_float = \
+                    self._parse_data_type(coverage_type_definition['data_type'])
 
             field_type.full_clean()
             field_type.save()
