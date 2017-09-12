@@ -115,14 +115,18 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
         if len(axis_names) > 4:
             raise CommandError('Currently only at most four axes are supported.')
 
-        iterator = enumerate(zip(axis_names, axis_types, axis_offsets))
+        type_name_to_id = dict(
+            (name, id_) for id_, name in models.Grid.AXIS_TYPES
+        )
+
+        iterator = enumerate(zip(axis_names, axis_types, axis_offsets), start=1)
         definition = {
             'name': name,
-            'coordinate_reference_system': coordinate_reference_system
+            'coordinate_reference_system': coordinate_reference_system[0]
         }
-        for i, name, type_, offset in iterator:
+        for i, (name, type_, offset) in iterator:
             definition['axis_%d_name' % i] = name
-            definition['axis_%d_type' % i] = type_
+            definition['axis_%d_type' % i] = type_name_to_id[type_]
             definition['axis_%d_offset' % i] = offset
 
         models.Grid.objects.create(**definition)

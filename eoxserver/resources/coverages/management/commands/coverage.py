@@ -71,7 +71,7 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
         )
         register_parser.add_argument(
             '--grid', '-g',
-            dest='grid_name', default=None,
+            dest='grid', default=None,
             help='The name of the grid to associate the coverage with.'
         )
         register_parser.add_argument(
