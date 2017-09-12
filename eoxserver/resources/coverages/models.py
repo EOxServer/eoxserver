@@ -915,8 +915,6 @@ def mosaic_insert_coverage(mosaic, coverage):
             if getattr(grid, 'axis_%d_type' % i) is None:
                 break
 
-            # TODO: make this more reliable
-
             # if origin and size were null, use the ones from the coverage
             if getattr(mosaic, 'axis_%d_origin' % i) is None:
                 setattr(mosaic, 'axis_%d_origin' % i,
@@ -950,6 +948,9 @@ def mosaic_insert_coverage(mosaic, coverage):
                     mosaic, 'axis_%d_size' % i,
                     (max(o_c, o_m) - min(o_c, o_m)) / offset + add_size
                 )
+
+    mosaic.full_clean()
+    mosaic.save()
 
 
 def product_add_coverage(product, coverage):
