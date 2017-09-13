@@ -36,7 +36,7 @@ class PolygonMaskConnector(object):
         polygons are subtracted from the coverages footprint.
     """
 
-    def supports(self, data_items):
+    def supports(self, coverage, data_items):
         num = len(data_items)
         return (
             len(data_items) >= 1 and

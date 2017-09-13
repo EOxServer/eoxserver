@@ -118,7 +118,7 @@ class RectifiedCoverageMapServerRenderer(BaseRenderer):
 
         # configure outputformat
         native_format = self.get_native_format(coverage, data_locations)
-        if get_format_by_mime(native_format) is None:
+        if native_format and get_format_by_mime(native_format) is None:
             native_format = "image/tiff"
 
         frmt = params.format or native_format
@@ -145,7 +145,7 @@ class RectifiedCoverageMapServerRenderer(BaseRenderer):
         map_.insertLayer(layer)
 
         from eoxserver.services.mapserver.connectors import get_connector_by_test
-        connector = get_connector_by_test(data_locations)
+        connector = get_connector_by_test(coverage, data_locations)
 
         if not connector:
             raise OperationNotSupportedException(

@@ -63,8 +63,19 @@ class WCSGetCapabilitiesHandlerBase(object):
         """ Default implementation of the coverage lookup. Simply returns all
             coverages in no specific order.
         """
-        return models.Coverage.objects.filter(visible=True) \
-            .order_by("identifier")
+        return models.EOObject.objects.filter(
+            Q(
+                service_visibility__service='wcs',
+                service_visibility__visibility=True
+            ) | Q(  # include mosaics with a Grid
+                mosaic__isnull=False,
+                mosaic__grid__isnull=False,
+                service_visibility__service='wcs',
+                service_visibility__visibility=True
+            )
+        ).order_by(
+            "identifier"
+        ).select_subclasses(models.Coverage, models.Mosaic)
 
     def get_params(self, coverages, decoder):
         """ Default method to return a render params object from the given
@@ -224,11 +235,20 @@ class WCSGetCoverageHandlerBase(object):
         coverage_id = decoder.coverage_id
 
         try:
-            coverage = models.Coverage.objects.get(identifier=coverage_id)
+            obj = models.EOObject.objects.select_subclasses(
+                models.Coverage, models.Mosaic
+            ).get(
+                Q(identifier=coverage_id) & (
+                    Q(coverage__isnull=False) | Q(mosaic__isnull=False)
+                )
+            )
         except models.Coverage.DoesNotExist:
             raise NoSuchCoverageException((coverage_id,))
 
-        return coverage
+        if isinstance(obj, models.Coverage):
+            return Coverage.from_model(obj)
+        else:
+            return Mosaic.from_model(obj, obj.coverages.all())
 
     def get_params(self, coverages, decoder, request):
         """ Interface method to return a render params object from the given
@@ -260,8 +280,6 @@ class WCSGetCoverageHandlerBase(object):
 
         # get the coverage model
         coverage = self.lookup_coverage(decoder)
-
-        coverage = Coverage.from_model(coverage)
 
         # create the render params
         params = self.get_params(coverage, decoder, request)

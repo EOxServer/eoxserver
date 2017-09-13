@@ -40,7 +40,7 @@ class MultiFileConnector(object):
         the different band files.
     """
 
-    def supports(self, data_items):
+    def supports(self, coverage, data_items):
         # TODO: better checks
         return (
             len(data_items) > 1 and all(

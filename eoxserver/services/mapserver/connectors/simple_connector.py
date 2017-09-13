@@ -39,11 +39,11 @@ class SimpleConnector(object):
     """ Connector for single file layers.
     """
 
-    def supports(self, data_items):
+    def supports(self, coverage, data_items):
         return len(data_items) == 1
 
     def connect(self, coverage, data_items, layer, options):
-        data = get_vsi_path(data_items[0])
+        data = data_items[0].path
 
         if coverage.grid.is_referenceable:
             vrt_path = join("/vsimem", uuid4().hex)

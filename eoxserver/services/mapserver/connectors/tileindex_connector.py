@@ -33,7 +33,7 @@ class TileIndexConnector(object):
         "location".
     """
 
-    def supports(self, data_items):
+    def supports(self, coverage, data_items):
         return (
             len(data_items) == 1 and data_items[0].semantic == "tileindex"
         )

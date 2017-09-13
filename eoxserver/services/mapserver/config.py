@@ -25,35 +25,8 @@
 # THE SOFTWARE.
 # ------------------------------------------------------------------------------
 
-from django.conf import settings
-from django.utils.module_loading import import_string
-
-from eoxserver.services.mapserver.config import (
-    DEFAULT_EOXS_MAPSERVER_CONNECTORS
-)
-
-MAPSERVER_CONNECTORS = None
-
-
-def _setup_connectors():
-    global MAPSERVER_CONNECTORS
-    specifiers = getattr(
-        settings, 'EOXS_MAPSERVER_CONNECTORS',
-        DEFAULT_EOXS_MAPSERVER_CONNECTORS
-    )
-    MAPSERVER_CONNECTORS = [
-        import_string(specifier)()
-        for specifier in specifiers
-    ]
-
-
-def get_connector_by_test(coverage, data_items):
-    """ Get a coverage metadata format reader by testing.
-    """
-    if not MAPSERVER_CONNECTORS:
-        _setup_connectors()
-
-    for connector in MAPSERVER_CONNECTORS:
-        if connector.supports(coverage, data_items):
-            return connector
-    return None
+DEFAULT_EOXS_MAPSERVER_CONNECTORS = [
+    'eoxserver.services.mapserver.connectors.simple_connector.SimpleConnector',
+    'eoxserver.services.mapserver.connectors.multifile_connector.MultiFileConnector',
+    'eoxserver.services.mapserver.connectors.mosaic_connector.MosaicConnector',
+]
