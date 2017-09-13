@@ -555,13 +555,15 @@ class Coverage(object):
 
 
 class Mosaic(object):
-    def __init__(self, identifier, eo_metadata, range_type, grid, origin, size):
+    def __init__(self, identifier, eo_metadata, range_type, grid, origin, size,
+                 coverages=None):
         self._identifier = identifier
         self._eo_metadata = eo_metadata
         self._range_type = range_type
         self._origin = origin
         self._grid = grid
         self._size = size
+        self._coverages = coverages if coverages is not None else []
 
     @property
     def identifier(self):
@@ -633,8 +635,12 @@ class Mosaic(object):
 
         return tuple(lows + highs)
 
+    @property
+    def coverages(self):
+        return self._coverages
+
     @classmethod
-    def from_model(cls, mosaic_model):
+    def from_model(cls, mosaic_model, coverage_models=None):
         eo_metadata = EOMetadata(None, None, None)
         if mosaic_model.begin_time and mosaic_model.end_time and \
                 mosaic_model.footprint:
@@ -654,8 +660,13 @@ class Mosaic(object):
             grid = Grid.from_model(grid_model)
             origin = Origin.from_description(grid.types, mosaic_model.origin)
 
+        coverages = [
+            Coverage.from_model(coverage_model)
+            for coverage_model in coverage_models
+        ] if coverage_models is not None else None
+
         return cls(
             identifier=mosaic_model.identifier,
             eo_metadata=eo_metadata, range_type=range_type, origin=origin,
-            grid=grid, size=mosaic_model.size,
+            grid=grid, size=mosaic_model.size, coverages=coverages
         )

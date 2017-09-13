@@ -25,8 +25,9 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
+import subprocess
 
-from eoxserver.contrib import gdal
+from eoxserver.contrib import gdal, vsi
 
 
 def get_vrt_driver():
@@ -274,3 +275,12 @@ class VRTBuilder2(object):
                 E("ResampleAlg", resample)
             ))
         return etree.tostring(root, pretty_print=True)
+
+
+def gdalbuildvrt(filename, paths):
+    content = subprocess.check_output([
+        '/usr/bin/gdalbuildvrt', '-q', '/vsistdout/'
+    ] + paths)
+
+    with vsi.open(filename, "w") as f:
+        f.write(content)
