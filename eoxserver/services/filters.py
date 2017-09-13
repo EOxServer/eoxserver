@@ -35,6 +35,7 @@ except ImportError:
     from django.utils.datastructures import SortedDict as OrderedDict
 
 from django.db.models import Q, F, ForeignKey, Value
+from django.db.models.expressions import Expression
 
 from django.contrib.gis.gdal import SpatialReference
 from django.contrib.gis.geos import Polygon
@@ -44,7 +45,7 @@ from eoxserver.core.config import get_eoxserver_config
 from eoxserver.core.decoders import config, enum
 from eoxserver.resources.coverages import models
 
-ARITHMETIC_TYPES = (F, Value, int, float)
+ARITHMETIC_TYPES = (Expression, F, Value, int, float)
 
 # ------------------------------------------------------------------------------
 # Filters
@@ -435,8 +436,6 @@ def spatial(lhs, rhs, op, pattern=None, distance=None, units=None):
             return Q(**{"%s__dwithin" % lhs.name: (rhs, d)})
         return Q(**{"%s__distance_gt" % lhs.name: (rhs, d)})
 
-    print op
-
 
 def bbox(lhs, minx, miny, maxx, maxy, crs=None):
     """ Create a bounding box filter for the given spatial attribute.
@@ -511,8 +510,9 @@ def arithmetic(lhs, rhs, op):
         :param op: the arithmetic operation. one of "+", "-", "*", "/"
         :rtype: :class:`django.db.models.F`
     """
-    assert isinstance(lhs, ARITHMETIC_TYPES)
-    assert isinstance(rhs, ARITHMETIC_TYPES)
+
+    assert isinstance(lhs, ARITHMETIC_TYPES), '%r is not a compatible type' % lhs
+    assert isinstance(rhs, ARITHMETIC_TYPES), '%r is not a compatible type' % rhs
     assert op in OP_TO_FUNC
     func = OP_TO_FUNC[op]
     return func(lhs, rhs)
@@ -543,9 +543,10 @@ def get_field_mapping_for_model(model_class, strict=False):
             mapping[_to_camel_case(field_name)] = field_name
 
         if model_class in metadata_classes:
-            mapping, mapping_choices = _get_metadata_model_mapping(
+            new_mapping, mapping_choices = _get_metadata_model_mapping(
                 *metadata_classes.get(model_class)
             )
+            mapping.update(new_mapping)
 
         elif model_class is models.EOObject:
             for metadata_class, name in metadata_classes.values():
@@ -567,7 +568,7 @@ def _to_camel_case(word):
 def _is_common_value(field):
     try:
         if isinstance(field, ForeignKey):
-            field.related.parent_model._meta.get_field('value')
+            field.related_model._meta.get_field('value')
             return True
     except:
         pass

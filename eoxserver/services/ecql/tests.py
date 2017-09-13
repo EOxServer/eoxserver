@@ -51,7 +51,6 @@ class ECQLTestCase(TransactionTestCase):
 
     def setUp(self):
         p = parse_iso8601
-        range_type = models.RangeType.objects.create(name="RGB")
         # models.RectifiedDataset.objects.create(
         #     identifier="A",
         #     footprint=MultiPolygon(Polygon.from_bbox((0, 0, 5, 5))),
@@ -67,14 +66,10 @@ class ECQLTestCase(TransactionTestCase):
             footprint=MultiPolygon(Polygon.from_bbox((0, 0, 5, 5))),
             begin_time=p("2000-01-01T00:00:00Z"),
             end_time=p("2000-01-01T00:00:05Z"),
-            srid=4326, min_x=0, min_y=0, max_x=5, max_y=5,
-            size_x=100, size_y=100,
-            range_type=range_type
         ), dict(
             illumination_azimuth_angle=10.0,
             illumination_zenith_angle=20.0,
             illumination_elevation_angle=30.0,
-        ), dict(
             parent_identifier="AparentA",
             orbit_number="AAA",
             orbit_direction="ASCENDING"
@@ -85,23 +80,19 @@ class ECQLTestCase(TransactionTestCase):
             footprint=MultiPolygon(Polygon.from_bbox((5, 5, 10, 10))),
             begin_time=p("2000-01-01T00:00:05Z"),
             end_time=p("2000-01-01T00:00:10Z"),
-            srid=4326, min_x=5, min_y=5, max_x=10, max_y=10,
-            size_x=100, size_y=100,
-            range_type=range_type
         ), dict(
             illumination_azimuth_angle=20.0,
             illumination_zenith_angle=30.0,
-        ), dict(
             parent_identifier="BparentB",
             orbit_number="BBB",
             orbit_direction="DESCENDING"
         ))
 
-    def create_metadata(self, coverage, metadata, product_metadata):
+    def create_metadata(self, product, metadata):
         def is_common_value(field):
             try:
                 if isinstance(field, ForeignKey):
-                    field.related.parent_model._meta.get_field('value')
+                    field.related_model._meta.get_field('value')
                     return True
             except:
                 pass
@@ -110,28 +101,25 @@ class ECQLTestCase(TransactionTestCase):
         def convert(name, value, model_class):
             field = model_class._meta.get_field(name)
             if is_common_value(field):
-                return field.related.parent_model.objects.get_or_create(
+                return field.related_model.objects.get_or_create(
                     value=value
                 )[0]
             elif field.choices:
                 return dict((v, k) for k, v in field.choices)[value]
             return value
 
-        pm = models.ProductMetadata.objects.create(**dict(
+        pm = models.ProductMetadata(**dict(
             (name, convert(name, value, models.ProductMetadata))
-            for name, value in product_metadata.items()
+            for name, value in metadata.items()
         ))
-        return models.CoverageMetadata.objects.create(
-            coverage=coverage, product_metadata=pm, **dict(
-                (name, convert(name, value, models.CoverageMetadata))
-                for name, value in metadata.items()
-            )
-        )
+        pm.product = product
+        pm.full_clean()
+        pm.save()
 
-    def create(self, coverage_params, metadata, product_metadata):
-        c = models.RectifiedDataset.objects.create(**coverage_params)
-        self.create_metadata(c, metadata, product_metadata)
-        return c
+    def create(self, coverage_params, metadata):
+        p = models.Product.objects.create(**coverage_params)
+        self.create_metadata(p, metadata)
+        return p
 
     def create_collection(self, collection_params, metadata):
         pass
@@ -143,17 +131,11 @@ class ECQLTestCase(TransactionTestCase):
         pass
 
     def evaluate(self, cql_expr, expected_ids, model_type=None):
-        model_type = model_type or models.RectifiedDataset
+        model_type = model_type or models.Product
         mapping, mapping_choices = get_field_mapping_for_model(model_type)
 
         ast = ecql.parse(cql_expr)
-
-        # print
-        # print
-        # print cql_expr
-        # #print ecql.get_repr(ast)
         filters = ecql.to_filter(ast, mapping, mapping_choices)
-        # print filters
 
         qs = model_type.objects.filter(filters)
 
