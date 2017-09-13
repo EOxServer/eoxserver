@@ -210,7 +210,7 @@ INSTALLED_APPS = (
     #'django.contrib.databrowse',
     # Enable for better schema and data-migrations
     # Enable for debugging
-    'django_extensions',
+    # 'django_extensions',
     # Enable EOxServer:
     'eoxserver.core',
     'eoxserver.services',
