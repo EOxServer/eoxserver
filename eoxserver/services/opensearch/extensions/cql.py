@@ -25,21 +25,38 @@
 # THE SOFTWARE.
 # ------------------------------------------------------------------------------
 
+from eoxserver.core.decoders import kvp
+from eoxserver.core.util.xmltools import NameSpace
+from eoxserver.services import filters, ecql
 
-# default for EOXS_OPENSEARCH_FORMATS
-DEFAULT_EOXS_OPENSEARCH_FORMATS = [
-    'eoxserver.services.opensearch.formats.atom.AtomResultFormat',
-    'eoxserver.services.opensearch.formats.rss.RSSResultFormat',
-    'eoxserver.services.opensearch.formats.html.HTMLResultFormat',
-    'eoxserver.services.opensearch.formats.kml.KMLResultFormat',
-    'eoxserver.services.opensearch.formats.geojson.GeoJSONResultFormat',
 
-]
+class CQLExtension(object):
+    """ Implementation of the OpenSearch `'EO' extension
+    <http://docs.opengeospatial.org/is/13-026r8/13-026r8.html>`_.
+    """
 
-# default for EOXS_OPENSEARCH_EXTENSIONS
-DEFAULT_EOXS_OPENSEARCH_EXTENSIONS = [
-    'eoxserver.services.opensearch.extensions.eo.EarthObservationExtension',
-    'eoxserver.services.opensearch.extensions.geo.GeoExtension',
-    'eoxserver.services.opensearch.extensions.time.TimeExtension',
-    'eoxserver.services.opensearch.extensions.cql.CQLExtension',
-]
+    namespace = NameSpace(
+        "http://a9.com/-/opensearch/extensions/cql/1.0/", "cql"
+    )
+
+    def filter(self, qs, parameters):
+        mapping, mapping_choices = filters.get_field_mapping_for_model(qs.model)
+        decoder = CQLExtensionDecoder(parameters)
+
+        cql_text = decoder.cql
+        if cql_text:
+            ast = ecql.parse(cql_text)
+            filter_expressions = ecql.to_filter(ast, mapping, mapping_choices)
+
+            qs = qs.filter(filter_expressions)
+
+        return qs
+
+    def get_schema(self, collection=None, model_class=None):
+        return (
+            dict(name="cql", type="cql"),
+        )
+
+
+class CQLExtensionDecoder(kvp.Decoder):
+    cql = kvp.Parameter(num="?", type=str)
