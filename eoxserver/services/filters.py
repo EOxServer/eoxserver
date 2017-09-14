@@ -368,21 +368,21 @@ def time_interval(time_or_period, containment='overlaps',
         # check if the temporal bounds must be strictly contained
         if containment == "contains":
             if high is not None:
-                q = Q(**{
+                q &= Q(**{
                     end_time_field + lt_op: high
                 })
             if low is not None:
-                q = Q(**{
+                q &= Q(**{
                     begin_time_field + gt_op: low
                 })
         # or just overlapping
         else:
             if high is not None:
-                q = Q(**{
+                q &= Q(**{
                     begin_time_field + lt_op: high
                 })
             if low is not None:
-                q = Q(**{
+                q &= Q(**{
                     end_time_field + gt_op: low
                 })
         return q
@@ -437,7 +437,7 @@ def spatial(lhs, rhs, op, pattern=None, distance=None, units=None):
         return Q(**{"%s__distance_gt" % lhs.name: (rhs, d)})
 
 
-def bbox(lhs, minx, miny, maxx, maxy, crs=None):
+def bbox(lhs, minx, miny, maxx, maxy, crs=None, bboverlaps=True):
     """ Create a bounding box filter for the given spatial attribute.
 
         :param lhs: the field to compare
@@ -457,7 +457,9 @@ def bbox(lhs, minx, miny, maxx, maxy, crs=None):
         box.srid = SpatialReference(crs).srid
         box.transform(4326)
 
-    return Q(**{"%s__bboverlaps" % lhs.name: box})
+    if bboverlaps:
+        return Q(**{"%s__bboverlaps" % lhs.name: box})
+    return Q(**{"%s__intersects" % lhs.name: box})
 
 
 # ------------------------------------------------------------------------------
