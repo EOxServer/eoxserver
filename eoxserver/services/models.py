@@ -38,6 +38,7 @@ class ServiceVisibility(models.Model):
         ("wms", "WMS"),
         ("wcs", "WCS"),
         ("os", "OpenSearch"),
+        ("wc", "WebClient")
     ]
 
     eo_object = models.OneToOneField(coverage_models.EOObject, related_name="service_visibility")
