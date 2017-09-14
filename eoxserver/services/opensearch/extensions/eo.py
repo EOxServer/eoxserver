@@ -91,14 +91,17 @@ class EarthObservationExtension(object):
 
         schema = []
         summary = {}
-        if collection and collection.collection_metadata:
-            summary = json.loads(
-                collection.collection_metadata.product_metadata_summary
-            )
-            summary = {
-                filters._to_camel_case(key): value
-                for key, value in summary.items()
-            }
+        if collection:
+            try:
+                summary = json.loads(
+                    collection.collection_metadata.product_metadata_summary
+                )
+                summary = {
+                    filters._to_camel_case(key): value
+                    for key, value in summary.items()
+                }
+            except models.CollectionMetadata.DoesNotExist:
+                pass
 
         for key, value in mapping.items():
             param = dict(
