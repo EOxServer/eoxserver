@@ -168,9 +168,12 @@ class BaseCoverageLayerFactory(BaseMapServerLayerFactory):
         if path.startswith("/vsimem"):
             vsi.remove(path)
 
-        ref_data = layer_obj.getMetaData("eoxs_ref_data")
-        if ref_data and ref_data.startswith("/vsimem"):
-            vsi.remove(ref_data)
+        try:
+            ref_data = layer_obj.getMetaData("eoxs_ref_data")
+            if ref_data and ref_data.startswith("/vsimem"):
+                vsi.remove(ref_data)
+        except:
+            pass
 
 
 class CoverageLayerFactory(BaseCoverageLayerFactory):
