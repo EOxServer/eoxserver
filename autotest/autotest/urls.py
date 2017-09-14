@@ -43,6 +43,7 @@ from eoxserver.resources.processes import views as procViews
 
 
 from eoxserver.services.opensearch.urls import urlpatterns as opensearch
+from eoxserver.webclient.urls import urlpatterns as webclient
 from eoxserver.views import index
 from eoxserver.resources.coverages import views as coverages_views
 
@@ -54,7 +55,7 @@ urlpatterns = [
     url(r'^browse/(?P<identifier>[^/]+)$', coverages_views.browse_view),
 
     # enable the client
-    url(r'^client/', include("eoxserver.webclient.urls")),
+    url(r'^client/', include(webclient)),
 
     # Enable admin documentation:
     url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
