@@ -136,7 +136,7 @@ class WMSBaseGetMapHandler(object):
 
         filter_expressions = filters.bbox(
             filters.attribute('footprint', field_mapping),
-            minx, miny, maxx, maxy, crs
+            minx, miny, maxx, maxy, crs, bboverlaps=False
         )
 
         if time:
