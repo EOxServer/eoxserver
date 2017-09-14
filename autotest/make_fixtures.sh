@@ -44,34 +44,36 @@ python manage.py coverage register \
 ##### 
 
 
-# # Load MERIS coveragetypes
-# python manage.py coveragetype import autotest/data/meris/meris_range_type_definition.json
+# Load MERIS coveragetypes
+python manage.py coveragetype import autotest/data/meris/meris_range_type_definition.json
 
-# # save MERIS coveragetype fixtures
-# # python manage.py dumpdata coverages --indent 4 > out/meris_coveragetypes.json
+# save MERIS coveragetype fixtures
+# python manage.py dumpdata coverages --indent 4 > out/meris_coveragetypes.json
 
-# # create a collection for the coverages
-# python manage.py collection create MER_FRS_1P_reduced
+# create a collection for the coverages
+python manage.py collection create MER_FRS_1P_reduced
 
-# # register MERIS Uint16 data
-# python manage.py coverage register \
-#     -t MERIS_uint16 \
-#     -d autotest/data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed.tif \
-#     -m autotest/data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed.xml
+# register MERIS Uint16 data
+python manage.py coverage register \
+    -t MERIS_uint16 \
+    -d autotest/data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed.tif \
+    -m autotest/data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed.xml
 
-# python manage.py coverage register \
-#     -t MERIS_uint16 \
-#     -d autotest/data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed.tif \
-#     -m autotest/data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed.xml
+python manage.py coverage register \
+    -t MERIS_uint16 \
+    -d autotest/data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed.tif \
+    -m autotest/data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed.xml
 
-# python manage.py coverage register \
-#     -t MERIS_uint16 \
-#     -d autotest/data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_uint16_reduced_compressed.tif \
-#     -m autotest/data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_uint16_reduced_compressed.xml
+python manage.py coverage register \
+    -t MERIS_uint16 \
+    -d autotest/data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_uint16_reduced_compressed.tif \
+    -m autotest/data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_uint16_reduced_compressed.xml
 
+python manage.py collection insert MER_FRS_1P_reduced MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed
+python manage.py collection insert MER_FRS_1P_reduced MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed
+python manage.py collection insert MER_FRS_1P_reduced MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_uint16_reduced_compressed
 
 #######
-
 
 # save MERIS coverages fixtures
 # python manage.py dumpdata coverages backends --indent 4 \
