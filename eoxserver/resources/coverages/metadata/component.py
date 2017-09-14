@@ -42,6 +42,7 @@ class ProductMetadataComponent(object):
             if hasattr(reader, 'test_path') and reader.test_path(path):
                 return reader.read_path(path)
             elif hasattr(reader, 'test') and f and reader.test(f):
+                f.seek(0)
                 return reader.read(f)
 
         if f:

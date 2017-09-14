@@ -44,4 +44,5 @@ DEFAULT_EOXS_PRODUCT_METADATA_FORMAT_READERS = [
     'eoxserver.resources.coverages.metadata.product_formats.sentinel1.S1ProductFormatReader',
     'eoxserver.resources.coverages.metadata.product_formats.sentinel2.S2ProductFormatReader',
     'eoxserver.resources.coverages.metadata.product_formats.landsat8_l1.Landsat8L1ProductMetadataReader',
+    'eoxserver.resources.coverages.metadata.coverage_formats.eoom.EOOMFormatReader',
 ]
