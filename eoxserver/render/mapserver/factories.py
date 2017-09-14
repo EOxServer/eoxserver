@@ -323,6 +323,8 @@ def _create_raster_layer_obj(map_obj, extent, sr):
     layer_obj.type = ms.MS_LAYER_RASTER
     layer_obj.status = ms.MS_ON
 
+    layer_obj.offsite = ms.colorObj(0, 0, 0)
+
     if extent:
         layer_obj.setMetaData("wms_extent", "%f %f %f %f" % extent)
         layer_obj.setExtent(*extent)
