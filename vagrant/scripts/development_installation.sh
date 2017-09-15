@@ -31,10 +31,8 @@ python manage.py migrate --noinput --traceback
 
 # Create admin user
 python manage.py shell 1>/dev/null 2>&1 -c "
-from django.contrib.auth import authenticate
-from django.contrib.auth.models import User
-if authenticate(username='admin', password='admin') is None:
-    User.objects.create_user('admin','office@eox.at','admin')
+from django.contrib.auth import models
+models.User.objects.create_superuser('admin', 'office@eox.at', 'admin')
 "
 
 # Collect static files
@@ -46,10 +44,14 @@ touch "$EOX_ROOT/autotest/autotest/logs/eoxserver.log"
 # Load the demonstration if not already present
 COLLECTION="MER_FRS_1P_reduced_RGB"
 if python manage.py id check "$COLLECTION" --type Collection --traceback  ; then
-    cat "$EOX_ROOT/autotest/autotest/data/meris/meris_range_type_definition.json" | python manage.py coveragetype import --in
+    python manage.py coveragetype import "$EOX_ROOT/autotest/autotest/data/meris/meris_range_type_definition.json"
     python manage.py collection create "$COLLECTION" --traceback
     for TIF in "$EOX_ROOT/autotest/autotest/data/meris/mosaic_MER_FRS_1P_reduced_RGB/"*.tif
     do
-        python manage.py coverage register -d "$TIF" -m "${TIF//.tif/.xml}" --traceback
+        PROD_ID="$(basename ${TIF}).product"
+        python manage.py product register -i "$PROD_ID" --metadata "${TIF//.tif/.xml}" --traceback
+        python manage.py browse register "$PROD_ID" "$TIF"
+        python manage.py coverage register -d "$TIF" -m "${TIF//.tif/.xml}" --product "$PROD_ID" -t MERIS_uint16 --traceback
+        python manage.py collection insert "$COLLECTION" "$PROD_ID" --traceback
     done
 fi
