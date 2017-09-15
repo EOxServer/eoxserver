@@ -101,12 +101,6 @@ class ProductRegistrator(base.BaseRegistrator):
 
         mask_locations.extend(new_metadata.pop('masks', []))
 
-        from pprint import pprint
-
-        pprint(metadata)
-        pprint(new_metadata)
-        pprint(overrides)
-
         metadata.update(new_metadata)
         metadata.update(dict(
             (key, value) for key, value in overrides.items()
