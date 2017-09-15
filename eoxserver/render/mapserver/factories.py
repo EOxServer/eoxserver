@@ -74,7 +74,7 @@ class BaseCoverageLayerFactory(BaseMapServerLayerFactory):
                     for band in bands
                 ]
             except StopIteration:
-                raise Exception('Invalid layers.')
+                raise Exception('Invalid bands specified.')
         elif wavelengths:
             assert len(bands) in (1, 3, 4)
             try:
@@ -86,7 +86,12 @@ class BaseCoverageLayerFactory(BaseMapServerLayerFactory):
                     for wavelength in wavelengths
                 ]
             except StopIteration:
-                raise Exception('Invalid wavelengths.')
+                raise Exception('Invalid wavelengths specified.')
+        else:
+            # when fields is not 1 (single band grayscale), 3 (RGB) or 4 (RGBA)
+            # then use the first band by default
+            if len(fields) not in (1, 3, 4):
+                return fields[:1]
 
         return fields
 
