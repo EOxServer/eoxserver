@@ -25,6 +25,7 @@
 # THE SOFTWARE.
 # ------------------------------------------------------------------------------
 
+import threading
 
 from ply import yacc
 
@@ -59,6 +60,9 @@ class ECQLParser(object):
             input=text,
             lexer=self.lexer
         )
+
+    def restart(self, *args, **kwargs):
+        return self.parser.restart(*args, **kwargs)
 
     precedence = (
         ('left', 'EQ', 'NE'),
@@ -258,43 +262,15 @@ class ECQLParser(object):
             print("Syntax error at EOF")
 
 
+__parser_lock = threading.Lock()
+__parser = ECQLParser()
+
+
 def parse(cql):
-    parser = ECQLParser()
-    return parser.parse(cql)
-
-# if __name__ == "__main__":
-#     p = ECQLParser()
-#     p.parse(
-#         # 'a = 0 AND '
-#         # 'b = "2" AND '
-#         # 'x IN (a, b, c)'
-#         # 'INTERSECTS(x, POLYGON ((35 10, 45 45, 15 40, 10 20, 35 10), (20 30, 35 35, 30 20, 20 30)))'
-#         '2212312312 / abasnfoansfo + basdasfasfas * 5555555555555 = x'
-#         ''
-#     )
-
-#     # # Give the lexer some input
-#     # lexer = ECQLLexer()
-#     # lexer.build()
-#     # # lexer.input(
-#     # #     'a = 1 AND b = "2" OR c = 2007-01-25T12:00:00Z'
-#     # #     'AND d = MULTIPOINT(2 5)'
-#     # # )
-#     # lexer.input(
-#     #     'POINT (30 10)'
-#     #     'LINESTRING (30 10, 10 30, 40 40)'
-#     #     'POLYGON ((30 10, 40 40, 20 40, 10 20, 30 10))'
-#     #     'POLYGON ((35 10, 45 45, 15 40, 10 20, 35 10), (20 30, 35 35, 30 20, 20 30))'
-#     #     'MULTIPOINT ((10 40), (40 30), (20 20), (30 10))'
-#     #     'MULTIPOINT (10 40, 40 30, 20 20, 30 10)'
-#     #     'MULTILINESTRING ((10 10, 20 20, 10 40), (40 40, 30 30, 40 20, 30 10))'
-#     #     'MULTIPOLYGON (((30 20, 45 40, 10 40, 30 20)), ((15 5, 40 10, 10 20, 5 10, 15 5)))'
-#     #     'MULTIPOLYGON (((40 40, 20 45, 45 30, 40 40)), ((20 35, 10 30, 10 10, 30 5, 45 20, 20 35), (30 20, 20 15, 20 25, 30 20)))'
-#     # )
-
-#     # # Tokenize
-#     # while True:
-#     #     tok = lexer.token()
-#     #     if not tok:
-#     #         break      # No more input
-#     #     print(tok)
+    """ Parses the passed CQL to its AST interpretation. It uses the global
+        parser Object
+    """
+    with __parser_lock:
+        result = __parser.parse(cql)
+        __parser.restart()
+        return result
