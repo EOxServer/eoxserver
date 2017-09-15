@@ -1014,3 +1014,29 @@ def validate_grid(grid):
             )
 
         higher_dim = i if has_dim else False
+
+# ==============================================================================
+# Utilities
+# ==============================================================================
+
+
+def product_get_metadata(product):
+    try:
+        product_metadata = product.product_metadata
+    except ProductMetadata.DoesNotExist:
+        return []
+
+    def get_value(product_metadata, field):
+        raw_value = getattr(product_metadata, field.name)
+        if isinstance(field, models.ForeignKey):
+            return raw_value.value
+        elif field.choices:
+            return dict(field.choices)[raw_value]
+        return raw_value
+
+    return [
+        (field.name, get_value(product_metadata, field))
+        for field in ProductMetadata._meta.fields
+        if field.name not in ('id', 'product') and
+        getattr(product_metadata, field.name)
+    ]
