@@ -25,7 +25,10 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
+from django.conf import settings
+import traceback
 
+from lxml import etree
 from lxml.builder import ElementMaker
 
 from eoxserver.core.util.xmltools import XMLEncoder, NameSpace, NameSpaceMap
@@ -60,10 +63,15 @@ class OWS20ExceptionXMLEncoder(XMLEncoder):
 
         exception_text = (OWS("ExceptionText", message),) if message else ()
 
-        return OWS("ExceptionReport", 
-            OWS("Exception", *exception_text, **exception_attributes
-            ), version=version, **{ns_xml("lang"): "en"}
+        report = OWS("ExceptionReport",
+            OWS("Exception", *exception_text, **exception_attributes),
+            version=version, **{ns_xml("lang"): "en"}
         )
+
+        if getattr(settings, 'DEBUG', False):
+            report.append(etree.Comment(traceback.format_exc()))
+
+        return report
 
     def get_schema_locations(self):
         return nsmap.schema_locations
