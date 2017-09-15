@@ -259,7 +259,13 @@ class MaskLayerFactory(BaseMapServerLayerFactory):
     def create(self, map_obj, layer):
         layer_obj = _create_polygon_layer(map_obj)
         for mask in layer.masks:
-            mask_geom = mask.geometry if mask.geometry else mask.load_geometry()
+            if mask.geometry:
+                mask_geom = mask.geometry
+            elif mask.filename:
+                mask_geom = mask.load_geometry()
+            else:
+                continue
+
             shape_obj = ms.shapeObj.fromWKT(mask_geom.wkt)
             layer_obj.addFeature(shape_obj)
 
@@ -285,10 +291,16 @@ class MaskedBrowseLayerFactory(BaseMapServerLayerFactory):
                 _create_geometry_class("black", "white", fill=True)
             )
 
-            mask_geom = mask.geometry if mask.geometry else mask.load_geometry()
+            if mask.geometry:
+                mask_geom = mask.geometry
+            elif mask.filename:
+                mask_geom = mask.load_geometry()
+            else:
+                mask_geom = None
 
             outline = browse.footprint
-            outline = outline - mask_geom
+            if mask_geom:
+                outline = outline - mask_geom
 
             shape_obj = ms.shapeObj.fromWKT(outline.wkt)
             mask_layer_obj.addFeature(shape_obj)

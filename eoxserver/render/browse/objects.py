@@ -127,8 +127,6 @@ class Browse(object):
 
 class Mask(object):
     def __init__(self, filename=None, geometry=None):
-        assert filename or geometry
-
         self._filename = filename
         self._geometry = geometry
 
