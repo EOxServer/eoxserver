@@ -43,3 +43,6 @@ DEFAULT_EOXS_OPENSEARCH_EXTENSIONS = [
     'eoxserver.services.opensearch.extensions.time.TimeExtension',
     'eoxserver.services.opensearch.extensions.cql.CQLExtension',
 ]
+
+# default for EOXS_OPENSEARCH_SUMMARY_TEMPLATE
+DEFAULT_EOXS_OPENSEARCH_SUMMARY_TEMPLATE = "opensearch/summary.html"

@@ -27,13 +27,21 @@
 
 
 from itertools import chain
+from datetime import datetime
 
 from lxml.etree import CDATA
 from lxml.builder import ElementMaker
+from django.template.loader import render_to_string
+from django.conf import settings
 
 from eoxserver.core.util.xmltools import etree, NameSpace, NameSpaceMap, typemap
+from eoxserver.core.util.timetools import isoformat
+from eoxserver.resources.coverages import models
 from eoxserver.services.opensearch.formats.base import (
     BaseFeedResultFormat, ns_dc, ns_georss, ns_media, ns_owc
+)
+from eoxserver.services.opensearch.config import (
+    DEFAULT_EOXS_OPENSEARCH_SUMMARY_TEMPLATE
 )
 
 
@@ -89,10 +97,34 @@ class AtomResultFormat(BaseFeedResultFormat):
         entry = ATOM("entry",
             ATOM("title", item.identifier),
             ATOM("id", item.identifier),
-            ATOM("summary", CDATA(item.identifier)),
+            self.encode_summary(request, item),
         )
 
         entry.extend(self.encode_item_links(request, item))
         entry.extend(self.encode_spatio_temporal(item))
 
         return entry
+
+    def encode_summary(self, request, item):
+
+        template_name = getattr(
+            settings, 'EOXS_OPENSEARCH_SUMMARY_TEMPLATE',
+            DEFAULT_EOXS_OPENSEARCH_SUMMARY_TEMPLATE
+        )
+
+        metadata = [
+            (
+                name.replace('_', ' ').title(),
+                isoformat(value) if isinstance(value, datetime) else str(value)
+            )
+            for name, value in models.product_get_metadata(item)
+        ]
+
+        return ATOM("summary",
+            CDATA(render_to_string(
+                template_name,
+                {'item': item, 'metadata': metadata},
+                request=request
+            )),
+            type="html"
+        )
