@@ -99,29 +99,25 @@ class ProductRegistrator(base.BaseRegistrator):
                 component, metadata_item
             ))
 
-        md_identifier = new_metadata.pop('identifier', None)
-        md_footprint = new_metadata.pop('footprint', None)
-        md_begin_time = new_metadata.pop('begin_time', None)
-        md_end_time = new_metadata.pop('end_time', None)
         mask_locations.extend(new_metadata.pop('masks', []))
 
+        from pprint import pprint
+
+        pprint(metadata)
+        pprint(new_metadata)
+        pprint(overrides)
+
+        metadata.update(new_metadata)
+        metadata.update(dict(
+            (key, value) for key, value in overrides.items()
+            if value is not None
+        ))
+
         # apply overrides
-        identifier = (
-            overrides.get('identifier') or metadata.get('identifier') or
-            md_identifier
-        )
-        footprint = (
-            overrides.get('footprint') or metadata.get('footprint') or
-            md_footprint
-        )
-        begin_time = (
-            overrides.get('begin_time') or metadata.get('begin_time') or
-            md_begin_time
-        )
-        end_time = (
-            overrides.get('end_time') or metadata.get('end_time') or
-            md_end_time
-        )
+        identifier = metadata.get('identifier')
+        footprint = metadata.get('footprint')
+        begin_time = metadata.get('begin_time')
+        end_time = metadata.get('end_time')
 
         replaced = False
         if replace:
