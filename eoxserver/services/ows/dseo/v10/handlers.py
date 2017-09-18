@@ -26,7 +26,7 @@
 # ------------------------------------------------------------------------------
 
 import os
-from os.path import basename
+from os.path import basename, join
 from itertools import chain
 
 from django.http.response import StreamingHttpResponse, FileResponse
@@ -88,9 +88,10 @@ class GetProductHandler(object):
                 zip_stream = zipstream.ZipFile(
                     mode='w', compression=zipstream.ZIP_DEFLATED
                 )
-                for _, _, filenames in os.walk(package.url):
+                for root, _, filenames in os.walk(package.url):
                     for filename in filenames:
-                        zip_stream.write(filename)
+                        path = join(root, filename)
+                        zip_stream.write(path)
                 response = StreamingHttpResponse(
                     zip_stream, content_type='application/octet-stream'
                 )
