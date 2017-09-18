@@ -32,7 +32,7 @@ from lxml import etree
 from django.contrib.gis.geos import Polygon
 from django.utils.timezone import now
 
-from eoxserver.contrib import gdal
+from eoxserver.contrib import gdal, vsi
 from eoxserver.backends.access import get_vsi_path
 from eoxserver.core.config import get_eoxserver_config
 from eoxserver.core.util.timetools import isoformat
@@ -360,8 +360,8 @@ class GMLCOV10Encoder(WCS20BaseXMLEncoder, GML32Encoder):
         )
 
     def encode_rectified_grid(self, grid, coverage, name):
-        axis_names = grid.axis_names
-        offsets = grid.axis_offsets
+        axis_names = [axis.name for axis in grid]
+        offsets = [axis.offset for axis in grid]
         origin = coverage.origin
 
         sr = SpatialReference(grid.coordinate_reference_system)
@@ -369,7 +369,7 @@ class GMLCOV10Encoder(WCS20BaseXMLEncoder, GML32Encoder):
 
         offset_vectors = [
             GML("offsetVector",
-                " ".join(["0"] * i + [offset] + ["0"] * (len(offsets) - i)),
+                " ".join(["0"] * i + [str(offset)] + ["0"] * (len(offsets) - i)),
                 srsName=url
             )
             for i, offset in enumerate(offsets)
@@ -387,7 +387,7 @@ class GMLCOV10Encoder(WCS20BaseXMLEncoder, GML32Encoder):
             GML("axisLabels", " ".join(axis_names)),
             GML("origin",
                 GML("Point",
-                    GML("pos", " ".join(origin)),
+                    GML("pos", " ".join(str(o) for o in origin)),
                     **{
                         ns_gml("id"): self.get_gml_id("%s_origin" % name),
                         "srsName": url
@@ -440,96 +440,63 @@ class GMLCOV10Encoder(WCS20BaseXMLEncoder, GML32Encoder):
 
     def encode_bounded_by(self, grid, coverage):
         # if grid is None:
-        footprint = coverage.footprint or coverage.parent_product.footprint
-        minx, miny, maxx, maxy = footprint.extent
-        sr = SpatialReference(4326)
-        swap = crss.getAxesSwapper(sr.srid)
-        labels = ("x", "y") if sr.IsProjected() else ("long", "lat")
-        axis_labels = " ".join(swap(*labels))
-        axis_units = "m m" if sr.IsProjected() else "deg deg"
-        frmt = "%.3f %.3f" if sr.IsProjected() else "%.8f %.8f"
-        # else:
-        #     sr = SpatialReference(grid.coordinate_reference_system)
-        #     labels = grid.axis_names
-        #     if crss.hasSwappedAxes(sr.srid):
-        #         labels[0:2] = labels[1], labels[0]
+        footprint = coverage.footprint
+        if footprint:
+            minx, miny, maxx, maxy = footprint.extent
+            sr = SpatialReference(4326)
+            swap = crss.getAxesSwapper(sr.srid)
+            labels = ("x", "y") if sr.IsProjected() else ("long", "lat")
+            axis_labels = " ".join(swap(*labels))
+            axis_units = "m m" if sr.IsProjected() else "deg deg"
+            frmt = "%.3f %.3f" if sr.IsProjected() else "%.8f %.8f"
 
-        # Make sure values are outside of actual extent
-        if sr.IsProjected():
-            minx -= 0.0005
-            miny -= 0.0005
-            maxx += 0.0005
-            maxy += 0.0005
+            # Make sure values are outside of actual extent
+            if sr.IsProjected():
+                minx -= 0.0005
+                miny -= 0.0005
+                maxx += 0.0005
+                maxy += 0.0005
+            else:
+                minx -= 0.000000005
+                miny -= 0.000000005
+                maxx += 0.000000005
+                maxy += 0.000000005
+
+            lower_corner = frmt % swap(minx, miny)
+            upper_corner = frmt % swap(maxx, maxy)
+
         else:
-            minx -= 0.000000005
-            miny -= 0.000000005
-            maxx += 0.000000005
-            maxy += 0.000000005
+            sr = SpatialReference(grid.coordinate_reference_system)
+            labels = grid.names
+            axis_units = " ".join(
+                ["m" if sr.IsProjected() else "deg"] * len(labels)
+            )
+            extent = list(coverage.extent)
+
+            lc = extent[:len(extent) / 2]
+            uc = extent[len(extent) / 2:]
+
+            if crss.hasSwappedAxes(sr.srid):
+                labels[0:2] = labels[1], labels[0]
+                lc[0:2] = lc[1], lc[0]
+                uc[0:2] = uc[1], uc[0]
+
+            frmt = " ".join(
+                ["%.3f" if sr.IsProjected() else "%.8f %.8f"] * len(labels)
+            )
+
+            lower_corner = frmt % tuple(lc)
+            upper_corner = frmt % tuple(uc)
+            axis_labels = " ".join(labels)
 
         return GML("boundedBy",
             GML("Envelope",
-                GML("lowerCorner", frmt % swap(minx, miny)),
-                GML("upperCorner", frmt % swap(maxx, maxy)),
+                GML("lowerCorner", lower_corner),
+                GML("upperCorner", upper_corner),
                 srsName=sr.url, axisLabels=axis_labels, uomLabels=axis_units,
                 srsDimension="2"
             )
         )
-
-    # cached range types and nil value sets
-    def get_range_type(self, coverage):
-        coverage_type = coverage.coverage_type
-        if coverage_type:
-            if coverage_type.name not in self._cache:
-                self._cache[coverage_type.name] = [
-                    dict(
-                        identifier=field_type.identifier,
-                        description=field_type.description,
-                        definition=field_type.definition,
-                        unit_of_measure=field_type.unit_of_measure,
-                        wavelength=field_type.wavelength,
-                        significant_figures=field_type.significant_figures,
-                        allowed_values=[
-                            (value_range.start, value_range.end)
-                            for value_range in field_type.allowed_value_ranges.all()
-                        ],
-                        nil_values=[
-                            (nil_value.value, nil_value.reason)
-                            for nil_value in field_type.nil_values.all()
-                        ]
-                    )
-                    for field_type in coverage_type.field_types.all()
-                ]
-            return self._cache[coverage_type.name]
-        else:
-            fields = []
-            bandoffset = 0
-            for arraydata_item in coverage.arraydata_items.all():
-                ds = gdal.Open(get_vsi_path(arraydata_item))
-                for i in range(ds.RasterCount):
-                    band = ds.GetRasterBand(i + 1)
-                    fields.append(
-                        dict(
-                            identifier="%s_%d" % (
-                                coverage.identifier, bandoffset + i
-                            ),
-                            # TODO: get info from band metadata?
-                            description="",
-                            definition="",
-                            unit_of_measure="",
-                            wavelength="",
-                            significant_figures=gdal.GDT_SIGNIFICANT_FIGURES.get(
-                                band.DataType
-                            ),
-                            allowed_values=[
-                                gdal.GDT_NUMERIC_LIMITS[band.DataType]
-                            ]
-                            if band.DataType in gdal.GDT_NUMERIC_LIMITS else [],
-                            nil_values=[]  # TODO: use nodata value?
-                        )
-                    )
-                    bandoffset += 1
-
-            return fields
 
     def encode_nil_values(self, nil_values):
         return SWE("nilValues",
@@ -544,26 +511,26 @@ class GMLCOV10Encoder(WCS20BaseXMLEncoder, GML32Encoder):
     def encode_field(self, field):
         return SWE("field",
             SWE("Quantity",
-                SWE("description", field["description"]),
-                self.encode_nil_values(field["nil_values"]),
-                SWE("uom", code=field["unit_of_measure"]),
+                SWE("description", field.description),
+                self.encode_nil_values(field.nil_values),
+                SWE("uom", code=field.unit_of_measure),
                 SWE("constraint",
                     SWE("AllowedValues",
                         *[
                             SWE("interval", "%s %s" % value_range)
-                            for value_range in field["allowed_values"]
+                            for value_range in field.allowed_values
                         ] + [
                             SWE("significantFigures", str(
-                                field["significant_figures"]
+                                field.significant_figures
                             ))
-                        ] if field["significant_figures"] else []
+                        ] if field.significant_figures else []
                     )
                 ),
                 # TODO: lookup correct definition according to data type:
                 # http://www.opengis.net/def/dataType/OGC/0/
-                definition=field["definition"]
+                definition=field.definition
             ),
-            name=field["identifier"]
+            name=field.identifier
         )
 
     def encode_range_type(self, range_type):
@@ -581,7 +548,7 @@ class WCS20CoverageDescriptionXMLEncoder(GMLCOV10Encoder):
             self.encode_bounded_by(grid, coverage),
             WCS("CoverageId", coverage.identifier),
             self.encode_domain_set(coverage, rectified=(grid is not None)),
-            self.encode_range_type(self.get_range_type(coverage)),
+            self.encode_range_type(coverage.range_type),
             WCS("ServiceParameters",
                 WCS("CoverageSubtype", self.get_coverage_subtype(coverage))
             ),
@@ -601,9 +568,13 @@ class WCS20CoverageDescriptionXMLEncoder(GMLCOV10Encoder):
 class WCS20EOXMLEncoder(WCS20CoverageDescriptionXMLEncoder, EOP20Encoder,
                         OWS20Encoder):
     def encode_eo_metadata(self, coverage, request=None, subset_polygon=None):
-        metadata_items = list(coverage.metadata_items.filter(format="eogml"))
+        metadata_items = [
+            metadata_location
+            for metadata_location in coverage.metadata_locations
+            if metadata_location.format == "eogml"
+        ]
         if len(metadata_items) >= 1:
-            with open(retrieve(metadata_items[0])) as f:
+            with vsi.open(metadata_items[0].path) as f:
                 earth_observation = etree.parse(f).getroot()
 
             if subset_polygon:
@@ -620,11 +591,8 @@ class WCS20EOXMLEncoder(WCS20CoverageDescriptionXMLEncoder, EOP20Encoder,
 
         else:
             earth_observation = self.encode_earth_observation(
-                coverage.identifier,
-                coverage.begin_time or coverage.parent_product.begin_time,
-                coverage.end_time or coverage.parent_product.end_time,
-                coverage.footprint or coverage.parent_product.footprint,
-                subset_polygon=subset_polygon
+                coverage.identifier, coverage.begin_time, coverage.end_time,
+                coverage.footprint, subset_polygon=subset_polygon
             )
 
         if not request:
@@ -663,10 +631,9 @@ class WCS20EOXMLEncoder(WCS20CoverageDescriptionXMLEncoder, EOP20Encoder,
     def encode_coverage_description(self, coverage, srid=None, size=None,
                                     extent=None, footprint=None):
         source_mime = None
-        band_items = coverage.arraydata_items.all()
-        for data_item in band_items:
-            if data_item.format:
-                source_mime = data_item.format
+        for arraydata_location in coverage.arraydata_locations:
+            if arraydata_location.format:
+                source_mime = arraydata_location.format
                 break
 
         native_format = None
@@ -705,7 +672,7 @@ class WCS20EOXMLEncoder(WCS20CoverageDescriptionXMLEncoder, EOP20Encoder,
             WCS("CoverageId", coverage.identifier),
             self.encode_eo_metadata(coverage),
             self.encode_domain_set(coverage, srid, size, extent, rectified),
-            self.encode_range_type(self.get_range_type(coverage)),
+            self.encode_range_type(coverage.range_type),
             WCS("ServiceParameters",
                 WCS("CoverageSubtype", self.get_coverage_subtype(coverage)),
                 WCS(
