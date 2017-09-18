@@ -163,7 +163,6 @@ SECRET_KEY = 'tmp'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DEBUG': DEBUG,
         'DIRS': [],
         'APP_DIRS': True,
         'OPTIONS': {
