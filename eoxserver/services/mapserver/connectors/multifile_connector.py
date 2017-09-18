@@ -27,7 +27,6 @@
 
 from os.path import join
 from uuid import uuid4
-import re
 
 from eoxserver.contrib import vsi, vrt, mapserver, gdal
 from eoxserver.resources.coverages import models
@@ -42,27 +41,19 @@ class MultiFileConnector(object):
 
     def supports(self, coverage, data_items):
         # TODO: better checks
-        return (
-            len(data_items) > 1 and all(
-                map(lambda d: d.semantic.startswith("bands"), data_items)
-            )
-        )
+        return len(data_items) > 1
 
     def connect(self, coverage, data_items, layer, options):
         path = join("/vsimem", uuid4().hex)
         range_type = coverage.range_type
-        num_bands = len(coverage.range_type)
 
         vrt_builder = vrt.VRTBuilder(
             coverage.size_x, coverage.size_y, vrt_filename=path
         )
 
-        bands_re = re.compile(r"bands\[(\d+)(,\d+)?\]")
-
-        for data_item in sorted(data_items, key=lambda d: d.semantic):
-            start, end = bands_re.match(data_item.semantic).groups()
-            start = int(start)
-            end = int(end) if end is not None else None
+        for data_item in data_items:
+            start = data_item.start_field
+            end = data_item.end_field
             if end is None:
                 dst_band_indices = range(start+1, start+2)
                 src_band_indices = range(1, 2)
@@ -74,15 +65,12 @@ class MultiFileConnector(object):
                 vrt_builder.add_band(range_type[dst_index-1].data_type)
                 vrt_builder.add_simple_source(
                     dst_index,
-                    #gdal.OpenShared(data_item.location),
-                    data_item.location,
+                    data_item.path,
                     src_index
                 )
 
-        print data_items[0].location
-        print gdal.OpenShared(data_items[0].location).GetGCPs()
-        if isinstance(coverage, models.ReferenceableDataset):
-            vrt_builder.copy_gcps(gdal.OpenShared(data_items[0].location))
+        if coverage.grid.is_referenceable:
+            vrt_builder.copy_gcps(gdal.OpenShared(data_items[0].path))
             layer.setMetaData("eoxs_ref_data", path)
 
         layer.data = path
@@ -100,7 +88,7 @@ class MultiFileConnector(object):
         #layer.addProcessing("BANDS=2")
         #layer.offsite = mapserver.colorObj(0,0,0)
 
-        if isinstance(coverage, models.ReferenceableDataset):
+        if coverage.grid.is_referenceable:
             vrt_path = join("/vsimem", uuid4().hex)
             reftools.create_rectified_vrt(path, vrt_path)
             layer.data = vrt_path
