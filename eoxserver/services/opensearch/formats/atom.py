@@ -87,25 +87,26 @@ class AtomResultFormat(BaseFeedResultFormat):
             )),
             *chain(
                 self.encode_feed_links(request, search_context), [
-                    self.encode_entry(request, item) for item in queryset
+                    self.encode_entry(request, collection_id, item)
+                    for item in queryset
                 ]
             )
         )
         return etree.tostring(tree, pretty_print=True)
 
-    def encode_entry(self, request, item):
+    def encode_entry(self, request, collection_id, item):
         entry = ATOM("entry",
             ATOM("title", item.identifier),
             ATOM("id", item.identifier),
-            self.encode_summary(request, item),
+            self.encode_summary(request, collection_id, item),
         )
 
-        entry.extend(self.encode_item_links(request, item))
+        entry.extend(self.encode_item_links(request, collection_id, item))
         entry.extend(self.encode_spatio_temporal(item))
 
         return entry
 
-    def encode_summary(self, request, item):
+    def encode_summary(self, request, collection_id, item):
         template_name = getattr(
             settings, 'EOXS_OPENSEARCH_SUMMARY_TEMPLATE',
             DEFAULT_EOXS_OPENSEARCH_SUMMARY_TEMPLATE
@@ -130,9 +131,12 @@ class AtomResultFormat(BaseFeedResultFormat):
             CDATA(render_to_string(
                 template_name, {
                     'item': item, 'metadata': metadata,
-                    'atom': self._create_self_link(request, item),
+                    'atom': self._create_self_link(request, collection_id, item),
                     'map_small': self._create_map_link(request, item, 100),
                     'map_large': self._create_map_link(request, item, 500),
+                    'eocoveragesetdescription': self._create_eo_coverage_set_description(
+                        request, item
+                    ),
                     'coverages': [{
                         'description': self._create_coverage_description_link(
                             request, coverage

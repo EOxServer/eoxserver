@@ -224,13 +224,15 @@ class BaseFeedResultFormat(object):
             ))
         ]
 
-    def encode_item_links(self, request, item):
+    def encode_item_links(self, request, collection_id, item):
         links = []
         if isinstance(item, models.Collection):
             # add link to opensearch collection search
             links.append(
                 ATOM("link",
-                    rel="search", href=self._create_self_link(request, item)
+                    rel="search", href=self._create_self_link(
+                        request, collection_id, item
+                    )
                 )
             )
             # TODO: link to WMS (GetCapabilities)
@@ -328,7 +330,7 @@ class BaseFeedResultFormat(object):
             ])
         return links
 
-    def encode_summary(self, request, item):
+    def encode_summary(self, request, collection_id, item):
         pass
 
     def encode_coverage_offerings(self, request, coverage):
@@ -413,9 +415,28 @@ class BaseFeedResultFormat(object):
             "&coverageId=%s" % (reverse("ows"), coverage.identifier)
         )
 
-    def _create_self_link(self, request, item):
+    def _create_eo_coverage_set_description(self, request, eo_object):
         return request.build_absolute_uri(
-            reverse("opensearch:collection:description", kwargs={
-                "collection_id": item.identifier
-            })
+            "%s?service=WCS&version=2.0.1&request=DescribeEOCoverageSet"
+            "&eoId=%s" % (reverse("ows"), eo_object.identifier)
+        )
+
+    def _create_self_link(self, request, collection_id, item, format=None):
+        if collection_id is None:
+
+            return "%s?uid=%s" % (
+                request.build_absolute_uri(
+                    reverse("opensearch:search", kwargs={
+                        "format_name": format if format else self.name
+                    })
+                ), item.identifier
+            )
+
+        return "%s?uid=%s" % (
+            request.build_absolute_uri(
+                reverse("opensearch:collection:search", kwargs={
+                    "collection_id": collection_id,
+                    "format_name": format if format else self.name
+                })
+            ), item.identifier
         )
