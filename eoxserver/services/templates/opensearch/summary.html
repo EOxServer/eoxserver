@@ -1,4 +1,58 @@
 <table>
+    <tr>
+        <td valign="top" width="10%">
+            <a href="{{ map_large }}" target="_blank" title="View quicklook image">
+                <img align="left" border="0" hspace="8" src="{{ map_small }}"  />
+            </a>
+        </td>
+        <td valign="top" width="90%">
+            <table>
+                <tr valign="top">
+                    <td>
+                        <b>Date </b>
+                    </td>
+                    <td>{{ item.begin_time|date:"c" }} / {{ item.end_time|date:"c" }}</td>
+                </tr>
+                <tr valign="top">
+                    <td>
+                        <b>Media Type</b>
+                    </td>
+                    <td>
+                        <a href="{{ atom }}" title="Atom format">ATOM</a>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+
+
+<h3>OGC cross links</h3>
+<ul>
+  <li>
+    <b>WMS</b>
+    <ul>
+        <li>
+          <a href="{{ map_large }}" target="_blank">GetMap</a>
+        </li>
+      </ul>
+    </li>
+  <li>
+    <b>WCS</b>
+    <ul>
+      {% for coverage in coverages %}
+      <li>
+        <a href="{{ coverage.description }}" target="_blank">DescribeCoverage</a>
+      </li>
+      <li>
+        <a href="{{ coverage.coverage }}" target="_blank">GetCoverage</a>
+      </li>
+      {% endfor %}
+    </ul>
+  </li>
+</ul>
+
+<table>
 {% for name, value in metadata %}
   <tr>
     <td>{{ name }}</td>

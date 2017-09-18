@@ -106,24 +106,43 @@ class AtomResultFormat(BaseFeedResultFormat):
         return entry
 
     def encode_summary(self, request, item):
-
         template_name = getattr(
             settings, 'EOXS_OPENSEARCH_SUMMARY_TEMPLATE',
             DEFAULT_EOXS_OPENSEARCH_SUMMARY_TEMPLATE
         )
 
-        metadata = [
-            (
-                name.replace('_', ' ').title(),
-                isoformat(value) if isinstance(value, datetime) else str(value)
-            )
-            for name, value in models.product_get_metadata(item)
-        ]
+        metadata = []
+        coverages = []
+
+        if isinstance(item, models.Coverage):
+            coverages = [item]
+        elif isinstance(item, models.Product):
+            coverages = item.coverages.all()
+            metadata = [
+                (
+                    name.replace('_', ' ').title(),
+                    isoformat(value) if isinstance(value, datetime) else str(value)
+                )
+                for name, value in models.product_get_metadata(item)
+            ]
 
         return ATOM("summary",
             CDATA(render_to_string(
-                template_name,
-                {'item': item, 'metadata': metadata},
+                template_name, {
+                    'item': item, 'metadata': metadata,
+                    'atom': self._create_self_link(request, item),
+                    'map_small': self._create_map_link(request, item, 100),
+                    'map_large': self._create_map_link(request, item, 500),
+                    'coverages': [{
+                        'description': self._create_coverage_description_link(
+                            request, coverage
+                        ),
+                        'coverage': self._create_coverage_link(
+                            request, coverage
+                        )}
+                        for coverage in coverages
+                    ]
+                },
                 request=request
             )),
             type="html"

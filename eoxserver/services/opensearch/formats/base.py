@@ -229,54 +229,21 @@ class BaseFeedResultFormat(object):
         if isinstance(item, models.Collection):
             # add link to opensearch collection search
             links.append(
-                ATOM("link", rel="search", href=request.build_absolute_uri(
-                    reverse("opensearch:collection:description", kwargs={
-                        "collection_id": item.identifier
-                    })
-                ))
+                ATOM("link",
+                    rel="search", href=self._create_self_link(request, item)
+                )
             )
             # TODO: link to WMS (GetCapabilities)
 
         if isinstance(item, models.Product):
             footprint = item.footprint
             if footprint:
-                minx, miny, maxx, maxy = footprint.extent
-
-                fx = 1.0
-                fy = 1.0
-
-                if (maxx - minx) > (maxy - miny):
-                    fy = (maxy - miny) / (maxx - minx)
-                else:
-                    fx = (maxx - minx) / (maxy - miny)
-
                 wms_get_capabilities = request.build_absolute_uri(
                     "%s?service=WMS&version=1.3.0&request=GetCapabilities"
                 )
 
-                wms_small = request.build_absolute_uri(
-                    "%s?service=WMS&version=1.3.0&request=GetMap"
-                    "&layers=%s&format=image/png&TRANSPARENT=true"
-                    "&width=%d&height=%d&CRS=EPSG:4326&STYLES="
-                    "&BBOX=%f,%f,%f,%f"
-                    "" % (
-                        reverse("ows"), item.identifier,
-                        int(100 * fx), int(100 * fy),
-                        miny, minx, maxy, maxx
-                    )
-                )
-
-                wms_large = request.build_absolute_uri(
-                    "%s?service=WMS&version=1.3.0&request=GetMap"
-                    "&layers=%s&format=image/png&TRANSPARENT=true"
-                    "&width=%d&height=%d&CRS=EPSG:4326&STYLES="
-                    "&BBOX=%f,%f,%f,%f"
-                    "" % (
-                        reverse("ows"), item.identifier,
-                        int(500 * fx), int(500 * fy),
-                        miny, minx, maxy, maxx
-                    )
-                )
+                wms_small = self._create_map_link(request, item, 100)
+                wms_large = self._create_map_link(request, item, 500)
 
                 # media RSS style links
                 links.extend([
@@ -331,19 +298,17 @@ class BaseFeedResultFormat(object):
                 "%s?service=WCS&version=2.0.1&request=GetCapabilities"
             )
 
-            wcs_describe_coverage = request.build_absolute_uri(
-                "%s?service=WCS&version=2.0.1&request=DescribeCoverage"
-                "&coverageId=%s" % (reverse("ows"), item.identifier)
-            )
-
-            wcs_get_coverage = request.build_absolute_uri(
-                "%s?service=WCS&version=2.0.1&request=GetCoverage"
-                "&coverageId=%s" % (reverse("ows"), item.identifier)
-            )
-
             links.extend([
-                ATOM("link", rel="enclosure", href=wcs_get_coverage),
-                ATOM("link", rel="via", href=wcs_describe_coverage),
+                ATOM("link", rel="enclosure",
+                    href=self._create_coverage_link(
+                        request, coverage
+                    )
+                ),
+                ATOM("link", rel="via",
+                    href=self._create_coverage_description_link(
+                        request, coverage
+                    )
+                ),
                 # "Browse" image
                 # ATOM("link", rel="icon", href=wms_large),
             ])
@@ -367,27 +332,19 @@ class BaseFeedResultFormat(object):
         pass
 
     def encode_coverage_offerings(self, request, coverage):
-        wcs_describe_coverage = request.build_absolute_uri(
-            "%s?service=WCS&version=2.0.1&request=DescribeCoverage"
-            "&coverageId=%s" % (reverse("ows"), coverage.identifier)
-        )
-
-        wcs_get_coverage = request.build_absolute_uri(
-            "%s?service=WCS&version=2.0.1&request=GetCoverage"
-            "&coverageId=%s" % (reverse("ows"), coverage.identifier)
-        )
-
         return [
             OWC("operation",
                 code="DescribeCoverage", method="GET",
-                type="application/xml", href=wcs_describe_coverage
+                type="application/xml",
+                href=self._create_coverage_description_link(request, coverage)
             ),
             OWC("operation",
                 code="GetCoverage", method="GET",
-                type="image/tiff", href=wcs_get_coverage
+                type="image/tiff", href=self._create_coverage_link(
+                    request, coverage
+                )
             )
         ]
-
 
     def encode_spatio_temporal(self, item):
         entries = []
@@ -419,3 +376,46 @@ class BaseFeedResultFormat(object):
                 entries.append(DC("date", isoformat(begin_time)))
 
         return entries
+
+    def _create_map_link(self, request, item, size):
+        footprint = item.footprint
+        minx, miny, maxx, maxy = footprint.extent
+
+        fx = 1.0
+        fy = 1.0
+
+        if (maxx - minx) > (maxy - miny):
+            fy = (maxy - miny) / (maxx - minx)
+        else:
+            fx = (maxx - minx) / (maxy - miny)
+
+        return request.build_absolute_uri(
+            "%s?service=WMS&version=1.3.0&request=GetMap"
+            "&layers=%s&format=image/png&TRANSPARENT=true"
+            "&width=%d&height=%d&CRS=EPSG:4326&STYLES="
+            "&BBOX=%f,%f,%f,%f"
+            "" % (
+                reverse("ows"), item.identifier,
+                int(size * fx), int(size * fy),
+                miny, minx, maxy, maxx
+            )
+        )
+
+    def _create_coverage_link(self, request, coverage, size):
+        return request.build_absolute_uri(
+            "%s?service=WCS&version=2.0.1&request=GetCoverage"
+            "&coverageId=%s" % (reverse("ows"), coverage.identifier)
+        )
+
+    def _create_coverage_description_link(self, request, coverage):
+        return request.build_absolute_uri(
+            "%s?service=WCS&version=2.0.1&request=DescribeCoverage"
+            "&coverageId=%s" % (reverse("ows"), coverage.identifier)
+        )
+
+    def _create_self_link(self, request, item):
+        return request.build_absolute_uri(
+            reverse("opensearch:collection:description", kwargs={
+                "collection_id": item.identifier
+            })
+        )
