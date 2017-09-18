@@ -84,7 +84,8 @@ class GetProductHandler(object):
                     basename(package.url)
                 )
                 return response
-            if handler.name == 'directory':
+
+            elif handler.name == 'directory':
                 zip_stream = zipstream.ZipFile(
                     mode='w', compression=zipstream.ZIP_DEFLATED
                 )
@@ -126,10 +127,11 @@ class GetProductHandler(object):
                 )
 
                 for arraydata_item in items:
+                    # TODO: Ensure files are local
                     zip_stream.write(
                         arraydata_item.location,
-                        '%s/%s' % (
-                            coverage.identifier,
+                        join(
+                            product.identifier, coverage.identifier,
                             basename(arraydata_item.location)
                         )
                     )
