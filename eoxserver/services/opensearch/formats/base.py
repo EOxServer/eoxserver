@@ -401,7 +401,7 @@ class BaseFeedResultFormat(object):
             )
         )
 
-    def _create_coverage_link(self, request, coverage, size):
+    def _create_coverage_link(self, request, coverage):
         return request.build_absolute_uri(
             "%s?service=WCS&version=2.0.1&request=GetCoverage"
             "&coverageId=%s" % (reverse("ows"), coverage.identifier)
