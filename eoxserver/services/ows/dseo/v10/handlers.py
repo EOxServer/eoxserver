@@ -26,7 +26,7 @@
 # ------------------------------------------------------------------------------
 
 import os
-from os.path import basename, join
+from os.path import basename, join, relpath, split
 from itertools import chain
 
 from django.http.response import StreamingHttpResponse, FileResponse
@@ -88,10 +88,16 @@ class GetProductHandler(object):
                 zip_stream = zipstream.ZipFile(
                     mode='w', compression=zipstream.ZIP_DEFLATED
                 )
+                # compute a base path name, in order to have the last part of
+                # the path always in the filename
+                base = split(
+                    package.url[:-1] if package.url.endswith('/')
+                    else package.url
+                )[0]
                 for root, _, filenames in os.walk(package.url):
                     for filename in filenames:
                         path = join(root, filename)
-                        zip_stream.write(path)
+                        zip_stream.write(path, relpath(path, base))
                 response = StreamingHttpResponse(
                     zip_stream, content_type='application/octet-stream'
                 )
