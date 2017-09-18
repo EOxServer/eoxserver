@@ -198,7 +198,7 @@ class BaseRenderer(Component):
             if data_location.format
         )
         if len(formats) == 1:
-            return formats[0]
+            return formats.pop()
 
         return None
 
