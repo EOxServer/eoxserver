@@ -450,7 +450,7 @@ class BaseFeedResultFormat(object):
 
     def _create_dseo_download_link(self, request, product):
         return request.build_absolute_uri(
-            "%s?service=DSEO&version=1.0.0&request=GetProduct&ProductURI%s" % (
+            "%s?service=DSEO&version=1.0.0&request=GetProduct&ProductURI=%s" % (
                 reverse("ows"), product.identifier
             )
         )

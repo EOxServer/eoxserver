@@ -88,7 +88,6 @@ class GetProductHandler(object):
                 zip_stream = zipstream.ZipFile(
                     mode='w', compression=zipstream.ZIP_DEFLATED
                 )
-                # TODO: ZIP the files on the fly
                 for _, _, filenames in os.walk(package.url):
                     for filename in filenames:
                         zip_stream.write(filename)
@@ -96,9 +95,8 @@ class GetProductHandler(object):
                     zip_stream, content_type='application/octet-stream'
                 )
                 response['Content-Disposition'] = \
-                    'attachment; filename="%s.zip"' % (
-                    product.identifier
-                )
+                    'attachment; filename="%s.zip"' % product.identifier
+
                 return response
 
         elif package:
