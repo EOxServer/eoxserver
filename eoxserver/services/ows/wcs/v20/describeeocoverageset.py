@@ -177,7 +177,7 @@ class WCS20DescribeEOCoverageSetHandler(object):
         displayed_dss_count = dataset_series_qs.count()
 
         # limit coverages according to the number of dataset series
-        coverages_qs = coverages_qs[:max(0, displayed_dss_count)]
+        coverages_qs = coverages_qs[:max(0, count - displayed_dss_count)]
 
         # compute the number of all items that would match
         number_matched = all_coverages_qs.count() + all_dataset_series_qs.count()
