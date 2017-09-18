@@ -277,10 +277,14 @@ class VRTBuilder2(object):
         return etree.tostring(root, pretty_print=True)
 
 
-def gdalbuildvrt(filename, paths):
-    content = subprocess.check_output([
+def gdalbuildvrt(filename, paths, separate=False):
+    args = [
         '/usr/bin/gdalbuildvrt', '-q', '/vsistdout/'
-    ] + paths)
+    ]
+    if separate:
+        args.append('-separate')
+
+    content = subprocess.check_output(args + paths)
 
     with vsi.open(filename, "w") as f:
         f.write(content)
