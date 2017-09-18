@@ -50,6 +50,8 @@ class BaseStorageHandler(object):
     allows_child_storages = False
     allows_parent_storage = False
 
+    is_local = False
+
     def __enter__(self):
         """ Perform setup actions. Will be called before ``retrieve`` and
             ``list_files``.
@@ -100,6 +102,8 @@ class ZIPStorageHandler(BaseStorageHandler):
     allows_child_storages = True
     allows_parent_storage = True
 
+    is_local = True
+
     def __init__(self, package_filename):
         self.package_filename = package_filename
         self.zipfile = None
@@ -140,6 +144,8 @@ class TARStorageHandler(BaseStorageHandler):
 
     allows_child_storages = True
     allows_parent_storage = True
+
+    is_local = True
 
     def __init__(self, package_filename):
         self.package_filename = package_filename
@@ -182,6 +188,8 @@ class DirectoryStorageHandler(BaseStorageHandler):
 
     allows_child_storages = True
     allows_parent_storage = True
+
+    is_local = True
 
     def __init__(self, dirpath):
         self.dirpath = dirpath
@@ -331,3 +339,7 @@ def get_handler_class_by_name(name):
 
 def get_handler_class_for_model(storage_model):
     return get_handler_class_by_name(storage_model.storage_type)
+
+
+def get_handler_for_model(storage_model):
+    return get_handler_class_for_model(storage_model)(storage_model.url)

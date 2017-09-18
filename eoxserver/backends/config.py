@@ -28,7 +28,7 @@
 
 from eoxserver.core.decoders import config
 
-
+# default value for EOXS_STORAGE_HANDLERS
 DEFAULT_EOXS_STORAGE_HANDLERS = [
     'eoxserver.backends.storages.ZIPStorageHandler',
     'eoxserver.backends.storages.TARStorageHandler',
