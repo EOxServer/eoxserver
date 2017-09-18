@@ -438,7 +438,7 @@ class GMLCOV10Encoder(WCS20BaseXMLEncoder, GML32Encoder):
         #         )
         #     )
 
-    def encode_bounded_by(self, grid, coverage):
+    def encode_bounded_by(self, coverage, grid=None):
         # if grid is None:
         footprint = coverage.footprint
         if footprint:
@@ -464,8 +464,9 @@ class GMLCOV10Encoder(WCS20BaseXMLEncoder, GML32Encoder):
 
             lower_corner = frmt % swap(minx, miny)
             upper_corner = frmt % swap(maxx, maxy)
+            srs_name = sr.url
 
-        else:
+        elif grid:
             sr = SpatialReference(grid.coordinate_reference_system)
             labels = grid.names
             axis_units = " ".join(
@@ -488,12 +489,20 @@ class GMLCOV10Encoder(WCS20BaseXMLEncoder, GML32Encoder):
             lower_corner = frmt % tuple(lc)
             upper_corner = frmt % tuple(uc)
             axis_labels = " ".join(labels)
+            srs_name = sr.url
+
+        else:
+            lower_corner = ""
+            upper_corner = ""
+            srs_name = ""
+            axis_labels = ""
+            axis_units = ""
 
         return GML("boundedBy",
             GML("Envelope",
                 GML("lowerCorner", lower_corner),
                 GML("upperCorner", upper_corner),
-                srsName=sr.url, axisLabels=axis_labels, uomLabels=axis_units,
+                srsName=srs_name, axisLabels=axis_labels, uomLabels=axis_units,
                 srsDimension="2"
             )
         )
@@ -545,7 +554,7 @@ class WCS20CoverageDescriptionXMLEncoder(GMLCOV10Encoder):
     def encode_coverage_description(self, coverage):
         grid = coverage.grid
         return WCS("CoverageDescription",
-            self.encode_bounded_by(grid, coverage),
+            self.encode_bounded_by(coverage, grid),
             WCS("CoverageId", coverage.identifier),
             self.encode_domain_set(coverage, rectified=(grid is not None)),
             self.encode_range_type(coverage.range_type),
@@ -668,7 +677,7 @@ class WCS20EOXMLEncoder(WCS20CoverageDescriptionXMLEncoder, EOP20Encoder,
         rectified = (coverage.grid is not None)
 
         return WCS("CoverageDescription",
-            self.encode_bounded_by(coverage.grid, coverage),
+            self.encode_bounded_by(coverage, coverage.grid),
             WCS("CoverageId", coverage.identifier),
             self.encode_eo_metadata(coverage),
             self.encode_domain_set(coverage, srid, size, extent, rectified),
@@ -792,7 +801,7 @@ class WCS20EOXMLEncoder(WCS20CoverageDescriptionXMLEncoder, EOP20Encoder,
             sr = SpatialReference(srid)
 
         return EOWCS("ReferenceableDataset",
-            self.encode_bounded_by(coverage.grid, coverage),
+            self.encode_bounded_by(coverage, coverage.grid),
             domain_set,
             self.encode_range_set(reference, mime_type),
             self.encode_range_type(range_type),
@@ -806,7 +815,7 @@ class WCS20EOXMLEncoder(WCS20CoverageDescriptionXMLEncoder, EOP20Encoder,
         elements = []
         if dataset_series.footprint:
             elements.append(
-                self.encode_bounded_by(dataset_series.footprint.extent)
+                self.encode_bounded_by(dataset_series, None)
             )
 
         elements.append(EOWCS("DatasetSeriesId", dataset_series.identifier))
