@@ -670,3 +670,34 @@ class Mosaic(object):
             eo_metadata=eo_metadata, range_type=range_type, origin=origin,
             grid=grid, size=mosaic_model.size, coverages=coverages
         )
+
+
+class DatasetSeries(object):
+    def __init__(self, identifier, footprint=None,
+                 begin_time=None, end_time=None):
+        self._identifier = identifier
+        self._footprint = footprint
+        self._begin_time = begin_time
+        self._end_time = end_time
+
+    @property
+    def identifier(self):
+        return self._identifier
+
+    @property
+    def footprint(self):
+        return self._footprint
+
+    @property
+    def begin_time(self):
+        return self._begin_time
+
+    @property
+    def end_time(self):
+        return self._end_time
+
+    @classmethod
+    def from_model(cls, model):
+        return cls(
+            model.identifier, model.footprint, model.begin_time, model.end_time
+        )
