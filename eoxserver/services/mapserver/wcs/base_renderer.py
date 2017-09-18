@@ -192,12 +192,13 @@ class BaseRenderer(Component):
         return layer
 
     def get_native_format(self, coverage, data_locations):
-        # if issubclass(coverage.real_type, RectifiedStitchedMosaic):
-        #     # use the default format for RectifiedStitchedMosaics
-        #     return getFormatRegistry().getDefaultNativeFormat().wcs10name
-
-        if len(data_locations) == 1:
-            return data_locations[0].format
+        formats = set(
+            data_location.formats
+            for data_location in data_locations
+            if data_location.format
+        )
+        if len(formats) == 1:
+            return formats[0]
 
         return None
 
