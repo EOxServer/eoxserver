@@ -25,28 +25,10 @@
 # THE SOFTWARE.
 # ------------------------------------------------------------------------------
 
-DEFAULT_EOXS_OWS_SERVICE_HANDLERS = [
-    'eoxserver.services.ows.wcs.v10.handlers.GetCapabilitiesHandler',
-    'eoxserver.services.ows.wcs.v10.handlers.DescribeCoverageHandler',
-    'eoxserver.services.ows.wcs.v10.handlers.GetCoverageHandler',
-    'eoxserver.services.ows.wcs.v11.handlers.GetCapabilitiesHandler',
-    'eoxserver.services.ows.wcs.v11.handlers.DescribeCoverageHandler',
-    'eoxserver.services.ows.wcs.v11.handlers.GetCoverageHandler',
-    'eoxserver.services.ows.wcs.v20.handlers.GetCapabilitiesHandler',
-    'eoxserver.services.ows.wcs.v20.handlers.DescribeCoverageHandler',
-    'eoxserver.services.ows.wcs.v20.handlers.DescribeEOCoverageSetHandler',
-    'eoxserver.services.ows.wcs.v20.handlers.GetCoverageHandler',
 
-    'eoxserver.services.ows.wms.v10.handlers.WMS10GetCapabilitiesHandler',
-    'eoxserver.services.ows.wms.v10.handlers.WMS10GetMapHandler',
-    'eoxserver.services.ows.wms.v11.handlers.WMS11GetCapabilitiesHandler',
-    'eoxserver.services.ows.wms.v11.handlers.WMS11GetMapHandler',
-    'eoxserver.services.ows.wms.v13.handlers.WMS13GetCapabilitiesHandler',
-    'eoxserver.services.ows.wms.v13.handlers.WMS13GetMapHandler',
+from eoxserver.services.ows.common.v20.encoders import OWS20Encoder
 
-    'eoxserver.services.ows.dseo.v10.handlers.GetProductHandler',
-]
 
-DEFAULT_EOXS_OWS_EXCEPTION_HANDLERS = [
-    # ''
-]
+class DSEO10CapabilitiesXMLEncoder(OWS20Encoder):
+    def encode_capabilities(self, sections):
+        pass
