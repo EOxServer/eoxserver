@@ -31,28 +31,21 @@ URLs config for EOxServer's autotest instance.
 
 """
 from django.conf.urls import include, url
-
-# Enable the admin:
 from django.contrib import admin
-admin.autodiscover()
-# Enable the databrowse:
-#from django.contrib import databrowse
 
-# Enable the ATP auxiliary views:
-from eoxserver.resources.processes import views as procViews
-
-
+from eoxserver.resources.processes import views as processes
 from eoxserver.services.opensearch.urls import urlpatterns as opensearch
 from eoxserver.webclient.urls import urlpatterns as webclient
 from eoxserver.views import index
-from eoxserver.resources.coverages import views as coverages_views
+
+
+admin.autodiscover()
+
 
 urlpatterns = [
     url(r'^$', index),
     url(r'^ows', include("eoxserver.services.urls")),
     url(r'^opensearch/', include(opensearch)),
-
-    url(r'^browse/(?P<identifier>[^/]+)$', coverages_views.browse_view),
 
     # enable the client
     url(r'^client/', include(webclient)),
@@ -61,12 +54,10 @@ urlpatterns = [
     url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
     # Enable the admin:
     url(r'^admin/', include(admin.site.urls)),
-    # Enable the databrowse:
-    #(r'^databrowse/(.*)', databrowse.site.root),
 
     # Uncomment following lines to enable the ATP views:
-    #(r'^process/status$', procViews.status ),
-    #(r'^process/status/(?P<requestType>[^/]{,64})/(?P<requestID>[^/]{,64})$', procViews.status ),
-    #(r'^process/task$', procViews.task ),
-    url(r'^process/response/(?P<requestType>[^/]{,64})/(?P<requestID>[^/]{,64})', procViews.response ),
+    # (r'^process/status$', procViews.status ),
+    # (r'^process/status/(?P<requestType>[^/]{,64})/(?P<requestID>[^/]{,64})$', procViews.status ),
+    # (r'^process/task$', procViews.task ),
+    url(r'^process/response/(?P<requestType>[^/]{,64})/(?P<requestID>[^/]{,64})', processes.response ),
 ]
