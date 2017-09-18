@@ -145,7 +145,10 @@ class AtomResultFormat(BaseFeedResultFormat):
                             request, coverage
                         )}
                         for coverage in coverages
-                    ]
+                    ],
+                    'download_link': self._create_dseo_download_link(
+                        request, item
+                    )
                 },
                 request=request
             )),

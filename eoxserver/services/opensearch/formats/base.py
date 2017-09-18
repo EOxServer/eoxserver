@@ -240,6 +240,13 @@ class BaseFeedResultFormat(object):
         if isinstance(item, models.Product):
             footprint = item.footprint
             if footprint:
+
+                links.append(
+                    ATOM("link", rel="enclosure",
+                        href=self._create_dseo_download_link(item)
+                    )
+                )
+
                 wms_get_capabilities = request.build_absolute_uri(
                     "%s?service=WMS&version=1.3.0&request=GetCapabilities"
                 )
@@ -439,4 +446,11 @@ class BaseFeedResultFormat(object):
                     "format_name": format if format else self.name
                 })
             ), item.identifier
+        )
+
+    def _create_dseo_download_link(self, request, product):
+        return request.build_absolute_uri(
+            "%s?service=DSEO&version=1.0.0&request=GetProduct&ProductURI%s" % (
+                reverse("ows"), product.identifier
+            )
         )
