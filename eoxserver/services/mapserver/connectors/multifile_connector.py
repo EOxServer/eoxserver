@@ -118,7 +118,11 @@ class MultiFileConnector(object):
         """
 
     def disconnect(self, coverage, data_items, layer, options):
-        vsi.remove(layer.data)
+        try:
+            vsi.remove(layer.data)
+        except:
+            pass
+
         vrt_path = layer.metadata.get("eoxs_ref_data")
         if vrt_path:
             vsi.remove(vrt_path)
