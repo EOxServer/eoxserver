@@ -123,26 +123,44 @@ class EOP20Encoder(GML32Encoder):
                                  footprint, contributing_datasets=None,
                                  subset_polygon=None):
 
-        result_time = end_time
-
         if subset_polygon is not None:
             footprint = footprint.intersection(subset_polygon)
 
-        return EOP("EarthObservation",
-            OM("phenomenonTime",
-                self.encode_time_period(
-                    begin_time, end_time, "phen_time_%s" % identifier
+        elements = []
+        if begin_time and end_time:
+            elements.append(
+                OM("phenomenonTime",
+                    self.encode_time_period(
+                        begin_time, end_time, "phen_time_%s" % identifier
+                    )
                 )
-            ),
-            OM("resultTime",
-                self.encode_time_instant(result_time, "res_time_%s" % identifier)
-            ),
+            )
+        if end_time:
+            elements.append(
+                OM("resultTime",
+                    self.encode_time_instant(
+                        end_time, "res_time_%s" % identifier
+                    )
+                )
+            )
+
+        elements.extend([
             OM("procedure"),
             OM("observedProperty"),
-            OM("featureOfInterest",
-                self.encode_footprint(footprint, identifier)
-            ),
+        ])
+
+        if footprint:
+            elements.append(
+                OM("featureOfInterest",
+                    self.encode_footprint(footprint, identifier)
+                )
+            )
+        elements.extend([
             OM("result"),
-            self.encode_metadata_property(identifier, contributing_datasets),
+            self.encode_metadata_property(identifier, contributing_datasets)
+        ])
+
+        return EOP("EarthObservation",
+            *elements,
             **{ns_gml("id"): "eop_%s" % identifier}
         )
