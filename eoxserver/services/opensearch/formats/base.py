@@ -243,7 +243,7 @@ class BaseFeedResultFormat(object):
 
                 links.append(
                     ATOM("link", rel="enclosure",
-                        href=self._create_dseo_download_link(item)
+                        href=self._create_dseo_download_link(request, item)
                     )
                 )
 
