@@ -803,13 +803,24 @@ class WCS20EOXMLEncoder(WCS20CoverageDescriptionXMLEncoder, EOP20Encoder,
         )
 
     def encode_dataset_series_description(self, dataset_series):
+        elements = []
+        if dataset_series.footprint:
+            elements.append(
+                self.encode_bounded_by(dataset_series.footprint.extent)
+            )
+
+        elements.append(EOWCS("DatasetSeriesId", dataset_series.identifier))
+
+        if dataset_series.begin_time and dataset_series.end_time:
+            elements.append(
+                self.encode_time_period(
+                    dataset_series.begin_time, dataset_series.end_time,
+                    "%s_timeperiod" % dataset_series.identifier
+                )
+            )
+
         return EOWCS("DatasetSeriesDescription",
-            self.encode_bounded_by(dataset_series.extent_wgs84),
-            EOWCS("DatasetSeriesId", dataset_series.identifier),
-            self.encode_time_period(
-                dataset_series.begin_time, dataset_series.end_time,
-                "%s_timeperiod" % dataset_series.identifier
-            ),
+            *elements,
             **{ns_gml("id"): self.get_gml_id(dataset_series.identifier)}
         )
 
