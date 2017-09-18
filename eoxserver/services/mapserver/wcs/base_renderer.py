@@ -193,7 +193,7 @@ class BaseRenderer(Component):
 
     def get_native_format(self, coverage, data_locations):
         formats = set(
-            data_location.formats
+            data_location.format
             for data_location in data_locations
             if data_location.format
         )
