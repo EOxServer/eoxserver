@@ -47,40 +47,44 @@ class MultiFileConnector(object):
         path = join("/vsimem", uuid4().hex)
         range_type = coverage.range_type
 
-        size_x, size_y = coverage.size[:2]
-        vrt_builder = vrt.VRTBuilder(size_x, size_y, vrt_filename=path)
+        # size_x, size_y = coverage.size[:2]
+        # vrt_builder = vrt.VRTBuilder(size_x, size_y, vrt_filename=path)
 
-        for data_item in data_items:
-            start = data_item.start_field
-            end = data_item.end_field
-            if end is None:
-                dst_band_indices = range(start+1, start+2)
-                src_band_indices = range(1, 2)
-            else:
-                dst_band_indices = range(start+1, end+2)
-                src_band_indices = range(1, end-start+1)
+        # for data_item in data_items:
+        #     start = data_item.start_field
+        #     end = data_item.end_field
+        #     if end is None:
+        #         dst_band_indices = range(start+1, start+2)
+        #         src_band_indices = range(1, 2)
+        #     else:
+        #         dst_band_indices = range(start+1, end+2)
+        #         src_band_indices = range(1, end-start+1)
 
-            for src_index, dst_index in zip(src_band_indices, dst_band_indices):
-                vrt_builder.add_band(range_type[dst_index-1].data_type)
-                vrt_builder.add_simple_source(
-                    dst_index,
-                    data_item.path,
-                    src_index
-                )
+        #     for src_index, dst_index in zip(src_band_indices, dst_band_indices):
+        #         vrt_builder.add_band(range_type[dst_index-1].data_type)
+        #         vrt_builder.add_simple_source(
+        #             dst_index,
+        #             data_item.path,
+        #             src_index
+        #         )
 
-        if coverage.grid.is_referenceable:
-            vrt_builder.copy_gcps(gdal.OpenShared(data_items[0].path))
-            layer.setMetaData("eoxs_ref_data", path)
+        # if coverage.grid.is_referenceable:
+        #     vrt_builder.copy_gcps(gdal.OpenShared(data_items[0].path))
+        #     layer.setMetaData("eoxs_ref_data", path)
+
+        # layer.data = path
+
+        # del vrt_builder
+
+        # with vsi.open(path) as f:
+        #     print f.read(100000)
+
+        vrt.gdalbuildvrt(path, [
+            location.path
+            for location in coverage.arraydata_locations
+        ], separate=True)
 
         layer.data = path
-
-        #with vsi.open(path, "w+") as f:
-        #    print type(vrt_builder.build())
-        #    f.write(vrt_builder.build())
-
-        del vrt_builder
-        with vsi.open(path) as f:
-            print f.read(100000)
 
         #layer.clearProcessing()
         #layer.addProcessing("SCALE_1=1,4")
