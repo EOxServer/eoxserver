@@ -47,9 +47,8 @@ class MultiFileConnector(object):
         path = join("/vsimem", uuid4().hex)
         range_type = coverage.range_type
 
-        vrt_builder = vrt.VRTBuilder(
-            coverage.size_x, coverage.size_y, vrt_filename=path
-        )
+        size_x, size_y = coverage.size[:2]
+        vrt_builder = vrt.VRTBuilder(size_x, size_y, vrt_filename=path)
 
         for data_item in data_items:
             start = data_item.start_field
