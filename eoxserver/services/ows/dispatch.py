@@ -42,7 +42,7 @@ from eoxserver.services.exceptions import (
     VersionNegotiationException, OperationNotSupportedException,
     HTTPMethodNotAllowedError,
 )
-from .common.v20.exceptionhandler import (
+from eoxserver.services.ows.common.v20.exceptionhandler import (
     OWS20ExceptionHandler
 )
 
@@ -222,7 +222,6 @@ def query_exception_handler(request):
 
     try:
         decoder = get_decoder(request)
-        handlers = self.exception_handlers
         handlers = sorted([
                 handler
                 for handler in EXCEPTION_HANDLERS
@@ -270,10 +269,15 @@ def version_negotiation(handlers, accepted_versions=None):
     raise VersionNegotiationException()
 
 
-def filter_handlers(handlers, service=None, versions=None, request=None):
+def filter_handlers(handlers=None, service=None, versions=None, request=None,
+                    method=None):
     """ Utility function to filter the given OWS service handlers by their
         attributes 'service', 'versions' and 'request'.
     """
+    if SERVICE_HANDLERS is None:
+        _setup_handlers()
+
+    handlers = handlers or SERVICE_HANDLERS
 
     service = service.upper() if service is not None else None
     request = request.upper() if request is not None else None
@@ -295,6 +299,12 @@ def filter_handlers(handlers, service=None, versions=None, request=None):
         handlers = [
             handler for handler in handlers
             if any(version in handler.versions for version in versions)
+        ]
+
+    if method:
+        handlers = [
+            handler for handler in handlers
+            if method in handler.methods
         ]
 
     return handlers

@@ -25,8 +25,6 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-from eoxserver.services.ows.common.v20.encoders import OWS20ExceptionXMLEncoder
-
 
 class OWS20ExceptionHandler(object):
     """ A Fallback exception handler. This class does on purpose not implement
@@ -41,6 +39,9 @@ class OWS20ExceptionHandler(object):
         locator = getattr(exception, "locator", None)
         status_code = 400
 
+        from eoxserver.services.ows.common.v20.encoders import (
+            OWS20ExceptionXMLEncoder
+        )
         encoder = OWS20ExceptionXMLEncoder()
 
         return (
@@ -50,4 +51,3 @@ class OWS20ExceptionHandler(object):
             encoder.content_type,
             status_code
         )
-

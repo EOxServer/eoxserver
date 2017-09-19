@@ -25,10 +25,43 @@
 # THE SOFTWARE.
 # ------------------------------------------------------------------------------
 
+from lxml.builder import ElementMaker
 
+from eoxserver.core.config import get_eoxserver_config
+from eoxserver.core.util.xmltools import NameSpace, NameSpaceMap
+from eoxserver.services.ows.common.config import CapabilitiesConfigReader
 from eoxserver.services.ows.common.v20.encoders import OWS20Encoder
+from eoxserver.services.ows.common.v20.encoders import ns_xlink, ns_ows
+
+
+ns_dseo = NameSpace("http://www.opengis.net/dseo/1.0", "dseo")
+nsmap = NameSpaceMap(
+    ns_xlink, ns_ows, ns_dseo
+)
+
+DSEO = ElementMaker(namespace=ns_dseo.uri, nsmap=nsmap)
 
 
 class DSEO10CapabilitiesXMLEncoder(OWS20Encoder):
-    def encode_capabilities(self, sections):
-        pass
+    def encode_capabilities(self, request, sections):
+        conf = CapabilitiesConfigReader(get_eoxserver_config())
+
+        all_sections = "all" in sections
+        caps = []
+        if all_sections or "serviceidentification" in sections:
+            caps.append(self.encode_service_identification(
+                "DSEO", conf, []
+            ))
+
+        if all_sections or "serviceprovider" in sections:
+            caps.append(self.encode_service_provider(conf))
+
+        if all_sections or "operationsmetadata" in sections:
+            caps.append(self.encode_operations_metadata(
+                request, "DSEO", ["1.0.0"]
+            ))
+
+        return DSEO(
+            "Capabilities", *caps,
+            version="1.0.0", updateSequence=conf.update_sequence
+        )

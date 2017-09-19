@@ -85,129 +85,6 @@ class WCS20BaseXMLEncoder(object):
 
 
 class WCS20CapabilitiesXMLEncoder(WCS20BaseXMLEncoder, OWS20Encoder):
-    def encode_service_identification(self, conf):
-        # get a list of versions in descending order from all active
-        # GetCapabilities handlers.
-        component = ServiceComponent(env)
-        handlers = component.query_service_handlers(
-            service="WCS", request="GetCapabilities"
-        )
-        versions = sorted(
-            set(chain(*[handler.versions for handler in handlers])),
-            reverse=True
-        )
-
-        elem = OWS("ServiceIdentification",
-            OWS("Title", conf.title),
-            OWS("Abstract", conf.abstract),
-            OWS("Keywords", *[
-                OWS("Keyword", keyword) for keyword in conf.keywords
-            ]),
-            OWS("ServiceType", "OGC WCS", codeSpace="OGC")
-        )
-
-        elem.extend(
-            OWS("ServiceTypeVersion", version) for version in versions
-        )
-
-        elem.extend(
-            OWS("Profile", "http://www.opengis.net/%s" % profile)
-            for profile in PROFILES
-        )
-
-        elem.extend((
-            OWS("Fees", conf.fees),
-            OWS("AccessConstraints", conf.access_constraints)
-        ))
-        return elem
-
-    def encode_service_provider(self, conf):
-        return OWS("ServiceProvider",
-            OWS("ProviderName", conf.provider_name),
-            self.encode_reference("ProviderSite", conf.provider_site),
-            OWS("ServiceContact",
-                OWS("IndividualName", conf.individual_name),
-                OWS("PositionName", conf.position_name),
-                OWS("ContactInfo",
-                    OWS("Phone",
-                        OWS("Voice", conf.phone_voice),
-                        OWS("Facsimile", conf.phone_facsimile)
-                    ),
-                    OWS("Address",
-                        OWS("DeliveryPoint", conf.delivery_point),
-                        OWS("City", conf.city),
-                        OWS("AdministrativeArea", conf.administrative_area),
-                        OWS("PostalCode", conf.postal_code),
-                        OWS("Country", conf.country),
-                        OWS(
-                            "ElectronicMailAddress",
-                            conf.electronic_mail_address
-                        )
-                    ),
-                    self.encode_reference(
-                        "OnlineResource", conf.onlineresource
-                    ),
-                    OWS("HoursOfService", conf.hours_of_service),
-                    OWS("ContactInstructions", conf.contact_instructions)
-                ),
-                OWS("Role", conf.role)
-            )
-        )
-
-    def encode_operations_metadata(self, request):
-        component = ServiceComponent(env)
-        versions = ("2.0.0", "2.0.1")
-        get_handlers = component.query_service_handlers(
-            service="WCS", versions=versions, method="GET"
-        )
-        post_handlers = component.query_service_handlers(
-            service="WCS", versions=versions, method="POST"
-        )
-        all_handlers = sorted(
-            set(get_handlers + post_handlers),
-            key=lambda h: (getattr(h, "index", 10000), h.request)
-        )
-
-        http_service_url = get_http_service_url(request)
-
-        operations = []
-        for handler in all_handlers:
-            methods = []
-            if handler in get_handlers:
-                methods.append(
-                    self.encode_reference("Get", http_service_url)
-                )
-            if handler in post_handlers:
-                post = self.encode_reference("Post", http_service_url)
-                post.append(
-                    OWS("Constraint",
-                        OWS("AllowedValues",
-                            OWS("Value", "XML")
-                        ), name="PostEncoding"
-                    )
-                )
-                methods.append(post)
-
-            operations.append(
-                OWS("Operation",
-                    OWS("DCP",
-                        OWS("HTTP", *methods)
-                    ),
-                    # apply default values as constraints
-                    *[
-                        OWS("Constraint",
-                            OWS("NoValues"),
-                            OWS("DefaultValue", str(default)),
-                            name=name
-                        ) for name, default
-                        in getattr(handler, "constraints", {}).items()
-                    ],
-                    name=handler.request
-                )
-            )
-
-        return OWS("OperationsMetadata", *operations)
-
     def encode_service_metadata(self):
         service_metadata = WCS("ServiceMetadata")
 
@@ -310,13 +187,17 @@ class WCS20CapabilitiesXMLEncoder(WCS20BaseXMLEncoder, OWS20Encoder):
         all_sections = "all" in sections
         caps = []
         if all_sections or "serviceidentification" in sections:
-            caps.append(self.encode_service_identification(conf))
+            caps.append(self.encode_service_identification(
+                "WCS", conf, PROFILES
+            ))
 
         if all_sections or "serviceprovider" in sections:
             caps.append(self.encode_service_provider(conf))
 
         if all_sections or "operationsmetadata" in sections:
-            caps.append(self.encode_operations_metadata(request))
+            caps.append(self.encode_operations_metadata(
+                request, "WCS", ("2.0.0", "2.0.1")
+            ))
 
         if all_sections or "servicemetadata" in sections:
             caps.append(self.encode_service_metadata())

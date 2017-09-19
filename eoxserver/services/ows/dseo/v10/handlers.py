@@ -33,7 +33,7 @@ from django.http.response import StreamingHttpResponse, FileResponse
 import zipstream
 
 from eoxserver.backends.storages import get_handler_for_model
-from eoxserver.core.decoders import kvp
+from eoxserver.core.decoders import kvp, typelist, lower
 from eoxserver.resources.coverages import models
 from eoxserver.services.ows.dseo.v10.encoders import DSEO10CapabilitiesXMLEncoder
 
@@ -49,12 +49,13 @@ class GetCapabilitiesHandler(object):
     methods = ['GET']
 
     def handle(self, request):
+        decoder = GetCapabilitiesKVPDecoder(request.GET)
         encoder = DSEO10CapabilitiesXMLEncoder()
 
         return encoder.serialize(
-            encoder.encode_capabilities(),
+            encoder.encode_capabilities(request, decoder.sections),
             pretty_print=True
-        )
+        ), encoder.content_type
 
 
 class GetProductHandler(object):
@@ -143,6 +144,14 @@ class GetProductHandler(object):
                 product.identifier
             )
             return response
+
+
+class GetCapabilitiesKVPDecoder(kvp.Decoder):
+    sections = kvp.Parameter(type=typelist(lower, ","), num="?", default=["all"])
+    updatesequence = kvp.Parameter(num="?")
+    acceptversions = kvp.Parameter(type=typelist(str, ","), num="?")
+    acceptformats = kvp.Parameter(type=typelist(str, ","), num="?", default=["text/xml"])
+    acceptlanguages = kvp.Parameter(type=typelist(str, ","), num="?")
 
 
 class GetProductKVPDecoder(kvp.Decoder):

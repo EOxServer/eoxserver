@@ -44,6 +44,7 @@ DEFAULT_EOXS_OWS_SERVICE_HANDLERS = [
     'eoxserver.services.ows.wms.v13.handlers.WMS13GetCapabilitiesHandler',
     'eoxserver.services.ows.wms.v13.handlers.WMS13GetMapHandler',
 
+    'eoxserver.services.ows.dseo.v10.handlers.GetCapabilitiesHandler',
     'eoxserver.services.ows.dseo.v10.handlers.GetProductHandler',
 ]
 
