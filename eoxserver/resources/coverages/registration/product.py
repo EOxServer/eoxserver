@@ -25,6 +25,7 @@
 # THE SOFTWARE.
 # ------------------------------------------------------------------------------
 
+import re
 
 from django.db.models import ForeignKey
 from django.contrib.gis.geos import GEOSGeometry
@@ -129,6 +130,7 @@ class ProductRegistrator(base.BaseRegistrator):
             product_type=product_type,
             package=package,
         )
+
         if extended_metadata and metadata:
             self._create_metadata(product, metadata)
 
@@ -198,9 +200,15 @@ class ProductRegistrator(base.BaseRegistrator):
         return component.read_product_metadata_file(path)
 
     def _create_metadata(self, product, metadata_values):
-        metadata_values = dict(
-            (name, convert(name, value, models.ProductMetadata))
+        value_items = [
+            (convert_name(name), value)
             for name, value in metadata_values.items()
+            if value is not None
+        ]
+
+        metadata_values = dict(
+            (name, convert_value(name, value, models.ProductMetadata))
+            for name, value in value_items
             if value is not None and has_field(models.ProductMetadata, name)
         )
 
@@ -227,7 +235,19 @@ def has_field(model, field_name):
         return False
 
 
-def convert(name, value, model_class):
+def camel_to_underscore(name):
+    s1 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name)
+    return re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1).lower()
+
+
+def convert_name(name):
+    namespace, _, sub_name = name.partition(':')
+    if namespace in ('eop', 'opt', 'sar', 'alt'):
+        return camel_to_underscore(sub_name)
+    return camel_to_underscore(name)
+
+
+def convert_value(name, value, model_class):
     field = model_class._meta.get_field(name)
     if is_common_value(field):
         return field.related_model.objects.get_or_create(
