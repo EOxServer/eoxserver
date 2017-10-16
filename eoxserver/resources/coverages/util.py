@@ -46,33 +46,6 @@ def pk_equals(first, second):
     return first.pk == second.pk
 
 
-def detect_circular_reference(eo_object, collection, supercollection_getter,
-                              equals=pk_equals):
-    """ Utility function to detect circular references in model hierarchies.
-
-    :param eo_object: the :class:`EOObject
-                      <eoxserver.resources.coverages.models.EOObject>` to check
-    :param collection: the :class:`Collection
-                       <eoxserver.resources.coverages.models.Collection>` to
-                       check against
-    :param supercollection_getter: a callable that shall return the collections
-                                   a single collection is contained in
-    :param equals: the equality checking function; defaults to :func:`pk_equals`
-    """
-
-    #print "Checking for circular reference: %s %s" %(eo_object, collection)
-    if equals(eo_object, collection):
-        #print "Circular reference detected: %s %s" %(eo_object, collection)
-        return True
-
-    for collection in supercollection_getter(collection):
-        if detect_circular_reference(eo_object, collection,
-                                     supercollection_getter, equals):
-            return True
-
-    return False
-
-
 def collect_eo_metadata(qs, insert=None, exclude=None, bbox=False):
     """ Helper function to collect EO metadata from all EOObjects in a queryset,
     plus additionals from a list and exclude others from a different list. If
