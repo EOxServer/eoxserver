@@ -25,6 +25,8 @@
 # THE SOFTWARE.
 # ------------------------------------------------------------------------------
 
+import re
+
 from django.core.management.base import CommandError, BaseCommand
 from django.db import transaction
 
@@ -70,6 +72,15 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
         )
 
         register_parser.add_argument(
+            '--set', '-s', dest='set_overrides',
+            nargs=2, default=[], action='append',
+            help=(
+                'Set (or override) additional metadata tags like '
+                '"opt:cloudCover".'
+            )
+        )
+
+        register_parser.add_argument(
             '--metadata-file',
             dest='metadata_locations', nargs='+', default=[], action='append',
             help=(
@@ -94,6 +105,7 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
                 'definition. Can be specified multiple times.'
             )
         )
+
         register_parser.add_argument(
             '--no-extended-metadata', dest='extended_metadata',
             default=True, action='store_false',
@@ -102,6 +114,7 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
                 'footprint, begin- and end-time) is stored.'
             )
         )
+
         register_parser.add_argument(
             '--no-masks', dest='discover_masks',
             default=True, action='store_false',
@@ -109,6 +122,7 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
                 'When this flag is set, no masks will be discovered.'
             )
         )
+
         register_parser.add_argument(
             '--no-browses', dest='discover_browses',
             default=True, action='store_false',
@@ -116,12 +130,14 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
                 'When this flag is set, no browses will be discovered.'
             )
         )
+
         register_parser.add_argument(
             '--package', '-p', default=None,
             help=(
                 'The path to a storage (directory, ZIP-file, etc.).'
             )
         )
+
         register_parser.add_argument(
             "--replace", "-r",
             dest="replace", action="store_true", default=False,
@@ -131,6 +147,7 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
                 "an error."
             )
         )
+
         register_parser.add_argument(
             '--print-identifier', dest='print_identifier',
             default=False, action='store_true',
@@ -173,16 +190,21 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
         """ Handle the creation of a new product
         """
         try:
+            overrides = dict(
+                identifier=kwargs['identifier'],
+                footprint=kwargs['footprint'],
+                begin_time=kwargs['begin_time'],
+                end_time=kwargs['end_time'],
+            )
+
+            for name, value in kwargs['set_overrides']:
+                overrides[convert_name(name)] = value
+
             product, replaced = ProductRegistrator().register(
                 metadata_locations=kwargs['metadata_locations'],
                 mask_locations=kwargs['mask_locations'],
                 package_path=kwargs['package'],
-                overrides=dict(
-                    identifier=kwargs['identifier'],
-                    footprint=kwargs['footprint'],
-                    begin_time=kwargs['begin_time'],
-                    end_time=kwargs['end_time'],
-                ),
+                overrides=overrides,
                 type_name=kwargs['type_name'],
                 extended_metadata=kwargs['extended_metadata'],
                 discover_masks=kwargs['discover_masks'],
@@ -216,3 +238,15 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
                 with handler_cls(package.url) as handler:
                     for item in handler.list_files(pattern):
                         print(item)
+
+
+def camel_to_underscore(name):
+    s1 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name)
+    return re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1).lower()
+
+
+def convert_name(name):
+    namespace, _, sub_name = name.partition(':')
+    if namespace in ('eop', 'opt', 'sar', 'alt'):
+        return camel_to_underscore(sub_name)
+    return camel_to_underscore(name)
