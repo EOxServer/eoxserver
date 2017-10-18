@@ -1,9 +1,11 @@
 <table>
     <tr>
         <td valign="top" width="10%">
+            {% if map_large and map_small %}
             <a href="{{ map_large }}" target="_blank" title="View quicklook image">
                 <img align="left" border="0" hspace="8" src="{{ map_small }}"  />
             </a>
+            {% endif %}
         </td>
         <td valign="top" width="90%">
             <table>
@@ -38,14 +40,16 @@
 
 <h3>OGC cross links</h3>
 <ul>
+  {% if wms_large %}
   <li>
     <b>WMS</b>
     <ul>
-        <li>
-          <a href="{{ map_large }}" target="_blank">GetMap</a>
-        </li>
-      </ul>
-    </li>
+      <li>
+        <a href="{{ map_large }}" target="_blank">GetMap</a>
+      </li>
+    </ul>
+  </li>
+  {% endif %}
   <li>
     <b>WCS</b>
     <ul>

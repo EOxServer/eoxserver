@@ -255,18 +255,23 @@ class BaseFeedResultFormat(object):
                 wms_large = self._create_map_link(request, item, 500)
 
                 # media RSS style links
-                links.extend([
+                if wms_large:
                     # "Browse" image
-                    MEDIA("content",
-                        MEDIA("category", "QUICKLOOK"),
-                        url=wms_large
-                    ),
+                    links.append(
+                        MEDIA("content",
+                            MEDIA("category", "QUICKLOOK"),
+                            url=wms_large
+                        )
+                    )
+
+                if wms_small:
                     # "Thumbnail" image
-                    MEDIA("content",
-                        MEDIA("category", "THUMBNAIL"),
-                        url=wms_small
-                    ),
-                ])
+                    links.append(
+                        MEDIA("content",
+                            MEDIA("category", "THUMBNAIL"),
+                            url=wms_small
+                        )
+                    )
 
                 links.extend([
                     OWC("offering",
@@ -388,27 +393,30 @@ class BaseFeedResultFormat(object):
 
     def _create_map_link(self, request, item, size):
         footprint = item.footprint
-        minx, miny, maxx, maxy = footprint.extent
 
-        fx = 1.0
-        fy = 1.0
+        if footprint:
+            minx, miny, maxx, maxy = footprint.extent
 
-        if (maxx - minx) > (maxy - miny):
-            fy = (maxy - miny) / (maxx - minx)
-        else:
-            fx = (maxx - minx) / (maxy - miny)
+            fx = 1.0
+            fy = 1.0
 
-        return request.build_absolute_uri(
-            "%s?service=WMS&version=1.3.0&request=GetMap"
-            "&layers=%s&format=image/png&TRANSPARENT=true"
-            "&width=%d&height=%d&CRS=EPSG:4326&STYLES="
-            "&BBOX=%f,%f,%f,%f"
-            "" % (
-                reverse("ows"), item.identifier,
-                int(size * fx), int(size * fy),
-                miny, minx, maxy, maxx
+            if (maxx - minx) > (maxy - miny):
+                fy = (maxy - miny) / (maxx - minx)
+            else:
+                fx = (maxx - minx) / (maxy - miny)
+
+            return request.build_absolute_uri(
+                "%s?service=WMS&version=1.3.0&request=GetMap"
+                "&layers=%s&format=image/png&TRANSPARENT=true"
+                "&width=%d&height=%d&CRS=EPSG:4326&STYLES="
+                "&BBOX=%f,%f,%f,%f"
+                "" % (
+                    reverse("ows"), item.identifier,
+                    int(size * fx), int(size * fy),
+                    miny, minx, maxy, maxx
+                )
             )
-        )
+        return None
 
     def _create_coverage_link(self, request, coverage):
         return request.build_absolute_uri(
