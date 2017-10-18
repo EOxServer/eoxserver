@@ -544,19 +544,19 @@ def get_field_mapping_for_model(model_class, strict=False):
         for field_name in field_names:
             mapping[_to_camel_case(field_name)] = field_name
 
-        if model_class in metadata_classes:
-            new_mapping, mapping_choices = _get_metadata_model_mapping(
-                *metadata_classes.get(model_class)
-            )
-            mapping.update(new_mapping)
+    if model_class in metadata_classes:
+        new_mapping, mapping_choices = _get_metadata_model_mapping(
+            *metadata_classes.get(model_class)
+        )
+        mapping.update(new_mapping)
 
-        elif model_class is models.EOObject:
-            for metadata_class, name in metadata_classes.values():
-                class_mapping, class_choices = _get_metadata_model_mapping(
-                    metadata_class, "%s__%s" % (name, name)
-                )
-                mapping.update(class_mapping)
-                mapping_choices.update(class_choices)
+    elif model_class is models.EOObject:
+        for metadata_class, name in metadata_classes.values():
+            class_mapping, class_choices = _get_metadata_model_mapping(
+                metadata_class, "%s__%s" % (name, name)
+            )
+            mapping.update(class_mapping)
+            mapping_choices.update(class_choices)
 
     return mapping, mapping_choices
 

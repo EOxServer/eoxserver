@@ -29,6 +29,8 @@ import re
 import functools
 import json
 
+from django.core.exceptions import FieldDoesNotExist
+
 from eoxserver.core.decoders import kvp, enum
 from eoxserver.core.util.xmltools import NameSpace
 from eoxserver.core.util.timetools import parse_iso8601
@@ -86,7 +88,7 @@ class EarthObservationExtension(object):
 
     def get_schema(self, collection=None, model_class=None):
         mapping, mapping_choices = filters.get_field_mapping_for_model(
-            model_class or models.Product
+            model_class or models.Product, True
         )
 
         schema = []
