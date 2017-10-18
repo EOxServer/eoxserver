@@ -90,6 +90,7 @@ setup(
         'python-dateutil',
         'ply',
         'django-model-utils',
+        'zipstream',
     ],
     zip_safe=False,
 
