@@ -72,11 +72,21 @@ def product_register(request):
     try:
         with zipfile as zipfile, transaction.atomic():
             product_desc = json.load(zipfile.open('product.json'))
-            product, parent_id = _register_product(product_desc)
 
             # get the collection from the 'parentId'
-            collection = models.Collection.objects.get(identifier=parent_id)
-            print collection
+            try:
+                parent_id = product_desc['properties']['eop:parentIdentifier']
+                collection = models.Collection.objects.get(identifier=parent_id)
+            except KeyError:
+                return HttpResponseBadRequest(
+                    'Missing product property: eop:parentIdentifier'
+                )
+            except models.Collection.DoesNotExist:
+                return HttpResponseBadRequest(
+                    'No such collection %r' % parent_id
+                )
+
+            product = _register_product(collection, product_desc)
 
             granules = []
             granules_desc = json.load(zipfile.open('granules.json'))
@@ -107,7 +117,16 @@ def product_register(request):
     )
 
 
-def _register_product(product_def):
+def _register_product(collection, product_def):
+    type_name = None
+    collection_type = collection.collection_type
+
+    # get the first product type from the collection
+    if collection_type:
+        product_type = collection_type.allowed_product_types.first()
+        if product_type:
+            type_name = product_type.name
+
     properties = product_def['properties']
 
     footprint = GEOSGeometry(json.dumps(product_def['geometry'])).wkt
@@ -128,11 +147,11 @@ def _register_product(product_def):
             end_time=end_time,
             **properties
         ),
-        type_name='',
+        type_name=type_name,
         replace=True,
     )
 
-    return product, properties['eop:parentIdentifier']
+    return product
 
 
 def _register_granule(product, collection, granule_def):
