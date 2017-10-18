@@ -660,10 +660,13 @@ def collection_insert_eo_object(collection, eo_object):
     if isinstance(eo_object, Product):
         product_type = eo_object.product_type
         allowed = True
-        if collection_type:
+        if collection_type and product_type:
             allowed = collection_type.allowed_product_types.filter(
                 pk=product_type.pk
             ).exists()
+
+        elif collection_type:
+            allowed = False
 
         if not allowed:
             raise ManagementError(
