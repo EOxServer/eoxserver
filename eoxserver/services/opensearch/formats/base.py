@@ -230,8 +230,11 @@ class BaseFeedResultFormat(object):
             # add link to opensearch collection search
             links.append(
                 ATOM("link",
-                    rel="search", href=self._create_self_link(
-                        request, collection_id, item
+                    rel="search", type="application/opensearchdescription+xml",
+                    href=request.build_absolute_uri(
+                        reverse("opensearch:collection:description", kwargs={
+                            'collection_id': item.identifier
+                        })
                     )
                 )
             )
