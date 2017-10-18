@@ -157,7 +157,6 @@ def _register_product(collection, product_def, granules_def):
         if granule_desc['properties'].get('band') == 'TCI'
     ]
     for browse_location in browse_locations:
-        print [browse_location]
         BrowseRegistrator().register(
             product.identifier, [browse_location]
         )
@@ -186,8 +185,6 @@ def _register_granule(product, collection, granule_def):
         # coverage type associated with the collection
         identifier = os.path.basename(properties['location'])
         coverage_type = coverage_types_base[0]
-
-        print coverage_type
 
     overrides = dict(
         identifier=identifier,
