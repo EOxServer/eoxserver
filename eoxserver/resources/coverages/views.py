@@ -151,11 +151,18 @@ def _register_product(collection, product_def, granules_def):
         replace=True,
     )
 
-    browse_locations = [
-        granule_desc['properties']['location']
-        for granule_desc in granules_def['features']
-        if granule_desc['properties'].get('band') == 'TCI'
-    ]
+    browse_locations = []
+    features = granules_def['features']
+    if len(features) == 1:
+        location = features[0]['properties'].get('location')
+        if location:
+            browse_locations.append(location)
+    else:
+        browse_locations = [
+            granule_desc['properties']['location']
+            for granule_desc in features
+            if granule_desc['properties'].get('band') == 'TCI'
+        ]
     for browse_location in browse_locations:
         BrowseRegistrator().register(
             product.identifier, [browse_location]
