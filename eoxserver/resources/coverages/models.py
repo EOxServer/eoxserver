@@ -770,9 +770,9 @@ def collection_collect_metadata(collection, collect_footprint=True,
         if collect_footprint:
             collection.footprint = values["footprint"]
         if collect_begin_time:
-            collection.footprint = values["begin_time"]
+            collection.begin_time = values["begin_time"]
         if collect_end_time:
-            collection.footprint = values["end_time"]
+            collection.end_time = values["end_time"]
 
     if product_summary or coverage_summary:
         collection_metadata, _ = CollectionMetadata.objects.get_or_create(
