@@ -67,3 +67,4 @@ class BrowseRegistrator(base.BaseRegistrator):
 
         browse.full_clean()
         browse.save()
+        return browse

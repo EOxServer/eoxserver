@@ -461,7 +461,7 @@ class BaseRegistrator(object):
         try:
             parent = backends.Storage.objects.get(Q(name=first) | Q(url=first))
         except backends.Storage.DoesNotExist:
-            parent = backends.Storage.create(url=first)
+            parent = backends.Storage.objects.create(url=first)
 
         for storage_path in storage_paths[1:]:
             parent = backends.Storage.objects.create(
