@@ -15,6 +15,7 @@ from eoxserver.resources.coverages import models
 from eoxserver.resources.coverages.registration.product import (
     ProductRegistrator
 )
+from eoxserver.resources.coverages.registration.browse import BrowseRegistrator
 from eoxserver.resources.coverages.registration.registrators.gdal import (
     GDALRegistrator
 )
@@ -72,6 +73,7 @@ def product_register(request):
     try:
         with zipfile as zipfile, transaction.atomic():
             product_desc = json.load(zipfile.open('product.json'))
+            granules_desc = json.load(zipfile.open('granules.json'))
 
             # get the collection from the 'parentId'
             try:
@@ -86,11 +88,9 @@ def product_register(request):
                     'No such collection %r' % parent_id
                 )
 
-            product = _register_product(collection, product_desc)
+            product = _register_product(collection, product_desc, granules_desc)
 
             granules = []
-            granules_desc = json.load(zipfile.open('granules.json'))
-
             # iterate over the granules and register them
             for granule_desc in granules_desc['features']:
                 coverage = _register_granule(
@@ -117,7 +117,7 @@ def product_register(request):
     )
 
 
-def _register_product(collection, product_def):
+def _register_product(collection, product_def, granules_def):
     type_name = None
     collection_type = collection.collection_type
 
@@ -150,6 +150,17 @@ def _register_product(collection, product_def):
         type_name=type_name,
         replace=True,
     )
+
+    browse_locations = [
+        granule_desc['properties']['location']
+        for granule_desc in granules_def['features']
+        if granule_desc['properties'].get('band') == 'TCI'
+    ]
+    for browse_location in browse_locations:
+        print [browse_location]
+        BrowseRegistrator().register(
+            product.identifier, [browse_location]
+        )
 
     return product
 
