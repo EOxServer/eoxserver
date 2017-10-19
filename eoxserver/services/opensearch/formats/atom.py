@@ -146,7 +146,7 @@ class AtomResultFormat(BaseFeedResultFormat):
                         )}
                         for coverage in coverages
                     ],
-                    'download_link': self._create_dseo_download_link(
+                    'download_link': self._create_download_link(
                         request, item
                     ) if isinstance(item, models.Product) else None
                 },

@@ -246,7 +246,7 @@ class BaseFeedResultFormat(object):
 
                 links.append(
                     ATOM("link", rel="enclosure",
-                        href=self._create_dseo_download_link(request, item)
+                        href=self._create_download_link(request, item)
                     )
                 )
 
@@ -459,7 +459,12 @@ class BaseFeedResultFormat(object):
             ), item.identifier
         )
 
-    def _create_dseo_download_link(self, request, product):
+    def _create_download_link(self, request, product):
+        package = product.package
+        if package:
+            if package.type in ('HTTP', 'FTP'):
+                return package.url
+
         return request.build_absolute_uri(
             "%s?service=DSEO&version=1.0.0&request=GetProduct&ProductURI=%s" % (
                 reverse("ows"), product.identifier
