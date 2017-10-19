@@ -36,7 +36,7 @@ from eoxserver.contrib import mapserver as ms
 from eoxserver.contrib import vsi, vrt, gdal, osr
 from eoxserver.render.map.objects import (
     CoverageLayer, MosaicLayer, BrowseLayer, OutlinedBrowseLayer,
-    MaskLayer, MaskedBrowseLayer, OutlinesLayer, CoverageSetsLayer
+    MaskLayer, MaskedBrowseLayer, OutlinesLayer, # CoverageSetsLayer
 )
 from eoxserver.render.mapserver.config import (
     DEFAULT_EOXS_MAPSERVER_LAYER_FACTORIES,
@@ -217,25 +217,25 @@ class MosaicLayerFactory(BaseCoverageLayerFactory):
             self.destroy_coverage_layer(layer_obj)
 
 
-class CoverageCollectionLayerFactory(BaseCoverageLayerFactory):
-    handled_layer_types = [CoverageSetsLayer]
+# class CoverageCollectionLayerFactory(BaseCoverageLayerFactory):
+#     handled_layer_types = [CoverageSetsLayer]
 
-    def get_coverages_for_band(self, bands, wavelengths):
-        if bands:
-            for band in bands:
-                pass
+#     def get_coverages_for_band(self, bands, wavelengths):
+#         if bands:
+#             for band in bands:
+#                 pass
 
-    def create_product_layer(self, product, ):
-        pass
+#     def create_product_layer(self, product, ):
+#         pass
 
-    def create(self, map_obj, layer):
-        products = layer.products
+#     def create(self, map_obj, layer):
+#         products = layer.products
 
-        for product in products:
-            pass
+#         for product in products:
+#             pass
 
-    def destroy(self, map_obj, layer, data):
-        pass
+#     def destroy(self, map_obj, layer, data):
+#         pass
 
 
 class BrowseLayerFactory(BaseMapServerLayerFactory):
