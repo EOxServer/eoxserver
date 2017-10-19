@@ -36,7 +36,7 @@ from eoxserver.contrib import mapserver as ms
 from eoxserver.contrib import vsi, vrt, gdal, osr
 from eoxserver.render.map.objects import (
     CoverageLayer, MosaicLayer, BrowseLayer, OutlinedBrowseLayer,
-    MaskLayer, MaskedBrowseLayer, OutlinesLayer
+    MaskLayer, MaskedBrowseLayer, OutlinesLayer, CoverageSetsLayer
 )
 from eoxserver.render.mapserver.config import (
     DEFAULT_EOXS_MAPSERVER_LAYER_FACTORIES,
@@ -217,6 +217,27 @@ class MosaicLayerFactory(BaseCoverageLayerFactory):
             self.destroy_coverage_layer(layer_obj)
 
 
+class CoverageCollectionLayerFactory(BaseCoverageLayerFactory):
+    handled_layer_types = [CoverageSetsLayer]
+
+    def get_coverages_for_band(self, bands, wavelengths):
+        if bands:
+            for band in bands:
+                pass
+
+    def create_product_layer(self, product, ):
+        pass
+
+    def create(self, map_obj, layer):
+        products = layer.products
+
+        for product in products:
+            pass
+
+    def destroy(self, map_obj, layer, data):
+        pass
+
+
 class BrowseLayerFactory(BaseMapServerLayerFactory):
     handled_layer_types = [BrowseLayer]
 
@@ -335,7 +356,7 @@ class OutlinesLayerFactory(BaseMapServerLayerFactory):
 # ------------------------------------------------------------------------------
 
 
-def _create_raster_layer_obj(map_obj, extent, sr):
+def _create_raster_layer_obj(map_obj, extent, sr, resample='AVERAGE'):
     layer_obj = ms.layerObj(map_obj)
     layer_obj.type = ms.MS_LAYER_RASTER
     layer_obj.status = ms.MS_ON
@@ -352,6 +373,7 @@ def _create_raster_layer_obj(map_obj, extent, sr):
             layer_obj.setMetaData("wms_srs", short_epsg)
 
     layer_obj.setProjection(sr.proj)
+    layer_obj.setProcessingKey('RESAMPLE', resample)
 
     return layer_obj
 
