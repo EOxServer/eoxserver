@@ -132,6 +132,14 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
         )
 
         register_parser.add_argument(
+            '--no-metadata', dest='discover_metadata',
+            default=True, action='store_false',
+            help=(
+                'When this flag is set, no metadata will be discovered.'
+            )
+        )
+
+        register_parser.add_argument(
             '--package', '-p', default=None,
             help=(
                 'The path to a storage (directory, ZIP-file, etc.).'
@@ -209,6 +217,7 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
                 extended_metadata=kwargs['extended_metadata'],
                 discover_masks=kwargs['discover_masks'],
                 discover_browses=kwargs['discover_browses'],
+                discover_metadata=kwargs['discover_metadata'],
                 replace=kwargs['replace']
             )
         except RegistrationError as e:
@@ -216,6 +225,10 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
 
         if kwargs['print_identifier']:
             print(product.identifier)
+        else:
+            self.print_msg(
+                'Successfully registered product %r' % product.identifier
+            )
 
     def handle_deregister(self, identifier, *args, **kwargs):
         """ Handle the deregistration a product

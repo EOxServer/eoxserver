@@ -47,7 +47,8 @@ from eoxserver.resources.coverages.registration.exceptions import (
 class ProductRegistrator(base.BaseRegistrator):
     def register(self, metadata_locations, mask_locations, package_path,
                  overrides, type_name=None, extended_metadata=True,
-                 discover_masks=True, discover_browses=True, replace=False):
+                 discover_masks=True, discover_browses=True,
+                 discover_metadata=True, replace=False):
         product_type = None
         if type_name:
             product_type = models.ProductType.objects.get(name=type_name)
@@ -59,7 +60,8 @@ class ProductRegistrator(base.BaseRegistrator):
         metadata = {}
 
         package = None
-        if package_path:
+        if package_path and (
+                discover_masks or discover_browses or discover_metadata):
             handler = get_handler_by_test(package_path)
             if not handler:
                 raise RegistrationError(
@@ -69,7 +71,11 @@ class ProductRegistrator(base.BaseRegistrator):
             package, _ = backends.Storage.objects.get_or_create(
                 url=package_path, storage_type=handler.name
             )
-            metadata.update(component.collect_package_metadata(package))
+            collected_metadata = component.collect_package_metadata(
+                package, handler
+            )
+            if discover_metadata:
+                metadata.update(collected_metadata)
             if discover_browses:
                 browse_handles.extend([
                     (browse_type, package_path, browse_path)

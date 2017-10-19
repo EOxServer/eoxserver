@@ -148,6 +148,9 @@ def _register_product(collection, product_def, granules_def):
             **properties
         ),
         type_name=type_name,
+        discover_masks=False,
+        discover_browses=False,
+        discover_metadata=False,
         replace=True,
     )
 
