@@ -60,8 +60,7 @@ class ProductRegistrator(base.BaseRegistrator):
         metadata = {}
 
         package = None
-        if package_path and (
-                discover_masks or discover_browses or discover_metadata):
+        if package_path:
             handler = get_handler_by_test(package_path)
             if not handler:
                 raise RegistrationError(
@@ -71,26 +70,32 @@ class ProductRegistrator(base.BaseRegistrator):
             package, _ = backends.Storage.objects.get_or_create(
                 url=package_path, storage_type=handler.name
             )
-            collected_metadata = component.collect_package_metadata(
-                package, handler
-            )
-            if discover_metadata:
-                metadata.update(collected_metadata)
-            if discover_browses:
-                browse_handles.extend([
-                    (browse_type, package_path, browse_path)
-                    for browse_type, browse_path in metadata.pop('browses', [])
-                ])
-            if discover_masks:
-                mask_locations.extend([
-                    (mask_type, package_path, mask_path)
-                    for mask_type, mask_path in metadata.pop('mask_files', [])
-                ])
 
-                mask_locations.extend([
-                    (mask_type, geometry)
-                    for mask_type, geometry in metadata.pop('masks', [])
-                ])
+            if discover_masks or discover_browses or discover_metadata:
+                collected_metadata = component.collect_package_metadata(
+                    package, handler
+                )
+                if discover_metadata:
+                    metadata.update(collected_metadata)
+                if discover_browses:
+                    browse_handles.extend([
+                        (browse_type, package_path, browse_path)
+                        for browse_type, browse_path in metadata.pop(
+                            'browses', []
+                        )
+                    ])
+                if discover_masks:
+                    mask_locations.extend([
+                        (mask_type, package_path, mask_path)
+                        for mask_type, mask_path in metadata.pop(
+                            'mask_files', []
+                        )
+                    ])
+
+                    mask_locations.extend([
+                        (mask_type, geometry)
+                        for mask_type, geometry in metadata.pop('masks', [])
+                    ])
 
         metadata_items = [
             models.MetaDataItem(
