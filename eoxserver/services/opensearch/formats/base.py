@@ -462,7 +462,7 @@ class BaseFeedResultFormat(object):
     def _create_download_link(self, request, product):
         package = product.package
         if package:
-            if package.type in ('HTTP', 'FTP'):
+            if package.storage_type in ('HTTP', 'FTP'):
                 return package.url
 
         return request.build_absolute_uri(
