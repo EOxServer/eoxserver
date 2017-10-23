@@ -187,7 +187,7 @@ def _register_granule(product, collection, granule_def):
         # band ID
         identifier = '%s_%s' % (product.identifier, properties['band'])
         coverage_type = coverage_types_base.get(
-            name__endswith=properties['band']
+            name__iendswith=properties['band']
         )
 
     else:
