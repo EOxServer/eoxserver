@@ -84,10 +84,10 @@ class MapserverMapRenderer(object):
         map_obj.setOutputFormat(outputformat_obj)
 
         #
-
         map_obj.setExtent(*render_map.bbox)
         map_obj.setSize(render_map.width, render_map.height)
         map_obj.setProjection(render_map.crs)
+        map_obj.setConfigOption('MS_NONSQUARE', 'yes')
 
         layers_plus_factories = self._get_layers_plus_factories(render_map)
 
