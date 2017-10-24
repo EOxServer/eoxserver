@@ -49,14 +49,18 @@ class OpenSearch11DescriptionEncoder(XMLEncoder):
             "http://a9.com/-/spec/opensearch/extensions/parameters/1.0/",
             "parameters"
         )
-        nsmap = NameSpaceMap(ns_os, ns_param)
+        ns_atom = NameSpace("http://www.w3.org/2005/Atom", "atom")
+        nsmap = NameSpaceMap(ns_os, ns_param, ns_atom)
         for search_extension in search_extensions:
             nsmap.add(search_extension.namespace)
         self.OS = ElementMaker(namespace=ns_os.uri, nsmap=nsmap)
         self.PARAM = ElementMaker(namespace=ns_param.uri, nsmap=nsmap)
+        self.ATOM = ElementMaker(namespace=ns_atom.uri, nsmap=nsmap)
         self.search_extensions = search_extensions
 
     def encode_description(self, request, collection, result_formats):
+        """ Encode an OpenSearch 1.1 description document.
+        """
         OS = self.OS
         description = OS("OpenSearchDescription",
             OS("ShortName",
@@ -73,6 +77,7 @@ class OpenSearch11DescriptionEncoder(XMLEncoder):
             ])
         description.extend([
             OS("Contact"),
+            OS("Tags", "CEOS-OS-BP-V1.1/L1"),
             OS("LongName"),
             OS("Developer"),
             OS("Attribution"),
@@ -85,6 +90,9 @@ class OpenSearch11DescriptionEncoder(XMLEncoder):
         return description
 
     def encode_url(self, request, collection, result_format, method):
+        """ Encode a single opensearch URL, either for a specific collection, or
+            the whole service.
+        """
         if collection is not None:
             search_url = reverse("opensearch:collection:search",
                 kwargs={
@@ -102,10 +110,12 @@ class OpenSearch11DescriptionEncoder(XMLEncoder):
         search_url = request.build_absolute_uri(search_url)
 
         default_parameters = (
-            dict(name="q", type="searchTerms"),
-            dict(name="count", type="count"),
-            dict(name="startIndex", type="startIndex"),
+            dict(name="q", type="searchTerms", profiles=[
+            ]),
+            dict(name="count", type="count", min=0),
+            dict(name="startIndex", type="startIndex", min=0),
         )
+
         parameters = list(chain(default_parameters, *[
             [
                 dict(parameter, **{"namespace": search_extension.namespace})
@@ -146,6 +156,7 @@ class OpenSearch11DescriptionEncoder(XMLEncoder):
 
     def encode_parameter(self, parameter, namespace):
         options = parameter.pop("options", [])
+        profiles = parameter.pop("profiles", [])
 
         attributes = {"name": parameter["name"]}
         if namespace:
@@ -168,6 +179,11 @@ class OpenSearch11DescriptionEncoder(XMLEncoder):
         return self.PARAM("Parameter", *[
             self.PARAM("Option", value=option, label=option)
             for option in options
+        ] + [
+            self.ATOM("link",
+                rel="profile", href=profile["href"], title=profile["title"]
+            )
+            for profile in profiles
         ], minimum="0" if parameter.get("optional", True) else "1", maximum="1",
             **attributes
         )

@@ -88,7 +88,32 @@ class GeoExtension(object):
     def get_schema(self, collection=None, model_class=None):
         return (
             dict(name="bbox", type="box"),
-            dict(name="geom", type="geometry"),
+            dict(name="geom", type="geometry", profiles=[
+                dict(
+                    href="http://www.opengis.net/wkt/LINESTRING",
+                    title="This service accepts WKT LineStrings"
+                ),
+                dict(
+                    href="http://www.opengis.net/wkt/POINT",
+                    title="This service accepts WKT Point"
+                ),
+                dict(
+                    href="http://www.opengis.net/wkt/POLYGON",
+                    title="This service accepts WKT Polygons"
+                ),
+                dict(
+                    href="http://www.opengis.net/wkt/MULTILINESTRING",
+                    title="This service accepts WKT Multi-LineStrings"
+                ),
+                dict(
+                    href="http://www.opengis.net/wkt/MULTIPOINT",
+                    title="This service accepts WKT Multi-Point"
+                ),
+                dict(
+                    href="http://www.opengis.net/wkt/MULTIPOLYGON",
+                    title="This service accepts WKT Multi-Polygons"
+                ),
+            ]),
             dict(name="lon", type="lon"),
             dict(name="lat", type="lat"),
             dict(name="r", type="radius"),

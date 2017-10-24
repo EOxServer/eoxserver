@@ -54,7 +54,16 @@ class CQLExtension(object):
 
     def get_schema(self, collection=None, model_class=None):
         return (
-            dict(name="cql", type="cql"),
+            dict(name="cql", type="cql", profiles=[
+                dict(
+                    href="http://www.opengis.net/csw/3.0/cql",
+                    title=(
+                        "CQL (Common Query Language) is a query language "
+                        "created by the OGC for the Catalogue Web Services "
+                        "specification."
+                    )
+                )
+            ]),
         )
 
 

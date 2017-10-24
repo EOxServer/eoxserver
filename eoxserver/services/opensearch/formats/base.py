@@ -365,6 +365,19 @@ class BaseFeedResultFormat(object):
 
     def encode_spatio_temporal(self, item):
         entries = []
+
+        begin_time = item.begin_time
+        end_time = item.end_time
+        if begin_time and end_time:
+            if begin_time != end_time:
+                entries.append(
+                    DC("date", "%s/%s" % (
+                        isoformat(begin_time), isoformat(end_time)
+                    ))
+                )
+            else:
+                entries.append(DC("date", isoformat(begin_time)))
+
         if item.footprint:
             extent = item.footprint.extent
             entries.append(
@@ -379,18 +392,6 @@ class BaseFeedResultFormat(object):
                     )
                 )
             )
-
-        begin_time = item.begin_time
-        end_time = item.end_time
-        if begin_time and end_time:
-            if begin_time != end_time:
-                entries.append(
-                    DC("date", "%s/%s" % (
-                        isoformat(begin_time), isoformat(end_time)
-                    ))
-                )
-            else:
-                entries.append(DC("date", isoformat(begin_time)))
 
         return entries
 
@@ -441,7 +442,6 @@ class BaseFeedResultFormat(object):
 
     def _create_self_link(self, request, collection_id, item, format=None):
         if collection_id is None:
-
             return "%s?uid=%s" % (
                 request.build_absolute_uri(
                     reverse("opensearch:search", kwargs={

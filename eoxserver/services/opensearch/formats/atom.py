@@ -38,7 +38,7 @@ from eoxserver.core.util.xmltools import etree, NameSpace, NameSpaceMap, typemap
 from eoxserver.core.util.timetools import isoformat
 from eoxserver.resources.coverages import models
 from eoxserver.services.opensearch.formats.base import (
-    BaseFeedResultFormat, ns_dc, ns_georss, ns_media, ns_owc
+    BaseFeedResultFormat, ns_georss, ns_media, ns_owc
 )
 from eoxserver.services.opensearch.config import (
     DEFAULT_EOXS_OPENSEARCH_SUMMARY_TEMPLATE
@@ -49,6 +49,7 @@ from eoxserver.services.opensearch.config import (
 ns_atom = NameSpace("http://www.w3.org/2005/Atom", None)
 ns_opensearch = NameSpace("http://a9.com/-/spec/opensearch/1.1/", "opensearch")
 ns_gml = NameSpace("http://www.opengis.net/gml", "gml")
+ns_dc = NameSpace("http://purl.org/dc/elements/1.1/", "dc")
 
 # namespace map
 nsmap = NameSpaceMap(ns_atom, ns_opensearch, ns_dc, ns_georss, ns_media, ns_owc)
@@ -57,6 +58,7 @@ nsmap = NameSpaceMap(ns_atom, ns_opensearch, ns_dc, ns_georss, ns_media, ns_owc)
 ATOM = ElementMaker(namespace=ns_atom.uri, nsmap=nsmap, typemap=typemap)
 OS = ElementMaker(namespace=ns_opensearch.uri, nsmap=nsmap)
 GML = ElementMaker(namespace=ns_gml.uri, nsmap=nsmap)
+DC = ElementMaker(namespace=ns_dc.uri, nsmap=nsmap)
 
 
 class AtomResultFormat(BaseFeedResultFormat):
@@ -75,7 +77,6 @@ class AtomResultFormat(BaseFeedResultFormat):
         tree = ATOM("feed",
             ATOM("id", request.build_absolute_uri()),
             ATOM("title", "%s Search" % collection_id),
-            ATOM("link", rel="self", href=request.build_absolute_uri()),
             ATOM("description"),
             OS("totalResults", str(search_context.total_count)),
             OS("startIndex", str(search_context.start_index or 0)),
@@ -97,13 +98,12 @@ class AtomResultFormat(BaseFeedResultFormat):
     def encode_entry(self, request, collection_id, item):
         entry = ATOM("entry",
             ATOM("title", item.identifier),
-            ATOM("id", item.identifier),
-            self.encode_summary(request, collection_id, item),
+            ATOM("id", self._create_self_link(request, collection_id, item)),
+            DC("identifier", item.identifier),
+            *self.encode_spatio_temporal(item)
         )
-
         entry.extend(self.encode_item_links(request, collection_id, item))
-        entry.extend(self.encode_spatio_temporal(item))
-
+        entry.append(self.encode_summary(request, collection_id, item))
         return entry
 
     def encode_summary(self, request, collection_id, item):
