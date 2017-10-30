@@ -147,18 +147,27 @@ class WCS20CapabilitiesXMLEncoder(WCS20BaseXMLEncoder, OWS20Encoder):
             dataset_series_elements = []
             for dataset_series in dataset_series_qs:
                 footprint = dataset_series.footprint
+                dataset_series_summary = EOWCS("DatasetSeriesSummary")
+
+                # NOTE: non-standard, ows:WGS84BoundingBox is actually mandatory,
+                # but not available for e.g: empty collections
                 if footprint:
                     minx, miny, maxx, maxy = footprint.extent
-                else:
-                    minx, miny, maxx, maxy = (-180, -90, 180, 90)
-
-                dataset_series_elements.append(
-                    EOWCS("DatasetSeriesSummary",
+                    dataset_series_summary.append(
                         OWS("WGS84BoundingBox",
                             OWS("LowerCorner", "%f %f" % (miny, minx)),
                             OWS("UpperCorner", "%f %f" % (maxy, maxx)),
-                        ),
-                        EOWCS("DatasetSeriesId", dataset_series.identifier),
+                        )
+                    )
+
+                dataset_series_summary.append(
+                    EOWCS("DatasetSeriesId", dataset_series.identifier)
+                )
+
+                # NOTE: non-standard, gml:TimePosition is actually mandatory,
+                # but not available for e.g: empty collections
+                if dataset_series.begin_time and dataset_series.end_time:
+                    dataset_series_summary.append(
                         GML("TimePeriod",
                             GML(
                                 "beginPosition",
@@ -174,7 +183,8 @@ class WCS20CapabilitiesXMLEncoder(WCS20BaseXMLEncoder, OWS20Encoder):
                             }
                         )
                     )
-                )
+
+                dataset_series_elements.append(dataset_series_summary)
 
             contents.append(WCS("Extension", *dataset_series_elements))
 
