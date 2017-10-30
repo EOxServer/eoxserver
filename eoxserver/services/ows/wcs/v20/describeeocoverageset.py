@@ -93,6 +93,8 @@ class WCS20DescribeEOCoverageSetHandler(object):
         except ValueError, e:
             raise InvalidSubsettingException(str(e))
 
+        # check whether the DatasetSeries and CoverageDescriptions sections are
+        # included
         inc_dss_section = decoder.section_included("DatasetSeriesDescriptions")
         inc_cov_section = decoder.section_included("CoverageDescriptions")
 
@@ -127,7 +129,7 @@ class WCS20DescribeEOCoverageSetHandler(object):
             elif isinstance(eo_object, models.Coverage):
                 coverages.append(eo_object)
 
-        # get a list of all dataset series, directly or indirectly referenced
+        # get a QuerySet of all dataset series, directly or indirectly referenced
         all_dataset_series_qs = subsets.filter(models.EOObject.objects.filter(
             Q(  # directly referenced Collections
                 collection__isnull=False,
@@ -146,11 +148,11 @@ class WCS20DescribeEOCoverageSetHandler(object):
         ), containment=containment)
 
         if inc_dss_section:
-            dataset_series_qs = all_dataset_series_qs
+            dataset_series_qs = all_dataset_series_qs[:count]
         else:
             dataset_series_qs = models.EOObject.objects.none()
 
-        # create a queryset for all Coverages, directly or indirectly referenced
+        # get a QuerySet for all Coverages, directly or indirectly referenced
         all_coverages_qs = subsets.filter(models.Coverage.objects.filter(
             Q(  # directly referenced Coverages
                 identifier__in=[
@@ -168,16 +170,15 @@ class WCS20DescribeEOCoverageSetHandler(object):
             )
         ), containment=containment)
 
+        # check if the CoverageDescriptions section is included. If not, use an
+        # empty queryset
         if inc_cov_section:
             coverages_qs = all_coverages_qs
-
         else:
             coverages_qs = models.Coverage.objects.none()
 
-        displayed_dss_count = dataset_series_qs.count()
-
         # limit coverages according to the number of dataset series
-        coverages_qs = coverages_qs[:max(0, count - displayed_dss_count)]
+        coverages_qs = coverages_qs[:max(0, count - dataset_series_qs.count())]
 
         # compute the number of all items that would match
         number_matched = all_coverages_qs.count() + all_dataset_series_qs.count()
@@ -193,7 +194,7 @@ class WCS20DescribeEOCoverageSetHandler(object):
                     ],
                     coverages=[
                         objects.Coverage.from_model(coverage)
-                        for coverage in coverages
+                        for coverage in coverages_qs
                     ],
                     number_matched=number_matched
                 ), pretty_print=True
