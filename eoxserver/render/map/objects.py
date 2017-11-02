@@ -129,25 +129,35 @@ class MosaicLayer(Layer):
 class BrowseLayer(Layer):
     """ Representation of a browse layer.
     """
-    def __init__(self, name, style, browses):
+    def __init__(self, name, style, browses, range=None):
         super(BrowseLayer, self).__init__(name, style)
         self._browses = browses
+        self._range = range
 
     @property
     def browses(self):
         return self._browses
+
+    @property
+    def range(self):
+        return self._range
 
 
 class OutlinedBrowseLayer(Layer):
     """ Representation of a browse layer.
     """
-    def __init__(self, name, style, browses):
+    def __init__(self, name, style, browses, range=None):
         super(OutlinedBrowseLayer, self).__init__(name, style)
         self._browses = browses
+        self._range = range
 
     @property
     def browses(self):
         return self._browses
+
+    @property
+    def range(self):
+        return self._range
 
 
 class MaskLayer(Layer):
