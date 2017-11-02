@@ -50,8 +50,8 @@ class ProductMetadataComponent(object):
 
         return {}
 
-    def collect_package_metadata(self, storage, cache=None):
-        path = storage.url
+    def collect_package_metadata(self, storage, handler, cache=None):
+        path = handler.get_vsi_path(storage.url)
         for reader_cls in get_readers():
             reader = reader_cls()
             if hasattr(reader, 'test_path'):
