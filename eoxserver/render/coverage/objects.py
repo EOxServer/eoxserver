@@ -127,11 +127,21 @@ class RangeType(list):
     def name(self):
         return self._name
 
+    def get_field(self, name):
+        try:
+            return next(
+                field
+                for field in self
+                if field.identifier == name
+            )
+        except StopIteration:
+            raise KeyError(name)
+
     @classmethod
     def from_coverage_type(cls, coverage_type):
         def get_data_type(field_type):
             numbits = (
-                field_type.numbits if field_type.numbits is not None else 32
+                field_type.numbits if field_type.numbits is not None else 16
             )
             signed = field_type.signed
             is_float = field_type.is_float
