@@ -113,6 +113,7 @@ class NameSpaceMap(dict):
         self._schema_location_dict = {}
         for namespace in namespaces:
             self.add(namespace)
+        self._namespaces = namespaces
 
     def add(self, namespace):
         self[namespace.prefix] = namespace.uri
@@ -120,6 +121,9 @@ class NameSpaceMap(dict):
             self._schema_location_dict[namespace.uri] = (
                 namespace.schema_location
             )
+
+    def __copy__(self):
+        return type(self)(*self._namespaces)
 
     @property
     def schema_locations(self):
