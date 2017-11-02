@@ -30,6 +30,7 @@ from django.contrib.gis.gdal import SpatialReference, CoordTransform, DataSource
 
 from eoxserver.contrib import gdal
 from eoxserver.backends.access import get_vsi_path
+from eoxserver.render.coverage.objects import Coverage
 
 
 BROWSE_MODE_RGB = "rgb"
@@ -122,6 +123,58 @@ class Browse(object):
 
         return cls(
             filename, filename, size, extent, ds.GetProjection(), mode, None
+        )
+
+
+class GeneratedBrowse(Browse):
+    def __init__(self, name, fields_and_coverages, footprint):
+        self._name = name
+        self._fields_and_coverages = fields_and_coverages
+        self._footprint = footprint
+
+    @property
+    def name(self):
+        return self._name
+
+    @property
+    def size(self):
+        return self._fields_and_coverages[0][1][0].size
+
+    @property
+    def extent(self):
+        return self._fields_and_coverages[0][1][0].extent
+
+    @property
+    def crs(self):
+        return (
+            self._fields_and_coverages[0][1][0].grid.coordinate_reference_system
+        )
+
+    @property
+    def spatial_reference(self):
+        return self._fields_and_coverages[0][1][0].grid.spatial_reference
+
+    @property
+    def mode(self):
+        field_count = len(self._fields_and_coverages)
+        if field_count == 1:
+            return BROWSE_MODE_GRAYSCALE
+        elif field_count == 3:
+            return BROWSE_MODE_RGB
+        elif field_count == 4:
+            return BROWSE_MODE_RGB
+
+    @classmethod
+    def from_coverage_models(cls, fields_and_coverage_models, product_model):
+        return cls(
+            product_model.identifier,
+            [
+                (field, [
+                    Coverage.from_model(coverage) for coverage in coverages
+                ])
+                for field, coverages in fields_and_coverage_models
+            ],
+            product_model.footprint
         )
 
 
