@@ -32,6 +32,7 @@
 
 import os
 from uuid import uuid4
+from functools import wraps
 
 if os.environ.get('READTHEDOCS', None) != 'True':
     from eoxserver.contrib.gdal import (
@@ -59,6 +60,15 @@ def open(filename, mode="r"):
     return VSIFile(filename, mode)
 
 
+def ensure_open(func):
+    @wraps(func)
+    def wrapper(self, *args, **kwargs):
+        if self._handle is None:
+            raise ValueError('I/O operation on closed file')
+        return func(self, *args, **kwargs)
+    return wrapper
+
+
 class VSIFile(object):
     """ File-like object interface for VSI file API.
 
@@ -83,6 +93,7 @@ class VSIFile(object):
         """
         return self._filename
 
+    @ensure_open
     def read(self, size=None):
         """ Read from the file. If no ``size`` is specified, read until the end
         of the file.
@@ -95,6 +106,7 @@ class VSIFile(object):
             size = self.size - self.tell()
         return VSIFReadL(1, size, self._handle)
 
+    @ensure_open
     def write(self, data):
         """ Write the buffer ``data`` to the file.
 
@@ -102,6 +114,7 @@ class VSIFile(object):
         """
         VSIFWriteL(data, 1, len(data), self._handle)
 
+    @ensure_open
     def tell(self):
         """ Return the current read/write offset of the file.
 
@@ -109,6 +122,7 @@ class VSIFile(object):
         """
         return VSIFTellL(self._handle)
 
+    @ensure_open
     def seek(self, offset, whence=os.SEEK_SET):
         """ Set the new read/write offset in the file.
 
@@ -134,6 +148,7 @@ class VSIFile(object):
         return (self._handle is None)
 
     @property
+    @ensure_open
     def size(self):
         """ Return the size of the file in bytes
         """
