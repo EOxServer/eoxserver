@@ -64,6 +64,14 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             '--grid', '-g', dest='grid_name', default=None,
             help='The optional grid name.'
         )
+        create_parser.add_argument(
+            '--set', '-s', dest='set_overrides',
+            nargs=2, default=[], action='append',
+            help=(
+                'Set (or override) additional metadata tags like '
+                '"platform".'
+            )
+        )
 
         # common arguments for insertion/exclusion
         insert_parser.add_argument(
