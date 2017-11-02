@@ -34,9 +34,10 @@ from django.utils.module_loading import import_string
 from eoxserver.core.util.iteratortools import pairwise_iterative
 from eoxserver.contrib import mapserver as ms
 from eoxserver.contrib import vsi, vrt, gdal, osr
+from eoxserver.render.browse.objects import Browse, GeneratedBrowse
 from eoxserver.render.map.objects import (
     CoverageLayer, MosaicLayer, BrowseLayer, OutlinedBrowseLayer,
-    MaskLayer, MaskedBrowseLayer, OutlinesLayer, # CoverageSetsLayer
+    MaskLayer, MaskedBrowseLayer, OutlinesLayer,  # CoverageSetsLayer
 )
 from eoxserver.render.mapserver.config import (
     DEFAULT_EOXS_MAPSERVER_LAYER_FACTORIES,
@@ -44,6 +45,38 @@ from eoxserver.render.mapserver.config import (
 from eoxserver.render.colors import BASE_COLORS, COLOR_SCALES, OFFSITE_COLORS
 from eoxserver.resources.coverages import crss
 from eoxserver.processing.gdal import reftools
+
+
+class FilenameGenerator(object):
+    """ Utility class to generate filenames after a certain pattern (template)
+        and to keep a list for later cleanup.
+    """
+    def __init__(self, template):
+        """ Create a new :class:`FilenameGenerator` from a given template
+            :param template: the template string used to construct the filenames
+                             from. Uses the ``.format()`` style language. Keys
+                             are ``index``, ``uuid`` and ``extension``.
+        """
+        self._template = template
+        self._filenames = []
+
+    def generate(self, extension=None):
+        """ Generate and store a new filename using the specified template. An
+            optional ``extension`` can be passed, when used in the template.
+        """
+        filename = self._template.format(
+            index=len(self._filenames),
+            uuid=uuid4().hex,
+            extension=extension,
+        )
+        self._filenames.append(filename)
+        return filename
+
+    @property
+    def filenames(self):
+        """ Get a list of all generated filenames.
+        """
+        return self._filenames
 
 
 class BaseMapServerLayerFactory(object):
@@ -60,7 +93,7 @@ class BaseMapServerLayerFactory(object):
         pass
 
 
-class BaseCoverageLayerFactory(BaseMapServerLayerFactory):
+class CoverageLayerFactoryMixIn(object):
     """ Base class for factories dealing with coverages.
     """
     def get_fields(self, fields, bands, wavelengths):
@@ -181,7 +214,7 @@ class BaseCoverageLayerFactory(BaseMapServerLayerFactory):
             pass
 
 
-class CoverageLayerFactory(BaseCoverageLayerFactory):
+class CoverageLayerFactory(CoverageLayerFactoryMixIn, BaseMapServerLayerFactory):
     handled_layer_types = [CoverageLayer]
 
     def create(self, map_obj, layer):
@@ -197,7 +230,7 @@ class CoverageLayerFactory(BaseCoverageLayerFactory):
         self.destroy_coverage_layer(data)
 
 
-class MosaicLayerFactory(BaseCoverageLayerFactory):
+class MosaicLayerFactory(CoverageLayerFactoryMixIn, BaseMapServerLayerFactory):
     handled_layer_types = [MosaicLayer]
 
     def create(self, map_obj, layer):
@@ -216,62 +249,124 @@ class MosaicLayerFactory(BaseCoverageLayerFactory):
         for layer_obj in data:
             self.destroy_coverage_layer(layer_obj)
 
-
-# class CoverageCollectionLayerFactory(BaseCoverageLayerFactory):
-#     handled_layer_types = [CoverageSetsLayer]
-
-#     def get_coverages_for_band(self, bands, wavelengths):
-#         if bands:
-#             for band in bands:
-#                 pass
-
-#     def create_product_layer(self, product, ):
-#         pass
-
-#     def create(self, map_obj, layer):
-#         products = layer.products
-
-#         for product in products:
-#             pass
-
-#     def destroy(self, map_obj, layer, data):
-#         pass
+# TODO: combine BrowseLayerFactory with OutlinedBrowseLayerFactory, as they are
+# very similar
 
 
-class BrowseLayerFactory(BaseMapServerLayerFactory):
+class BrowseLayerFactory(CoverageLayerFactoryMixIn, BaseMapServerLayerFactory):
     handled_layer_types = [BrowseLayer]
 
     def create(self, map_obj, layer):
+        filename_generator = FilenameGenerator('/vsimem/{uuid}.vrt')
         group_name = layer.name
+        range_ = layer.range
+        style = layer.style
+
         for browse in layer.browses:
-            # TODO: create raster layer for each browse
             layer_obj = _create_raster_layer_obj(
                 map_obj, browse.extent, browse.spatial_reference
             )
             layer_obj.group = group_name
-            layer_obj.data = browse.filename
+
+            if isinstance(browse, GeneratedBrowse):
+                fields = [
+                    coverages[0].range_type.get_field(field)
+                    for field, coverages in browse._fields_and_coverages
+                ]
+
+                layer_obj.data = _generate_browse(
+                    browse._fields_and_coverages, filename_generator
+                )
+
+                if len(fields) == 1:
+                    field = fields[0]
+                    range_ = _get_range(field, range_)
+
+                    _create_raster_style(
+                        style or "blackwhite", layer_obj, range_[0], range_[1], [
+                            nil_value[0] for nil_value in field.nil_values
+                        ]
+                    )
+
+                else:
+                    for i, field in enumerate(fields, start=1):
+                        layer_obj.setProcessingKey("SCALE_%d" % i,
+                            "%s,%s" % _get_range(field, range_)
+                        )
+
+            elif isinstance(browse, Browse):
+                layer_obj.data = browse.filename
+
+        return filename_generator
+
+    def destroy(self, map_obj, layer, filename_generator):
+        # cleanup temporary files
+        for filename in filename_generator.filenames:
+            vsi.unlink(filename)
 
 
 class OutlinedBrowseLayerFactory(BaseMapServerLayerFactory):
     handled_layer_types = [OutlinedBrowseLayer]
 
     def create(self, map_obj, layer):
+        filename_generator = FilenameGenerator('/vsimem/{uuid}.vrt')
         group_name = layer.name
+        range_ = layer.range
+        style = layer.style
+
+        raster_style = style if style and style in COLOR_SCALES else "blackwhite"
+        vector_style = style if style and style in BASE_COLORS else "red"
+
         for browse in layer.browses:
             # create the browse layer itself
             browse_layer_obj = _create_raster_layer_obj(
                 map_obj, browse.extent, browse.spatial_reference
             )
             browse_layer_obj.group = group_name
-            browse_layer_obj.data = browse.filename
+
+            if isinstance(browse, GeneratedBrowse):
+                fields = [
+                    coverages[0].range_type.get_field(field)
+                    for field, coverages in browse._fields_and_coverages
+                ]
+
+                browse_layer_obj.data = _generate_browse(
+                    browse._fields_and_coverages, filename_generator
+                )
+
+                if len(fields) == 1:
+                    field = fields[0]
+                    range_ = _get_range(field, range_)
+
+                    _create_raster_style(
+                        raster_style, browse_layer_obj, range_[0], range_[1], [
+                            nil_value[0] for nil_value in field.nil_values
+                        ]
+                    )
+
+                else:
+                    for i, field in enumerate(fields, start=1):
+                        browse_layer_obj.setProcessingKey("SCALE_%d" % i,
+                            "%s,%s" % _get_range(field, range_)
+                        )
+
+            elif isinstance(browse, Browse):
+                browse_layer_obj.data = browse.filename
 
             # create the outlines layer
             outlines_layer_obj = _create_polygon_layer(map_obj)
             shape_obj = ms.shapeObj.fromWKT(browse.footprint.wkt)
             outlines_layer_obj.addFeature(shape_obj)
 
-            class_obj = _create_geometry_class(layer.style or 'red')
+            class_obj = _create_geometry_class(vector_style)
             outlines_layer_obj.insertClass(class_obj)
+
+        return filename_generator
+
+    def destroy(self, map_obj, layer, filename_generator):
+        # cleanup temporary files
+        for filename in filename_generator.filenames:
+            vsi.unlink(filename)
 
 
 class MaskLayerFactory(BaseMapServerLayerFactory):
@@ -444,6 +539,46 @@ def _build_vrt(size, field_locations):
     del vrt_builder
 
     return path
+
+
+def _generate_browse(fields_and_coverages, generator):
+    """ Produce a temporary VRT file describing how transformation of the
+        coverages to browses.
+    """
+    band_filenames = []
+    for field, coverages in fields_and_coverages:
+        selected_filenames = []
+        for coverage in coverages:
+            orig_filename = coverage.get_location_for_field(field).path
+            orig_band_index = coverage.get_band_index_for_field(field)
+
+            # only select if band count for the dataset > 1
+            ds = gdal.OpenShared(orig_filename)
+            if ds.RasterCount == 1:
+                selected_filename = orig_filename
+            else:
+                selected_filename = generator.generate()
+                vrt.select_bands(
+                    orig_filename, [orig_band_index], selected_filename
+                )
+
+            selected_filenames.append(selected_filename)
+
+        if len(selected_filenames) == 1:
+            band_filename = selected_filenames[0]
+        else:
+            band_filename = generator.generate()
+            vrt.mosaic(selected_filenames, band_filename)
+
+        band_filenames.append(band_filename)
+
+    if len(band_filenames) == 1:
+        return band_filenames[0]
+
+    else:
+        stacked_filename = generator.generate()
+        vrt.stack_bands(band_filenames, stacked_filename)
+        return stacked_filename
 
 
 def _create_raster_style(name, layer, minvalue=0, maxvalue=255, nil_values=None):
