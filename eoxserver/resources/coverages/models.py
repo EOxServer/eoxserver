@@ -161,7 +161,7 @@ class CollectionType(models.Model):
 
 class BrowseType(models.Model):
     product_type = models.ForeignKey(ProductType, related_name="browse_types", **mandatory)
-    name = models.CharField(max_length=256, validators=name_validators, **mandatory)
+    name = models.CharField(max_length=256, validators=name_validators, blank=True, null=False)
 
     red_or_grey_expression = models.CharField(max_length=512, **optional)
     green_expression = models.CharField(max_length=512, **optional)
@@ -169,7 +169,9 @@ class BrowseType(models.Model):
     alpha_expression = models.CharField(max_length=512, **optional)
 
     def __str__(self):
-        return self.name
+        if self.name:
+            return self.name
+        return "Default Browse Type for '%s'" % self.product_type
 
     class Meta:
         unique_together = (
