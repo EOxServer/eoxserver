@@ -34,7 +34,7 @@ from eoxserver.render.map.objects import (
 from eoxserver.render.coverage.objects import Coverage as RenderCoverage
 from eoxserver.render.coverage.objects import Mosaic as RenderMosaic
 from eoxserver.render.browse.objects import (
-    Browse, Mask, MaskedBrowse
+    Browse, GeneratedBrowse, Mask, MaskedBrowse
 )
 from eoxserver.resources.coverages import models
 
@@ -173,6 +173,7 @@ class LayerMapper(object):
                 bands, wavelengths, time, elevation, range
             )
 
+        # TODO: deprecated
         elif isinstance(eo_object, models.Mosaic):
             return MosaicLayer(
                 full_name, style,
@@ -185,29 +186,50 @@ class LayerMapper(object):
             )
 
         elif isinstance(eo_object, (models.Collection, models.Product)):
-            if suffix == '':
-                return BrowseLayer(
-                    name=full_name, style=style,
-                    browses=[
-                        Browse.from_model(product, browse)
-                        for product, browse in self.iter_products_browses(
-                            eo_object, filters_expressions, sort_by, None, style
-                        )
-                        if browse
-                    ]
+            if suffix == '' or suffix == 'outlined':
+                browses = []
+                product_browses = self.iter_products_browses(
+                    eo_object, filters_expressions, sort_by, None, style
                 )
 
-            elif suffix == 'outlined':
-                return OutlinedBrowseLayer(
-                    name=full_name, style=style,
-                    browses=[
-                        Browse.from_model(product, browse)
-                        for product, browse in self.iter_products_browses(
-                            eo_object, filters_expressions, sort_by, None, style
+                for product, browse in product_browses:
+                    # When bands/wavelengths are specifically requested, make a
+                    # generated browse
+                    if bands or wavelengths:
+                        browses.append(
+                            _generate_browse_from_bands(
+                                product, bands, wavelengths
+                            )
                         )
-                        if browse
-                    ]
-                )
+
+                    # When available use the default browse
+                    elif browse:
+                        browses.append(Browse.from_model(product, browse))
+
+                    # As fallback use the default browse type (with empty name)
+                    # to generate a browse from the specified bands
+                    else:
+                        browse_type = product.product_type.browse_types.filter(
+                            name=''
+                        ).first()
+                        if browse_type:
+                            browses.append(
+                                _generate_browse_from_browse_type(
+                                    product, browse_type
+                                )
+                            )
+
+                # either return the simple browse layer or the outlined one
+                if suffix == '':
+                    return BrowseLayer(
+                        name=full_name, style=style,
+                        browses=browses, range=range
+                    )
+                else:
+                    return OutlinedBrowseLayer(
+                        name=full_name, style=style,
+                        browses=browses, range=range
+                    )
 
             elif suffix == 'outlines':
                 return OutlinesLayer(
@@ -225,6 +247,47 @@ class LayerMapper(object):
 
                 if not mask_type:
                     raise NoSuchLayer('No such mask type %r' % post_suffix)
+
+                masked_browses = []
+
+                product_browses_mask = self.iter_products_browses_masks(
+                    eo_object, filters_expressions, sort_by, post_suffix
+                )
+                for product, browse, mask in product_browses_mask:
+                    # When bands/wavelengths are specifically requested, make a
+                    # generated browse
+                    if bands or wavelengths:
+                        masked_browses.append(
+                            MaskedBrowse(
+                                browse=_generate_browse_from_bands(
+                                    product, bands, wavelengths
+                                ),
+                                mask=Mask.from_model(mask)
+                            )
+                        )
+
+                    # When available use the default browse
+                    elif browse:
+                        masked_browses.append(
+                            MaskedBrowse.from_model(product, browse, mask)
+                        )
+
+                    # As fallback use the default browse type (with empty name)
+                    # to generate a browse from the specified bands
+                    else:
+                        browse_type = product.product_type.browse_types.filter(
+                            name=''
+                        ).first()
+                        if browse_type:
+                            masked_browses.append(
+                                MaskedBrowse(
+                                    browse=_generate_browse_from_browse_type(
+                                        product, browse_type
+                                    ),
+                                    mask=Mask.from_model(mask)
+                                )
+                            )
+
                 return MaskedBrowseLayer(
                     name=full_name, style=style,
                     masked_browses=[
@@ -240,19 +303,32 @@ class LayerMapper(object):
                 # either browse type or mask type
                 browse_type = self.get_browse_type(eo_object, suffix)
                 if browse_type:
-                    return BrowseLayer(
-                        name=full_name, style=style,
-                        browses=[
-                            Browse.from_model(product, browse) if browse
+                    browses = []
 
-                            # TODO: generate browse on the fly
+                    product_browses = self.iter_products_browses(
+                        eo_object, filters_expressions, sort_by, suffix,
+                        style
+                    )
 
-                            else Browse.generate(product, browse_type)
-                            for product, browse in self.iter_products_browses(
-                                eo_object, filters_expressions, sort_by, suffix,
-                                style
+                    for product, browse in product_browses:
+                        # check if a browse is already available for that
+                        # browse type.
+                        if browse:
+                            browses.append(Browse.from_model(product, browse))
+
+                        # if no browse is available for that browse type,
+                        # generate a new browse with the instructions of that
+                        # browse type
+                        else:
+                            browses.append(
+                                _generate_browse_from_browse_type(
+                                    product, browse_type
+                                )
                             )
-                        ]
+
+                    return BrowseLayer(
+                        name=full_name, style=style, range=range,
+                        browses=browses
                     )
 
                 mask_type = self.get_mask_type(eo_object, suffix)
@@ -377,3 +453,68 @@ class LayerMapper(object):
             browse = product.browses.filter(browse_type__isnull=True).first()
 
             yield (product, browse, mask)
+
+
+def _generate_browse_from_browse_type(product, browse_type):
+    fields_and_coverages = [
+        (
+            browse_type.red_or_grey_expression,
+            product.coverages.filter(
+                coverage_type__field_types__identifier=browse_type.red_or_grey_expression
+            )
+        )
+    ]
+    if browse_type.green_expression and browse_type.blue_expression:
+        fields_and_coverages.append((
+            browse_type.green_expression,
+            product.coverages.filter(
+                coverage_type__field_types__identifier=browse_type.green_expression
+            )
+        ))
+        fields_and_coverages.append((
+            browse_type.blue_expression,
+            product.coverages.filter(
+                coverage_type__field_types__identifier=browse_type.blue_expression
+            )
+        ))
+        if browse_type.alpha_expression:
+            fields_and_coverages.append((
+                browse_type.alpha_expression,
+                product.coverages.filter(
+                    coverage_type__field_types__identifier=browse_type.alpha_expression
+                )
+            ))
+    return GeneratedBrowse.from_coverage_models(
+        fields_and_coverages, product
+    )
+
+
+def _generate_browse_from_bands(product, bands, wavelengths):
+    assert len(bands or wavelengths or []) in (1, 3, 4)
+
+    if bands:
+        fields_and_coverages = [
+            (
+                band_name,
+                product.coverages.filter(
+                    coverage_type__field_types__identifier=band_name
+                )
+            )
+            for band_name in bands
+        ]
+    elif wavelengths:
+        fields_and_coverages = [
+            (
+                product.coverages.filter(
+                    coverage_type__field_types__wavelength=wavelength
+                ).first().name,
+                product.coverages.filter(
+                    coverage_type__field_types__wavelength=wavelength
+                )
+            )
+            for wavelength in wavelengths
+        ]
+
+    return GeneratedBrowse.from_coverage_models(
+        fields_and_coverages, product
+    )
