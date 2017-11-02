@@ -27,12 +27,16 @@
 
 from cStringIO import StringIO
 
+from eoxserver.contrib.vsi import open as vsi_open
+
 
 def is_landsat8_l1_metadata_file(path):
     """ Checks whether the referenced file is a Landsat 8 metadata file """
     try:
-        with open(path) as f:
-            return next(f).strip() == "GROUP = L1_METADATA_FILE"
+        with vsi_open(path) as f:
+            lines = _read_lines(f)
+
+        return next(iter(lines)).strip() == "GROUP = L1_METADATA_FILE"
     except (ValueError, StopIteration):
         return False
 
@@ -49,9 +53,12 @@ def is_landsat8_l1_metadata_content(content):
 
 def parse_landsat8_l1_metadata_file(path):
     """ Parses a Landsat 8 metadata file to a nested dict representation"""
-    with open(path) as f:
-        _, _ = _parse_line(next(f))
-        return _parse_group(f)
+    with vsi_open(path) as f:
+        lines = _read_lines(f)
+
+    iterator = iter(lines)
+    _, _ = _parse_line(next(iterator))
+    return _parse_group(iterator)
 
 
 def parse_landsat8_l1_metadata_content(content):
@@ -62,15 +69,19 @@ def parse_landsat8_l1_metadata_content(content):
     return _parse_group(f)
 
 
-def _parse_group(f):
+def _read_lines(f):
+    return f.read().split('\n')
+
+
+def _parse_group(iterator):
     group = {}
-    for line in f:
+    for line in iterator:
         key, value = _parse_line(line)
         if not key or key == "END_GROUP":
             break
         elif key == "GROUP":
             key = value
-            value = _parse_group(f)
+            value = _parse_group(iterator)
         group[key] = value
     return group
 
