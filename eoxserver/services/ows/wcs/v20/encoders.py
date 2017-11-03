@@ -78,7 +78,7 @@ class WCS20BaseXMLEncoder(object):
         if not coverage.footprint or not coverage.begin_time or \
                 not coverage.end_time:
             subtype = "RectifiedGridCoverage"
-        elif coverage.grid and coverage.grid.axis_1_offset is None:
+        elif coverage.grid and coverage.grid[0].offset is None:
             subtype = "ReferenceableDataset"
 
         return subtype
