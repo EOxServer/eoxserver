@@ -196,11 +196,11 @@ class LayerMapper(object):
                     # When bands/wavelengths are specifically requested, make a
                     # generated browse
                     if bands or wavelengths:
-                        browses.append(
-                            _generate_browse_from_bands(
-                                product, bands, wavelengths
-                            )
+                        browse = _generate_browse_from_bands(
+                            product, bands, wavelengths
                         )
+                        if browse:
+                            browses.append(browse)
 
                     # When available use the default browse
                     elif browse:
@@ -213,11 +213,11 @@ class LayerMapper(object):
                             name=''
                         ).first()
                         if browse_type:
-                            browses.append(
-                                _generate_browse_from_browse_type(
-                                    product, browse_type
-                                )
+                            browse = _generate_browse_from_browse_type(
+                                product, browse_type
                             )
+                            if browse:
+                                browses.append(browse)
 
                 # either return the simple browse layer or the outlined one
                 if suffix == '':
@@ -320,11 +320,11 @@ class LayerMapper(object):
                         # generate a new browse with the instructions of that
                         # browse type
                         else:
-                            browses.append(
-                                _generate_browse_from_browse_type(
-                                    product, browse_type
-                                )
+                            browse = _generate_browse_from_browse_type(
+                                product, browse_type
                             )
+                            if browse:
+                                browses.append(browse)
 
                     return BrowseLayer(
                         name=full_name, style=style, range=range,
@@ -456,37 +456,46 @@ class LayerMapper(object):
 
 
 def _generate_browse_from_browse_type(product, browse_type):
+    red_bands = (browse_type.red_or_grey_expression or '').split(',')
     fields_and_coverages = [
         (
             browse_type.red_or_grey_expression,
             product.coverages.filter(
-                coverage_type__field_types__identifier=browse_type.red_or_grey_expression
+                coverage_type__field_types__identifier__in=red_bands
             )
         )
     ]
     if browse_type.green_expression and browse_type.blue_expression:
+        green_bands = browse_type.green_expression.split(',')
+        blue_bands = browse_type.blue_expression.split(',')
+
         fields_and_coverages.append((
             browse_type.green_expression,
             product.coverages.filter(
-                coverage_type__field_types__identifier=browse_type.green_expression
+                coverage_type__field_types__identifier__in=green_bands
             )
         ))
         fields_and_coverages.append((
             browse_type.blue_expression,
             product.coverages.filter(
-                coverage_type__field_types__identifier=browse_type.blue_expression
+                coverage_type__field_types__identifier__in=blue_bands
             )
         ))
         if browse_type.alpha_expression:
+            alpha_bands = browse_type.alpha_expression.split(',')
             fields_and_coverages.append((
                 browse_type.alpha_expression,
                 product.coverages.filter(
-                    coverage_type__field_types__identifier=browse_type.alpha_expression
+                    coverage_type__field_types__identifier__in=alpha_bands
                 )
             ))
-    return GeneratedBrowse.from_coverage_models(
-        fields_and_coverages, product
-    )
+
+    # only return a browse instance if coverages were found
+    if fields_and_coverages[0][1]:
+        return GeneratedBrowse.from_coverage_models(
+            fields_and_coverages, product
+        )
+    return None
 
 
 def _generate_browse_from_bands(product, bands, wavelengths):
@@ -515,6 +524,9 @@ def _generate_browse_from_bands(product, bands, wavelengths):
             for wavelength in wavelengths
         ]
 
-    return GeneratedBrowse.from_coverage_models(
-        fields_and_coverages, product
-    )
+    # only return a browse instance if coverages were found
+    if fields_and_coverages[0][1]:
+        return GeneratedBrowse.from_coverage_models(
+            fields_and_coverages, product
+        )
+    return None
