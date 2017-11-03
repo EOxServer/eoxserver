@@ -252,6 +252,7 @@ class BaseFeedResultFormat(object):
 
                 wms_get_capabilities = request.build_absolute_uri(
                     "%s?service=WMS&version=1.3.0&request=GetCapabilities"
+                    % reverse("ows")
                 )
 
                 wms_small = self._create_map_link(request, item, 100)
@@ -296,6 +297,7 @@ class BaseFeedResultFormat(object):
                         type="application/xml", href=request.build_absolute_uri(
                             "%s?service=WCS&version=2.0.1"
                             "&request=GetCapabilities"
+                            % reverse("ows")
                         )
                     ),
                     code="http://www.opengis.net/spec/owc-atom/1.0/req/wcs",
