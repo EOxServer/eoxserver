@@ -459,7 +459,7 @@ def _generate_browse_from_browse_type(product, browse_type):
     red_bands = (browse_type.red_or_grey_expression or '').split(',')
     fields_and_coverages = [
         (
-            browse_type.red_or_grey_expression,
+            red_bands,
             product.coverages.filter(
                 coverage_type__field_types__identifier__in=red_bands
             )
@@ -470,13 +470,13 @@ def _generate_browse_from_browse_type(product, browse_type):
         blue_bands = browse_type.blue_expression.split(',')
 
         fields_and_coverages.append((
-            browse_type.green_expression,
+            green_bands,
             product.coverages.filter(
                 coverage_type__field_types__identifier__in=green_bands
             )
         ))
         fields_and_coverages.append((
-            browse_type.blue_expression,
+            blue_bands,
             product.coverages.filter(
                 coverage_type__field_types__identifier__in=blue_bands
             )
@@ -484,7 +484,7 @@ def _generate_browse_from_browse_type(product, browse_type):
         if browse_type.alpha_expression:
             alpha_bands = browse_type.alpha_expression.split(',')
             fields_and_coverages.append((
-                browse_type.alpha_expression,
+                alpha_bands,
                 product.coverages.filter(
                     coverage_type__field_types__identifier__in=alpha_bands
                 )
@@ -504,7 +504,7 @@ def _generate_browse_from_bands(product, bands, wavelengths):
     if bands:
         fields_and_coverages = [
             (
-                band_name,
+                [band_name],
                 product.coverages.filter(
                     coverage_type__field_types__identifier=band_name
                 )
@@ -514,9 +514,9 @@ def _generate_browse_from_bands(product, bands, wavelengths):
     elif wavelengths:
         fields_and_coverages = [
             (
-                product.coverages.filter(
+                [product.coverages.filter(
                     coverage_type__field_types__wavelength=wavelength
-                ).first().name,
+                ).first().name],
                 product.coverages.filter(
                     coverage_type__field_types__wavelength=wavelength
                 )

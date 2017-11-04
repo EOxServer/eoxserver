@@ -269,17 +269,20 @@ class BrowseLayerFactory(CoverageLayerFactoryMixIn, BaseMapServerLayerFactory):
             layer_obj.group = group_name
 
             if isinstance(browse, GeneratedBrowse):
-                fields = [
-                    coverages[0].range_type.get_field(field)
-                    for field, coverages in browse._fields_and_coverages
+                field_lists = [
+                    [
+                        coverages[0].range_type.get_field(field)
+                        for field in fields
+                    ]
+                    for fields, coverages in browse._fields_and_coverages
                 ]
 
                 layer_obj.data = _generate_browse(
                     browse._fields_and_coverages, filename_generator
                 )
 
-                if len(fields) == 1:
-                    field = fields[0]
+                if len(field_lists) == 1:
+                    field = field_lists[0][0]
                     range_ = _get_range(field, range_)
 
                     _create_raster_style(
@@ -289,9 +292,9 @@ class BrowseLayerFactory(CoverageLayerFactoryMixIn, BaseMapServerLayerFactory):
                     )
 
                 else:
-                    for i, field in enumerate(fields, start=1):
+                    for i, fields in enumerate(field_lists, start=1):
                         layer_obj.setProcessingKey("SCALE_%d" % i,
-                            "%s,%s" % _get_range(field, range_)
+                            "%s,%s" % _get_range(fields[0], range_)
                         )
 
             elif isinstance(browse, Browse):
