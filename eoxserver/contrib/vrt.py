@@ -337,7 +337,7 @@ def _get_dst_rect(dataset, o_x, o_y, res_x, res_y):
     dx, dy = gt[1], gt[5]
 
     x_off = round((gt[0] - o_x) / res_x)
-    y_off = round((o_y - gt[3]) / res_y)
+    y_off = round((o_y - gt[3]) / abs(res_y))
 
     e_x = gt[0] + dx * dataset.RasterXSize
     e_y = gt[3] + dy * dataset.RasterYSize
