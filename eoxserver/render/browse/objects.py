@@ -127,9 +127,12 @@ class Browse(object):
 
 
 class GeneratedBrowse(Browse):
-    def __init__(self, name, fields_and_coverages, footprint):
+    def __init__(self, name, band_expressions, fields_and_coverages, field_list,
+                 footprint):
         self._name = name
+        self._band_expressions = band_expressions
         self._fields_and_coverages = fields_and_coverages
+        self._field_list = field_list
         self._footprint = footprint
 
     @property
@@ -138,25 +141,27 @@ class GeneratedBrowse(Browse):
 
     @property
     def size(self):
-        return self._fields_and_coverages[0][1][0].size
+        for field, coverages in self._fields_and_coverages.items():
+            return coverages[0].size
 
     @property
     def extent(self):
-        return self._fields_and_coverages[0][1][0].extent
+        for field, coverages in self._fields_and_coverages.items():
+            return coverages[0].extent
 
     @property
     def crs(self):
-        return (
-            self._fields_and_coverages[0][1][0].grid.coordinate_reference_system
-        )
+        for field, coverages in self._fields_and_coverages.items():
+            return coverages[0].grid.coordinate_reference_system
 
     @property
     def spatial_reference(self):
-        return self._fields_and_coverages[0][1][0].grid.spatial_reference
+        for field, coverages in self._fields_and_coverages.items():
+            return coverages[0].grid.spatial_reference
 
     @property
     def mode(self):
-        field_count = len(self._fields_and_coverages)
+        field_count = len(self._band_expressions)
         if field_count == 1:
             return BROWSE_MODE_GRAYSCALE
         elif field_count == 3:
@@ -164,15 +169,40 @@ class GeneratedBrowse(Browse):
         elif field_count == 4:
             return BROWSE_MODE_RGB
 
+    @property
+    def band_expressions(self):
+        return self._band_expressions
+
+    @property
+    def fields_and_coverages(self):
+        return self._fields_and_coverages
+
+    @property
+    def field_list(self):
+        return self._field_list
+
     @classmethod
-    def from_coverage_models(cls, fields_and_coverage_models, product_model):
+    def from_coverage_models(cls, band_expressions, fields_and_coverage_models,
+                             product_model):
+
+        fields_and_coverages = {
+            field_name: [
+                Coverage.from_model(coverage)
+                for coverage in coverages
+            ]
+            for field_name, coverages in fields_and_coverage_models.items()
+        }
+
         return cls(
             product_model.identifier,
-            [
-                (field, [
-                    Coverage.from_model(coverage) for coverage in coverages
-                ])
-                for field, coverages in fields_and_coverage_models
+            band_expressions,
+            fields_and_coverages, [
+                fields_and_coverages[
+                    band_expression.split(',')[0]
+                ][0].range_type.get_field(
+                    band_expression.split(',')[0]
+                )
+                for band_expression in band_expressions
             ],
             product_model.footprint
         )
