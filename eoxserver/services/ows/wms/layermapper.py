@@ -25,6 +25,8 @@
 # THE SOFTWARE.
 # ------------------------------------------------------------------------------
 
+from django.db.models import Case, Value, When, IntegerField
+
 from eoxserver.core.util.timetools import isoformat
 from eoxserver.render.map.objects import (
     CoverageLayer, MosaicLayer, OutlinesLayer, BrowseLayer, OutlinedBrowseLayer,
@@ -456,44 +458,34 @@ class LayerMapper(object):
 
 
 def _generate_browse_from_browse_type(product, browse_type):
-    red_bands = (browse_type.red_or_grey_expression or '').split(',')
-    fields_and_coverages = [
-        (
-            red_bands,
-            product.coverages.filter(
-                coverage_type__field_types__identifier__in=red_bands
-            )
-        )
-    ]
+    if not browse_type.red_or_grey_expression:
+        return None
+
+    band_expressions = []
+    field_names = []
+    red_bands = browse_type.red_or_grey_expression.split(',')
+    band_expressions.append(browse_type.red_or_grey_expression)
+    field_names.extend(red_bands)
+
     if browse_type.green_expression and browse_type.blue_expression:
         green_bands = browse_type.green_expression.split(',')
         blue_bands = browse_type.blue_expression.split(',')
+        band_expressions.append(browse_type.green_expression)
+        band_expressions.append(browse_type.blue_expression)
+        field_names.extend(green_bands)
+        field_names.extend(blue_bands)
 
-        fields_and_coverages.append((
-            green_bands,
-            product.coverages.filter(
-                coverage_type__field_types__identifier__in=green_bands
-            )
-        ))
-        fields_and_coverages.append((
-            blue_bands,
-            product.coverages.filter(
-                coverage_type__field_types__identifier__in=blue_bands
-            )
-        ))
         if browse_type.alpha_expression:
             alpha_bands = browse_type.alpha_expression.split(',')
-            fields_and_coverages.append((
-                alpha_bands,
-                product.coverages.filter(
-                    coverage_type__field_types__identifier__in=alpha_bands
-                )
-            ))
+            band_expressions.append(browse_type.alpha_expression)
+            field_names.extend(alpha_bands)
+
+    coverages, fields_and_coverages = _lookup_coverages(product, field_names)
 
     # only return a browse instance if coverages were found
-    if fields_and_coverages[0][1]:
+    if coverages:
         return GeneratedBrowse.from_coverage_models(
-            fields_and_coverages, product
+            band_expressions, fields_and_coverages, product
         )
     return None
 
@@ -502,31 +494,60 @@ def _generate_browse_from_bands(product, bands, wavelengths):
     assert len(bands or wavelengths or []) in (1, 3, 4)
 
     if bands:
-        fields_and_coverages = [
-            (
-                [band_name],
-                product.coverages.filter(
-                    coverage_type__field_types__identifier=band_name
-                )
-            )
-            for band_name in bands
-        ]
-    elif wavelengths:
-        fields_and_coverages = [
-            (
-                [product.coverages.filter(
-                    coverage_type__field_types__wavelength=wavelength
-                ).first().name],
-                product.coverages.filter(
-                    coverage_type__field_types__wavelength=wavelength
-                )
-            )
-            for wavelength in wavelengths
-        ]
+        coverages, fields_and_coverages = _lookup_coverages(product, bands)
+
+    # TODO: implement with wavelengths
+    # elif wavelengths:
+    #     fields_and_coverages = [
+    #         (
+    #             [product.coverages.filter(
+    #                 coverage_type__field_types__wavelength=wavelength
+    #             ).first().name],
+    #             product.coverages.filter(
+    #                 coverage_type__field_types__wavelength=wavelength
+    #             )
+    #         )
+    #         for wavelength in wavelengths
+    #     ]
 
     # only return a browse instance if coverages were found
-    if fields_and_coverages[0][1]:
+    if coverages:
         return GeneratedBrowse.from_coverage_models(
-            fields_and_coverages, product
+            bands, fields_and_coverages, product
         )
     return None
+
+
+def _lookup_coverages(product, field_names):
+    # make a query of all coverages in that product for the given fields
+    coverages = product.coverages.filter(
+        coverage_type__field_types__identifier__in=field_names
+    )
+
+    # annotate the coverages with booleans indicating whether or not they have a
+    # certain field
+    coverages = coverages.annotate(**{
+        'has_%s' % field_name: Case(
+            When(
+                coverage_type__field_types__identifier=field_name,
+                then=Value(1)
+            ),
+            default=Value(0),
+            output_field=IntegerField()
+        )
+        for field_name in field_names
+    })
+
+    # evaluate the queryset
+    coverages = list(coverages)
+
+    # make a dictionary for all field mapping to their respective coverages
+    fields_and_coverages = {
+        field_name: [
+            coverage
+            for coverage in coverages
+            if getattr(coverage, 'has_%s' % field_name)
+        ]
+        for field_name in field_names
+    }
+    return coverages, fields_and_coverages
