@@ -378,6 +378,10 @@ class ArraydataLocation(Location):
     def end_field(self):
         return self._end_field
 
+    @property
+    def field_count(self):
+        return self._end_field - self._start_field + 1
+
     def field_index_to_band_index(self, field_index):
         return field_index - self.start_field
 
