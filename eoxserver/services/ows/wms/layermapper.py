@@ -27,6 +27,8 @@
 
 from django.db.models import Case, Value, When, IntegerField
 
+from eoxserver.core.config import get_eoxserver_config
+from eoxserver.core.decoders import config, enum
 from eoxserver.core.util.timetools import isoformat
 from eoxserver.render.map.objects import (
     CoverageLayer, MosaicLayer, OutlinesLayer, BrowseLayer, OutlinedBrowseLayer,
@@ -151,9 +153,14 @@ class LayerMapper(object):
         )
 
     def lookup_layer(self, layer_name, suffix, style, filters_expressions,
-                     sort_by, time, range, bands, wavelengths, elevation):
+                     sort_by, time, range, bands, wavelengths, elevation, zoom):
         """ Lookup the layer from the registered objects.
         """
+        reader = LayerMapperConfigReader(get_eoxserver_config())
+        limit_products = (
+            reader.limit_products if reader.limit_mode == 'hide' else None
+        )
+        min_render_zoom = reader.min_render_zoom
         full_name = '%s%s%s' % (layer_name, self.suffix_separator, suffix)
 
         try:
@@ -191,7 +198,8 @@ class LayerMapper(object):
             if suffix == '' or suffix == 'outlined':
                 browses = []
                 product_browses = self.iter_products_browses(
-                    eo_object, filters_expressions, sort_by, None, style
+                    eo_object, filters_expressions, sort_by, None, style,
+                    limit=limit_products
                 )
 
                 for product, browse in product_browses:
@@ -221,24 +229,40 @@ class LayerMapper(object):
                             if browse:
                                 browses.append(browse)
 
-                # either return the simple browse layer or the outlined one
-                if suffix == '':
-                    return BrowseLayer(
-                        name=full_name, style=style,
-                        browses=browses, range=range
-                    )
+                # detect whether we are below the zoom limit
+                if min_render_zoom is None or zoom >= min_render_zoom:
+                    # either return the simple browse layer or the outlined one
+                    if suffix == '':
+                        return BrowseLayer(
+                            name=full_name, style=style,
+                            browses=browses, range=range
+                        )
+                    else:
+                        return OutlinedBrowseLayer(
+                            name=full_name, style=style,
+                            browses=browses, range=range
+                        )
+
+                # render outlines when we are below the zoom limit
                 else:
-                    return OutlinedBrowseLayer(
-                        name=full_name, style=style,
-                        browses=browses, range=range
+                    return OutlinesLayer(
+                        name=full_name, style=reader.color,
+                        fill=reader.fill_opacity,
+                        footprints=[
+                            product.footprint for product in self.iter_products(
+                                eo_object, filters_expressions, sort_by,
+                                limit=limit_products
+                            )
+                        ]
                     )
 
             elif suffix == 'outlines':
                 return OutlinesLayer(
-                    name=full_name, style=style,
+                    name=full_name, style=style, fill=None,
                     footprints=[
                         product.footprint for product in self.iter_products(
                             eo_object, filters_expressions, sort_by,
+                            limit=limit_products
                         )
                     ]
                 )
@@ -253,7 +277,8 @@ class LayerMapper(object):
                 masked_browses = []
 
                 product_browses_mask = self.iter_products_browses_masks(
-                    eo_object, filters_expressions, sort_by, post_suffix
+                    eo_object, filters_expressions, sort_by, post_suffix,
+                    limit=limit_products
                 )
                 for product, browse, mask in product_browses_mask:
                     # When bands/wavelengths are specifically requested, make a
@@ -296,7 +321,8 @@ class LayerMapper(object):
                         MaskedBrowse.from_models(product, browse, mask)
                         for product, browse, mask in
                         self.iter_products_browses_masks(
-                            eo_object, filters_expressions, sort_by, post_suffix
+                            eo_object, filters_expressions, sort_by, post_suffix,
+                            limit=limit_products
                         )
                     ]
                 )
@@ -309,7 +335,7 @@ class LayerMapper(object):
 
                     product_browses = self.iter_products_browses(
                         eo_object, filters_expressions, sort_by, suffix,
-                        style
+                        style, limit=limit_products
                     )
 
                     for product, browse in product_browses:
@@ -340,7 +366,8 @@ class LayerMapper(object):
                         masks=[
                             Mask.from_model(mask_model)
                             for _, mask_model in self.iter_products_masks(
-                                eo_object, filters_expressions, sort_by, suffix
+                                eo_object, filters_expressions, sort_by, suffix,
+                                limit=limit_products
                             )
                         ]
                     )
@@ -389,13 +416,16 @@ class LayerMapper(object):
 
         return qs
 
-    def iter_products(self, eo_object, filters_expressions, sort_by=None):
+    def iter_products(self, eo_object, filters_expressions, sort_by=None,
+                      limit=None):
         if isinstance(eo_object, models.Collection):
             base_filter = dict(collections=eo_object)
         else:
             base_filter = dict(pk=eo_object.pk)
 
         qs = models.Product.objects.filter(filters_expressions, **base_filter)
+        if limit is not None:
+            qs = qs[:limit]
 
         if sort_by:
             qs = qs.order_by('%s%s' % (
@@ -406,9 +436,9 @@ class LayerMapper(object):
         return qs
 
     def iter_products_browses(self, eo_object, filters_expressions, sort_by,
-                              name=None, style=None):
+                              name=None, style=None, limit=None):
         products = self.iter_products(
-            eo_object, filters_expressions, sort_by
+            eo_object, filters_expressions, sort_by, limit
         ).prefetch_related('browses')
 
         for product in products:
@@ -426,9 +456,9 @@ class LayerMapper(object):
             yield (product, browses.first())
 
     def iter_products_masks(self, eo_object, filters_expressions, sort_by,
-                            name=None):
+                            name=None, limit=None):
         products = self.iter_products(
-            eo_object, filters_expressions, sort_by
+            eo_object, filters_expressions, sort_by, limit
         ).prefetch_related('masks')
 
         for product in products:
@@ -441,9 +471,9 @@ class LayerMapper(object):
             yield (product, mask)
 
     def iter_products_browses_masks(self, eo_object, filters_expressions,
-                                    sort_by, name=None):
+                                    sort_by, name=None, limit=None):
         products = self.iter_products(
-            eo_object, filters_expressions, sort_by
+            eo_object, filters_expressions, sort_by, limit
         ).prefetch_related('masks', 'browses')
 
         for product in products:
@@ -455,6 +485,15 @@ class LayerMapper(object):
             browse = product.browses.filter(browse_type__isnull=True).first()
 
             yield (product, browse, mask)
+
+
+class LayerMapperConfigReader(config.Reader):
+    section = "services.ows.wms"
+    limit_products = config.Option(type=int)
+    limit_mode = config.Option(type=enum('hide', 'outlines'), default='hide')
+    min_render_zoom = config.Option(type=int)
+    fill_opacity = config.Option(type=float)
+    color = config.Option(type=str, default='grey')
 
 
 def _generate_browse_from_browse_type(product, browse_type):

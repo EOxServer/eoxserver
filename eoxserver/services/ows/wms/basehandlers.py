@@ -31,6 +31,7 @@ This module contains a set of handler base classes which shall help to implement
 a specific handler. Interface methods need to be overridden in order to work,
 default methods can be overidden.
 """
+import math
 
 from django.conf import settings
 from django.db.models import Q
@@ -121,6 +122,12 @@ class WMSBaseGetMapHandler(object):
         crs = decoder.srs
         layer_names = decoder.layers
 
+        width = decoder.width
+        height = decoder.height
+
+        # calculate the zoomlevel
+        zoom = calculate_zoom((minx, miny, maxx, maxy), width, height, crs)
+
         if not layer_names:
             raise InvalidParameterException("No layers specified", "layers")
 
@@ -180,7 +187,7 @@ class WMSBaseGetMapHandler(object):
             name, suffix = layer_mapper.split_layer_suffix_name(layer_name)
             layer = layer_mapper.lookup_layer(
                 name, suffix, style,
-                filter_expressions, sort_by, **dimensions
+                filter_expressions, sort_by, zoom=zoom, **dimensions
             )
             layers.append(layer)
 
@@ -235,3 +242,18 @@ class WMSBaseGetMapDecoder(kvp.Decoder):
     cql = kvp.Parameter(num="?")
 
     sort_by = kvp.Parameter('sortBy', type=parse_sort_by, num="?")
+
+
+def calculate_zoom(bbox, width, height, crs):
+    # TODO: make this work for other CRSs
+    lon_diff = bbox[2] - bbox[0]
+    lat_diff = bbox[3] - bbox[1]
+
+    max_diff = max(lon_diff, lat_diff)
+    if max_diff < (360 / pow(2, 20)):
+        return 21
+    else:
+        zoom = int(-1 * (math.log(max_diff, 2) - (math.log(360, 2))))
+        if zoom < 1:
+            zoom = 1
+        return zoom

@@ -355,7 +355,7 @@ class MaskLayerFactory(BaseMapServerLayerFactory):
             layer_obj.addFeature(shape_obj)
 
         layer_obj.insertClass(
-            _create_geometry_class(layer.style or 'red', fill=True)
+            _create_geometry_class(layer.style or 'red', fill_opacity=1.0)
         )
 
 
@@ -373,7 +373,7 @@ class MaskedBrowseLayerFactory(BaseMapServerLayerFactory):
             mask_layer_obj = _create_polygon_layer(map_obj)
             mask_layer_obj.status = ms.MS_OFF
             mask_layer_obj.insertClass(
-                _create_geometry_class("black", "white", fill=True)
+                _create_geometry_class("black", "white", fill_opacity=1.0)
             )
 
             if mask.geometry:
@@ -416,7 +416,9 @@ class OutlinesLayerFactory(BaseMapServerLayerFactory):
             shape_obj = ms.shapeObj.fromWKT(footprint.wkt)
             layer_obj.addFeature(shape_obj)
 
-        class_obj = _create_geometry_class(layer.style or 'red')
+        class_obj = _create_geometry_class(
+            layer.style or 'red', fill_opacity=layer.fill
+        )
         layer_obj.insertClass(class_obj)
 
 
@@ -464,26 +466,31 @@ def _create_polygon_layer(map_obj):
     return layer_obj
 
 
-def _create_geometry_class(color_name, background_color_name=None, fill=False):
+def _create_geometry_class(color_name, background_color_name=None,
+                           fill_opacity=None):
     cls_obj = ms.classObj()
-    style_obj = ms.styleObj()
+    outline_style_obj = ms.styleObj()
 
     try:
         color = ms.colorObj(*BASE_COLORS[color_name])
     except KeyError:
         raise  # TODO
 
-    style_obj.outlinecolor = color
+    outline_style_obj.outlinecolor = color
+    cls_obj.insertStyle(outline_style_obj)
 
-    if fill:
-        style_obj.color = color
+    if fill_opacity is not None:
+        fill_style_obj = ms.styleObj()
+        fill_style_obj.color = ms.colorObj(
+            color.red, color.green, color.blue, int(255 * fill_opacity)
+        )
+        cls_obj.insertStyle(fill_style_obj)
 
     if background_color_name:
         style_obj.backgroundcolor = ms.colorObj(
             *BASE_COLORS[background_color_name]
         )
 
-    cls_obj.insertStyle(style_obj)
     cls_obj.group = color_name
     return cls_obj
 
