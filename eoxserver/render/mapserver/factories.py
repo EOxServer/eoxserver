@@ -230,7 +230,9 @@ class BrowseLayerFactory(CoverageLayerFactoryMixIn, BaseMapServerLayerFactory):
     handled_layer_types = [BrowseLayer]
 
     def create(self, map_obj, layer):
-        filename_generator = FilenameGenerator('/vsimem/{uuid}.vrt')
+        filename_generator = FilenameGenerator(
+            '/vsimem/{uuid}.{extension}', 'vrt'
+        )
         group_name = layer.name
         range_ = layer.range
         style = layer.style
@@ -242,11 +244,26 @@ class BrowseLayerFactory(CoverageLayerFactoryMixIn, BaseMapServerLayerFactory):
             layer_obj.group = group_name
 
             if isinstance(browse, GeneratedBrowse):
-                layer_obj.data, filename_generator = generate_browse(
+                layer_obj.data, filename_generator, reset_info = generate_browse(
                     browse.band_expressions,
                     browse.fields_and_coverages,
+                    layer.map.width, layer.map.height,
+                    layer.map.bbox,
+                    layer.map.crs,
                     filename_generator
                 )
+
+                if reset_info:
+                    sr = osr.SpatialReference(layer.map.crs)
+                    extent = layer.map.bbox
+                    layer_obj.setMetaData("wms_extent", "%f %f %f %f" % extent)
+                    layer_obj.setExtent(*extent)
+
+                    if sr.srid is not None:
+                        short_epsg = "EPSG:%d" % sr.srid
+                        layer_obj.setMetaData("ows_srs", short_epsg)
+                        layer_obj.setMetaData("wms_srs", short_epsg)
+                    layer_obj.setProjection(sr.proj)
 
                 if browse.mode == BROWSE_MODE_GRAYSCALE:
                     field = browse.field_list[0]
@@ -299,6 +316,9 @@ class OutlinedBrowseLayerFactory(BaseMapServerLayerFactory):
                 browse_layer_obj.data, filename_generator = generate_browse(
                     browse.band_expressions,
                     browse.fields_and_coverages,
+                    layer.map.width, layer.map.height,
+                    layer.map.bbox,
+                    layer.map.crs,
                     filename_generator
                 )
 

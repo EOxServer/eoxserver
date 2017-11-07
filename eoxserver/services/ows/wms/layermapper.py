@@ -500,22 +500,24 @@ def _generate_browse_from_browse_type(product, browse_type):
     if not browse_type.red_or_grey_expression:
         return None
 
+    from eoxserver.render.browse.generate import extract_fields
+
     band_expressions = []
     field_names = []
-    red_bands = browse_type.red_or_grey_expression.split(',')
+    red_bands = extract_fields(browse_type.red_or_grey_expression)
     band_expressions.append(browse_type.red_or_grey_expression)
     field_names.extend(red_bands)
 
     if browse_type.green_expression and browse_type.blue_expression:
-        green_bands = browse_type.green_expression.split(',')
-        blue_bands = browse_type.blue_expression.split(',')
+        green_bands = extract_fields(browse_type.green_expression)
+        blue_bands = extract_fields(browse_type.blue_expression)
         band_expressions.append(browse_type.green_expression)
         band_expressions.append(browse_type.blue_expression)
         field_names.extend(green_bands)
         field_names.extend(blue_bands)
 
         if browse_type.alpha_expression:
-            alpha_bands = browse_type.alpha_expression.split(',')
+            alpha_bands = extract_fields(browse_type.alpha_expression)
             band_expressions.append(browse_type.alpha_expression)
             field_names.extend(alpha_bands)
 
@@ -524,7 +526,7 @@ def _generate_browse_from_browse_type(product, browse_type):
     # only return a browse instance if coverages were found
     if coverages:
         return GeneratedBrowse.from_coverage_models(
-            band_expressions, fields_and_coverages, product
+            band_expressions, fields_and_coverages, field_names, product
         )
     return None
 

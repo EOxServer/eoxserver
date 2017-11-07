@@ -26,8 +26,11 @@
 # ------------------------------------------------------------------------------
 
 from uuid import uuid4
+import ast
+import _ast
+import operator
 
-from eoxserver.contrib import vrt
+from eoxserver.contrib import vrt, gdal, osr
 
 
 class BrowseGenerationError(Exception):
@@ -48,7 +51,7 @@ class FilenameGenerator(object):
     """ Utility class to generate filenames after a certain pattern (template)
         and to keep a list for later cleanup.
     """
-    def __init__(self, template):
+    def __init__(self, template, default_extension=None):
         """ Create a new :class:`FilenameGenerator` from a given template
             :param template: the template string used to construct the filenames
                              from. Uses the ``.format()`` style language. Keys
@@ -56,6 +59,7 @@ class FilenameGenerator(object):
         """
         self._template = template
         self._filenames = []
+        self._default_extension = default_extension
 
     def generate(self, extension=None):
         """ Generate and store a new filename using the specified template. An
@@ -64,7 +68,7 @@ class FilenameGenerator(object):
         filename = self._template.format(
             index=len(self._filenames),
             uuid=uuid4().hex,
-            extension=extension,
+            extension=extension or self._default_extension,
         )
         self._filenames.append(filename)
         return filename
@@ -76,7 +80,65 @@ class FilenameGenerator(object):
         return self._filenames
 
 
-def generate_browse(band_expressions, fields_and_coverages, generator=None):
+class BandExpressionError(ValueError):
+    pass
+
+
+ALLOWED_NODE_TYPES = (
+    _ast.Module,
+    _ast.Expr,
+    _ast.Load,
+    _ast.Name,
+
+    _ast.UnaryOp,
+    _ast.BinOp,
+
+    _ast.Mult,
+    _ast.Div,
+    _ast.Add,
+    _ast.Sub,
+    _ast.Num,
+
+    _ast.BitAnd,
+    _ast.BitOr,
+    _ast.BitXor,
+
+    _ast.USub,
+)
+
+
+def parse_expression(band_expression):
+    """ Parse and validate the passed band expression
+    """
+    parsed = ast.parse(band_expression)
+    for node in ast.walk(parsed):
+        if not isinstance(node, ALLOWED_NODE_TYPES):
+            raise BandExpressionError(
+                'Invalid expression: %s' % type(node).__name__
+            )
+    return parsed.body[0].value
+
+
+def extract_fields(band_expression):
+    """ Extract the fields required to generate the output band.
+        :param band_expression: the band expression to extract the fields of
+        :type band_expression: str
+        :return: a list of field names
+        :rtype: list
+    """
+    if isinstance(band_expression, basestring):
+        root_expr = parse_expression(band_expression)
+    else:
+        root_expr = band_expression
+    return [
+        node.id
+        for node in ast.walk(root_expr)
+        if isinstance(node, _ast.Name)
+    ]
+
+
+def generate_browse(band_expressions, fields_and_coverages,
+                    width, height, bbox, crs, generator=None):
     """ Produce a temporary VRT file describing how transformation of the
         coverages to browses.
 
@@ -96,10 +158,22 @@ def generate_browse(band_expressions, fields_and_coverages, generator=None):
 
     out_band_filenames = []
 
+    parsed_expressions = [
+        parse_expression(band_expression)
+        for band_expression in band_expressions
+    ]
+
+    is_simple = all(isinstance(expr, _ast.Name) for expr in parsed_expressions)
+
+    if not is_simple:
+        return _generate_browse_complex(
+            parsed_expressions, fields_and_coverages,
+            width, height, bbox, crs, generator
+        ), generator, True
+
     # iterate over the input band expressions
     for band_expression in band_expressions:
-        # TODO: allow more sophisticated expressions
-        fields = band_expression.split(',')
+        fields = extract_fields(band_expression)
 
         selected_filenames = []
 
@@ -140,10 +214,144 @@ def generate_browse(band_expressions, fields_and_coverages, generator=None):
 
     # make shortcut here, when we only have one band, just return it
     if len(out_band_filenames) == 1:
-        return out_band_filenames[0], generator
+        return out_band_filenames[0], generator, False
 
     # return the stacked bands as a VRT
     else:
         stacked_filename = generator.generate()
         vrt.stack_bands(out_band_filenames, stacked_filename)
-        return stacked_filename, generator
+        return stacked_filename, generator, False
+
+
+def _generate_browse_complex(parsed_expressions, fields_and_coverages,
+                             width, height, bbox, crs, generator):
+    o_x = bbox[0]
+    o_y = bbox[3]
+    res_x = (bbox[2] - bbox[0]) / width
+    res_y = -(bbox[3] - bbox[1]) / height
+    tiff_driver = gdal.GetDriverByName('GTiff')
+
+    field_names = set()
+    for parsed_expression in parsed_expressions:
+        print extract_fields(parsed_expression), parse_expression
+        field_names |= set(extract_fields(parsed_expression))
+
+    fields_and_datasets = {}
+    for field_name in field_names:
+        coverages = fields_and_coverages[field_name]
+
+        selected_filenames = []
+
+        # iterate over all coverages for that field to select the single
+        # field
+        for coverage in coverages:
+            location = coverage.get_location_for_field(field_name)
+            orig_filename = location.path
+            orig_band_index = coverage.get_band_index_for_field(field_name)
+
+            # only make a VRT to select the band if band count for the
+            # dataset > 1
+            if location.field_count == 1:
+                selected_filename = orig_filename
+            else:
+                selected_filename = generator.generate()
+                vrt.select_bands(
+                    orig_filename, [orig_band_index], selected_filename
+                )
+
+            selected_filenames.append(selected_filename)
+
+        # if only a single file is required to generate the output band, return
+        # it.
+        if len(selected_filenames) == 1:
+            out_field_filename = selected_filenames[0]
+            out_field_dataset = gdal.OpenShared(out_field_filename)
+
+        # otherwise mosaic all the input bands to form a composite image
+        else:
+            out_field_filename = generator.generate()
+            out_field_dataset = vrt.mosaic(
+                selected_filenames, out_field_filename
+            )
+
+        warped_out_field_dataset = tiff_driver.Create(
+            generator.generate('tif'), width, height, 1,
+            # out_field_dataset.GetRasterBand(1).DataType,
+            gdal.GDT_Float32,
+            options=[
+                "TILED=YES",
+                "COMPRESS=PACKBITS"
+            ]
+        )
+
+        warped_out_field_dataset.SetGeoTransform([o_x, res_x, 0, o_y, 0, res_y])
+        warped_out_field_dataset.SetProjection(osr.SpatialReference(crs).wkt)
+        gdal.ReprojectImage(out_field_dataset, warped_out_field_dataset)
+
+        fields_and_datasets[field_name] = warped_out_field_dataset
+
+    out_band_filenames = []
+    for parsed_expression in parsed_expressions:
+        out_ds = _evaluate_expression(
+            parsed_expression, fields_and_datasets, generator
+        )
+        out_band_filenames.append(
+            out_ds.GetFileList()[0]
+        )
+        del out_ds
+
+    # make shortcut here, when we only have one band, just return it
+    if len(out_band_filenames) == 1:
+        return out_band_filenames[0]
+
+    # return the stacked bands as a VRT
+    else:
+        stacked_filename = generator.generate()
+        vrt.stack_bands(out_band_filenames, stacked_filename)
+        return stacked_filename
+
+operator_map = {
+    _ast.Add: operator.add,
+    _ast.Sub: operator.sub,
+    _ast.Div: operator.div,
+}
+
+
+def _evaluate_expression(expr, fields_and_datasets, generator):
+    if isinstance(expr, _ast.Name):
+        return fields_and_datasets[expr.id]
+
+    elif isinstance(expr, _ast.BinOp):
+        left_ds = _evaluate_expression(
+            expr.left, fields_and_datasets, generator
+        )
+        left_data = left_ds.GetRasterBand(1).ReadAsArray()
+        right_ds = _evaluate_expression(
+            expr.right, fields_and_datasets, generator
+        )
+        right_data = right_ds.GetRasterBand(1).ReadAsArray()
+        tiff_driver = gdal.GetDriverByName('GTiff')
+        out_ds = tiff_driver.Create(
+            generator.generate('tif'),
+            left_ds.RasterXSize, left_ds.RasterYSize, 1,
+            # left_ds.GetRasterBand(1).DataType,
+            gdal.GDT_Float32,
+            options=[
+                "TILED=YES",
+                "COMPRESS=PACKBITS"
+            ]
+        )
+
+        op = operator_map[type(expr.op)]
+
+        out_data = op(left_data, right_data)
+        out_band = out_ds.GetRasterBand(1)
+        out_band.WriteArray(out_data)
+
+        out_ds.SetProjection(left_ds.GetProjection())
+        out_ds.SetGeoTransform(left_ds.GetGeoTransform())
+        return out_ds
+
+    else:
+        pass
+        # TODO: implement other expression types

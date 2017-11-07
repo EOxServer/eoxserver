@@ -25,6 +25,7 @@
 # THE SOFTWARE.
 # ------------------------------------------------------------------------------
 
+from weakref import proxy
 
 from eoxserver.render.coverage.objects import (
     GRID_TYPE_TEMPORAL, GRID_TYPE_ELEVATION
@@ -37,6 +38,7 @@ class Layer(object):
     def __init__(self, name, style):
         self._name = name
         self._style = style
+        self._map = None
 
     @property
     def name(self):
@@ -45,6 +47,14 @@ class Layer(object):
     @property
     def style(self):
         return self._style
+
+    @property
+    def map(self):
+        return self._map
+
+    @map.setter
+    def map(self, map_):
+        self._map = proxy(map_)
 
 
 class CoverageLayer(Layer):
@@ -216,6 +226,9 @@ class Map(object):
         self._transparent = transparent
         self._time = time
         self._elevation = elevation
+
+        for layer in layers:
+            layer.map = self
 
     @property
     def layers(self):

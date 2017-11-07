@@ -183,7 +183,7 @@ class GeneratedBrowse(Browse):
 
     @classmethod
     def from_coverage_models(cls, band_expressions, fields_and_coverage_models,
-                             product_model):
+                             field_names, product_model):
 
         fields_and_coverages = {
             field_name: [
@@ -197,12 +197,10 @@ class GeneratedBrowse(Browse):
             product_model.identifier,
             band_expressions,
             fields_and_coverages, [
-                fields_and_coverages[
-                    band_expression.split(',')[0]
-                ][0].range_type.get_field(
-                    band_expression.split(',')[0]
+                fields_and_coverages[field_name][0].range_type.get_field(
+                    field_name
                 )
-                for band_expression in band_expressions
+                for field_name in field_names
             ],
             product_model.footprint
         )
