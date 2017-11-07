@@ -44,7 +44,9 @@ BASE_COLORS = {
     "orange": (255, 165, 0),
     "magenta": (255, 0, 255),
     "cyan": (0, 255, 255),
-    "brown": (165, 42, 42)
+    "brown": (165, 42, 42),
+    "grey": (128, 128, 128),
+    "gray": (128, 128, 128),
 }
 
 # some color scales require a specific offsite color to not interfere with the
