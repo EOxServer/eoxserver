@@ -318,7 +318,7 @@ def _determine_parameters(datasets):
         res_y = max(dy, res_y)
 
         o_x = min(gt[0], o_x)
-        o_y = max(gt[3], o_x)
+        o_y = max(gt[3], o_y)
 
         e_x = max(gt[0] + dx * dataset.RasterXSize, e_x)
         e_y = min(gt[3] + dy * dataset.RasterYSize, e_y)
