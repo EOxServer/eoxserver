@@ -92,41 +92,62 @@ class EarthObservationExtension(object):
         )
 
         schema = []
-        summary = {}
+        summary = None
         if collection:
-            try:
-                summary = json.loads(
-                    collection.collection_metadata.product_metadata_summary
-                )
-                summary = {
-                    filters._to_camel_case(key): value
-                    for key, value in summary.items()
-                }
-            except models.CollectionMetadata.DoesNotExist:
-                pass
+            summary = self._load_product_summary(collection)
 
         for key, value in mapping.items():
             param = dict(
                 name=key, type=key
             )
 
-            param_summary = summary.get(key)
-            if isinstance(param_summary, list) and param_summary:
-                param['options'] = param_summary
-            elif isinstance(param_summary, dict):
-                min_ = param_summary.get('min')
-                max_ = param_summary.get('max')
-                if min_ is not None:
-                    param['min'] = min_
-                if max_ is not None:
-                    param['max'] = max_
+            if summary:
+                param_summary = summary.get(key)
 
+                # leave out all parameters not present in the summary
+                if not self._is_param_summary_valid(param_summary):
+                    continue
+
+                # insert information from the parameter summary
+                if isinstance(param_summary, list):
+                    param['options'] = param_summary
+                elif isinstance(param_summary, dict):
+                    min_ = param_summary.get('min')
+                    max_ = param_summary.get('max')
+                    if min_ is not None:
+                        param['min'] = min_
+                    if max_ is not None:
+                        param['max'] = max_
+
+            # use the mapping choices to get a list of options, if possible
             if 'options' not in param and value in mapping_choices:
                 param['options'] = list(mapping_choices[value].keys())
 
             schema.append(param)
 
         return schema
+
+    def _load_product_summary(self, collection):
+        try:
+            summary = json.loads(
+                collection.collection_metadata.product_metadata_summary
+            )
+            return {
+                filters._to_camel_case(key): value
+                for key, value in summary.items()
+            }
+        except models.CollectionMetadata.DoesNotExist:
+            pass
+        return None
+
+    def _is_param_summary_valid(self, param_summary):
+        if not param_summary:
+            return False
+
+        elif isinstance(param_summary, dict):
+            return param_summary.get('min') or param_summary.get('max')
+
+        return True
 
     # def get_schema(self, collection):
     #     return [
