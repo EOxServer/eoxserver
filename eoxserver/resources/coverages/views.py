@@ -102,7 +102,9 @@ def product_register(request):
                 models.product_add_coverage(product, coverage)
 
             models.collection_insert_eo_object(collection, product)
-            models.collection_collect_metadata(collection)
+            models.collection_collect_metadata(
+                collection, product_summary=True, coverage_summary=True
+            )
 
     except (KeyError, ValueError), e:
         return HttpResponseBadRequest(str(e))
