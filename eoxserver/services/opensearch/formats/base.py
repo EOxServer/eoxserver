@@ -315,6 +315,7 @@ class BaseFeedResultFormat(object):
 
             wcs_get_capabilities = request.build_absolute_uri(
                 "%s?service=WCS&version=2.0.1&request=GetCapabilities"
+                % reverse("ows")
             )
 
             links.extend([
