@@ -30,7 +30,8 @@ from collections import namedtuple
 from django.http import Http404
 from django.db.models import Q
 
-from eoxserver.core.decoders import kvp
+from eoxserver.core.config import get_eoxserver_config
+from eoxserver.core.decoders import kvp, config
 from eoxserver.core.util.xmltools import NameSpaceMap
 from eoxserver.resources.coverages import models
 from eoxserver.services.opensearch.formats import get_formats
@@ -109,14 +110,22 @@ class OpenSearch11SearchHandler(object):
 
         total_count = len(qs)
 
-        if decoder.start_index and not decoder.count:
-            qs = qs[decoder.start_index:]
-        elif decoder.start_index and decoder.count:
-            qs = qs[decoder.start_index:decoder.start_index+decoder.count]
-        elif decoder.count:
-            qs = qs[:decoder.count]
-        elif decoder.count == 0:
+        # read the configuration and determine the count parameter
+        conf = OpenSearchConfigReader(get_eoxserver_config())
+        requested_count = min(
+            decoder.count if decoder.count is not None else conf.default_count,
+            conf.max_count
+        )
+
+        start_index = decoder.start_index
+
+        # if count  is zero, then return an 'empty' queryset
+        if requested_count == 0:
             qs = models.EOObject.objects.none()
+        else:
+            qs = qs[start_index:start_index+requested_count]
+
+        result_count = len(qs)
 
         try:
             result_format = next(
@@ -127,11 +136,9 @@ class OpenSearch11SearchHandler(object):
         except StopIteration:
             raise Http404("No such result format '%s'." % format_name)
 
-        default_page_size = 100  # TODO: make this configurable
-
         search_context = SearchContext(
-            total_count, decoder.start_index,
-            decoder.count or default_page_size, len(qs),
+            total_count, start_index,
+            requested_count, result_count,
             all_parameters, namespaces
         )
 
@@ -160,3 +167,9 @@ class OpenSearch11BaseDecoder(kvp.Decoder):
     start_index = kvp.Parameter("startIndex", pos_int_zero, num="?", default=0)
     count = kvp.Parameter("count", pos_int_zero, num="?", default=None)
     output_encoding = kvp.Parameter("outputEncoding", num="?", default="UTF-8")
+
+
+class OpenSearchConfigReader(config.Reader):
+    section = "services.opensearch"
+    default_count = config.Option(type=int, default=100)
+    max_count = config.Option(type=int, default=200)
