@@ -44,6 +44,9 @@ from model_utils.managers import InheritanceManager
 
 from eoxserver.backends import models as backends
 from eoxserver.core.util.timetools import isoformat
+from eoxserver.render.browse.generate import (
+    parse_expression, extract_fields, BandExpressionError
+)
 
 
 mandatory = dict(null=False, blank=False)
@@ -72,6 +75,17 @@ identifier_validators = [
         message="This field must contain a valid NCName."
     )
 ]
+
+
+def band_expression_validator(band_expression):
+    if not band_expression:
+        return
+
+    try:
+        parse_expression(band_expression)
+    except BandExpressionError as e:
+        raise ValidationError(str(e))
+
 
 # ==============================================================================
 # "Type" models
@@ -163,15 +177,33 @@ class BrowseType(models.Model):
     product_type = models.ForeignKey(ProductType, related_name="browse_types", **mandatory)
     name = models.CharField(max_length=256, validators=name_validators, blank=True, null=False)
 
-    red_or_grey_expression = models.CharField(max_length=512, **optional)
-    green_expression = models.CharField(max_length=512, **optional)
-    blue_expression = models.CharField(max_length=512, **optional)
-    alpha_expression = models.CharField(max_length=512, **optional)
+    red_or_grey_expression = models.CharField(max_length=512, validators=[band_expression_validator], **optional)
+    green_expression = models.CharField(max_length=512, validators=[band_expression_validator], **optional)
+    blue_expression = models.CharField(max_length=512, validators=[band_expression_validator], **optional)
+    alpha_expression = models.CharField(max_length=512, validators=[band_expression_validator], **optional)
+
+    red_or_grey_nodata_value = models.FloatField(**optional)
+    green_nodata_value = models.FloatField(**optional)
+    blue_nodata_value = models.FloatField(**optional)
+    alpha_nodata_value = models.FloatField(**optional)
+
+    red_or_grey_range_min = models.FloatField(**optional)
+    green_range_min = models.FloatField(**optional)
+    blue_range_min = models.FloatField(**optional)
+    alpha_range_min = models.FloatField(**optional)
+
+    red_or_grey_range_max = models.FloatField(**optional)
+    green_range_max = models.FloatField(**optional)
+    blue_range_max = models.FloatField(**optional)
+    alpha_range_max = models.FloatField(**optional)
 
     def __str__(self):
         if self.name:
             return self.name
         return "Default Browse Type for '%s'" % self.product_type
+
+    def clean(self):
+        return validate_browse_type(self)
 
     class Meta:
         unique_together = (
@@ -1019,6 +1051,43 @@ def validate_grid(grid):
             )
 
         higher_dim = i if has_dim else False
+
+
+def validate_browse_type(browse_type):
+    """ Validate the expressions of the browse type to only reference fields
+        available for that browse type.
+    """
+    expressions = [
+        browse_type.red_or_grey_expression,
+        browse_type.green_expression,
+        browse_type.blue_expression,
+        browse_type.alpha_expression,
+    ]
+
+    fields = set()
+    for expression in expressions:
+        try:
+            fields |= set(extract_fields(browse_type.red_or_grey_expression))
+        except BandExpressionError:
+            pass
+
+    all_fields = set(
+        FieldType.objects.filter(
+            coverage_type__allowed_product_types__browse_types=browse_type,
+        ).values_list('identifier', flat=True)
+    )
+
+    missing_fields = fields - all_fields
+    if missing_fields:
+        raise ValidationError(
+            "Expressions are referencing unknow field%s: %s. Available field%s: "
+            "%s." % (
+                "s" if len(missing_fields) > 1 else "",
+                ", ".join(("'%s'" % field) for field in missing_fields),
+                "s" if len(all_fields) > 1 else "",
+                ", ".join(("'%s'" % field) for field in all_fields),
+            )
+        )
 
 # ==============================================================================
 # Utilities

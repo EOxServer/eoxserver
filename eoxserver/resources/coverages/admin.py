@@ -52,6 +52,45 @@ class MaskTypeInline(admin.TabularInline):
     extra = 0
 
 
+class BrowseTypeInline(admin.StackedInline):
+    model = models.BrowseType
+    extra = 0
+
+    fieldsets = (
+        (None, {
+            'fields': ('product_type', 'name')
+        }),
+        ("Red or grey band", {
+            'classes': ('collapse', 'collapsed'),
+            'fields': (
+                'red_or_grey_expression', 'red_or_grey_nodata_value',
+                ('red_or_grey_range_min', 'red_or_grey_range_max'),
+            )
+        }),
+        ("Green band", {
+            'classes': ('collapse', 'collapsed'),
+            'fields': (
+                'green_expression', 'green_nodata_value',
+                ('green_range_min', 'green_range_max'),
+            )
+        }),
+        ("Blue band", {
+            'classes': ('collapse', 'collapsed'),
+            'fields': (
+                'blue_expression', 'blue_nodata_value',
+                ('blue_range_min', 'blue_range_max'),
+            )
+        }),
+        ("Alpha band", {
+            'classes': ('collapse', 'collapsed'),
+            'fields': (
+                'alpha_expression', 'alpha_nodata_value',
+                ('alpha_range_min', 'alpha_range_max'),
+            )
+        })
+    )
+
+
 # ==============================================================================
 # Inline admins
 # ==============================================================================
@@ -116,7 +155,7 @@ admin.site.register(models.CoverageType, CoverageTypeAdmin)
 
 
 class ProductTypeAdmin(admin.ModelAdmin):
-    inlines = [MaskTypeInline]
+    inlines = [BrowseTypeInline, MaskTypeInline]
     filter_horizontal = ['allowed_coverage_types']
 
 admin.site.register(models.ProductType, ProductTypeAdmin)
@@ -132,12 +171,6 @@ class MaskTypeAdmin(admin.ModelAdmin):
     pass
 
 admin.site.register(models.MaskType, MaskTypeAdmin)
-
-
-class BrowseTypeAdmin(admin.ModelAdmin):
-    pass
-
-admin.site.register(models.BrowseType, BrowseTypeAdmin)
 
 
 class GridAdmin(admin.ModelAdmin):
