@@ -28,6 +28,8 @@
 #-------------------------------------------------------------------------------
 
 from django.contrib.gis import admin
+from django.core.urlresolvers import reverse
+from django.utils.safestring import mark_safe
 
 from eoxserver.resources.coverages import models
 
@@ -108,6 +110,20 @@ class BrowseInline(admin.StackedInline):
 class MetaDataItemInline(admin.StackedInline):
     model = models.MetaDataItem
     extra = 0
+
+    def download_link(self, obj):
+        return mark_safe('<a href="{}">Download</a>'.format(
+            reverse('metadata', kwargs=dict(
+                    identifier=obj.eo_object.identifier,
+                    semantic=dict(
+                        models.MetaDataItem.SEMANTIC_CHOICES
+                    )[obj.semantic]
+                )
+            )
+        ))
+    download_link.short_description = 'Download Link'
+
+    readonly_fields = ['download_link']
 
 
 class ArrayDataItemInline(admin.StackedInline):
@@ -190,7 +206,9 @@ admin.site.register(models.Coverage, CoverageAdmin)
 
 
 class ProductAdmin(EOObjectAdmin):
-    inlines = [MaskInline, BrowseInline, ProductMetadataInline]
+    inlines = [
+        MaskInline, BrowseInline, MetaDataItemInline, ProductMetadataInline
+    ]
 
 admin.site.register(models.Product, ProductAdmin)
 

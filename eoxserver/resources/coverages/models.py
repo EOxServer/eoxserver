@@ -400,7 +400,19 @@ class ReservedID(EOObject):
 # ==============================================================================
 
 class MetaDataItem(backends.DataItem):
+    SEMANTIC_CHOICES = [
+        (0, 'other'),
+        (1, 'description'),
+        (2, 'documentation'),
+        (3, 'thumbnail'),
+    ]
+
     eo_object = models.ForeignKey(EOObject, related_name='metadata_items', **mandatory)
+    semantic = models.SmallIntegerField(choices=SEMANTIC_CHOICES, **optional)
+
+    class Meta:
+        unique_together = [('eo_object', 'semantic')]
+
 
 
 class Browse(backends.DataItem):
