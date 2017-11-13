@@ -1,16 +1,24 @@
+
 import os.path
 from zipfile import ZipFile
 import json
 from cStringIO import StringIO
 import traceback
+import re
+import mimetypes
+import shutil
 
 from django.http import (
-    HttpResponse, HttpResponseBadRequest, HttpResponseNotAllowed
+    HttpResponse, HttpResponseBadRequest, HttpResponseNotAllowed, FileResponse
 )
 from django.contrib.gis.geos import GEOSGeometry
 from django.db import transaction
 from django.db.models import Q
+from django.shortcuts import get_object_or_404
 
+from eoxserver.core.config import get_eoxserver_config
+from eoxserver.core.decoders import config
+from eoxserver.backends.access import vsi_open
 from eoxserver.resources.coverages import models
 from eoxserver.resources.coverages.registration.product import (
     ProductRegistrator
@@ -55,6 +63,32 @@ from eoxserver.resources.coverages.registration.registrators.gdal import (
 #     return HttpResponse(tmp_file.read(), content_type='image/png')
 
 
+def metadata(request, identifier, semantic):
+    """ View to retrieve metadata files for a specific product.
+    """
+    if request.method != 'GET':
+        return HttpResponseNotAllowed(['GET'])
+
+    frmt = request.GET.get('format')
+
+    semantic_code = {
+        name: code
+        for code, name in models.MetaDataItem.SEMANTIC_CHOICES
+    }[semantic]
+
+    qs = models.MetaDataItem.objects.filter(
+        eo_object__identifier=identifier, semantic=semantic_code,
+    )
+    if frmt:
+        qs = qs.filter(format=frmt)
+
+    metadata_item = get_object_or_404(qs)
+
+    return FileResponse(
+        vsi_open(metadata_item), content_type=metadata_item.format
+    )
+
+
 def product_register(request):
     """ View to register a Product + 'Granules' (coverages) from a so-called
         'product.zip', entailing metadata and referencing local files.
@@ -89,6 +123,13 @@ def product_register(request):
                 )
 
             product = _register_product(collection, product_desc, granules_desc)
+
+            _add_metadata(
+                product, zipfile, 'description.html', 'description', 'text/html',
+            )
+            _add_metadata(
+                product, zipfile, 'thumbnail\.(png|jpeg|jpg)', 'thumbnail'
+            )
 
             granules = []
             # iterate over the granules and register them
@@ -212,3 +253,39 @@ def _register_granule(product, collection, granule_def):
         overrides=overrides,
         replace=True,
     ).coverage
+
+
+def _add_metadata(product, zipfile, pattern, semantic, frmt=None):
+    def _get_file_info(zipfile, pattern):
+        for info in zipfile.infolist():
+            if re.match(pattern, info.filename):
+                return info
+
+    reader = RegistrationConfigReader(get_eoxserver_config())
+    metadata_filename_template = reader.metadata_filename_template
+
+    info = _get_file_info(zipfile, pattern)
+    if info and metadata_filename_template:
+        frmt = frmt or mimetypes.guess_type(info.filename)[0]
+
+        semantic_code = {
+            name: code
+            for code, name in models.MetaDataItem.SEMANTIC_CHOICES
+        }[semantic]
+
+        out_filename = metadata_filename_template.format(
+            product_id=product.identifier, filename=info.filename
+        )
+
+        with open(out_filename, "w") as out_file:
+            shutil.copyfileobj(zipfile.open(info), out_file)
+
+        models.MetaDataItem.objects.create(
+            eo_object=product, format=frmt, location=out_filename,
+            semantic=semantic_code
+        )
+
+
+class RegistrationConfigReader(config.Reader):
+    section = "coverages.registration"
+    metadata_filename_template = config.Option()
