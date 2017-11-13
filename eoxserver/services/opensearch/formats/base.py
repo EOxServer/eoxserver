@@ -255,6 +255,7 @@ class BaseFeedResultFormat(object):
                     % reverse("ows")
                 )
 
+                thumbnail_link = self._create_thumbail_link(request, item)
                 wms_small = self._create_map_link(request, item, 100)
                 wms_large = self._create_map_link(request, item, 500)
 
@@ -273,7 +274,7 @@ class BaseFeedResultFormat(object):
                     links.append(
                         MEDIA("content",
                             MEDIA("category", "THUMBNAIL"),
-                            url=wms_small
+                            url=thumbnail_link or wms_small
                         )
                     )
 
@@ -473,3 +474,16 @@ class BaseFeedResultFormat(object):
                 reverse("ows"), product.identifier
             )
         )
+
+    def _create_thumbail_link(self, request, item):
+        semantic_code = {
+            name: code
+            for code, name in models.MetaDataItem.SEMANTIC_CHOICES
+        }['thumbnail']
+        if item.metadata_items.filter(semantic=semantic_code).exists():
+            return request.build_absolute_uri(
+                reverse("metadata", kwargs={
+                    'identifier': item.identifier,
+                    'semantic': 'thumbnail'
+                })
+            )
