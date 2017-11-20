@@ -287,12 +287,17 @@ class PreProcessor(object):
         if layer.GetFeatureCount() > 1:
             # if there is more than one polygon, compute the minimum
             # bounding polygon
-            geometry = ogr.Geometry(ogr.wkbPolygon)
+            logger.debug("Merging %s features in footprint."
+                         % layer.GetFeatureCount())
+
+            # union all features in one multi-polygon
+            geometry = ogr.Geometry(ogr.wkbMultiPolygon)
             while True:
                 feature = layer.GetNextFeature()
                 if not feature:
                     break
-                geometry = geometry.Union(feature.GetGeometryRef())
+                geometry.AddGeometry(feature.GetGeometryRef())
+            geometry = geometry.UnionCascaded()
 
             # TODO: improve this for a better minimum bounding polygon
             geometry = geometry.ConvexHull()
