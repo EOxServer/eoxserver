@@ -407,6 +407,16 @@ class MetaDataItem(backends.DataItem):
         (3, 'thumbnail'),
     ]
 
+    semantic_names = {
+        code: name
+        for code, name in SEMANTIC_CHOICES
+    }
+
+    semantic_codes = {
+        name: code
+        for code, name in SEMANTIC_CHOICES
+    }
+
     eo_object = models.ForeignKey(EOObject, related_name='metadata_items', **mandatory)
     semantic = models.SmallIntegerField(choices=SEMANTIC_CHOICES, **optional)
 
