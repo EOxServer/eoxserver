@@ -347,6 +347,22 @@ class BaseFeedResultFormat(object):
                     }
                 )
             ])
+
+        semantic_to_rel = {
+            1: 'alternate',
+            2: 'describedby',
+        }
+
+        links.extend([
+            ATOM("link",
+                rel=semantic_to_rel[metadata_item.semantic],
+                href=self._make_metadata_href(request, item, metadata_item)
+            )
+            for metadata_item in item.metadata_items.filter(
+                semantic__in=semantic_to_rel.keys()
+            )
+        ])
+
         return links
 
     def encode_summary(self, request, collection_id, item):
@@ -476,14 +492,20 @@ class BaseFeedResultFormat(object):
         )
 
     def _create_thumbail_link(self, request, item):
-        semantic_code = {
-            name: code
-            for code, name in models.MetaDataItem.SEMANTIC_CHOICES
-        }['thumbnail']
-        if item.metadata_items.filter(semantic=semantic_code).exists():
+        semantic = models.MetaDataItem.semantic_codes['thumbnail']
+        if item.metadata_items.filter(semantic=semantic).exists():
             return request.build_absolute_uri(
                 reverse("metadata", kwargs={
                     'identifier': item.identifier,
                     'semantic': 'thumbnail'
                 })
             )
+
+    def _make_metadata_href(self, request, item, metadata_item):
+        semantic_name = models.MetaDataItem.semantic_names[metadata_item.semantic]
+        return request.build_absolute_uri(
+            reverse("metadata", kwargs={
+                'identifier': item.identifier,
+                'semantic': semantic_name
+            })
+        )
