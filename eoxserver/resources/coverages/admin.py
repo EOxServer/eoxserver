@@ -29,6 +29,7 @@
 
 from django.contrib.gis import admin
 from django.core.urlresolvers import reverse
+from django.core.exceptions import NoReverseMatch
 from django.utils.safestring import mark_safe
 
 from eoxserver.resources.coverages import models
@@ -112,15 +113,18 @@ class MetaDataItemInline(admin.StackedInline):
     extra = 0
 
     def download_link(self, obj):
-        return mark_safe('<a href="{}">Download</a>'.format(
-            reverse('metadata', kwargs=dict(
-                    identifier=obj.eo_object.identifier,
-                    semantic=dict(
-                        models.MetaDataItem.SEMANTIC_CHOICES
-                    )[obj.semantic]
+        try:
+            return mark_safe('<a href="{}">Download</a>'.format(
+                reverse('metadata', kwargs=dict(
+                        identifier=obj.eo_object.identifier,
+                        semantic=dict(
+                            models.MetaDataItem.SEMANTIC_CHOICES
+                        )[obj.semantic]
+                    )
                 )
-            )
-        ))
+            ))
+        except NoReverseMatch:
+            return mark_safe('<i>Metadata URL not configured.</i>')
     download_link.short_description = 'Download Link'
 
     readonly_fields = ['download_link']
