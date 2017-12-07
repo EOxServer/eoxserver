@@ -28,8 +28,7 @@
 #-------------------------------------------------------------------------------
 
 from django.contrib.gis import admin
-from django.core.urlresolvers import reverse
-from django.core.exceptions import NoReverseMatch
+from django.core.urlresolvers import reverse, NoReverseMatch
 from django.utils.safestring import mark_safe
 
 from eoxserver.resources.coverages import models
