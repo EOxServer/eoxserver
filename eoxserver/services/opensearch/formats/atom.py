@@ -127,30 +127,44 @@ class AtomResultFormat(BaseFeedResultFormat):
                 for name, value in models.product_get_metadata(item)
             ]
 
+        eo_om_item = item.metadata_items.filter(
+            format__in=['eogml', 'eoom', 'text/xml']
+        ).first()
+        if eo_om_item is not None:
+            eo_om_link = self._make_metadata_href(request, item, eo_om_item)
+        else:
+            eo_om_link = None
+
+        template_params = {
+            'item': item, 'metadata': metadata,
+            'atom': self._create_self_link(request, collection_id, item),
+            'map_small': self._create_map_link(request, item, 100),
+            'map_large': self._create_map_link(request, item, 500),
+            'eocoveragesetdescription': self._create_eo_coverage_set_description(
+                request, item
+            ),
+            'coverages': [{
+                'identifier': coverage.identifier,
+                'description': self._create_coverage_description_link(
+                    request, coverage
+                ),
+                'coverage': self._create_coverage_link(
+                    request, coverage
+                )}
+                for coverage in coverages
+            ],
+            'download_link': self._create_download_link(
+                request, item
+            ) if isinstance(item, models.Product) else None,
+            'eo_om_link': eo_om_link,
+        }
+
         return ATOM("summary",
-            CDATA(render_to_string(
-                template_name, {
-                    'item': item, 'metadata': metadata,
-                    'atom': self._create_self_link(request, collection_id, item),
-                    'map_small': self._create_map_link(request, item, 100),
-                    'map_large': self._create_map_link(request, item, 500),
-                    'eocoveragesetdescription': self._create_eo_coverage_set_description(
-                        request, item
-                    ),
-                    'coverages': [{
-                        'description': self._create_coverage_description_link(
-                            request, coverage
-                        ),
-                        'coverage': self._create_coverage_link(
-                            request, coverage
-                        )}
-                        for coverage in coverages
-                    ],
-                    'download_link': self._create_download_link(
-                        request, item
-                    ) if isinstance(item, models.Product) else None
-                },
-                request=request
-            )),
+            CDATA(
+                render_to_string(
+                    template_name, template_params,
+                    request=request
+                )
+            ),
             type="html"
         )
