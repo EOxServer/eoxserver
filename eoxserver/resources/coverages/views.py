@@ -1,4 +1,3 @@
-
 import os.path
 from zipfile import ZipFile
 import json
@@ -125,10 +124,14 @@ def product_register(request):
             product = _register_product(collection, product_desc, granules_desc)
 
             _add_metadata(
-                product, zipfile, 'description.html', 'description', 'text/html',
+                product, zipfile, 'description.html', 'documentation',
+                'text/html',
             )
             _add_metadata(
                 product, zipfile, 'thumbnail\.(png|jpeg|jpg)', 'thumbnail'
+            )
+            _add_metadata(
+                product, zipfile, 'metadata\.xml', 'description', 'text/xml'
             )
 
             granules = []
@@ -219,11 +222,9 @@ def _register_product(collection, product_def, granules_def):
 
 def _register_granule(product, collection, granule_def):
     properties = granule_def['properties']
-    coverage_types_base = models.CoverageType.objects.filter(Q(
+    coverage_types_base = models.CoverageType.objects.filter(
         allowed_collection_types__collections=collection
-    ) | Q(
-        allowed_product_types__allowed_collection_types__collections=collection
-    ))
+    )
 
     if 'band' in properties:
         # get the coverage type associated with the collection and the granules
@@ -276,6 +277,15 @@ def _add_metadata(product, zipfile, pattern, semantic, frmt=None):
         out_filename = metadata_filename_template.format(
             product_id=product.identifier, filename=info.filename
         )
+
+        out_dirname = os.path.dirname(out_filename)
+
+        # make directories
+        try:
+            os.makedirs(out_dirname)
+        except OSError as exc:
+            if exc.errno != 17:
+                raise
 
         with open(out_filename, "w") as out_file:
             shutil.copyfileobj(zipfile.open(info), out_file)
