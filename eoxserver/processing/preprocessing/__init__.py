@@ -145,6 +145,7 @@ class PreProcessor(object):
         else:
             logger.debug("Applying geo reference '%s'."
                          % type(geo_reference).__name__)
+            # footprint is always in EPSG:4326
             ds, footprint_wkt = geo_reference.apply(ds)
 
         # apply optimizations
@@ -175,6 +176,8 @@ class PreProcessor(object):
                                           tmp_extent[2], tmp_extent[3]))
             tmp_footprint = GEOSGeometry(footprint_wkt)
             if not tmp_bbox.contains(tmp_footprint):
+                logger.debug("Re-generating footprint because not inside of "
+                             "generated image.")
                 footprint_wkt = tmp_footprint.intersection(tmp_bbox).wkt
 
         if self.footprint_alpha:
@@ -272,6 +275,8 @@ class PreProcessor(object):
         copy_projection(ds, tmp_ds)
         tmp_band = tmp_ds.GetRasterBand(1)
         tmp_band.WriteArray(nodata_map.astype(numpy.uint8))
+        # Remove areas that are smaller than 16 pixels
+        gdal.SieveFilter(tmp_band, None, tmp_band, 16, 4)
 
         # create an OGR in memory layer to hold the created polygon
         sr = osr.SpatialReference()
@@ -283,6 +288,8 @@ class PreProcessor(object):
 
         # polygonize the mask band and store the result in the OGR layer
         gdal.Polygonize(tmp_band, tmp_band, layer, 0)
+
+        tmp_ds = None
 
         if layer.GetFeatureCount() > 1:
             # if there is more than one polygon, compute the minimum
