@@ -26,8 +26,9 @@
 #-------------------------------------------------------------------------------
 
 from lxml.builder import ElementMaker
-from lxml.etree import ProcessingInstruction, ElementTree
+from lxml.etree import ProcessingInstruction, ElementTree, Comment
 from django.conf import settings
+
 from eoxserver.core.util.xmltools import XMLEncoder, NameSpace, NameSpaceMap
 
 
@@ -40,7 +41,8 @@ OWS = ElementMaker(namespace=ns_ows.uri, nsmap=nsmap)
 
 
 class OWS11ExceptionXMLEncoder(XMLEncoder):
-    def encode_exception(self, message, version, code, locator=None):
+    def encode_exception(self, message, version, code, locator=None,
+                         stacktrace=None):
         exception_attributes = {
             "exceptionCode": code
         }
@@ -48,7 +50,10 @@ class OWS11ExceptionXMLEncoder(XMLEncoder):
         if locator:
             exception_attributes["locator"] = locator
 
-        exception_text = (OWS("ExceptionText", message),) if message else ()
+        exception_text = [OWS("ExceptionText", message)] if message else []
+
+        if stacktrace:
+            exception_text.append(Comment(stacktrace))
 
         xml_tree = ElementTree(OWS("ExceptionReport",
             OWS("Exception", *exception_text, **exception_attributes

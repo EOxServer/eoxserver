@@ -25,6 +25,10 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
+import traceback
+
+from django.conf import settings
+
 from eoxserver.core import Component, implements
 from eoxserver.services.ows.interfaces import ExceptionHandlerInterface
 from eoxserver.services.ows.common.v11.encoders import OWS11ExceptionXMLEncoder
@@ -52,10 +56,15 @@ class WPS10ExceptionHandler(Component):
 
         encoder = OWS11ExceptionXMLEncoder()
 
+        if getattr(settings, 'DEBUG', False):
+            stacktrace = traceback.format_exc()
+        else:
+            stacktrace = None
+
         return (
             encoder.serialize(
                 encoder.encode_exception(
-                    str(exception), "1.1.0", code, locator
+                    str(exception), "1.1.0", code, locator, stacktrace
                 )
             ),
             encoder.content_type, http_status_code
