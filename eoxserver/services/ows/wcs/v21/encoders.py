@@ -469,15 +469,15 @@ class CIS11Encoder(CIS10Encoder):
                     **{
                         "axisLabel": "i",
                         "lowerBound": str(0),
-                        "upperBound": str(size_x),
+                        "upperBound": str(size_x-1),
                     }
                 ),
                 CIS(
                     "IndexAxis",
                     **{
-                        "axisLabel": "i",
+                        "axisLabel": "j",
                         "lowerBound": str(0),
-                        "upperBound": str(size_y),
+                        "upperBound": str(size_y-1),
                     }
                 ),
                 **{
@@ -509,6 +509,125 @@ class CIS11Encoder(CIS10Encoder):
                     size or coverage.size,
                 )
             )
+
+    def encode_envelope(self, coverage, grid=None):
+        # if grid is None:
+        footprint = coverage.footprint
+        if footprint:
+            minx, miny, maxx, maxy = footprint.extent
+            sr = SpatialReference(4326)
+            swap = crss.getAxesSwapper(sr.srid)
+            labels = ("x", "y") if sr.IsProjected() else ("long", "lat")
+            axis_labels = " ".join(swap(*labels))
+            axis_units = "m m" if sr.IsProjected() else "deg deg"
+            frmt = "%.3f %.3f" if sr.IsProjected() else "%.8f %.8f"
+
+            # Make sure values are outside of actual extent
+            if sr.IsProjected():
+                minx -= 0.0005
+                miny -= 0.0005
+                maxx += 0.0005
+                maxy += 0.0005
+            else:
+                minx -= 0.000000005
+                miny -= 0.000000005
+                maxx += 0.000000005
+                maxy += 0.000000005
+
+            lower_corner = frmt % swap(minx, miny)
+            upper_corner = frmt % swap(maxx, maxy)
+            srs_name = sr.url
+
+        elif grid:
+            sr = SpatialReference(grid.coordinate_reference_system)
+            labels = grid.names
+            axis_units = " ".join(
+                ["m" if sr.IsProjected() else "deg"] * len(labels)
+            )
+            extent = list(coverage.extent)
+
+            lc = extent[:len(extent) / 2]
+            uc = extent[len(extent) / 2:]
+
+            if crss.hasSwappedAxes(sr.srid):
+                labels[0:2] = labels[1], labels[0]
+                lc[0:2] = lc[1], lc[0]
+                uc[0:2] = uc[1], uc[0]
+
+            frmt = " ".join(
+                ["%.3f" if sr.IsProjected() else "%.8f"] * len(labels)
+            )
+
+            lower_corner = frmt % tuple(lc)
+            upper_corner = frmt % tuple(uc)
+            axis_labels = " ".join(labels)
+            srs_name = sr.url
+
+        else:
+            lower_corner = ""
+            upper_corner = ""
+            srs_name = ""
+            axis_labels = ""
+            axis_units = ""
+
+        # return CIS("Envelope",
+        #     GML("lowerCorner", lower_corner),
+        #     GML("upperCorner", upper_corner),
+        #     srsName=srs_name, axisLabels=axis_labels, uomLabels=axis_units,
+        #     srsDimension="2"
+        # )
+
+        return CIS(
+            "Envelope",
+            CIS(
+                "AxisExtent",
+                **{
+                    "axisLabel": "Lat",
+                    "uomLabel": "deg",
+                    "lowerBound": str(minx),
+                    "upperBound": str(maxx)
+                }
+            ),
+            CIS(
+                "AxisExtent",
+                **{
+                    "axisLabel": "Long",
+                    "uomLabel": "deg",
+                    "lowerBound": str(miny),
+                    "upperBound": str(maxy)
+                }
+            ),
+            CIS(
+                "AxisExtent",
+                **{
+                    "axisLabel": "h",
+                    "uomLabel": "m",
+                    "lowerBound": "-4917",
+                    "upperBound": "25062"
+                }
+            ),
+            CIS(
+                "AxisExtent",
+                **{
+                    "axisLabel": "date",
+                    "uomLabel": "d",
+                    "lowerBound": str(coverage.begin_time),
+                    "upperBound": str(coverage.end_time)
+                }
+            ),
+            **{
+                "srsName": "http://www.opengis.net/def/crs-compound?1=http://www.opengis.net/def/crs/EPSG/0/4979&amp;2=http://www.opengis.net/def/crs/OGC/0/AnsiDate",
+                "axisLabels": "Lat Long h date",
+                "srsDimension": "4",
+            }
+        )
+
+    def encode_range_type(self, range_type):
+        return CIS("rangeType",
+            SWE("DataRecord",
+                *[self.encode_field(band) for band in range_type]
+            )
+        )
 
 
 class WCS21CoverageDescriptionXMLEncoder(CIS11Encoder):
@@ -589,12 +708,10 @@ class WCS21EOXMLEncoder(WCS21CoverageDescriptionXMLEncoder, EOP20Encoder,
                 ), GML("timePosition", isoformat(now()))
             )
 
-        return GMLCOV("metadata",
-            GMLCOV("Extension",
-                EOWCS("EOMetadata",
-                    earth_observation,
-                    *[lineage] if lineage is not None else []
-                )
+        return CIS("Metadata",
+            EOWCS("EOMetadata",
+                earth_observation,
+                *[lineage] if lineage is not None else []
             )
         )
 
@@ -639,8 +756,6 @@ class WCS21EOXMLEncoder(WCS21CoverageDescriptionXMLEncoder, EOP20Encoder,
 
         return WCS("CoverageDescription",
             self.encode_envelope(coverage, coverage.grid),
-            WCS("CoverageId", coverage.identifier),
-            self.encode_eo_metadata(coverage),
             self.encode_domain_set(coverage, srid, size, extent, rectified),
             self.encode_range_type(coverage.range_type),
             WCS("ServiceParameters",
@@ -650,6 +765,7 @@ class WCS21EOXMLEncoder(WCS21CoverageDescriptionXMLEncoder, EOP20Encoder,
                     native_format.mimeType if native_format else ""
                 )
             ),
+            self.encode_eo_metadata(coverage),
             **{ns_gml("id"): self.get_gml_id(coverage.identifier)}
         )
 
