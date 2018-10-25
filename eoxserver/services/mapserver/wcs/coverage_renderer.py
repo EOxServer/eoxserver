@@ -69,7 +69,7 @@ class RectifiedCoverageMapServerRenderer(BaseRenderer):
 
     # ReferenceableDatasets are not handled in WCS >= 2.0
     versions_full = (Version(1, 1), Version(1, 0))
-    versions_partly = (Version(2, 0),)
+    versions_partly = (Version(2, 0), Version(2, 1),)
     versions = versions_full + versions_partly
 
     # handles_full = (
@@ -93,15 +93,15 @@ class RectifiedCoverageMapServerRenderer(BaseRenderer):
         #     (params.version in self.versions_partly
         #     and issubclass(params.coverage.real_type, self.handles_partly))
         # )
-        return params.version in self.versions and not params.coverage.grid.is_referenceable
+        return params.version in self.versions
 
     def render(self, params):
         # get coverage related stuff
         coverage = params.coverage
 
         # ReferenceableDataset are not supported in WCS < 2.0
-        if params.coverage.grid.is_referenceable:
-            raise NoSuchCoverageException((coverage.identifier,))
+        # if params.coverage.grid.is_referenceable:
+        #     raise NoSuchCoverageException((coverage.identifier,))
 
         data_locations = self.arraydata_locations_for_coverage(coverage)
 
