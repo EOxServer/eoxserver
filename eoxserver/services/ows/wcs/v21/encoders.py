@@ -468,16 +468,16 @@ class CIS11Encoder(CIS10Encoder):
                     "IndexAxis",
                     **{
                         "axisLabel": "i",
-                        "lowerBound": 0,
-                        "upperBound": size_x,
+                        "lowerBound": str(0),
+                        "upperBound": str(size_x),
                     }
                 ),
                 CIS(
                     "IndexAxis",
                     **{
                         "axisLabel": "i",
-                        "lowerBound": 0,
-                        "upperBound": size_y,
+                        "lowerBound": str(0),
+                        "upperBound": str(size_y),
                     }
                 ),
                 **{
@@ -514,6 +514,7 @@ class CIS11Encoder(CIS10Encoder):
 class WCS21CoverageDescriptionXMLEncoder(CIS11Encoder):
     def encode_coverage_description(self, coverage):
         grid = coverage.grid
+
         return WCS("CoverageDescription",
             self.encode_envelope(coverage, grid),
             self.encode_domain_set(coverage, rectified=(grid is not None)),
@@ -634,7 +635,7 @@ class WCS21EOXMLEncoder(WCS21CoverageDescriptionXMLEncoder, EOP20Encoder,
         # else:
         #     rectified = True
 
-        rectified = (coverage.grid is not None)
+        rectified = (not coverage.grid.is_referenceable)
 
         return WCS("CoverageDescription",
             self.encode_envelope(coverage, coverage.grid),
