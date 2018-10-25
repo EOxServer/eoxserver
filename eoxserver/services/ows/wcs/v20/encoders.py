@@ -374,7 +374,7 @@ class GMLCOV10Encoder(WCS20BaseXMLEncoder, GML32Encoder):
                 uc[0:2] = uc[1], uc[0]
 
             frmt = " ".join(
-                ["%.3f" if sr.IsProjected() else "%.8f %.8f"] * len(labels)
+                ["%.3f" if sr.IsProjected() else "%.8f"] * len(labels)
             )
 
             lower_corner = frmt % tuple(lc)
