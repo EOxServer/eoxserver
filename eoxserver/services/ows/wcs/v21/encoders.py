@@ -758,6 +758,7 @@ class WCS21EOXMLEncoder(WCS21CoverageDescriptionXMLEncoder, EOP20Encoder,
             self.encode_envelope(coverage, coverage.grid),
             self.encode_domain_set(coverage, srid, size, extent, rectified),
             self.encode_range_type(coverage.range_type),
+            self.encode_eo_metadata(coverage),
             WCS("ServiceParameters",
                 WCS("CoverageSubtype", self.get_coverage_subtype(coverage)),
                 WCS(
@@ -765,7 +766,6 @@ class WCS21EOXMLEncoder(WCS21CoverageDescriptionXMLEncoder, EOP20Encoder,
                     native_format.mimeType if native_format else ""
                 )
             ),
-            self.encode_eo_metadata(coverage),
             **{ns_gml("id"): self.get_gml_id(coverage.identifier)}
         )
 
