@@ -1051,28 +1051,28 @@ def validate_grid(grid):
     """
 
     higher_dim = False
-    for i in range(4, 0, -1):
-        axis_type = getattr(grid, 'axis_%d_type' % i, None)
-        axis_name = getattr(grid, 'axis_%d_name' % i, None)
-        axis_offset = getattr(grid, 'axis_%d_offset' % i, None)
+    # for i in range(4, 0, -1):
+    #     axis_type = getattr(grid, 'axis_%d_type' % i, None)
+    #     axis_name = getattr(grid, 'axis_%d_name' % i, None)
+    #     axis_offset = getattr(grid, 'axis_%d_offset' % i, None)
 
-        attrs = (axis_type, axis_name, axis_offset)
+    #     attrs = (axis_type, axis_name, axis_offset)
 
-        has_dim = any(attrs)
+    #     has_dim = any(attrs)
 
-        # check that when this axis is not set, no higher axis is set
-        if not has_dim and higher_dim:
-            raise ValidationError(
-                'Axis %d not set, but higher axis %d is set.' % (i, higher_dim)
-            )
+    #     # check that when this axis is not set, no higher axis is set
+    #     if not has_dim and higher_dim:
+    #         raise ValidationError(
+    #             'Axis %d not set, but higher axis %d is set.' % (i, higher_dim)
+    #         )
 
-        # check that all of 'name', 'type', and 'offset' is set
-        if has_dim and not all(attrs):
-            raise ValidationError(
-                "For each axis, 'name', 'type', and 'offset' must be set."
-            )
+    #     # check that all of 'name', 'type', and 'offset' is set
+    #     if has_dim and not all(attrs):
+    #         raise ValidationError(
+    #             "For each axis, 'name', 'type', and 'offset' must be set."
+    #         )
 
-        higher_dim = i if has_dim else False
+    #     higher_dim = i if has_dim else False
 
 
 def validate_browse_type(browse_type):
