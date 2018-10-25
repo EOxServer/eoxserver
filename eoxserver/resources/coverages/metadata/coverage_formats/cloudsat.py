@@ -29,8 +29,9 @@ from datetime import datetime
 
 from django.contrib.gis.geos import Polygon, LineString, MultiLineString
 from django.utils.timezone import make_aware, utc
-# from pyhdf.HDF import HDF, HC
-# from pyhdf.SD import SD
+from pyhdf.HDF import HDF, HC
+from pyhdf.SD import SD
+import pyhdf.VS
 
 from eoxserver.contrib import gdal
 from eoxserver.core.util.timetools import parse_iso8601
@@ -55,9 +56,11 @@ class Cloudsat2BGeoprofCoverageMetadataReader(object):
     def test(self, obj):
         ds = open_gdal(obj)
 
+        filename = ds.GetFileList()[0]
+
         sub_ds = open_gdal(
             'HDF4_EOS:EOS_SWATH:"%s":2B-GEOPROF:CPR_Cloud_mask'
-            % ds.GetFileList()[0]
+            % filename
         )
         return sub_ds is not None
 
@@ -66,9 +69,10 @@ class Cloudsat2BGeoprofCoverageMetadataReader(object):
 
     def read(self, obj):
         ds = open_gdal(obj)
+        filename = ds.GetFileList()[0]
         sub_ds = open_gdal(
             'HDF4_EOS:EOS_SWATH:"%s":2B-GEOPROF:CPR_Cloud_mask'
-            % ds.GetFileList()[0]
+            % filename
         )
         metadata = sub_ds.GetMetadata()
 
@@ -83,21 +87,24 @@ class Cloudsat2BGeoprofCoverageMetadataReader(object):
         # driver = sub_ds.GetDriver()
         size = (sub_ds.RasterXSize, sub_ds.RasterYSize)
 
-        # stepsize = 10
-        # vdata = HDF(data_item.location, HC.READ).vstart()
-        # lats = vdata.attach('Latitude')[:][0::stepsize]
-        # lons = vdata.attach('Longitude')[:][0::stepsize]
+        stepsize = 10
+        vdata = HDF(filename, HC.READ).vstart()
+        lons = vdata.attach('Longitude')[:][0::stepsize]
+        lats = vdata.attach('Latitude')[:][0::stepsize]
 
-        # footprint = MultiLineString(
-        #     LineString(zip(lons, lats))
-        # )
+        footprint = MultiLineString(
+            LineString([
+                (lon[0], lat[0])
+                for lon, lat in zip(lons, lats)
+            ])
+        )
 
         values = {
             "size": size,
             "begin_time": parse_datetime(metadata['start_time']),
             "end_time": parse_datetime(metadata['end_time']),
             "grid": grid,
-            # "footprint": footprint,
+            "footprint": footprint,
         }
 
         return values
