@@ -26,13 +26,13 @@
 # ------------------------------------------------------------------------------
 
 DEFAULT_EOXS_CAPABILITIES_RENDERERS = [
-    'eoxserver.services.native.wcs.capabilities_renderer.NativeWCS20CapabilitiesRenderer',
+    'eoxserver.services.native.wcs.capabilities_renderer.NativeWCS21CapabilitiesRenderer',
     'eoxserver.services.mapserver.wcs.capabilities_renderer.MapServerWCSCapabilitiesRenderer',
 ]
 
 DEFAULT_EOXS_COVERAGE_DESCRIPTION_RENDERERS = [
     'eoxserver.services.mapserver.wcs.coverage_description_renderer.CoverageDescriptionMapServerRenderer',
-    'eoxserver.services.native.wcs.coverage_description_renderer.NativeWCS20CoverageDescriptionRenderer',
+    'eoxserver.services.native.wcs.coverage_description_renderer.NativeWCS21CoverageDescriptionRenderer',
 ]
 
 DEFAULT_EOXS_COVERAGE_RENDERERS = [
@@ -40,5 +40,5 @@ DEFAULT_EOXS_COVERAGE_RENDERERS = [
 ]
 
 DEFAULT_EOXS_COVERAGE_ENCODING_EXTENSIONS = [
-    'eoxserver.services.ows.wcs.v20.encodings.geotiff.WCS20GeoTIFFEncodingExtension'
+    'eoxserver.services.ows.wcs.v21.encodings.geotiff.WCS21GeoTIFFEncodingExtension'
 ]

@@ -31,26 +31,26 @@ from django.conf import settings
 from eoxserver.core import Component, implements
 from eoxserver.services.result import ResultBuffer
 from eoxserver.services.ows.version import Version
-from eoxserver.services.ows.wcs.v20.encoders import WCS20EOXMLEncoder
+from eoxserver.services.ows.wcs.v21.encoders import WCS21EOXMLEncoder
 from eoxserver.services.ows.wcs.interfaces import (
     WCSCoverageDescriptionRendererInterface
 )
 
 
-class NativeWCS20CoverageDescriptionRenderer(Component):
-    """ Coverage description renderer for WCS 2.0 using the EO application
+class NativeWCS21CoverageDescriptionRenderer(Component):
+    """ Coverage description renderer for WCS 2.1 using the EO application
         profile.
     """
 
     implements(WCSCoverageDescriptionRendererInterface)
 
-    versions = (Version(2, 0),)
+    versions = (Version(2, 1),)
 
     def supports(self, params):
         return params.version in self.versions
 
     def render(self, params):
-        encoder = WCS20EOXMLEncoder()
+        encoder = WCS21EOXMLEncoder()
         return [
             ResultBuffer(
                 encoder.serialize(
