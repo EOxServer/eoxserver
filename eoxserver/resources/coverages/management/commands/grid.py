@@ -41,6 +41,7 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
     def add_arguments(self, parser):
         create_parser = self.add_subparser(parser, 'create')
         delete_parser = self.add_subparser(parser, 'delete')
+        list_parser = self.add_subparser(parser, 'list')
 
         for parser in [create_parser, delete_parser]:
             parser.add_argument(
@@ -81,15 +82,28 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             )
         )
 
+        # TODO:
+        create_parser.add_argument(
+            '--referenceable', action='store_true', default=False,
+        )
+        create_parser.add_argument(
+            '--replace', '-r', action='store_true', default=False,
+        )
+
+        delete_parser.add_argument(
+            '--force', '-f', action='store_true', default=False,
+        )
+
     @transaction.atomic
-    def handle(self, subcommand, name, *args, **kwargs):
-        """ Dispatch sub-commands: create, delete.
+    def handle(self, subcommand, *args, **kwargs):
+        """ Dispatch sub-commands: create, delete, list.
         """
-        name = name[0]
         if subcommand == "create":
-            self.handle_create(name, *args, **kwargs)
+            self.handle_create(kwargs.pop('name')[0], *args, **kwargs)
         elif subcommand == "delete":
-            self.handle_delete(name, *args, **kwargs)
+            self.handle_delete(kwargs.pop('name')[0], *args, **kwargs)
+        elif subcommand == "list":
+            self.handle_list(*args, **kwargs)
 
     def handle_create(self, name, coordinate_reference_system, **kwargs):
         """ Handle the creation of a new product
@@ -106,7 +120,7 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
                 'Invalid number of axis-types supplied. Expected %d, got %d.'
                 % (len(axis_names), len(axis_types))
             )
-        if len(axis_offsets) != len(axis_names):
+        if axis_offsets and len(axis_offsets) != len(axis_names):
             raise CommandError(
                 'Invalid number of axis-offsets supplied. Expected %d, got %d.'
                 % (len(axis_names), len(axis_offsets))
@@ -119,22 +133,36 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             (name, id_) for id_, name in models.Grid.AXIS_TYPES
         )
 
+        axis_offsets = axis_offsets or [None] * len(axis_types)
+
         iterator = enumerate(zip(axis_names, axis_types, axis_offsets), start=1)
         definition = {
             'name': name,
             'coordinate_reference_system': coordinate_reference_system[0]
         }
-        for i, (name, type_, offset) in iterator:
-            definition['axis_%d_name' % i] = name
+        for i, (axis_name, type_, offset) in iterator:
+            definition['axis_%d_name' % i] = axis_name
             definition['axis_%d_type' % i] = type_name_to_id[type_]
             definition['axis_%d_offset' % i] = offset
 
-        models.Grid.objects.create(**definition)
+        if kwargs['replace']:
+            # TODO
+            pass
+
+        grid = models.Grid(**definition)
+        grid.full_clean()
+        grid.save()
+        self.print_msg("Successfully created grid '%s'" % name)
 
     def handle_delete(self, name, **kwargs):
         """ Handle the deregistration a product
         """
         try:
             models.Grid.objects.get(name=name).delete()
+            self.print_msg("Successfully deleted grid '%s'" % name)
         except models.Grid.DoesNotExist:
             raise CommandError('No such Grid %r' % name)
+
+    def handle_list(self, **kwargs):
+        for grid in models.Grid.objects.all():
+            print(str(grid))
