@@ -26,6 +26,11 @@
 #-------------------------------------------------------------------------------
 
 from lxml.builder import ElementMaker
+from django.contrib.gis.geos import (
+    Polygon, MultiPolygon,
+    LineString, MultiLineString,
+    GeometryCollection,
+)
 
 from eoxserver.core.util.xmltools import NameSpace, NameSpaceMap
 from eoxserver.core.util.timetools import isoformat
@@ -47,6 +52,18 @@ EOP = ElementMaker(namespace=ns_eop.uri, nsmap=nsmap)
 
 
 class GML32Encoder(object):
+    def encode_line_string(self, linestring, sr):
+        frmt = "%.3f %.3f" if sr.projected else "%.8f %.8f"
+
+        swap = crss.getAxesSwapper(sr.srid)
+        pos_list = " ".join(frmt % swap(*point) for point in linestring)
+
+        return GML("LineString",
+            GML("posList",
+                pos_list
+            )
+        )
+
     def encode_linear_ring(self, ring, sr):
         frmt = "%.3f %.3f" if sr.projected else "%.8f %.8f"
 
@@ -68,6 +85,25 @@ class GML32Encoder(object):
                 self.encode_linear_ring(interior, polygon.srs)
             ) for interior in polygon[1:]),
             **{ns_gml("id"): "polygon_%s" % base_id}
+        )
+
+    def encode_multi_geometry(self, geom, base_id):
+        if isinstance(geom, LineString):
+            geom = [LineString]
+
+        geometry_members = []
+        for member in geom:
+            encoded = None
+            if isinstance(member, GeometryCollection):
+                encoded = self.encode_multi_geometry(geom, '%s_' % base_id)
+            else:
+                encoded = self.encode_line_string(member, member.srs)
+
+            geometry_members.append(GML("geometryMember", encoded))
+
+        return GML("MultiGeometry",
+            *geometry_members,
+            **{ns_gml("id"): "multi_geom_%s" % base_id}
         )
 
     def encode_multi_surface(self, geom, base_id):
@@ -102,8 +138,14 @@ class GML32Encoder(object):
 
 class EOP20Encoder(GML32Encoder):
     def encode_footprint(self, footprint, eo_id):
+        if isinstance(footprint, (MultiPolygon, Polygon)):
+            encoded = self.encode_multi_surface(footprint, eo_id)
+
+        elif isinstance(footprint, (LineString, MultiLineString, GeometryCollection)):
+            encoded = self.encode_multi_geometry(footprint, eo_id)
+
         return EOP("Footprint",
-            EOP("multiExtentOf", self.encode_multi_surface(footprint, eo_id)),
+            EOP("multiExtentOf", encoded),
             **{ns_gml("id"): "footprint_%s" % eo_id}
         )
 
