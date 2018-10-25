@@ -1,0 +1,10 @@
+from .getcapabilities import WCS21GetCapabilitiesHandler
+from .describecoverage import WCS21DescribeCoverageHandler
+from .getcoverage import WCS21GetCoverageHandler
+from .describeeocoverageset import WCS21DescribeEOCoverageSetHandler
+
+
+GetCapabilitiesHandler = WCS21GetCapabilitiesHandler
+DescribeCoverageHandler = WCS21DescribeCoverageHandler
+DescribeEOCoverageSetHandler = WCS21DescribeEOCoverageSetHandler
+GetCoverageHandler = WCS21GetCoverageHandler
