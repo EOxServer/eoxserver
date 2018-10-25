@@ -305,3 +305,15 @@ FIXTURE_DIRS = (
 # Set this variable if the path to the instance cannot be resolved
 # automatically, e.g. in case of redirects
 #FORCE_SCRIPT_NAME="/path/to/instance/"
+
+EOXS_COVERAGE_METADATA_FORMAT_READERS = [
+    # 'eoxserver.resources.coverages.metadata.coverage_formats.dimap_general.DimapGeneralFormatReader',
+    # 'eoxserver.resources.coverages.metadata.coverage_formats.eoom.EOOMFormatReader',
+    'eoxserver.resources.coverages.metadata.coverage_formats.cloudsat.Cloudsat2BGeoprofCoverageMetadataReader',
+    'eoxserver.resources.coverages.metadata.coverage_formats.gdal_dataset.GDALDatasetMetadataReader',
+    # 'eoxserver.resources.coverages.metadata.coverage_formats.inspire.InspireFormatReader',
+    # 'eoxserver.resources.coverages.metadata.coverage_formats.native.NativeFormat',
+    # 'eoxserver.resources.coverages.metadata.coverage_formats.native_config.NativeConfigFormatReader',
+    # 'eoxserver.resources.coverages.metadata.coverage_formats.landsat8_l1.Landsat8L1CoverageMetadataReader',
+]
+
