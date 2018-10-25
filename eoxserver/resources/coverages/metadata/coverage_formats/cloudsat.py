@@ -87,16 +87,18 @@ class Cloudsat2BGeoprofCoverageMetadataReader(object):
         # driver = sub_ds.GetDriver()
         size = (sub_ds.RasterXSize, sub_ds.RasterYSize)
 
-        stepsize = 10
+        stepsize = 1
         vdata = HDF(filename, HC.READ).vstart()
         lons = vdata.attach('Longitude')[:][0::stepsize]
         lats = vdata.attach('Latitude')[:][0::stepsize]
 
+        ls = LineString([
+            (lon[0], lat[0])
+            for lon, lat in zip(lons, lats)
+        ])
+
         footprint = MultiLineString(
-            LineString([
-                (lon[0], lat[0])
-                for lon, lat in zip(lons, lats)
-            ])
+            ls.simplify(tolerance=0.1)
         )
 
         values = {
