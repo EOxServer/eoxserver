@@ -338,6 +338,9 @@ def _apply_gtiff(outputformat, compression=None, jpeg_quality=None,
         if tileheight is not None:
             outputformat.setOption("BLOCKYSIZE", str(tileheight))
 
+    # big fat TODO
+    outputformat.setOption("PROFILE", "BASELINE")
+
 
 def get_format_by_mime(mime_type):
     """ Convenience function to return an enabled format descriptior for the

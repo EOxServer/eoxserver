@@ -26,6 +26,7 @@
 # ------------------------------------------------------------------------------
 
 DEFAULT_EOXS_MAPSERVER_CONNECTORS = [
+    'eoxserver.services.mapserver.connectors.subdatasets_connector.SubdatasetsConnector',
     'eoxserver.services.mapserver.connectors.simple_connector.SimpleConnector',
     'eoxserver.services.mapserver.connectors.multifile_connector.MultiFileConnector',
     'eoxserver.services.mapserver.connectors.mosaic_connector.MosaicConnector',
