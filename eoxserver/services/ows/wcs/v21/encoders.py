@@ -49,7 +49,7 @@ from eoxserver.services.ows.common.config import CapabilitiesConfigReader
 from eoxserver.services.ows.common.v20.encoders import OWS20Encoder
 from eoxserver.services.ows.wcs.v21.util import (
     nsmap, ns_xlink, ns_gml, ns_wcs, ns_eowcs,
-    OWS, GML, GMLCOV, WCS, CRS, EOWCS, SWE, INT, SUPPORTED_INTERPOLATIONS
+    OWS, GML, GMLCOV, CIS, WCS, CRS, EOWCS, SWE, INT, SUPPORTED_INTERPOLATIONS
 )
 from eoxserver.services.urls import get_http_service_url
 
@@ -442,20 +442,52 @@ class CIS10Encoder(WCS21BaseXMLEncoder, GML32Encoder):
 
 
 class CIS11Encoder(CIS10Encoder):
-    def encode_referenceable_grid(self, coverage, grid_name):
-        size_x, size_y = size
-        swap = crss.getAxesSwapper(sr.srid)
-        labels = ("x", "y") if sr.IsProjected() else ("long", "lat")
-        axis_labels = " ".join(swap(*labels))
 
-        return GML("GeneralGrid",
-            GML("axisLabels", axis_labels),
-            GML("GridLimits",
-                self.encode_grid_envelope(0, 0, size_x - 1, size_y - 1)
+    def encode_referenceable_grid(self, size):
+        size_x, size_y = size
+
+        return CIS(
+            "GeneralGrid",
+            CIS(
+                "IrregularAxisNest",
+                **{
+                    "axisLabels": "Lat Long date",
+                    "uomLabels": "deg deg d",
+                }
+            ),
+            CIS(
+                "DisplacementAxisNest",
+                **{
+                    "axisLabels": "h",
+                    "uomLabels": "m",
+                }
+            ),
+            CIS(
+                "GridLimits",
+                CIS(
+                    "IndexAxis",
+                    **{
+                        "axisLabel": "i",
+                        "lowerBound": 0,
+                        "upperBound": size_x,
+                    }
+                ),
+                CIS(
+                    "IndexAxis",
+                    **{
+                        "axisLabel": "i",
+                        "lowerBound": 0,
+                        "upperBound": size_y,
+                    }
+                ),
+                **{
+                    "srsName": "http://www.opengis.net/def/crs/OGC/0/Index2D",
+                    "axisLabels": "i j",
+                }
             ),
             **{
-                ns_gml("id"): self.get_gml_id(grid_name),
-                "dimension": "2"
+                "srsName": "http://www.opengis.net/def/crs-compound?1=http://www.opengis.net/def/crs/EPSG/0/4979&amp;2=http://www.opengis.net/def/crs/OGC/0/AnsiDate",
+                "axisLabels": "Lat Long h date",
             }
         )
 
@@ -465,19 +497,18 @@ class CIS11Encoder(CIS10Encoder):
         grid = coverage.grid
         # srs = SpatialReference(srid) if srid is not None else None
 
-        if grid:
+        if rectified:
             return GML("domainSet",
                 self.encode_rectified_grid(
                     grid, coverage, grid_name
                 )
             )
-        # else:
-        #     return GML("domainSet",
-        #         self.encode_referenceable_grid(
-        #             size or coverage.size, srs or coverage.spatial_reference,
-        #             grid_name
-        #         )
-        #     )
+        else:
+            return CIS("DomainSet",
+                self.encode_referenceable_grid(
+                    size or coverage.size,
+                )
+            )
 
 
 class WCS21CoverageDescriptionXMLEncoder(CIS11Encoder):

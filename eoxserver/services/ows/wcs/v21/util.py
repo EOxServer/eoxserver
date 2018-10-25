@@ -35,7 +35,7 @@ from eoxserver.core.util.xmltools import NameSpace, NameSpaceMap, ns_xsi
 from eoxserver.core.util.timetools import parse_iso8601
 from eoxserver.services.subset import Trim, Slice, is_temporal, all_axes
 from eoxserver.services.gml.v32.encoders import (
-    ns_gml, ns_gmlcov, ns_om, ns_eop, GML, GMLCOV, OM, EOP
+    ns_gml, ns_gmlcov, ns_cis, ns_om, ns_eop, GML, GMLCOV, CIS, OM, EOP
 )
 from eoxserver.services.ows.common.v20.encoders import ns_xlink, ns_ows, OWS
 from eoxserver.services.exceptions import (
@@ -59,8 +59,8 @@ ns_scal = NameSpace("http://www.opengis.net/wcs/scaling/1.0", "scal")
 
 # namespace map
 nsmap = NameSpaceMap(
-    ns_xlink, ns_ogc, ns_ows, ns_gml, ns_gmlcov, ns_wcs, ns_crs, ns_rsub,
-    ns_eowcs, ns_om, ns_eop, ns_swe, ns_int, ns_scal
+    ns_xlink, ns_ogc, ns_ows, ns_gml, ns_gmlcov, ns_cis, ns_wcs, ns_crs,
+    ns_rsub, ns_eowcs, ns_om, ns_eop, ns_swe, ns_int, ns_scal
 )
 
 # Element factories

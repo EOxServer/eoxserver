@@ -38,15 +38,18 @@ from eoxserver.resources.coverages import crss
 
 # namespace declarations
 ns_gml = NameSpace("http://www.opengis.net/gml/3.2", "gml")
-ns_gmlcov = NameSpace("http://www.opengis.net/gmlcov/1.0", "gmlcov")
+ns_gmlcov = NameSpace("http://www.opengis.net/gmlcov/1.0", "cis10")
+ns_cis = NameSpace("http://www.opengis.net/cis/1.1/gml", "cis11")
+
 ns_om = NameSpace("http://www.opengis.net/om/2.0", "om")
 ns_eop = NameSpace("http://www.opengis.net/eop/2.0", "eop")
 
-nsmap = NameSpaceMap(ns_gml, ns_gmlcov, ns_om, ns_eop)
+nsmap = NameSpaceMap(ns_gml, ns_gmlcov, ns_cis, ns_om, ns_eop)
 
 # Element factories
 GML = ElementMaker(namespace=ns_gml.uri, nsmap=nsmap)
 GMLCOV = ElementMaker(namespace=ns_gmlcov.uri, nsmap=nsmap)
+CIS = ElementMaker(namespace=ns_cis.uri, nsmap=nsmap)
 OM = ElementMaker(namespace=ns_om.uri, nsmap=nsmap)
 EOP = ElementMaker(namespace=ns_eop.uri, nsmap=nsmap)
 
