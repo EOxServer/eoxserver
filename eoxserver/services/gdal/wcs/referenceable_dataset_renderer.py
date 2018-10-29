@@ -111,9 +111,34 @@ class GDALReferenceableDatasetRenderer(object):
                     ), "size"
                 )
 
+        scale_x = 1
+        scale_y = 1
+        if params.scalefactor:
+            scale_x = params.scalefactor
+            scale_y = params.scalefactor
+
+        elif params.scales:
+            scale_x_obj = next(s for s in params.scales if s.axis == "x")
+            scale_y_obj = next(s for s in params.scales if s.axis == "y")
+
+            if hasattr(scale_x_obj, 'scale'):
+                scale_x = getattr(scale_x_obj, 'scale')
+            if hasattr(scale_x_obj, 'size'):
+                s_x = getattr(scale_x_obj, 'size')
+                scale_x = float(s_x) / dst_rect.size_x
+
+            if hasattr(scale_y_obj, 'scale'):
+                scale_y = getattr(scale_y_obj, 'scale')
+            if hasattr(scale_x_obj, 'size'):
+                s_y = getattr(scale_y_obj, 'size')
+                scale_y = float(s_y) / dst_rect.size_y
+
+            # TODO: scaleextent
+
         # perform subsetting either with or without rangesubsetting
         subsetted_ds = self.perform_subset(
-            src_ds, range_type, src_rect, dst_rect, params.rangesubset
+            src_ds, range_type, src_rect, dst_rect,
+            scale_x, scale_y, params.rangesubset
         )
 
         # encode the processed dataset and save it to the filesystem
@@ -254,8 +279,17 @@ class GDALReferenceableDatasetRenderer(object):
         return src_rect, dst_rect
 
     def perform_subset(self, src_ds, range_type, subset_rect, dst_rect,
-                       rangesubset=None):
-        vrt = VRTBuilder(*subset_rect.size)
+                       scale_x=1, scale_y=1, rangesubset=None):
+
+        if scale_x != 1 or scale_y != 1:
+            dst_rect = Rect(
+                dst_rect.offset_x * scale_x,
+                dst_rect.offset_y * scale_y,
+                int(round(dst_rect.size_x * scale_x)),
+                int(round(dst_rect.size_y * scale_y)),
+            )
+
+        vrt = VRTBuilder(*dst_rect.size)
 
         input_bands = list(range_type)
 
