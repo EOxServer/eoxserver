@@ -322,7 +322,8 @@ class GDALReferenceableDatasetRenderer(object):
 
         path = "/tmp/%s" % uuid4().hex
         out_driver = gdal.GetDriverByName("GTiff")
-        return out_driver.CreateCopy(path, dataset, True, args), out_driver
+        out_ds = out_driver.CreateCopy(path, dataset, False, args)
+        return out_ds, out_driver
 
 
 def index_of(iterable, predicate, default=None, start=1):
