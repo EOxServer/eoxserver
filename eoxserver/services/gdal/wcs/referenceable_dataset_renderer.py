@@ -101,16 +101,7 @@ class GDALReferenceableDatasetRenderer(object):
         #         "scalefactor" if params.scalefactor is not None else "scale"
         #     )
 
-        maxsize = WCSConfigReader(get_eoxserver_config()).maxsize
-        if maxsize is not None:
-            if maxsize < dst_rect.size_x or maxsize < dst_rect.size_y:
-                raise RenderException(
-                    "Requested image size %dpx x %dpx exceeds the allowed "
-                    "limit maxsize=%dpx." % (
-                        dst_rect.size_x, dst_rect.size_y, maxsize
-                    ), "size"
-                )
-
+        # apply scaling
         scale_x = 1
         scale_y = 1
         if params.scalefactor:
@@ -135,10 +126,28 @@ class GDALReferenceableDatasetRenderer(object):
 
             # TODO: scaleextent
 
+        if scale_x != 1 or scale_y != 1:
+            dst_rect = Rect(
+                dst_rect.offset_x * scale_x,
+                dst_rect.offset_y * scale_y,
+                int(round(dst_rect.size_x * scale_x)),
+                int(round(dst_rect.size_y * scale_y)),
+            )
+
+        # check that we are within the configured max-size
+        maxsize = WCSConfigReader(get_eoxserver_config()).maxsize
+        if maxsize is not None:
+            if maxsize < dst_rect.size_x or maxsize < dst_rect.size_y:
+                raise RenderException(
+                    "Requested image size %dpx x %dpx exceeds the allowed "
+                    "limit maxsize=%dpx." % (
+                        dst_rect.size_x, dst_rect.size_y, maxsize
+                    ), "size"
+                )
+
         # perform subsetting either with or without rangesubsetting
         subsetted_ds = self.perform_subset(
-            src_ds, range_type, src_rect, dst_rect,
-            scale_x, scale_y, params.rangesubset
+            src_ds, range_type, src_rect, dst_rect, params.rangesubset
         )
 
         # encode the processed dataset and save it to the filesystem
@@ -279,15 +288,7 @@ class GDALReferenceableDatasetRenderer(object):
         return src_rect, dst_rect
 
     def perform_subset(self, src_ds, range_type, subset_rect, dst_rect,
-                       scale_x=1, scale_y=1, rangesubset=None):
-
-        if scale_x != 1 or scale_y != 1:
-            dst_rect = Rect(
-                dst_rect.offset_x * scale_x,
-                dst_rect.offset_y * scale_y,
-                int(round(dst_rect.size_x * scale_x)),
-                int(round(dst_rect.size_y * scale_y)),
-            )
+                       rangesubset=None):
 
         vrt = VRTBuilder(*dst_rect.size)
 
