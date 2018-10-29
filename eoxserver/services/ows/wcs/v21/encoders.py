@@ -78,13 +78,23 @@ class WCS21BaseXMLEncoder(object):
         if not coverage.footprint or not coverage.begin_time or \
                 not coverage.end_time:
             subtype = "RectifiedGridCoverage"
-        elif coverage.grid and coverage.grid.axis_1_offset is None:
+        elif coverage.grid and coverage.grid[0].offset is None:
             subtype = "ReferenceableDataset"
 
         return subtype
 
 
 class WCS21CapabilitiesXMLEncoder(WCS21BaseXMLEncoder, OWS20Encoder):
+    def get_coverage_subtype(self, coverage):
+        subtype = "RectifiedDataset"
+        if not coverage.footprint or not coverage.begin_time or \
+                not coverage.end_time:
+            subtype = "RectifiedGridCoverage"
+        elif coverage.grid and coverage.grid.axis_1_offset is None:
+            subtype = "ReferenceableDataset"
+
+        return subtype
+
     def encode_service_metadata(self):
         service_metadata = WCS("ServiceMetadata")
 
