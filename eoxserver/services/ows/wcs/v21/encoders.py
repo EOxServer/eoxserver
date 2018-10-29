@@ -48,8 +48,8 @@ from eoxserver.services.ows.component import ServiceComponent, env
 from eoxserver.services.ows.common.config import CapabilitiesConfigReader
 from eoxserver.services.ows.common.v20.encoders import OWS20Encoder
 from eoxserver.services.ows.wcs.v21.util import (
-    nsmap, ns_xlink, ns_gml, ns_wcs, ns_eowcs,
-    OWS, GML, GMLCOV, CIS, WCS, CRS, EOWCS, SWE, INT, SUPPORTED_INTERPOLATIONS
+    nsmap, ns_xlink, ns_gml, ns_wcs20, ns_wcs21, ns_eowcs,
+    OWS, GML, GMLCOV, CIS, WCS20, WCS21, CRS, EOWCS, SWE, INT, SUPPORTED_INTERPOLATIONS
 )
 from eoxserver.services.urls import get_http_service_url
 
@@ -96,21 +96,21 @@ class WCS21CapabilitiesXMLEncoder(WCS21BaseXMLEncoder, OWS20Encoder):
         return subtype
 
     def encode_service_metadata(self):
-        service_metadata = WCS("ServiceMetadata")
+        service_metadata = WCS20("ServiceMetadata")
 
         # get the list of enabled formats from the format registry
         formats = filter(
             lambda f: f, getFormatRegistry().getSupportedFormatsWCS()
         )
         service_metadata.extend(
-            map(lambda f: WCS("formatSupported", f.mimeType), formats)
+            map(lambda f: WCS20("formatSupported", f.mimeType), formats)
         )
 
         # get a list of supported CRSs from the CRS registry
         supported_crss = crss.getSupportedCRS_WCS(
             format_function=crss.asURL
         )
-        extension = WCS("Extension")
+        extension = WCS20("Extension")
         service_metadata.append(extension)
         crs_metadata = CRS("CrsMetadata")
         extension.append(crs_metadata)
@@ -140,9 +140,9 @@ class WCS21CapabilitiesXMLEncoder(WCS21BaseXMLEncoder, OWS20Encoder):
 
         if coverages:
             contents.extend([
-                WCS("CoverageSummary",
-                    WCS("CoverageId", coverage.identifier),
-                    WCS("CoverageSubtype",
+                WCS20("CoverageSummary",
+                    WCS20("CoverageId", coverage.identifier),
+                    WCS20("CoverageSubtype",
                         self.get_coverage_subtype(coverage)
                     )
                 ) for coverage in coverages
@@ -196,9 +196,9 @@ class WCS21CapabilitiesXMLEncoder(WCS21BaseXMLEncoder, OWS20Encoder):
 
                 dataset_series_elements.append(dataset_series_summary)
 
-            contents.append(WCS("Extension", *dataset_series_elements))
+            contents.append(WCS20("Extension", *dataset_series_elements))
 
-        return WCS("Contents", *contents)
+        return WCS20("Contents", *contents)
 
     def encode_capabilities(self, sections, coverages_qs=None,
                             dataset_series_qs=None, request=None):
@@ -236,7 +236,7 @@ class WCS21CapabilitiesXMLEncoder(WCS21BaseXMLEncoder, OWS20Encoder):
                 )
             )
 
-        return WCS(
+        return WCS20(
             "Capabilities", *caps, version="2.1.0",
             updateSequence=conf.update_sequence
         )
@@ -459,17 +459,19 @@ class CIS11Encoder(CIS10Encoder):
         return CIS(
             "GeneralGrid",
             CIS(
-                "IrregularAxisNest",
-                **{
-                    "axisLabels": "Lat Long date",
-                    "uomLabels": "deg deg d",
-                }
-            ),
-            CIS(
                 "DisplacementAxisNest",
+                CIS("P", CIS("C")),
                 **{
                     "axisLabels": "h",
                     "uomLabels": "m",
+                }
+            ),
+            CIS(
+                "IrregularAxisNest",
+                CIS("P", CIS("C"), CIS("C"), CIS("C")),
+                **{
+                    "axisLabels": "Lat Long date",
+                    "uomLabels": "deg deg d",
                 }
             ),
             CIS(
@@ -633,8 +635,10 @@ class CIS11Encoder(CIS10Encoder):
         )
 
     def encode_range_type(self, range_type):
-        return CIS("rangeType",
-            SWE("DataRecord",
+        return CIS(
+            "RangeType",
+            SWE(
+                "DataRecord",
                 *[self.encode_field(band) for band in range_type]
             )
         )
@@ -644,24 +648,26 @@ class WCS21CoverageDescriptionXMLEncoder(CIS11Encoder):
     def encode_coverage_description(self, coverage):
         grid = coverage.grid
 
-        return WCS("CoverageDescription",
+        return WCS21(
+            "CoverageDescription",
             self.encode_envelope(coverage, grid),
             self.encode_domain_set(coverage, rectified=(grid is not None)),
             self.encode_range_type(coverage.range_type),
-            WCS("ServiceParameters",
-                WCS("CoverageSubtype", self.get_coverage_subtype(coverage))
+            WCS20(
+                "ServiceParameters",
+                WCS20("CoverageSubtype", self.get_coverage_subtype(coverage))
             ),
             **{ns_gml("id"): self.get_gml_id(coverage.identifier)}
         )
 
     def encode_coverage_descriptions(self, coverages):
-        return WCS("CoverageDescriptions", *[
+        return WCS21("CoverageDescriptions", *[
             self.encode_coverage_description(coverage)
             for coverage in coverages
         ])
 
     def get_schema_locations(self):
-        return {ns_wcs.uri: ns_wcs.schema_location}
+        return {ns_wcs21.uri: ns_wcs21.schema_location}
 
 
 class WCS21EOXMLEncoder(WCS21CoverageDescriptionXMLEncoder, EOP20Encoder,
@@ -764,14 +770,16 @@ class WCS21EOXMLEncoder(WCS21CoverageDescriptionXMLEncoder, EOP20Encoder,
 
         rectified = (not coverage.grid.is_referenceable)
 
-        return WCS("CoverageDescription",
+        return WCS21(
+            "CoverageDescription",
             self.encode_envelope(coverage, coverage.grid),
+            self.encode_eo_metadata(coverage),
             self.encode_domain_set(coverage, srid, size, extent, rectified),
             self.encode_range_type(coverage.range_type),
-            self.encode_eo_metadata(coverage),
-            WCS("ServiceParameters",
-                WCS("CoverageSubtype", self.get_coverage_subtype(coverage)),
-                WCS(
+            WCS20(
+                "ServiceParameters",
+                WCS20("CoverageSubtype", self.get_coverage_subtype(coverage)),
+                WCS20(
                     "nativeFormat",
                     native_format.mimeType if native_format else ""
                 )
@@ -828,7 +836,7 @@ class WCS21EOXMLEncoder(WCS21CoverageDescriptionXMLEncoder, EOP20Encoder,
 
         return EOWCS("datasets", *[
             EOWCS("dataset",
-                WCS("CoverageId", eo_object.identifier),
+                WCS20("CoverageId", eo_object.identifier),
                 EOWCS("contributingFootprint",
                     self.encode_footprint(
                         contrib, eo_object.identifier

@@ -48,7 +48,8 @@ from eoxserver.services.exceptions import (
 
 # namespace declarations
 ns_ogc = NameSpace("http://www.opengis.net/ogc", "ogc")
-ns_wcs = NameSpace("http://www.opengis.net/wcs/2.1/gml", "wcs")
+ns_wcs20 = NameSpace("http://www.opengis.net/wcs/2.0", "wcs20")
+ns_wcs21 = NameSpace("http://www.opengis.net/wcs/2.1/gml", "wcs21")
 ns_crs = NameSpace("http://www.opengis.net/wcs/crs/1.0", "crs")
 ns_rsub = NameSpace("http://www.opengis.net/wcs/range-subsetting/1.0", "rsub")
 ns_eowcs = NameSpace("http://www.opengis.net/wcs/wcseo/1.0", "wcseo",
@@ -59,13 +60,14 @@ ns_scal = NameSpace("http://www.opengis.net/wcs/scaling/1.0", "scal")
 
 # namespace map
 nsmap = NameSpaceMap(
-    ns_xlink, ns_ogc, ns_ows, ns_gml, ns_gmlcov, ns_cis, ns_wcs, ns_crs,
-    ns_rsub, ns_eowcs, ns_om, ns_eop, ns_swe, ns_int, ns_scal
+    ns_xlink, ns_ogc, ns_ows, ns_gml, ns_gmlcov, ns_cis, ns_wcs20, ns_wcs21,
+    ns_crs, ns_rsub, ns_eowcs, ns_om, ns_eop, ns_swe, ns_int, ns_scal
 )
 
 # Element factories
 
-WCS = ElementMaker(namespace=ns_wcs.uri, nsmap=nsmap)
+WCS20 = ElementMaker(namespace=ns_wcs20.uri, nsmap=nsmap)
+WCS21 = ElementMaker(namespace=ns_wcs21.uri, nsmap=nsmap)
 CRS = ElementMaker(namespace=ns_crs.uri, nsmap=nsmap)
 EOWCS = ElementMaker(namespace=ns_eowcs.uri, nsmap=nsmap)
 SWE = ElementMaker(namespace=ns_swe.uri, nsmap=nsmap)
