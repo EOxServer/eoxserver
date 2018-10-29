@@ -29,7 +29,7 @@ from eoxserver.core.decoders import (
     kvp, xml, enum, value_range, boolean, InvalidParameterException
 )
 from eoxserver.core.util.xmltools import NameSpace, NameSpaceMap
-from eoxserver.services.ows.wcs.v21.util import ns_wcs
+from eoxserver.services.ows.wcs.v21.util import ns_wcs21
 
 
 class WCS21GeoTIFFEncodingExtension(object):
@@ -121,5 +121,5 @@ class WCS21GeoTIFFEncodingExtensionXMLDecoder(xml.Decoder):
     tilewidth   = xml.Parameter("wcs:Extension/geotiff:parameters/geotiff:tilewidth/text()", num="?", type=parse_multiple_16, locator="geotiff:tilewidth")
 
     namespaces = NameSpaceMap(
-        ns_wcs, NameSpace("http://www.opengis.net/gmlcov/geotiff/1.0", "geotiff")
+        ns_wcs21, NameSpace("http://www.opengis.net/gmlcov/geotiff/1.0", "geotiff")
     )

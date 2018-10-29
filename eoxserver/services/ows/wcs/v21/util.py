@@ -274,18 +274,18 @@ def parse_subset_xml(elem):
     """
 
     try:
-        dimension = elem.findtext(ns_wcs("Dimension"))
+        dimension = elem.findtext(ns_wcs20("Dimension"))
         parser = get_parser_for_axis(dimension)
-        if elem.tag == ns_wcs("DimensionTrim"):
+        if elem.tag == ns_wcs20("DimensionTrim"):
             return Trim(
                 dimension,
-                parser(elem.findtext(ns_wcs("TrimLow"))),
-                parser(elem.findtext(ns_wcs("TrimHigh")))
+                parser(elem.findtext(ns_wcs20("TrimLow"))),
+                parser(elem.findtext(ns_wcs20("TrimHigh")))
             )
-        elif elem.tag == ns_wcs("DimensionSlice"):
+        elif elem.tag == ns_wcs20("DimensionSlice"):
             return Slice(
                 dimension,
-                parser(elem.findtext(ns_wcs("SlicePoint")))
+                parser(elem.findtext(ns_wcs20("SlicePoint")))
             )
     except Exception, e:
         raise InvalidSubsettingException(str(e))
