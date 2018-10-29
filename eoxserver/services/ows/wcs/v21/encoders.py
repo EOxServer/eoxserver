@@ -427,7 +427,7 @@ class CIS10Encoder(WCS21BaseXMLEncoder, GML32Encoder):
                 SWE("constraint",
                     SWE("AllowedValues",
                         *[
-                            SWE("interval", "%s %s" % value_range)
+                            SWE("interval", "%d %d" % value_range)
                             for value_range in field.allowed_values
                         ] + [
                             SWE("significantFigures", str(
