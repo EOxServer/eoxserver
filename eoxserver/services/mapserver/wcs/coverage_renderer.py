@@ -93,7 +93,11 @@ class RectifiedCoverageMapServerRenderer(BaseRenderer):
         #     (params.version in self.versions_partly
         #     and issubclass(params.coverage.real_type, self.handles_partly))
         # )
-        return params.version in self.versions
+
+        return (
+            params.version in self.versions and
+            not params.coverage.grid.is_referenceable
+        )
 
     def render(self, params):
         # get coverage related stuff
