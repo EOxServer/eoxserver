@@ -74,6 +74,16 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             )
         )
         create_parser.add_argument(
+            '--reference-type', '--axis-reference-type', '-r',
+            dest='axis_reference_types', default=[],
+            action='append',
+            choices=[choice[1] for choice in models.Grid.AXIS_REFERENCE_TYPES],
+            help=(
+                'The reference type of one axis. Must be passed at least once '
+                'and up to four times.'
+            )
+        )
+        create_parser.add_argument(
             '--offset', '--axis-offset', '-o', dest='axis_offsets', default=[],
             action='append',
             help=(
@@ -81,13 +91,11 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
                 'to four times.'
             )
         )
-
-        # TODO:
         create_parser.add_argument(
-            '--referenceable', action='store_true', default=False,
-        )
-        create_parser.add_argument(
-            '--replace', '-r', action='store_true', default=False,
+            '--replace', action='store_true', default=False,
+            help=(
+                'Replace the previous grid of the same name.'
+            )
         )
 
         delete_parser.add_argument(
@@ -146,19 +154,47 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             definition['axis_%d_offset' % i] = offset
 
         if kwargs['replace']:
-            # TODO
-            pass
+            try:
+                old_grid = models.Grid.objects.get(name=name)
+                self.print_msg("Replacing grid '%s'" % name)
+
+                collections = models.Collection.objects.filter(grid=old_grid)
+                collections.update(grid=None)
+
+                mosaics = models.Mosaic.objects.filter(grid=old_grid)
+                mosaics.update(grid=None)
+
+                coverages = models.Coverage.objects.filter(grid=old_grid)
+                coverages.update(grid=None)
+
+                old_grid.delete()
+
+            except models.Grid.DoesNotExist:
+                kwargs['replace'] = False
 
         grid = models.Grid(**definition)
         grid.full_clean()
         grid.save()
-        self.print_msg("Successfully created grid '%s'" % name)
+        self.print_msg("Successfully %s grid '%s'" % (
+            'replaced' if kwargs['replace'] else 'created', name
+        ))
 
-    def handle_delete(self, name, **kwargs):
+        # reset the grid to the new one, when replacing
+        if kwargs['replace']:
+            collections.update(grid=grid)
+            mosaics.update(grid=grid)
+            coverages.update(grid=grid)
+
+    def handle_delete(self, name, force, **kwargs):
         """ Handle the deregistration a product
         """
         try:
-            models.Grid.objects.get(name=name).delete()
+            grid = models.Grid.objects.get(name=name)
+            if force:
+                models.Collection.objects.filter(grid=grid).delete()
+                models.Mosaic.objects.filter(grid=grid).delete()
+                models.Coverage.objects.filter(grid=grid).delete()
+
             self.print_msg("Successfully deleted grid '%s'" % name)
         except models.Grid.DoesNotExist:
             raise CommandError('No such Grid %r' % name)

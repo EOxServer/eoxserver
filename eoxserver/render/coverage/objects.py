@@ -30,7 +30,7 @@ from itertools import izip_longest
 from eoxserver.core.util.timetools import parse_iso8601, parse_duration
 from eoxserver.contrib import gdal
 from eoxserver.contrib.osr import SpatialReference
-from eoxserver.backends.access import get_vsi_path
+from eoxserver.backends.access import get_vsi_path, AccessError
 
 GRID_TYPE_ELEVATION = 1
 GRID_TYPE_TEMPORAL = 2
@@ -532,13 +532,22 @@ class Coverage(object):
                     coverage_model.footprint
                 )
 
-        arraydata_locations = [
-            ArraydataLocation(
-                get_vsi_path(item), item.format,
-                item.field_index, item.field_index + (item.band_count - 1)
-            )
-            for item in coverage_model.arraydata_items.all()
-        ]
+        arraydata_locations = []
+
+        for item in coverage_model.arraydata_items.all():
+            try:
+                vsi_path = get_vsi_path(item)
+                l = ArraydataLocation(
+                    vsi_path, item.format,
+                    item.field_index, item.field_index + (item.band_count - 1)
+                )
+            except AccessError:
+                l = ArraydataLocation(
+                    [item.storage.url, item.location], 'HDF',
+                    item.field_index, item.field_index + (item.band_count - 1)
+                )
+
+            arraydata_locations.append(l)
 
         metadata_locations = [
             Location(get_vsi_path(item), item.format)
@@ -550,10 +559,28 @@ class Coverage(object):
                 coverage_model.coverage_type
             )
         else:
-            range_type = RangeType.from_gdal_dataset(
-                gdal.OpenShared(arraydata_locations[0].path),
-                coverage_model.identifier
+            # range_type = RangeType.from_gdal_dataset(
+            #     gdal.OpenShared(arraydata_locations[0].path),
+            #     coverage_model.identifier
+            # )
+            fields = []
+            fields.append(
+                Field(
+                    index=1,
+                    identifier=arraydata_locations[0].path[1],
+                    # TODO: get info from band metadata?
+                    description="",
+                    definition="",
+                    unit_of_measure="",
+                    wavelength="",
+                    significant_figures=5,
+                    allowed_values=[],
+                    nil_values=[],
+                    data_type=gdal.GDT_Byte,
+                    data_type_range=gdal.GDT_NUMERIC_LIMITS.get(gdal.GDT_Byte)
+                )
             )
+            range_type = RangeType(arraydata_locations[0].path[1], fields)
 
         grid = Grid.from_model(coverage_model.grid)
 

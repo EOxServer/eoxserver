@@ -454,6 +454,8 @@ class BaseRegistrator(object):
         return grid
 
     def resolve_storage(self, storage_paths):
+
+        print storage_paths
         if not storage_paths:
             return None
 

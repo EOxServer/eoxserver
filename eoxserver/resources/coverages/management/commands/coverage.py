@@ -35,8 +35,8 @@ from eoxserver.resources.coverages import models
 from eoxserver.resources.coverages.management.commands import (
     CommandOutputMixIn, SubParserMixIn
 )
-from eoxserver.resources.coverages.registration.registrators.gdal import (
-    GDALRegistrator
+from eoxserver.resources.coverages.registration.coverage import (
+    get_coverage_registrator
 )
 
 
@@ -141,6 +141,13 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
                 'product will be printed to stdout.'
             )
         )
+        register_parser.add_argument(
+            '--registrator', dest='registrator',
+            default=None,
+            help=(
+                'Define what registrator shall be used.'
+            )
+        )
 
         deregister_parser.add_argument(
             'identifier', nargs=1,
@@ -170,7 +177,9 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             if kwargs.get(key)
         }
 
-        report = GDALRegistrator().register(
+        registrator = get_coverage_registrator(kwargs.get('registrator'))
+
+        report = registrator.register(
             data_locations=data_locations,
             metadata_locations=metadata_locations,
             coverage_type_name=coverage_type_name,

@@ -234,6 +234,14 @@ class Grid(models.Model):
         (0, 'spatial'),
         (1, 'elevation'),
         (2, 'temporal'),
+        (3, 'index'),
+        (4, 'other'),
+    ]
+
+    AXIS_REFERENCE_TYPES = [
+        (0, 'regular'),
+        (1, 'irregular'),
+        (2, 'displaced'),
         (3, 'other'),
     ]
 
@@ -258,6 +266,11 @@ class Grid(models.Model):
     axis_2_offset = models.CharField(max_length=256, **optional)
     axis_3_offset = models.CharField(max_length=256, **optional)
     axis_4_offset = models.CharField(max_length=256, **optional)
+
+    axis_1_reference_type = models.SmallIntegerField(choices=AXIS_REFERENCE_TYPES, default=0, **mandatory)
+    axis_2_reference_type = models.SmallIntegerField(choices=AXIS_REFERENCE_TYPES, default=0, **optional)
+    axis_3_reference_type = models.SmallIntegerField(choices=AXIS_REFERENCE_TYPES, default=0, **optional)
+    axis_4_reference_type = models.SmallIntegerField(choices=AXIS_REFERENCE_TYPES, default=0, **optional)
 
     resolution = models.PositiveIntegerField(**optional)
 
