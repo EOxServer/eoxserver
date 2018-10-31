@@ -30,10 +30,13 @@ from os.path import join
 from datetime import datetime
 from uuid import uuid4
 import logging
+import csv
+import tempfile
 
 from pyhdf.HDF import HDF, HC
 from pyhdf.SD import SD
 import pyhdf.VS
+
 
 import numpy as np
 from scipy.interpolate import interp1d
@@ -55,6 +58,14 @@ from eoxserver.processing.gdal import reftools
 logger = logging.getLogger(__name__)
 
 
+INTERPOLATION_MAP = {
+    "nearest-neighbour": "nearest",
+    "bilinear": "linear",
+    "cubic": "cubic",
+    "cubic-spline": "cubic",
+}
+
+
 class PyHDFCoverageRenderer(object):
     versions = (Version(2, 1),)
 
@@ -69,11 +80,7 @@ class PyHDFCoverageRenderer(object):
         data_items = coverage.arraydata_locations
         range_type = coverage.range_type
 
-        print coverage, range_type
-
         filename, part = params.coverage.arraydata_locations[0].path
-
-        print part
 
         if part in ('Latitude', 'Longitude', 'Profile_time'):
             vdata = HDF(str(filename), HC.READ).vstart()
@@ -92,30 +99,44 @@ class PyHDFCoverageRenderer(object):
 
                     # TODO: subset slice
 
-                cur_size = data.shape[0]
+            cur_size = data.shape[0]
 
+            new_size = None
+            if params.scalefactor:
+                new_size = float(cur_size) * params.scalefactor
 
-                if params.scalefactor:
-                    size = float(cur_size) * params.scalefactor
+            elif params.scales and params.scales[0].axis == 'x':
+                scale = params.scales[0]
+                if hasattr(scale, 'scale'):
+                    new_size = float(cur_size) * scale.scale
+                elif hasattr(scale, 'size'):
+                    new_size = scale.size
 
-                    old_x = np.linspace(0, 1, cur_size)
-                    new_x = np.linspace(0, 1, size)
+            if new_size is not None:
+                old_x = np.linspace(0, 1, cur_size)
+                new_x = np.linspace(0, 1, new_size)
 
-                    print data
+                if params.interpolation:
+                    interpolation = INTERPOLATION_MAP[params.interpolation]
+                else:
+                    interpolation = 'nearest'
 
-                    data = interp1d(old_x, data, kind='nearest')(new_x)
-
-                    print data
-
+                data = interp1d(old_x, data, kind=interpolation)(new_x)
 
         if part == 'Height':
             sd_file = SD(str(filename))
             data = sd_file.select(str(part))[:]
             data = np.array(data)
 
+        out_path = '/tmp/%s.csv' % uuid4().hex
+        with open(out_path, 'w') as f:
+            writer = csv.writer(f)
+            writer.writerow([part])
+            writer.writerows(data.reshape((data.shape[0], 1)))
 
-
-
+        return [
+            ResultFile(out_path, 'text/csv', '%s.csv' % coverage.identifier)
+        ]
         # if params.subset
 
 

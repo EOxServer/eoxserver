@@ -36,6 +36,7 @@ DEFAULT_EOXS_COVERAGE_DESCRIPTION_RENDERERS = [
 ]
 
 DEFAULT_EOXS_COVERAGE_RENDERERS = [
+    'eoxserver.services.pyhdf.coverage_renderer.PyHDFCoverageRenderer',
     'eoxserver.services.mapserver.wcs.coverage_renderer.RectifiedCoverageMapServerRenderer',
     'eoxserver.services.gdal.wcs.referenceable_dataset_renderer.GDALReferenceableDatasetRenderer',
 ]
