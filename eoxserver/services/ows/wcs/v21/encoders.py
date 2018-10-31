@@ -461,7 +461,7 @@ class CIS11Encoder(CIS10Encoder):
         self.http_request = http_request
         super(CIS11Encoder, self).__init__(*args, **kwargs)
 
-    def encode_referenceable_grid(self, size):
+    def encode_referenceable_grid(self, size, identifier):
         size_x, size_y = size
 
         http_service_url = get_http_service_url(self.http_request)
@@ -473,7 +473,7 @@ class CIS11Encoder(CIS10Encoder):
                 OWC("offering",
                     OWC("operation",
                         href="%s?service=WCS&version=2.1.0&request=GetCoverage&coverageId=%s_height&format=image/tiff" % (
-                            http_service_url, "identifier"
+                            http_service_url, identifier
                         ),
                         code="GetCoverage",
                         type="image/tiff",
@@ -488,7 +488,7 @@ class CIS11Encoder(CIS10Encoder):
                 OWC("offering",
                     OWC("operation",
                         href="%s?service=WCS&version=2.1.0&request=GetCoverage&coverageId=%s_latitude&format=text/csv" % (
-                            http_service_url, "identifier"
+                            http_service_url, identifier
                         ),
                         code="GetCoverage",
                         type="image/tiff",
@@ -498,7 +498,7 @@ class CIS11Encoder(CIS10Encoder):
                 OWC("offering",
                     OWC("operation",
                         href="%s?service=WCS&version=2.1.0&request=GetCoverage&coverageId=%s_longitude&format=text/csv" % (
-                            http_service_url, "identifier"
+                            http_service_url, identifier
                         ),
                         code="GetCoverage",
                         type="image/tiff",
@@ -508,7 +508,7 @@ class CIS11Encoder(CIS10Encoder):
                 OWC("offering",
                     OWC("operation",
                         href="%s?service=WCS&version=2.1.0&request=GetCoverage&coverageId=%s_profile_time&format=text/csv" % (
-                            http_service_url, "identifier"
+                            http_service_url, identifier
                         ),
                         code="GetCoverage",
                         type="image/tiff",
@@ -558,7 +558,7 @@ class CIS11Encoder(CIS10Encoder):
         else:
             return CIS("DomainSet",
                 self.encode_referenceable_grid(
-                    size or coverage.size,
+                    size or coverage.size, coverage.identifier
                 )
             )
 
