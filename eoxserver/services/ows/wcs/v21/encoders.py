@@ -491,7 +491,7 @@ class CIS11Encoder(CIS10Encoder):
                             http_service_url, identifier
                         ),
                         code="GetCoverage",
-                        type="image/tiff",
+                        type="text/csv",
                         method="GET",
                     )
                 ),
@@ -501,7 +501,7 @@ class CIS11Encoder(CIS10Encoder):
                             http_service_url, identifier
                         ),
                         code="GetCoverage",
-                        type="image/tiff",
+                        type="text/csv",
                         method="GET",
                     )
                 ),
@@ -511,7 +511,7 @@ class CIS11Encoder(CIS10Encoder):
                             http_service_url, identifier
                         ),
                         code="GetCoverage",
-                        type="image/tiff",
+                        type="text/csv",
                         method="GET",
                     )
                 ),
