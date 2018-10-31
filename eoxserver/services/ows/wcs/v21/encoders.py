@@ -551,29 +551,41 @@ class CIS11Encoder(CIS10Encoder):
             srs_name = sr.url
 
         elif grid:
-            sr = SpatialReference(grid.coordinate_reference_system)
-            labels = grid.names
-            axis_units = " ".join(
-                ["m" if sr.IsProjected() else "deg"] * len(labels)
-            )
-            extent = list(coverage.extent)
+            try:
+                sr = SpatialReference(str(grid.coordinate_reference_system))
+                labels = grid.names
+                axis_units = " ".join(
+                    ["m" if sr.IsProjected() else "deg"] * len(labels)
+                )
+                extent = list(coverage.extent)
 
-            lc = extent[:len(extent) / 2]
-            uc = extent[len(extent) / 2:]
+                lc = extent[:len(extent) / 2]
+                uc = extent[len(extent) / 2:]
 
-            if crss.hasSwappedAxes(sr.srid):
-                labels[0:2] = labels[1], labels[0]
-                lc[0:2] = lc[1], lc[0]
-                uc[0:2] = uc[1], uc[0]
+                if crss.hasSwappedAxes(sr.srid):
+                    labels[0:2] = labels[1], labels[0]
+                    lc[0:2] = lc[1], lc[0]
+                    uc[0:2] = uc[1], uc[0]
 
-            frmt = " ".join(
-                ["%.3f" if sr.IsProjected() else "%.8f"] * len(labels)
-            )
+                frmt = " ".join(
+                    ["%.3f" if sr.IsProjected() else "%.8f"] * len(labels)
+                )
 
-            lower_corner = frmt % tuple(lc)
-            upper_corner = frmt % tuple(uc)
-            axis_labels = " ".join(labels)
-            srs_name = sr.url
+                lower_corner = frmt % tuple(lc)
+                upper_corner = frmt % tuple(uc)
+                axis_labels = " ".join(labels)
+                srs_name = sr.url
+            except RuntimeError:
+                lower_corner = ""
+                upper_corner = ""
+                srs_name = ""
+                axis_labels = ""
+                axis_units = ""
+
+                minx = 0
+                miny = 0
+                maxx = 0
+                maxy = 0
 
         else:
             lower_corner = ""
@@ -741,11 +753,13 @@ class WCS21EOXMLEncoder(WCS21CoverageDescriptionXMLEncoder, EOP20Encoder,
 
         native_format = None
         if source_mime:
-            source_format = getFormatRegistry().getFormatByMIME(source_mime)
-            # map the source format to the native one
-            native_format = getFormatRegistry().mapSourceToNativeWCS21(
-                source_format
-            )
+            # source_format = getFormatRegistry().getFormatByMIME(source_mime)
+            # # map the source format to the native one
+            # native_format = getFormatRegistry().mapSourceToNativeWCS21(
+            #     source_format
+            # )
+            # native_format = 'application/hdf'
+            pass
         # elif issubclass(coverage.real_type, RectifiedStitchedMosaic):
         #     # use the default format for RectifiedStitchedMosaics
         #     native_format = getFormatRegistry().getDefaultNativeFormat()

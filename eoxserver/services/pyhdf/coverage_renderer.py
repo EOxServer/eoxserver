@@ -44,7 +44,7 @@ from scipy.interpolate import interp1d
 from eoxserver.core.config import get_eoxserver_config
 from eoxserver.core.decoders import config
 from eoxserver.core.util.rect import Rect
-from eoxserver.contrib import vsi, vrt, gdal
+from eoxserver.contrib import vsi, vrt, gdal, gdal_array
 from eoxserver.contrib.vrt import VRTBuilder
 from eoxserver.services.ows.version import Version
 from eoxserver.services.result import ResultFile, ResultBuffer
@@ -125,24 +125,94 @@ class PyHDFCoverageRenderer(object):
 
         if part == 'Height':
             sd_file = SD(str(filename))
-            data = sd_file.select(str(part))[:]
-            data = np.array(data)
+            data = sd_file.select(str(part))
 
-        out_path = '/tmp/%s.csv' % uuid4().hex
-        with open(out_path, 'w') as f:
-            writer = csv.writer(f)
-            writer.writerow([part])
-            writer.writerows(data.reshape((data.shape[0], 1)))
+            slc_x = slice(None)
+            slc_y = slice(None)
 
-        return [
-            ResultFile(out_path, 'text/csv', '%s.csv' % coverage.identifier)
-        ]
-        # if params.subset
+            for subset in params.subsets:
+                if subset.is_x:
+                    if hasattr(subset, 'low'):
+                        if subset.low is not None and subset.high is not None:
+                            slc_x = slice(int(subset.low), int(subset.high))
+                        elif subset.low is not None:
+                            slc_x = slice(subset.low, None)
+                        elif subset.high is not None:
+                            slc_x = slice(None, int(subset.high))
+                    if hasattr(subset, 'value'):
+                        slc_x = int(subset.value)
 
+                if subset.is_y:
+                    if hasattr(subset, 'low'):
+                        if subset.low is not None and subset.high is not None:
+                            slc_y = slice(int(subset.low), int(subset.high))
+                        elif subset.low is not None:
+                            slc_y = slice(int(subset.low), None)
+                        elif subset.high is not None:
+                            slc_y = slice(None, int(subset.high))
+                    if hasattr(subset, 'value'):
+                        slc_y = int(subset.value)
 
-        # import pdb; pdb.set_trace()
+            data = data[slc_x, slc_y]
 
-        print data[:10]
+            for d, name in ((0, 'x'), (1, 'y')):
+                cur_size = data.shape[d]
 
+                new_size = None
+                if params.scalefactor:
+                    new_size = float(cur_size) * params.scalefactor
 
+                for scale in params.scales:
+                    if scale.axis != name:
+                        continue
 
+                    if hasattr(scale, 'scale'):
+                        new_size = float(cur_size) * scale.scale
+                    elif hasattr(scale, 'size'):
+                        new_size = scale.size
+
+                if new_size is not None:
+                    old_x = np.linspace(0, 1, cur_size)
+                    new_x = np.linspace(0, 1, new_size)
+
+                    if params.interpolation:
+                        interpolation = INTERPOLATION_MAP[params.interpolation]
+                    else:
+                        interpolation = 'nearest'
+
+                    data = interp1d(
+                        old_x, data, kind=interpolation, axis=d
+                    )(new_x)
+
+        frmt = params.format
+
+        if not frmt:
+            raise Exception('Missing format')
+
+        if frmt == 'text/csv':
+            if data.ndim != 1:
+                raise Exception('CSV encoding only possible for 1D outputs.')
+
+            out_path = '/tmp/%s.csv' % uuid4().hex
+
+            with open(out_path, 'w') as f:
+                writer = csv.writer(f)
+                writer.writerow([part])
+                writer.writerows(data.reshape((data.shape[0], 1)))
+
+            return [
+                ResultFile(out_path, 'text/csv', '%s.csv' % coverage.identifier)
+            ]
+
+        if frmt == 'image/tiff':
+            if data.ndim != 2:
+                raise Exception('TIFF encoding only possible for 2D outputs.')
+
+            out_path = '/tmp/%s.tif' % uuid4().hex
+            gdal_array.SaveArray(data, out_path, 'GTiff')
+
+            return [
+                ResultFile(
+                    out_path, 'image/tiff', '%s.tif' % coverage.identifier
+                )
+            ]
