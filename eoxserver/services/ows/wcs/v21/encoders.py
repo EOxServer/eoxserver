@@ -648,8 +648,8 @@ class CIS11Encoder(CIS10Encoder):
                 **{
                     "axisLabel": "Lat",
                     "uomLabel": "deg",
-                    "lowerBound": str(minx),
-                    "upperBound": str(maxx)
+                    "lowerBound": str(miny),
+                    "upperBound": str(maxy)
                 }
             ),
             CIS(
@@ -657,8 +657,8 @@ class CIS11Encoder(CIS10Encoder):
                 **{
                     "axisLabel": "Long",
                     "uomLabel": "deg",
-                    "lowerBound": str(miny),
-                    "upperBound": str(maxy)
+                    "lowerBound": str(minx),
+                    "upperBound": str(maxx)
                 }
             ),
             CIS(
@@ -1011,4 +1011,7 @@ class WCS21EOXMLEncoder(WCS21CoverageDescriptionXMLEncoder, EOP20Encoder,
         return root
 
     def get_schema_locations(self):
-        return {ns_eowcs.uri: ns_eowcs.schema_location}
+        return {
+            ns_wcs21.uri: ns_wcs21.schema_location,
+            ns_eowcs.uri: ns_eowcs.schema_location
+        }

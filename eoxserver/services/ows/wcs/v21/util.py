@@ -49,7 +49,8 @@ from eoxserver.services.exceptions import (
 # namespace declarations
 ns_ogc = NameSpace("http://www.opengis.net/ogc", "ogc")
 ns_wcs20 = NameSpace("http://www.opengis.net/wcs/2.0", "wcs20")
-ns_wcs21 = NameSpace("http://www.opengis.net/wcs/2.1/gml", "wcs21")
+ns_wcs21 = NameSpace("http://www.opengis.net/wcs/2.1/gml", "wcs21",
+                     "http://schemas.opengis.net/wcs/2.1/gml/wcsAll.xsd")
 ns_crs = NameSpace("http://www.opengis.net/wcs/crs/1.0", "crs")
 ns_rsub = NameSpace("http://www.opengis.net/wcs/range-subsetting/1.0", "rsub")
 ns_eowcs = NameSpace("http://www.opengis.net/wcs/wcseo/1.0", "wcseo",
@@ -57,7 +58,7 @@ ns_eowcs = NameSpace("http://www.opengis.net/wcs/wcseo/1.0", "wcseo",
 ns_swe = NameSpace("http://www.opengis.net/swe/2.0", "swe")
 ns_int = NameSpace("http://www.opengis.net/wcs/interpolation/1.0", "int")
 ns_scal = NameSpace("http://www.opengis.net/wcs/scaling/1.0", "scal")
-ns_owc = NameSpace("ttp://www.opengis.net/owc/1.0", "owc")
+ns_owc = NameSpace("http://www.opengis.net/owc/1.0", "owc")
 
 # namespace map
 nsmap = NameSpaceMap(
