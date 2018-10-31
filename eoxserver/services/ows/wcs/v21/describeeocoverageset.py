@@ -184,7 +184,7 @@ class WCS21DescribeEOCoverageSetHandler(object):
         number_matched = all_coverages_qs.count() + all_dataset_series_qs.count()
 
         # create an encoder and encode the result
-        encoder = WCS21EOXMLEncoder()
+        encoder = WCS21EOXMLEncoder(request)
         return (
             encoder.serialize(
                 encoder.encode_eo_coverage_set_description(
