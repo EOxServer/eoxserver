@@ -172,7 +172,7 @@ class WCSDescribeCoverageHandlerBase(object):
             for obj in objects
         ]
 
-    def get_params(self, coverages, decoder):
+    def get_params(self, coverages, decoder, request):
         """ Interface method to return a render params object from the given
             coverages/decoder.
         """
@@ -204,7 +204,7 @@ class WCSDescribeCoverageHandlerBase(object):
         coverages = self.lookup_coverages(decoder)
 
         # create the render parameters
-        params = self.get_params(coverages, decoder)
+        params = self.get_params(coverages, decoder, request)
 
         # find the correct renderer
         renderer = self.get_renderer(params)

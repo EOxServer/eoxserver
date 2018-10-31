@@ -48,8 +48,8 @@ class WCS21DescribeCoverageHandler(WCSDescribeCoverageHandlerBase):
         elif request.method == "POST":
             return WCS21DescribeCoverageXMLDecoder(request.body)
 
-    def get_params(self, coverages, decoder):
-        return WCS21CoverageDescriptionRenderParams(coverages)
+    def get_params(self, coverages, decoder, request):
+        return WCS21CoverageDescriptionRenderParams(coverages, request)
 
 
 class WCS21DescribeCoverageKVPDecoder(kvp.Decoder):

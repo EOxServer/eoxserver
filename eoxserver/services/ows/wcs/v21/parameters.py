@@ -49,10 +49,12 @@ class WCS21CapabilitiesRenderParams(WCSCapabilitiesRenderParams):
 class WCS21CoverageDescriptionRenderParams(CoverageDescriptionRenderParams):
     coverage_ids_key_name = "coverageid"
 
-    def __init__(self, coverages):
+    def __init__(self, coverages, request):
         super(WCS21CoverageDescriptionRenderParams, self).__init__(
             coverages, "2.1.0"
         )
+
+        self.http_request = request
 
 
 class WCS21CoverageRenderParams(CoverageRenderParams):

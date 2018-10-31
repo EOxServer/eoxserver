@@ -49,9 +49,13 @@ from eoxserver.services.ows.common.config import CapabilitiesConfigReader
 from eoxserver.services.ows.common.v20.encoders import OWS20Encoder
 from eoxserver.services.ows.wcs.v21.util import (
     nsmap, ns_xlink, ns_gml, ns_wcs20, ns_wcs21, ns_eowcs,
-    OWS, GML, GMLCOV, CIS, WCS20, WCS21, CRS, EOWCS, SWE, INT, SUPPORTED_INTERPOLATIONS
+    OWS, GML, GMLCOV, CIS, WCS20, WCS21, CRS, EOWCS, SWE, INT, OWC,
+    SUPPORTED_INTERPOLATIONS
 )
 from eoxserver.services.urls import get_http_service_url
+
+
+
 
 PROFILES = [
     "spec/WCS_application-profile_earth-observation/1.0/conf/eowcs",
@@ -453,54 +457,90 @@ class CIS10Encoder(WCS21BaseXMLEncoder, GML32Encoder):
 
 class CIS11Encoder(CIS10Encoder):
 
+    def __init__(self, http_request, *args, **kwargs):
+        self.http_request = http_request
+        super(CIS11Encoder, self).__init__(*args, **kwargs)
+
     def encode_referenceable_grid(self, size):
         size_x, size_y = size
+
+        http_service_url = get_http_service_url(self.http_request)
 
         return CIS(
             "GeneralGrid",
             CIS(
                 "DisplacementAxisNest",
-                CIS("P", CIS("C")),
-                **{
-                    "axisLabels": "h",
-                    "uomLabels": "m",
-                }
+                OWC("offering",
+                    OWC("operation",
+                        href="%s?service=WCS&version=2.1.0&request=GetCoverage&coverageId=%s_height&format=image/tiff" % (
+                            http_service_url, "identifier"
+                        ),
+                        code="GetCoverage",
+                        type="image/tiff",
+                        method="GET",
+                    )
+                ),
+                axisLabels="h",
+                uomLabels="m",
             ),
             CIS(
                 "IrregularAxisNest",
-                CIS("P", CIS("C"), CIS("C"), CIS("C")),
-                **{
-                    "axisLabels": "Lat Long date",
-                    "uomLabels": "deg deg d",
-                }
+                OWC("offering",
+                    OWC("operation",
+                        href="%s?service=WCS&version=2.1.0&request=GetCoverage&coverageId=%s_latitude&format=text/csv" % (
+                            http_service_url, "identifier"
+                        ),
+                        code="GetCoverage",
+                        type="image/tiff",
+                        method="GET",
+                    )
+                ),
+                OWC("offering",
+                    OWC("operation",
+                        href="%s?service=WCS&version=2.1.0&request=GetCoverage&coverageId=%s_longitude&format=text/csv" % (
+                            http_service_url, "identifier"
+                        ),
+                        code="GetCoverage",
+                        type="image/tiff",
+                        method="GET",
+                    )
+                ),
+                OWC("offering",
+                    OWC("operation",
+                        href="%s?service=WCS&version=2.1.0&request=GetCoverage&coverageId=%s_profile_time&format=text/csv" % (
+                            http_service_url, "identifier"
+                        ),
+                        code="GetCoverage",
+                        type="image/tiff",
+                        method="GET",
+                    )
+                ),
+
+                axisLabels="Lat Long date",
+                uomLabels="deg deg d",
             ),
             CIS(
                 "GridLimits",
                 CIS(
                     "IndexAxis",
-                    **{
-                        "axisLabel": "i",
-                        "lowerBound": str(0),
-                        "upperBound": str(size_x-1),
-                    }
+                    axisLabel="i",
+                    lowerBound=str(0),
+                    upperBound=str(size_x-1),
+
                 ),
                 CIS(
                     "IndexAxis",
-                    **{
-                        "axisLabel": "j",
-                        "lowerBound": str(0),
-                        "upperBound": str(size_y-1),
-                    }
+                    axisLabel="j",
+                    lowerBound=str(0),
+                    upperBound=str(size_y-1),
+
                 ),
-                **{
-                    "srsName": "http://www.opengis.net/def/crs/OGC/0/Index2D",
-                    "axisLabels": "i j",
-                }
+                srsName="http://www.opengis.net/def/crs/OGC/0/Index2D",
+                axisLabels="i j",
+
             ),
-            **{
-                "srsName": "http://www.opengis.net/def/crs-compound?1=http://www.opengis.net/def/crs/EPSG/0/4979&amp;2=http://www.opengis.net/def/crs/OGC/0/AnsiDate",
-                "axisLabels": "Lat Long h date",
-            }
+            srsName="http://www.opengis.net/def/crs-compound?1=http://www.opengis.net/def/crs/EPSG/0/4979&amp;2=http://www.opengis.net/def/crs/OGC/0/AnsiDate",
+            axisLabels="Lat Long h date",
         )
 
     def encode_domain_set(self, coverage, srid=None, size=None, extent=None,

@@ -57,11 +57,13 @@ ns_eowcs = NameSpace("http://www.opengis.net/wcs/wcseo/1.0", "wcseo",
 ns_swe = NameSpace("http://www.opengis.net/swe/2.0", "swe")
 ns_int = NameSpace("http://www.opengis.net/wcs/interpolation/1.0", "int")
 ns_scal = NameSpace("http://www.opengis.net/wcs/scaling/1.0", "scal")
+ns_owc = NameSpace("ttp://www.opengis.net/owc/1.0", "owc")
 
 # namespace map
 nsmap = NameSpaceMap(
     ns_xlink, ns_ogc, ns_ows, ns_gml, ns_gmlcov, ns_cis, ns_wcs20, ns_wcs21,
-    ns_crs, ns_rsub, ns_eowcs, ns_om, ns_eop, ns_swe, ns_int, ns_scal
+    ns_crs, ns_rsub, ns_eowcs, ns_om, ns_eop, ns_swe, ns_int, ns_scal,
+    ns_owc
 )
 
 # Element factories
@@ -72,6 +74,7 @@ CRS = ElementMaker(namespace=ns_crs.uri, nsmap=nsmap)
 EOWCS = ElementMaker(namespace=ns_eowcs.uri, nsmap=nsmap)
 SWE = ElementMaker(namespace=ns_swe.uri, nsmap=nsmap)
 INT = ElementMaker(namespace=ns_int.uri, nsmap=nsmap)
+OWC = ElementMaker(namespace=ns_owc.uri, nsmap=nsmap)
 
 
 SUBSET_RE = re.compile(r'(\w+)\(([^,]*)(,([^)]*))?\)')

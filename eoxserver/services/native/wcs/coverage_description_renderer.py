@@ -50,11 +50,13 @@ class NativeWCS21CoverageDescriptionRenderer(Component):
         return params.version in self.versions
 
     def render(self, params):
-        encoder = WCS21EOXMLEncoder()
+        encoder = WCS21EOXMLEncoder(params.http_request)
         return [
             ResultBuffer(
                 encoder.serialize(
-                    encoder.encode_coverage_descriptions(params.coverages),
+                    encoder.encode_coverage_descriptions(
+                        params.coverages
+                    ),
                     pretty_print=settings.DEBUG
                 ),
                 encoder.content_type
