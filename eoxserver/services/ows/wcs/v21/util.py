@@ -53,8 +53,8 @@ ns_wcs21 = NameSpace("http://www.opengis.net/wcs/2.1/gml", "wcs21",
                      "http://schemas.opengis.net/wcs/2.1/gml/wcsAll.xsd")
 ns_crs = NameSpace("http://www.opengis.net/wcs/crs/1.0", "crs")
 ns_rsub = NameSpace("http://www.opengis.net/wcs/range-subsetting/1.0", "rsub")
-ns_eowcs = NameSpace("http://www.opengis.net/wcs/wcseo/1.0", "wcseo",
-                     "http://schemas.opengis.net/wcs/wcseo/1.0/wcsEOAll.xsd")
+ns_eowcs = NameSpace("http://www.opengis.net/wcs/wcseo/1.1", "wcseo",
+                     "http://schemas.opengis.net/wcs/wcseo/1.1/wcsEOAll.xsd")
 ns_swe = NameSpace("http://www.opengis.net/swe/2.0", "swe")
 ns_int = NameSpace("http://www.opengis.net/wcs/interpolation/1.0", "int")
 ns_scal = NameSpace("http://www.opengis.net/wcs/scaling/1.0", "scal")
