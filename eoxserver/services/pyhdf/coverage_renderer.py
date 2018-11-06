@@ -134,22 +134,22 @@ class PyHDFCoverageRenderer(object):
                 if subset.is_x:
                     if hasattr(subset, 'low'):
                         if subset.low is not None and subset.high is not None:
-                            slc_x = slice(int(subset.low), int(subset.high))
+                            slc_x = slice(int(subset.low), int(subset.high) + 1)
                         elif subset.low is not None:
                             slc_x = slice(subset.low, None)
                         elif subset.high is not None:
-                            slc_x = slice(None, int(subset.high))
+                            slc_x = slice(None, int(subset.high) + 1)
                     if hasattr(subset, 'value'):
                         slc_x = int(subset.value)
 
                 if subset.is_y:
                     if hasattr(subset, 'low'):
                         if subset.low is not None and subset.high is not None:
-                            slc_y = slice(int(subset.low), int(subset.high))
+                            slc_y = slice(int(subset.low), int(subset.high) + 1)
                         elif subset.low is not None:
                             slc_y = slice(int(subset.low), None)
                         elif subset.high is not None:
-                            slc_y = slice(None, int(subset.high))
+                            slc_y = slice(None, int(subset.high) + 1)
                     if hasattr(subset, 'value'):
                         slc_y = int(subset.value)
 
