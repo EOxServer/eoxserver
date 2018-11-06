@@ -204,9 +204,12 @@ class PyHDFCoverageRenderer(object):
                 ResultFile(out_path, 'text/csv', '%s.csv' % coverage.identifier)
             ]
 
-        if frmt == 'image/tiff':
-            if data.ndim != 2:
+        elif frmt == 'image/tiff':
+            if data.ndim not in (1, 2):
                 raise Exception('TIFF encoding only possible for 2D outputs.')
+
+            if data.ndim == 1:
+                data = data.reshape(data.shape[0], 1)
 
             out_path = '/tmp/%s.tif' % uuid4().hex
             gdal_array.SaveArray(data, out_path, 'GTiff')
