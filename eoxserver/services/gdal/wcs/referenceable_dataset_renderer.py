@@ -262,10 +262,10 @@ class GDALReferenceableDatasetRenderer(object):
 
             minx = int(minx) if minx is not None else image_rect.offset_x
             miny = int(miny) if miny is not None else image_rect.offset_y
-            maxx = int(maxx) if maxx is not None else image_rect.upper_x
-            maxy = int(maxy) if maxy is not None else image_rect.upper_y
+            maxx = int(maxx) + 1 if maxx is not None else image_rect.upper_x
+            maxy = int(maxy) + 1 if maxy is not None else image_rect.upper_y
 
-            subset_rect = Rect(minx, miny, maxx-minx+1, maxy-miny+1)
+            subset_rect = Rect(minx, miny, maxx - minx, maxy - miny)
 
         # subset in geographical coordinates
         else:
