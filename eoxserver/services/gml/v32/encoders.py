@@ -55,7 +55,7 @@ EOP = ElementMaker(namespace=ns_eop.uri, nsmap=nsmap)
 
 
 class GML32Encoder(object):
-    def encode_line_string(self, linestring, sr):
+    def encode_line_string(self, linestring, sr, base_id):
         frmt = "%.3f %.3f" if sr.projected else "%.8f %.8f"
 
         swap = crss.getAxesSwapper(sr.srid)
@@ -64,7 +64,8 @@ class GML32Encoder(object):
         return GML("LineString",
             GML("posList",
                 pos_list
-            )
+            ),
+            **{ns_gml("id"): "line_string_%s" % base_id}
         )
 
     def encode_linear_ring(self, ring, sr):
@@ -100,7 +101,7 @@ class GML32Encoder(object):
             if isinstance(member, GeometryCollection):
                 encoded = self.encode_multi_geometry(geom, '%s_' % base_id)
             else:
-                encoded = self.encode_line_string(member, member.srs)
+                encoded = self.encode_line_string(member, member.srs, base_id)
 
             geometry_members.append(GML("geometryMember", encoded))
 
