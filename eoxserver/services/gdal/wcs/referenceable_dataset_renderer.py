@@ -109,8 +109,8 @@ class GDALReferenceableDatasetRenderer(object):
             scale_y = params.scalefactor
 
         elif params.scales:
-            scale_x_obj = next(s for s in params.scales if s.axis == "x")
-            scale_y_obj = next(s for s in params.scales if s.axis == "y")
+            scale_x_obj = next((s for s in params.scales if s.axis == "x"), None)
+            scale_y_obj = next((s for s in params.scales if s.axis == "y"), None)
 
             if hasattr(scale_x_obj, 'scale'):
                 scale_x = getattr(scale_x_obj, 'scale')
