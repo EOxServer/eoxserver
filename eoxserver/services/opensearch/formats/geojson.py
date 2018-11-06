@@ -26,16 +26,12 @@
 #-------------------------------------------------------------------------------
 
 
-from eoxserver.core import implements
-from eoxserver.services.opensearch.interfaces import ResultFormatInterface
 from eoxserver.services.opensearch.formats import base
 
 
 class GeoJSONResultFormat(base.BaseOGRResultFormat):
     """ GeoJSON result format.
     """
-
-    implements(ResultFormatInterface)
 
     mimetype = "application/vnd.geo+json"
     name = "json"

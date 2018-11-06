@@ -27,21 +27,23 @@
 
 """\
 This module contains a set of handler base classes which shall help to implement
-a specific handler. Interface methods need to be overridden in order to work, 
+a specific handler. Interface methods need to be overridden in order to work,
 default methods can be overidden.
 """
+from django.db.models import Q
 
-from eoxserver.core import ExtensionPoint
 from eoxserver.resources.coverages import models
 from eoxserver.services.result import to_http_response
 from eoxserver.services.ows.wcs.parameters import WCSCapabilitiesRenderParams
 from eoxserver.services.exceptions import (
     NoSuchCoverageException, OperationNotSupportedException
 )
-from eoxserver.services.ows.wcs.interfaces import (
-    WCSCoverageDescriptionRendererInterface, WCSCoverageRendererInterface,
-    WCSCapabilitiesRendererInterface
+from eoxserver.services.ows.wcs.renderers import (
+    get_capabilities_renderer, get_coverage_description_renderer,
+    get_coverage_renderer,
 )
+
+from eoxserver.render.coverage.objects import Coverage, Mosaic
 
 
 class WCSGetCapabilitiesHandlerBase(object):
@@ -53,27 +55,36 @@ class WCSGetCapabilitiesHandlerBase(object):
 
     index = 0
 
-    renderers = ExtensionPoint(WCSCapabilitiesRendererInterface)
-
     def get_decoder(self, request):
         """ Interface method to get the correct decoder for this request.
         """
 
     def lookup_coverages(self, decoder):
-        """ Default implementation of the coverage lookup. Simply returns all 
+        """ Default implementation of the coverage lookup. Simply returns all
             coverages in no specific order.
         """
-        return models.Coverage.objects.filter(visible=True) \
-            .order_by("identifier")
+        return models.EOObject.objects.filter(
+            Q(
+                service_visibility__service='wcs',
+                service_visibility__visibility=True
+            ) | Q(  # include mosaics with a Grid
+                mosaic__isnull=False,
+                mosaic__grid__isnull=False,
+                service_visibility__service='wcs',
+                service_visibility__visibility=True
+            )
+        ).order_by(
+            "identifier"
+        ).select_subclasses(models.Coverage, models.Mosaic)
 
     def get_params(self, coverages, decoder):
-        """ Default method to return a render params object from the given 
+        """ Default method to return a render params object from the given
             coverages/decoder.
         """
 
         return WCSCapabilitiesRenderParams(coverages,
             getattr(decoder, "version", None),
-            getattr(decoder, "sections", None), 
+            getattr(decoder, "sections", None),
             getattr(decoder, "acceptlanguages", None),
             getattr(decoder, "acceptformats", None),
             getattr(decoder, "updatesequence", None),
@@ -82,20 +93,18 @@ class WCSGetCapabilitiesHandlerBase(object):
     def get_renderer(self, params):
         """ Default implementation for a renderer retrieval.
         """
-        for renderer in self.renderers:
-            if renderer.supports(params):
-                return renderer
-
-        raise OperationNotSupportedException(
-            "No Capabilities renderer found for the given parameters.",
-            self.request
-        )
+        renderer = get_capabilities_renderer(params)
+        if not renderer:
+            raise OperationNotSupportedException(
+                "No Capabilities renderer found for the given parameters.",
+                self.request
+            )
+        return renderer
 
     def to_http_response(self, result_set):
         """ Default result to response conversion method.
         """
         return to_http_response(result_set)
-
 
     def handle(self, request):
         """ Default handler method.
@@ -128,53 +137,62 @@ class WCSDescribeCoverageHandlerBase(object):
 
     index = 1
 
-    renderers = ExtensionPoint(WCSCoverageDescriptionRendererInterface)
-
     def get_decoder(self, request):
         """ Interface method to get the correct decoder for this request.
         """
 
     def lookup_coverages(self, decoder):
         """ Default implementation of the coverage lookup. Returns a sorted list
-            of coverage models according to the decoders `coverage_ids` 
+            of coverage models according to the decoders `coverage_ids`
             attribute. Raises a `NoSuchCoverageException` if any of the given
             IDs was not found in the database.
         """
         ids = decoder.coverage_ids
-        coverages = sorted(
-            models.Coverage.objects.filter(identifier__in=ids),
+
+        # qs = models.Coverage.objects.filter(identifier__in=ids)
+        qs = models.EOObject.objects.filter(
+            identifier__in=ids,
+        ).filter(
+            Q(coverage__isnull=False) | Q(mosaic__isnull=False)
+        ).select_subclasses()
+
+        objects = sorted(
+            qs,
             key=(lambda coverage: ids.index(coverage.identifier))
         )
 
         # check correct number
-        if len(coverages) < len(ids):
-            available_ids = set([coverage.identifier for coverage in coverages])
+        if len(objects) < len(ids):
+            available_ids = set([coverage.identifier for coverage in objects])
             raise NoSuchCoverageException(set(ids) - available_ids)
 
-        return coverages
+        return [
+            Coverage.from_model(obj)
+            if isinstance(obj, models.Coverage) else Mosaic.from_model(obj)
+            for obj in objects
+        ]
 
-    def get_params(self, coverages, decoder):
-        """ Interface method to return a render params object from the given 
+    def get_params(self, coverages, decoder, request):
+        """ Interface method to return a render params object from the given
             coverages/decoder.
         """
 
     def get_renderer(self, params):
         """ Default implementation for a renderer retrieval.
         """
-        for renderer in self.renderers:
-            if renderer.supports(params):
-                return renderer
 
-        raise OperationNotSupportedException(
-            "No suitable coverage description renderer found.",
-            self.request
-        )
+        renderer = get_coverage_description_renderer(params)
+        if not renderer:
+            raise OperationNotSupportedException(
+                "No suitable coverage description renderer found.",
+                self.request
+            )
+        return renderer
 
     def to_http_response(self, result_set):
         """ Default result to response conversion method.
         """
         return to_http_response(result_set)
-
 
     def handle(self, request):
         """ Default request handling method implementation.
@@ -186,7 +204,7 @@ class WCSDescribeCoverageHandlerBase(object):
         coverages = self.lookup_coverages(decoder)
 
         # create the render parameters
-        params = self.get_params(coverages, decoder)
+        params = self.get_params(coverages, decoder, request)
 
         # find the correct renderer
         renderer = self.get_renderer(params)
@@ -205,42 +223,48 @@ class WCSGetCoverageHandlerBase(object):
 
     index = 10
 
-    renderers = ExtensionPoint(WCSCoverageRendererInterface)
-
     def get_decoder(self, request):
         """ Interface method to get the correct decoder for this request.
         """
 
     def lookup_coverage(self, decoder):
         """ Default implementation of the coverage lookup. Returns the coverage
-            model for the given request decoder or raises an exception if it is 
+            model for the given request decoder or raises an exception if it is
             not found.
         """
         coverage_id = decoder.coverage_id
-        
+
         try:
-            coverage = models.Coverage.objects.get(identifier=coverage_id)
+            obj = models.EOObject.objects.select_subclasses(
+                models.Coverage, models.Mosaic
+            ).get(
+                Q(identifier=coverage_id) & (
+                    Q(coverage__isnull=False) | Q(mosaic__isnull=False)
+                )
+            )
         except models.Coverage.DoesNotExist:
             raise NoSuchCoverageException((coverage_id,))
 
-        return coverage
+        if isinstance(obj, models.Coverage):
+            return Coverage.from_model(obj)
+        else:
+            return Mosaic.from_model(obj, obj.coverages.all())
 
     def get_params(self, coverages, decoder, request):
-        """ Interface method to return a render params object from the given 
+        """ Interface method to return a render params object from the given
             coverages/decoder.
         """
 
     def get_renderer(self, params):
         """ Default implementation for a renderer retrieval.
         """
-        for renderer in self.renderers:
-            if renderer.supports(params):
-                return renderer
-
-        raise OperationNotSupportedException(
-            "No renderer found for coverage '%s'." % params.coverage, 
-            self.request
-        )
+        renderer = get_coverage_renderer(params)
+        if not renderer:
+            raise OperationNotSupportedException(
+                "No renderer found for coverage '%s'." % params.coverage,
+                self.request
+            )
+        return renderer
 
     def to_http_response(self, result_set):
         """ Default result to response conversion method.

@@ -266,3 +266,15 @@ def boolean(raw):
     if not raw in ("true", "false"):
         raise ValueError("Could not parse a boolean value from '%s'." % raw)
     return raw == "true"
+
+
+def to_dict(decoder, dict_class=dict):
+    """ Utility function to get a dictionary representation of the given decoder.
+        This function invokes all decoder parameters and sets the dictionary
+        fields accordingly
+    """
+    return dict(
+        (name, getattr(decoder, name))
+        for name in dir(decoder)
+        if not name.startswith("_") and name != "namespaces"
+    )

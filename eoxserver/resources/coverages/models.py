@@ -1,11 +1,11 @@
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
 #          Stephan Meissl <stephan.meissl@eox.at>
 #          Stephan Krause <stephan.krause@eox.at>
 #
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Copyright (C) 2011 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -25,213 +25,349 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
-import logging
+# pep8: disable=E501
+
+import json
+from datetime import datetime
+import re
 
 from django.core.exceptions import ValidationError
+from django.core.validators import RegexValidator
 from django.contrib.gis.db import models
+from django.contrib.gis.db.models import Extent, Union
+from django.db.models import Min, Max, Q
 from django.utils.timezone import now
+from django.utils.encoding import python_2_unicode_compatible
+from model_utils.managers import InheritanceManager
 
-from eoxserver.core import models as base
-from eoxserver.contrib import gdal, osr
 from eoxserver.backends import models as backends
-from eoxserver.resources.coverages.util import (
-    detect_circular_reference, collect_eo_metadata, is_same_grid,
-    parse_raw_value
+from eoxserver.core.util.timetools import isoformat
+from eoxserver.render.browse.generate import (
+    parse_expression, extract_fields, BandExpressionError
 )
 
 
-logger = logging.getLogger(__name__)
+mandatory = dict(null=False, blank=False)
+optional = dict(null=True, blank=True)
+searchable = dict(null=True, blank=True, db_index=True)
+
+optional_protected = dict(null=True, blank=True, on_delete=models.PROTECT)
+mandatory_protected = dict(null=False, blank=False, on_delete=models.PROTECT)
+
+optional_indexed = dict(blank=True, null=True, db_index=True)
+common_value_args = dict(
+    on_delete=models.SET_NULL, null=True, blank=True,
+    related_name="metadatas"
+)
+
+name_validators = [
+    RegexValidator(
+        re.compile(r'^[a-zA-z_][a-zA-Z0-9_]*$'),
+        message="This field must contain a valid Name."
+    )
+]
+
+identifier_validators = [
+    RegexValidator(
+        re.compile(r'^[a-zA-z_][a-zA-Z0-9_.-]*$'),
+        message="This field must contain a valid NCName."
+    )
+]
 
 
-#===============================================================================
-# Helpers
-#===============================================================================
+def band_expression_validator(band_expression):
+    if not band_expression:
+        return
 
-def iscoverage(eo_object):
-    """ Helper to check whether an EOObject is a coverage. """
-    return issubclass(eo_object.real_type, Coverage)
-
-
-def iscollection(eo_object):
-    """ Helper to check whether an EOObject is a collection. """
-    return issubclass(eo_object.real_type, Collection)
+    try:
+        parse_expression(band_expression)
+    except BandExpressionError as e:
+        raise ValidationError(str(e))
 
 
-#===============================================================================
-# Metadata classes
-#===============================================================================
+# ==============================================================================
+# "Type" models
+# ==============================================================================
 
-class Projection(models.Model):
-    """ Model for elaborate projection definitions. The `definition` is valid
-        for a given `format`. The `spatial_reference` property returns an
-        osr.SpatialReference for this Projection.
-    """
 
-    name = models.CharField(max_length=64, unique=True)
-    format = models.CharField(max_length=16)
+class FieldType(models.Model):
+    coverage_type = models.ForeignKey('CoverageType', related_name='field_types', **mandatory)
+    index = models.PositiveSmallIntegerField(**mandatory)
+    identifier = models.CharField(max_length=512, validators=identifier_validators, **mandatory)
+    description = models.TextField(**optional)
+    definition = models.CharField(max_length=512, **optional)
+    unit_of_measure = models.CharField(max_length=64, **optional)
+    wavelength = models.FloatField(**optional)
+    significant_figures = models.PositiveSmallIntegerField(**optional)
+    numbits = models.PositiveSmallIntegerField(**optional)
+    signed = models.BooleanField(default=True, **mandatory)
+    is_float = models.BooleanField(default=False, **mandatory)
 
-    definition = models.TextField()
+    class Meta:
+        ordering = ('index',)
+        unique_together = (
+            ('index', 'coverage_type'), ('identifier', 'coverage_type')
+        )
 
-    @property
-    def spatial_reference(self):
-        sr = osr.SpatialReference()
-        if self.format == "WKT":
-            sr.ImportFromWkt(self.definition)
-        elif self.format == "XML":
-            sr.ImportFromXML(self.definition)
-        elif self.format == "URL":
-            sr.ImportFromXUrl(self.definition)
-        return sr
+    def __str__(self):
+        return self.identifier
 
-    def __unicode__(self):
+
+class AllowedValueRange(models.Model):
+    field_type = models.ForeignKey(FieldType, related_name='allowed_value_ranges')
+    start = models.FloatField(**mandatory)
+    end = models.FloatField(**mandatory)
+
+
+class NilValue(models.Model):
+    NIL_VALUE_CHOICES = (
+        ("http://www.opengis.net/def/nil/OGC/0/inapplicable", "Inapplicable (There is no value)"),
+        ("http://www.opengis.net/def/nil/OGC/0/missing", "Missing"),
+        ("http://www.opengis.net/def/nil/OGC/0/template", "Template (The value will be available later)"),
+        ("http://www.opengis.net/def/nil/OGC/0/unknown", "Unknown"),
+        ("http://www.opengis.net/def/nil/OGC/0/withheld", "Withheld (The value is not divulged)"),
+        ("http://www.opengis.net/def/nil/OGC/0/AboveDetectionRange", "Above detection range"),
+        ("http://www.opengis.net/def/nil/OGC/0/BelowDetectionRange", "Below detection range")
+    )
+    field_types = models.ManyToManyField(FieldType, related_name='nil_values', blank=True)
+    value = models.CharField(max_length=512, **mandatory)
+    reason = models.CharField(max_length=512, choices=NIL_VALUE_CHOICES, **mandatory)
+
+
+class MaskType(models.Model):
+    name = models.CharField(max_length=512, validators=name_validators, **mandatory)
+    product_type = models.ForeignKey('ProductType', related_name='mask_types', **mandatory)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        unique_together = (
+            ('name', 'product_type'),
+        )
+
+
+class CoverageType(models.Model):
+    name = models.CharField(max_length=512, unique=True, validators=name_validators, **mandatory)
+
+    def __str__(self):
         return self.name
 
 
-class Extent(models.Model):
-    """ Model mix-in for spatial objects which have a 2D Bounding Box expressed
-        in a projection given either by a SRID or a whole `Projection` object.
-    """
+class ProductType(models.Model):
+    name = models.CharField(max_length=512, unique=True, validators=name_validators, **mandatory)
+    allowed_coverage_types = models.ManyToManyField(CoverageType, related_name='allowed_product_types', blank=True)
 
-    min_x = models.FloatField()
-    min_y = models.FloatField()
-    max_x = models.FloatField()
-    max_y = models.FloatField()
-    srid = models.PositiveIntegerField(blank=True, null=True)
-    projection = models.ForeignKey(Projection, blank=True, null=True)
+    def __str__(self):
+        return self.name
 
-    @property
-    def spatial_reference(self):
-        if self.srid is not None:
-            sr = osr.SpatialReference()
-            sr.ImportFromEPSG(self.srid)
-            return sr
-        else:
-            return self.projection.spatial_reference
 
-    @property
-    def extent(self):
-        """ Returns the extent as a 4-tuple. """
-        return self.min_x, self.min_y, self.max_x, self.max_y
+class CollectionType(models.Model):
+    name = models.CharField(max_length=512, unique=True, validators=name_validators, **mandatory)
+    allowed_coverage_types = models.ManyToManyField(CoverageType, related_name='allowed_collection_types', blank=True)
+    allowed_product_types = models.ManyToManyField(ProductType, related_name='allowed_collection_types', blank=True)
 
-    @extent.setter
-    def extent(self, value):
-        """ Set the extent as a tuple. """
-        self.min_x, self.min_y, self.max_x, self.max_y = value
+    def __str__(self):
+        return self.name
+
+
+class BrowseType(models.Model):
+    product_type = models.ForeignKey(ProductType, related_name="browse_types", **mandatory)
+    name = models.CharField(max_length=256, validators=name_validators, blank=True, null=False)
+
+    red_or_grey_expression = models.CharField(max_length=512, validators=[band_expression_validator], **optional)
+    green_expression = models.CharField(max_length=512, validators=[band_expression_validator], **optional)
+    blue_expression = models.CharField(max_length=512, validators=[band_expression_validator], **optional)
+    alpha_expression = models.CharField(max_length=512, validators=[band_expression_validator], **optional)
+
+    red_or_grey_nodata_value = models.FloatField(**optional)
+    green_nodata_value = models.FloatField(**optional)
+    blue_nodata_value = models.FloatField(**optional)
+    alpha_nodata_value = models.FloatField(**optional)
+
+    red_or_grey_range_min = models.FloatField(**optional)
+    green_range_min = models.FloatField(**optional)
+    blue_range_min = models.FloatField(**optional)
+    alpha_range_min = models.FloatField(**optional)
+
+    red_or_grey_range_max = models.FloatField(**optional)
+    green_range_max = models.FloatField(**optional)
+    blue_range_max = models.FloatField(**optional)
+    alpha_range_max = models.FloatField(**optional)
+
+    def __str__(self):
+        if self.name:
+            return self.name
+        return "Default Browse Type for '%s'" % self.product_type
 
     def clean(self):
-        # make sure that neither both nor none of SRID or projections is set
-        if self.projection is None and self.srid is None:
-            raise ValidationError("No projection or srid given.")
-        elif self.projection is not None and self.srid is not None:
-            raise ValidationError(
-                "Fields 'projection' and 'srid' are mutually exclusive."
+        return validate_browse_type(self)
+
+    class Meta:
+        unique_together = (
+            ('name', 'product_type'),
+        )
+
+
+# ==============================================================================
+# Metadata models for each Collection, Product or Coverage
+# ==============================================================================
+
+
+def axis_accessor(pattern, value_map=None):
+    def _get(self):
+        values = []
+        for i in range(1, 5):
+            value = getattr(self, pattern % i)
+            if value is not None:
+                values.append(value_map[value] if value_map else value)
+            else:
+                break
+        return values
+    return _get
+
+
+class Grid(models.Model):
+    AXIS_TYPES = [
+        (0, 'spatial'),
+        (1, 'elevation'),
+        (2, 'temporal'),
+        (3, 'index'),
+        (4, 'other'),
+    ]
+
+    AXIS_REFERENCE_TYPES = [
+        (0, 'regular'),
+        (1, 'irregular'),
+        (2, 'displaced'),
+        (3, 'other'),
+    ]
+
+    # allow named grids but also anonymous ones
+    name = models.CharField(max_length=256, unique=True, null=True, blank=False, validators=name_validators)
+
+    coordinate_reference_system = models.TextField(**mandatory)
+
+    axis_1_name = models.CharField(max_length=256, **mandatory)
+    axis_2_name = models.CharField(max_length=256, **optional)
+    axis_3_name = models.CharField(max_length=256, **optional)
+    axis_4_name = models.CharField(max_length=256, **optional)
+
+    axis_1_type = models.SmallIntegerField(choices=AXIS_TYPES, **mandatory)
+    axis_2_type = models.SmallIntegerField(choices=AXIS_TYPES, **optional)
+    axis_3_type = models.SmallIntegerField(choices=AXIS_TYPES, **optional)
+    axis_4_type = models.SmallIntegerField(choices=AXIS_TYPES, **optional)
+
+    # using 'char' here, to allow a wide range of datatypes (such as time)
+    # when axis_1_offset is null, then this grid is referenceable
+    axis_1_offset = models.CharField(max_length=256, **optional)
+    axis_2_offset = models.CharField(max_length=256, **optional)
+    axis_3_offset = models.CharField(max_length=256, **optional)
+    axis_4_offset = models.CharField(max_length=256, **optional)
+
+    axis_1_reference_type = models.SmallIntegerField(choices=AXIS_REFERENCE_TYPES, default=0, **mandatory)
+    axis_2_reference_type = models.SmallIntegerField(choices=AXIS_REFERENCE_TYPES, default=0, **optional)
+    axis_3_reference_type = models.SmallIntegerField(choices=AXIS_REFERENCE_TYPES, default=0, **optional)
+    axis_4_reference_type = models.SmallIntegerField(choices=AXIS_REFERENCE_TYPES, default=0, **optional)
+
+    resolution = models.PositiveIntegerField(**optional)
+
+    axis_names = property(axis_accessor('axis_%d_name'))
+    axis_types = property(axis_accessor('axis_%d_type', dict(AXIS_TYPES)))
+    axis_offsets = property(axis_accessor('axis_%d_offset'))
+
+    def __str__(self):
+        if self.name:
+            return self.name
+        elif self.resolution is not None \
+                and len(self.coordinate_reference_system) < 15:
+            return '%s (%d)' % (
+                self.coordinate_reference_system, self.resolution
             )
+        return super(Grid, self).__str__()
+
+    def clean(self):
+        validate_grid(self)
+
+
+class GridFixture(models.Model):
+    # optional here to allow 'referenceable' coverages
+    grid = models.ForeignKey(Grid, **optional_protected)
+
+    axis_1_origin = models.CharField(max_length=256, **optional)
+    axis_2_origin = models.CharField(max_length=256, **optional)
+    axis_3_origin = models.CharField(max_length=256, **optional)
+    axis_4_origin = models.CharField(max_length=256, **optional)
+
+    axis_1_size = models.PositiveIntegerField(**mandatory)
+    axis_2_size = models.PositiveIntegerField(**optional)
+    axis_3_size = models.PositiveIntegerField(**optional)
+    axis_4_size = models.PositiveIntegerField(**optional)
+
+    origin = property(axis_accessor('axis_%d_origin'))
+    size = property(axis_accessor('axis_%d_size'))
 
     class Meta:
         abstract = True
 
 
-class EOMetadata(models.Model):
-    """ Model mix-in for objects that have EO metadata (timespan and footprint)
-        associated.
+# ==============================================================================
+# Actual item models: Collection, Product and Coverage
+# ==============================================================================
+
+
+@python_2_unicode_compatible
+class EOObject(models.Model):
+    """ Base class for Collections, Products and Coverages
     """
+    identifier = models.CharField(max_length=256, unique=True, validators=identifier_validators, **mandatory)
 
-    begin_time = models.DateTimeField(null=True, blank=True)
-    end_time = models.DateTimeField(null=True, blank=True)
-    footprint = models.MultiPolygonField(null=True, blank=True)
+    begin_time = models.DateTimeField(**optional)
+    end_time = models.DateTimeField(**optional)
+    footprint = models.GeometryField(**optional)
 
-    #objects = models.GeoManager()
+    inserted = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
 
-    @property
-    def extent_wgs84(self):
-        if self.footprint is None:
-            return None
-        return self.footprint.extent
+    objects = InheritanceManager()
 
-    @property
-    def time_extent(self):
-        return self.begin_time, self.end_time
-
-    class Meta:
-        abstract = True
+    def __str__(self):
+        return self.identifier
 
 
-class DataSource(backends.Dataset):
-    pattern = models.CharField(max_length=512, null=False, blank=False)
-    collection = models.ForeignKey("Collection", related_name="data_sources")
+class Collection(EOObject):
+    collection_type = models.ForeignKey(CollectionType, related_name='collections', **optional_protected)
+
+    grid = models.ForeignKey(Grid, **optional)
 
 
-#===============================================================================
-# Base class EOObject
-#===============================================================================
+class Mosaic(EOObject, GridFixture):
+    coverage_type = models.ForeignKey(CoverageType, related_name='mosaics', **mandatory_protected)
+
+    collections = models.ManyToManyField(Collection, related_name='mosaics', blank=True)
 
 
-# registry to map the integer type IDs to the model types and vice-versa.
-EO_OBJECT_TYPE_REGISTRY = {}
+class Product(EOObject):
+    product_type = models.ForeignKey(ProductType, related_name='products', **optional_protected)
+
+    collections = models.ManyToManyField(Collection, related_name='products', blank=True)
+    package = models.OneToOneField(backends.Storage, **optional_protected)
 
 
-class EOObject(base.Castable, EOMetadata, backends.Dataset):
-    """ Base class for EO objects. All EO objects share a pool of unique
-        `identifiers`.
-    """
+class Coverage(EOObject, GridFixture):
+    coverage_type = models.ForeignKey(CoverageType, related_name='coverages', **optional_protected)
 
-    identifier = models.CharField(max_length=256, unique=True, null=False, blank=False)
-
-    # this field is required to be named 'real_content_type'
-    real_content_type = models.PositiveSmallIntegerField()
-    type_registry = EO_OBJECT_TYPE_REGISTRY
-
-    objects = models.GeoManager()
-
-    def __init__(self, *args, **kwargs):
-        # TODO: encapsulate the change-tracking
-        super(EOObject, self).__init__(*args, **kwargs)
-        self._original_begin_time = self.begin_time
-        self._original_end_time = self.end_time
-        self._original_footprint = self.footprint
-
-    def save(self, *args, **kwargs):
-        super(EOObject, self).save(*args, **kwargs)
-
-        # propagate changes of the EO Metadata up in the collection hierarchy
-        if (self._original_begin_time != self.begin_time
-            or self._original_end_time != self.end_time
-            or self._original_footprint != self.footprint):
-
-            for collection in self.collections.all():
-                collection.update_eo_metadata()
-
-        # set the new values for subsequent calls to `save()`
-        self._original_begin_time = self.begin_time
-        self._original_end_time = self.end_time
-        self._original_footprint = self.footprint
-
-    def __unicode__(self):
-        return "%s (%s)" % (self.identifier, self.real_type._meta.verbose_name)
-
-    @property
-    def iscoverage(self):
-        return issubclass(self.real_type, Coverage)
-
-    @property
-    def iscollection(self):
-        return issubclass(self.real_type, Collection)
-
-    class Meta:
-        verbose_name = "EO Object"
-        verbose_name_plural = "EO Objects"
-
-#===============================================================================
-# Identifier reservation
-#===============================================================================
+    collections = models.ManyToManyField(Collection, related_name='coverages', blank=True)
+    mosaics = models.ManyToManyField(Mosaic, related_name='coverages', blank=True)
+    parent_product = models.ForeignKey(Product, related_name='coverages', **optional)
 
 
 class ReservedIDManager(models.Manager):
     """ Model manager for `ReservedID` models for easier handling. Returns only
         `QuerySets` that contain valid reservations.
-    """
+        """
     def get_original_queryset(self):
         return super(ReservedIDManager, self).get_queryset()
 
@@ -259,508 +395,757 @@ class ReservedIDManager(models.Manager):
                 )
         else:
             model = self.get_original_queryset().get(request_id=request_id)
-        model.delete()
+            model.delete()
 
 
 class ReservedID(EOObject):
     """ Model to reserve a specific ID. The field `until` can be used to
         specify the end of the reservation.
-    """
-    until = models.DateTimeField(null=True)
-    request_id = models.CharField(max_length=256, null=True)
+        """
+    until = models.DateTimeField(**optional)
+    request_id = models.CharField(max_length=256, **optional)
 
     objects = ReservedIDManager()
 
 
-EO_OBJECT_TYPE_REGISTRY[0] = ReservedID
+# ==============================================================================
+# DataItems subclasses
+# ==============================================================================
 
-#===============================================================================
-# RangeType structure
-#===============================================================================
+class MetaDataItem(backends.DataItem):
+    SEMANTIC_CHOICES = [
+        (0, 'other'),
+        (1, 'description'),
+        (2, 'documentation'),
+        (3, 'thumbnail'),
+    ]
 
+    semantic_names = {
+        code: name
+        for code, name in SEMANTIC_CHOICES
+    }
 
-class NilValueSet(models.Model):
-    """ Collection model for nil values.
-    """
+    semantic_codes = {
+        name: code
+        for code, name in SEMANTIC_CHOICES
+    }
 
-    name = models.CharField(max_length=512)
-    data_type = models.PositiveIntegerField()
-
-    def __init__(self, *args, **kwargs):
-        super(NilValueSet, self).__init__(*args, **kwargs)
-        self._cached_nil_values = None
-
-    @property
-    def values(self):
-        return [nil_value.value for nil_value in self]
-
-    def __unicode__(self):
-        return "%s (%s)" % (self.name, gdal.GetDataTypeName(self.data_type))
-
-    @property
-    def cached_nil_values(self):
-        if self._cached_nil_values is None:
-            self._cached_nil_values = list(self.nil_values.all())
-        return self._cached_nil_values
-
-    def __iter__(self):
-        return iter(self.cached_nil_values)
-
-    def __len__(self):
-        return len(self.cached_nil_values)
-
-    def __getitem__(self, index):
-        return self.cached_nil_values[index]
+    eo_object = models.ForeignKey(EOObject, related_name='metadata_items', **mandatory)
+    semantic = models.SmallIntegerField(choices=SEMANTIC_CHOICES, **optional)
 
     class Meta:
-        verbose_name = "Nil Value Set"
+        unique_together = [('eo_object', 'semantic')]
 
 
-NIL_VALUE_CHOICES = (
-    ("http://www.opengis.net/def/nil/OGC/0/inapplicable", "Inapplicable (There is no value)"),
-    ("http://www.opengis.net/def/nil/OGC/0/missing", "Missing"),
-    ("http://www.opengis.net/def/nil/OGC/0/template", "Template (The value will be available later)"),
-    ("http://www.opengis.net/def/nil/OGC/0/unknown", "Unknown"),
-    ("http://www.opengis.net/def/nil/OGC/0/withheld", "Withheld (The value is not divulged)"),
-    ("http://www.opengis.net/def/nil/OGC/0/AboveDetectionRange", "Above detection range"),
-    ("http://www.opengis.net/def/nil/OGC/0/BelowDetectionRange", "Below detection range")
-)
+
+class Browse(backends.DataItem):
+    product = models.ForeignKey(Product, related_name='browses', **mandatory)
+    browse_type = models.ForeignKey(BrowseType, **optional)
+    style = models.CharField(max_length=256, **optional)
+
+    coordinate_reference_system = models.TextField(**mandatory)
+    min_x = models.FloatField(**mandatory)
+    min_y = models.FloatField(**mandatory)
+    max_x = models.FloatField(**mandatory)
+    max_y = models.FloatField(**mandatory)
+    width = models.PositiveIntegerField(**mandatory)
+    height = models.PositiveIntegerField(**mandatory)
+
+    class Meta:
+        unique_together = [('product', 'browse_type', 'style')]
 
 
-class NilValue(models.Model):
-    """ Single nil value contributing to a nil value set.
-    """
+class Mask(backends.DataItem):
+    product = models.ForeignKey(Product, related_name='masks', **mandatory)
+    mask_type = models.ForeignKey(MaskType, **mandatory)
 
-    raw_value = models.CharField(max_length=512, help_text="The string representation of the nil value.")
-    reason = models.CharField(max_length=512, null=False, blank=False, choices=NIL_VALUE_CHOICES, help_text="A string identifier (commonly a URI or URL) for the reason of this nil value.")
+    geometry = models.GeometryField(**optional)
 
-    nil_value_set = models.ForeignKey(NilValueSet, related_name="nil_values")
+
+class ArrayDataItem(backends.DataItem):
+    BANDS_INTERPRETATION_CHOICES = [
+        (0, 'fields'),
+        (1, 'dimension')
+    ]
+
+    coverage = models.ForeignKey(EOObject, related_name='arraydata_items', **mandatory)
+
+    field_index = models.PositiveSmallIntegerField(default=0, **mandatory)
+    band_count = models.PositiveSmallIntegerField(default=1, **mandatory)
+
+    subdataset_type = models.CharField(max_length=64, **optional)
+    subdataset_locator = models.CharField(max_length=1024, **optional)
+
+    bands_interpretation = models.PositiveSmallIntegerField(default=0, choices=BANDS_INTERPRETATION_CHOICES, **mandatory)
+
+    class Meta:
+        unique_together = [('coverage', 'field_index')]
+
+
+# ==============================================================================
+# Additional Metadata Models for Collections, Products and Coverages
+# ==============================================================================
+
+
+class CollectionMetadata(models.Model):
+    collection = models.OneToOneField(Collection, related_name='collection_metadata')
+
+    product_type = models.CharField(max_length=256, **optional_indexed)
+    doi = models.CharField(max_length=256, **optional_indexed)
+    platform = models.CharField(max_length=256, **optional_indexed)
+    platform_serial_identifier = models.CharField(max_length=256, **optional_indexed)
+    instrument = models.CharField(max_length=256, **optional_indexed)
+    sensor_type = models.CharField(max_length=256, **optional_indexed)
+    composite_type = models.CharField(max_length=256, **optional_indexed)
+    processing_level = models.CharField(max_length=256, **optional_indexed)
+    orbit_type = models.CharField(max_length=256, **optional_indexed)
+    spectral_range = models.CharField(max_length=256, **optional_indexed)
+    wavelength = models.IntegerField(**optional_indexed)
+    # hasSecurityConstraints = models.CharField(**optional_indexed)
+    # dissemination = models.CharField(**optional_indexed)
+
+    product_metadata_summary = models.TextField(**optional)
+    coverage_metadata_summary = models.TextField(**optional)
+
+
+# ==============================================================================
+# "Common value" tables to store string enumerations
+# ==============================================================================
+
+
+class AbstractCommonValue(models.Model):
+    value = models.CharField(max_length=256, db_index=True, unique=True)
 
     def __unicode__(self):
-        return "%s (%s)" % (self.reason, self.raw_value)
+        return self.value
 
-    @property
-    def value(self):
-        """ Get the parsed python value from the saved value string.
-        """
-        return parse_raw_value(self.raw_value, self.nil_value_set.data_type)
+    class Meta:
+        abstract = True
 
-    def clean(self):
-        """ Check that the value can be parsed.
-        """
+
+class OrbitNumber(AbstractCommonValue):
+    pass
+
+
+class Track(AbstractCommonValue):
+    pass
+
+
+class Frame(AbstractCommonValue):
+    pass
+
+
+class SwathIdentifier(AbstractCommonValue):
+    pass
+
+
+class ProductVersion(AbstractCommonValue):
+    pass
+
+
+class ProductQualityDegredationTag(AbstractCommonValue):
+    pass
+
+
+class ProcessorName(AbstractCommonValue):
+    pass
+
+
+class ProcessingCenter(AbstractCommonValue):
+    pass
+
+
+class SensorMode(AbstractCommonValue):
+    pass
+
+
+class ArchivingCenter(AbstractCommonValue):
+    pass
+
+
+class ProcessingMode(AbstractCommonValue):
+    pass
+
+
+class AcquisitionStation(AbstractCommonValue):
+    pass
+
+
+class AcquisitionSubType(AbstractCommonValue):
+    pass
+
+
+class ProductMetadata(models.Model):
+    PRODUCTION_STATUS_CHOICES = (
+        (0, 'ARCHIVED'),
+        (1, 'ACQUIRED'),
+        (2, 'CANCELLED')
+    )
+
+    ACQUISITION_TYPE_CHOICES = (
+        (0, 'NOMINAL'),
+        (1, 'CALIBRATION'),
+        (2, 'OTHER')
+    )
+
+    ORBIT_DIRECTION_CHOICES = (
+        (0, 'ASCENDING'),
+        (1, 'DESCENDING')
+    )
+
+    PRODUCT_QUALITY_STATUS_CHOICES = (
+        (0, 'NOMINAL'),
+        (1, 'DEGRAGED')
+    )
+
+    POLARISATION_MODE_CHOICES = (
+        (0, 'single'),
+        (1, 'dual'),
+        (2, 'twin'),
+        (3, 'quad'),
+        (4, 'UNDEFINED')
+    )
+
+    POLARISATION_CHANNELS_CHOICES = (
+        (0, "HV"),
+        (1, "HV, VH"),
+        (2, "VH"),
+        (3, "VV"),
+        (4, "HH, VV"),
+        (5, "HH, VH"),
+        (6, "HH, HV"),
+        (7, "VH, VV"),
+        (8, "VH, HV"),
+        (9, "VV, HV"),
+        (10, "VV, VH"),
+        (11, "HH"),
+        (12, "HH, HV, VH, VV"),
+        (13, "UNDEFINED"),
+    )
+
+    ANTENNA_LOOK_DIRECTION_CHOICES = (
+        (0, 'LEFT'),
+        (1, 'RIGHT')
+    )
+
+    product = models.OneToOneField(Product, related_name='product_metadata')
+
+    parent_identifier = models.CharField(max_length=256, **optional_indexed)
+
+    production_status = models.PositiveSmallIntegerField(choices=PRODUCTION_STATUS_CHOICES, **optional_indexed)
+    acquisition_type = models.PositiveSmallIntegerField(choices=ACQUISITION_TYPE_CHOICES, **optional_indexed)
+
+    orbit_number = models.ForeignKey(OrbitNumber, **common_value_args)
+    orbit_direction = models.PositiveSmallIntegerField(choices=ORBIT_DIRECTION_CHOICES, **optional_indexed)
+
+    track = models.ForeignKey(Track, **common_value_args)
+    frame = models.ForeignKey(Frame, **common_value_args)
+    swath_identifier = models.ForeignKey(SwathIdentifier, **common_value_args)
+
+    product_version = models.ForeignKey(ProductVersion, **common_value_args)
+    product_quality_status = models.PositiveSmallIntegerField(choices=PRODUCT_QUALITY_STATUS_CHOICES, **optional_indexed)
+    product_quality_degradation_tag = models.ForeignKey(ProductQualityDegredationTag, **common_value_args)
+    processor_name = models.ForeignKey(ProcessorName, **common_value_args)
+    processing_center = models.ForeignKey(ProcessingCenter, **common_value_args)
+    creation_date = models.DateTimeField(**optional_indexed) # insertion into catalog
+    modification_date = models.DateTimeField(**optional_indexed) # last modification in catalog
+    processing_date = models.DateTimeField(**optional_indexed)
+    sensor_mode = models.ForeignKey(SensorMode, **common_value_args)
+    archiving_center = models.ForeignKey(ArchivingCenter, **common_value_args)
+    processing_mode = models.ForeignKey(ProcessingMode, **common_value_args)
+
+    # acquisition type metadata
+    availability_time = models.DateTimeField(**optional_indexed)
+    acquisition_station = models.ForeignKey(AcquisitionStation, **common_value_args)
+    acquisition_sub_type = models.ForeignKey(AcquisitionSubType, **common_value_args)
+    start_time_from_ascending_node = models.IntegerField(**optional_indexed)
+    completion_time_from_ascending_node = models.IntegerField(**optional_indexed)
+    illumination_azimuth_angle = models.FloatField(**optional_indexed)
+    illumination_zenith_angle = models.FloatField(**optional_indexed)
+    illumination_elevation_angle = models.FloatField(**optional_indexed)
+    polarisation_mode = models.PositiveSmallIntegerField(choices=POLARISATION_MODE_CHOICES, **optional_indexed)
+    polarization_channels = models.PositiveSmallIntegerField(choices=POLARISATION_CHANNELS_CHOICES, **optional_indexed)
+    antenna_look_direction = models.PositiveSmallIntegerField(choices=ANTENNA_LOOK_DIRECTION_CHOICES, **optional_indexed)
+    minimum_incidence_angle = models.FloatField(**optional_indexed)
+    maximum_incidence_angle = models.FloatField(**optional_indexed)
+    # for SAR acquisitions
+    doppler_frequency = models.FloatField(**optional_indexed)
+    incidence_angle_variation = models.FloatField(**optional_indexed)
+    # for OPT/ALT
+    cloud_cover = models.FloatField(**optional_indexed)
+    snow_cover = models.FloatField(**optional_indexed)
+    lowest_location = models.FloatField(**optional_indexed)
+    highest_location = models.FloatField(**optional_indexed)
+
+
+class CoverageMetadata(models.Model):
+    coverage = models.OneToOneField(Coverage, related_name="coverage_metadata")
+
+
+# ==============================================================================
+# Functions interacting with models. Done here, to keep the model definitions
+# as short and concise as possible
+# ==============================================================================
+
+
+class ManagementError(Exception):
+    pass
+
+
+def cast_eo_object(eo_object):
+    """ Casts an EOObject to its actual type.
+    """
+    if isinstance(eo_object, EOObject):
         try:
-            self.value
-        except Exception, e:
-            raise ValidationError(str(e))
+            return eo_object.collection
+        except:
+            try:
+                return eo_object.mosaic
+            except:
+                try:
+                    return eo_object.product
+                except:
+                    try:
+                        return eo_object.coverage
+                    except:
+                        pass
 
-    class Meta:
-        verbose_name = "Nil Value"
+    return eo_object
 
 
-class RangeType(models.Model):
-    """ Collection model for bands.
+def collection_insert_eo_object(collection, eo_object):
+    """ Inserts an EOObject (either a Product or Coverage) into a collection.
+        When an EOObject is passed, it is downcast to its actual type. An error
+        is raised when an object of the wrong type is passed.
+        The collections footprint and time-stamps are adjusted when necessary.
     """
-
-    name = models.CharField(max_length=512, null=False, blank=False, unique=True)
-
-    def __init__(self, *args, **kwargs):
-        super(RangeType, self).__init__(*args, **kwargs)
-        self._cached_bands = None
-
-    def __unicode__(self):
-        return self.name
-
-    @property
-    def cached_bands(self):
-        if self._cached_bands is None:
-            self._cached_bands = list(self.bands.all())
-        return self._cached_bands
-
-    def __iter__(self):
-        return iter(self.cached_bands)
-
-    def __len__(self):
-        return len(self.cached_bands)
-
-    def __getitem__(self, index):
-        return self.cached_bands[index]
-
-    class Meta:
-        verbose_name = "Range Type"
-
-
-class Band(models.Model):
-    """ Model for storing band related metadata.
-    """
-
-    index = models.PositiveSmallIntegerField()
-    name = models.CharField(max_length=512, null=False, blank=False)
-    identifier = models.CharField(max_length=512, null=False, blank=False)
-    description = models.TextField(null=True, blank=True)
-    definition = models.CharField(max_length=512, null=True, blank=True)
-    uom = models.CharField(max_length=64, null=False, blank=False)
-
-    # GDAL specific
-    data_type = models.PositiveIntegerField()
-    color_interpretation = models.PositiveIntegerField(null=True, blank=True)
-
-    raw_value_min = models.CharField(max_length=512, null=True, blank=True, help_text="The string representation of the minimum value.")
-    raw_value_max = models.CharField(max_length=512, null=True, blank=True, help_text="The string representation of the maximum value.")
-
-    range_type = models.ForeignKey(RangeType, related_name="bands", null=False, blank=False)
-    nil_value_set = models.ForeignKey(NilValueSet, null=True, blank=True)
-
-    def clean(self):
-        nil_value_set = self.nil_value_set
-        if nil_value_set and nil_value_set.data_type != self.data_type:
-            raise ValidationError(
-                "The data type of the band is not equal to the data type of "
-                "its nil value set."
-            )
-
-        min_ = parse_raw_value(self.raw_value_min, self.data_type)
-        max_ = parse_raw_value(self.raw_value_min, self.data_type)
-
-        if min_ is not None and max_ is not None and min_ > max_:
-            raise ValidationError("Minimum value larger than maximum value")
-
-    class Meta:
-        ordering = ('index',)
-        unique_together = (('index', 'range_type'), ('identifier', 'range_type'))
-
-    def __unicode__(self):
-        return "%s (%s)" % (self.name, gdal.GetDataTypeName(self.data_type))
-
-    @property
-    def allowed_values(self):
-        dt = self.data_type
-        min_ = parse_raw_value(self.raw_value_min, dt)
-        max_ = parse_raw_value(self.raw_value_max, dt)
-        limits = gdal.GDT_NUMERIC_LIMITS[dt]
-
-        return (
-            min_ if min_ is not None else limits[0],
-            max_ if max_ is not None else limits[1],
+    collection_type = collection.collection_type
+    eo_object = cast_eo_object(eo_object)
+    if not isinstance(eo_object, (Product, Coverage)):
+        raise ManagementError(
+            'Cannot insert object of type %r' % type(eo_object).__name__
         )
 
-    @property
-    def significant_figures(self):
-        return gdal.GDT_SIGNIFICANT_FIGURES[self.data_type]
+    if isinstance(eo_object, Product):
+        product_type = eo_object.product_type
+        allowed = True
+        if collection_type and product_type:
+            allowed = collection_type.allowed_product_types.filter(
+                pk=product_type.pk
+            ).exists()
+
+        elif collection_type:
+            allowed = False
+
+        if not allowed:
+            raise ManagementError(
+                'Cannot insert Product as the product type %r is not allowed in '
+                'this collection' % product_type.name
+            )
+
+        collection.products.add(eo_object)
+
+    elif isinstance(eo_object, Coverage):
+        coverage_type = eo_object.coverage_type
+        allowed = True
+        if collection_type:
+            allowed = collection_type.allowed_coverage_types.filter(
+                pk=coverage_type.pk
+            ).exists()
+
+        if not allowed:
+            raise ManagementError(
+                'Cannot insert Coverage as the coverage type %r is not allowed '
+                'in this collection' % coverage_type.name
+            )
+
+        if collection.grid and collection.grid != eo_object.grid:
+            raise ManagementError(
+                'Cannot insert Coverage as the coverage grid is not '
+                'compatible with this collection'
+            )
+
+        collection.coverages.add(eo_object)
+
+    if eo_object.footprint:
+        if collection.footprint:
+            collection.footprint = collection.footprint.union(
+                eo_object.footprint
+            )
+        else:
+            collection.footprint = eo_object.footprint
+
+    if eo_object.begin_time:
+        collection.begin_time = (
+            eo_object.begin_time if not collection.begin_time
+            else min(eo_object.begin_time, collection.begin_time)
+        )
+
+    if eo_object.end_time:
+        collection.end_time = (
+            eo_object.end_time if not collection.end_time
+            else max(eo_object.end_time, collection.end_time)
+        )
+
+    collection.full_clean()
+    collection.save()
 
 
-#===============================================================================
-# Base classes for Coverages and Collections
-#===============================================================================
+def collection_exclude_eo_object(collection, eo_object):
+    """ Exclude an EOObject (either Product or Coverage) from the collection.
+    """
+    eo_object = cast_eo_object(eo_object)
+
+    if not isinstance(eo_object, (Product, Coverage)):
+        raise ManagementError(
+            'Cannot exclude object of type %r' % type(eo_object).__name__
+        )
+
+    if isinstance(eo_object, Product):
+        collection.products.remove(eo_object)
+
+    elif isinstance(eo_object, Coverage):
+        collection.coverage.remove(eo_object)
+
+    collection_collect_metadata(collection,
+        eo_object.footprint is not None,
+        eo_object.begin_time and eo_object.begin_time == collection.begin_time,
+        eo_object.end_time and eo_object.end_time == collection.end_time,
+        False
+    )
 
 
-class Coverage(EOObject, Extent):
-    """ Common base model for all coverage types.
+def collection_collect_metadata(collection, collect_footprint=True,
+                                collect_begin_time=True, collect_end_time=True,
+                                product_summary=False, coverage_summary=False):
+    """ Collect metadata
     """
 
-    coverage_to_eo_object_ptr = models.OneToOneField(EOObject, parent_link=True)
+    if collect_footprint or collect_begin_time or collect_end_time:
+        aggregates = {}
 
-    size_x = models.PositiveIntegerField()
-    size_y = models.PositiveIntegerField()
+        if collect_footprint:
+            aggregates["footprint"] = Union("footprint")
+        if collect_begin_time:
+            aggregates["begin_time"] = Min("begin_time")
+        if collect_end_time:
+            aggregates["end_time"] = Max("end_time")
 
-    range_type = models.ForeignKey(RangeType)
+        values = EOObject.objects.filter(
+            Q(coverage__collections=collection) |
+            Q(product__collections=collection)
+        ).aggregate(**aggregates)
 
-    visible = models.BooleanField(default=False) # True means that the dataset is visible in the GetCapabilities response
+        if collect_footprint:
+            collection.footprint = values["footprint"]
+        if collect_begin_time:
+            collection.begin_time = values["begin_time"]
+        if collect_end_time:
+            collection.end_time = values["end_time"]
 
-    @property
-    def size(self):
-        return self.size_x, self.size_y
+    if product_summary or coverage_summary:
+        collection_metadata, _ = CollectionMetadata.objects.get_or_create(
+            collection=collection
+        )
 
-    @size.setter
-    def size(self, value):
-        self.size_x, self.size_y = value
+        if product_summary:
+            collection_metadata.product_metadata_summary = json.dumps(
+                _collection_metadata(
+                    collection, ProductMetadata, 'product'
+                ), indent=4, sort_keys=True
+            )
 
-    @property
-    def resolution_x(self):
-        return (self.max_x - self.min_x) / float(self.size_x)
+        if coverage_summary:
+            collection_metadata.coverage_metadata_summary = json.dumps(
+                _collection_metadata(
+                    collection, CoverageMetadata, 'coverage'
+                ), indent=4, sort_keys=True
+            )
 
-    @property
-    def resolution_y(self):
-        return (self.max_y - self.min_y) / float(self.size_y)
-
-    @property
-    def resolution(self):
-        return (self.resolution_x, self.resolution_y)
-
-    objects = models.GeoManager()
+        collection_metadata.save()
 
 
-class Collection(EOObject):
-    """ Base model for all collections.
-    """
+def _collection_metadata(collection, metadata_model, path):
+    summary_metadata = {}
+    fields = metadata_model._meta.get_fields()
 
-    collection_to_eo_object_ptr = models.OneToOneField(EOObject, parent_link=True)
-
-    eo_objects = models.ManyToManyField(EOObject, through="EOObjectToCollectionThrough", related_name="collections")
-
-    objects = models.GeoManager()
-
-    def insert(self, eo_object, through=None):
-        # TODO: a collection shall not contain itself!
-        if self.pk == eo_object.pk:
-            raise ValidationError("A collection cannot contain itself.")
-
-        if through is None:
-            # was not invoked by the through model, so create it first.
-            # insert will be invoked again in the `through.save()` method.
-            logger.debug("Creating relation model for %s and %s." % (self, eo_object))
-            through = EOObjectToCollectionThrough(eo_object=eo_object, collection=self)
-            through.full_clean()
-            through.save()
-            return
-
-        logger.debug("Inserting %s into %s." % (eo_object, self))
-
-        # cast self to actual collection type
-        self.cast().perform_insertion(eo_object, through)
-
-    def perform_insertion(self, eo_object, through=None):
-        """Interface method for collection insertions. If the insertion is not
-        possible, raise an exception.
-        EO metadata collection needs to be done here as-well!
-        """
-
-        raise ValidationError("Collection %s cannot insert %s" % (str(self), str(eo_object)))
-
-    def remove(self, eo_object, through=None):
-        if through is None:
-            EOObjectToCollectionThrough.objects.get(eo_object=eo_object, collection=self).delete()
-            return
-
-        logger.debug("Removing %s from %s." % (eo_object, self))
-
-        # call actual remove method on actual collection type
-        self.cast().perform_removal(eo_object)
-
-    def perform_removal(self, eo_object):
-        """ Interface method for collection removals. Update of EO-metadata needs
-        to be performed here. Abortion of removal is not possible (atm).
-        """
-        raise NotImplementedError
-
-    def update_eo_metadata(self):
-        logger.debug("Updating EO Metadata for %s." % self)
-        self.begin_time, self.end_time, self.footprint = collect_eo_metadata(self.eo_objects.all())
-        self.full_clean()
-        self.save()
-
-    # containment methods
-
-    def contains(self, eo_object, recursive=False):
-        """ Check if an EO object is contained in a collection or subcollection,
-        if `recursive` is set to `True`.
-        """
-
-        if not isinstance(eo_object, EOObject):
-            raise ValueError("Expected EOObject.")
-
-        if self.eo_objects.filter(pk=eo_object.pk).exists():
-            return True
-
-        if recursive:
-            for collection in self.eo_objects.filter(collection__isnull=False):
-                collection = collection.cast()
-                if collection.contains(eo_object, recursive):
-                    return True
-
+    def is_common_value(field):
+        if isinstance(field, models.ForeignKey):
+            return issubclass(field.related_model, AbstractCommonValue)
         return False
 
-    def __contains__(self, eo_object):
-        """ Shorthand for non-recursive `contains()` method. """
-        return self.contains(eo_object)
+    # "Value fields": float, ints, dates, etc; displaying a single value
+    value_fields = [
+        field for field in fields
+        if isinstance(field, (
+            models.FloatField, models.IntegerField, models.DateTimeField
+        )) and not field.choices
+    ]
 
-    def __iter__(self):
-        return iter(self.eo_objects.all())
+    # choice fields
+    choice_fields = [
+        field for field in fields if field.choices
+    ]
 
-    def iter_cast(self, recursive=False):
-        for eo_object in self.eo_objects.all():
-            eo_object = eo_object.cast()
-            yield eo_object
-            if recursive and iscollection(eo_object):
-                for item in eo_object.iter_cast(recursive):
-                    yield item
+    # "common value" fields
+    common_value_fields = [
+        field for field in fields
+        if is_common_value(field)
+    ]
 
-    def __len__(self):
-        if self.id is None:
-            return 0
-        return self.eo_objects.count()
+    base_query = metadata_model.objects.filter(
+        **{"%s__collections__in" % path: [collection]}
+    )
+
+    # get a list of all related common values
+    for field in common_value_fields:
+        summary_metadata[field.name] = list(
+            field.related_model.objects.filter(
+                **{"metadatas__%s__collections" % path: collection}
+            ).values_list('value', flat=True).distinct()
+        )
+
+    # get a list of all related choice fields
+    for field in choice_fields:
+        summary_metadata[field.name] = [
+            dict(field.choices)[raw_value]
+            for raw_value in base_query.filter(
+                **{"%s__isnull" % field.name: False}
+            ).values_list(
+                field.name, flat=True
+            ).distinct()
+        ]
+
+    # get min/max
+    aggregates = {}
+    for field in value_fields:
+        aggregates.update({
+            "%s_min" % field.name: Min(field.name),
+            "%s_max" % field.name: Max(field.name),
+        })
+    values = base_query.aggregate(**aggregates)
+
+    for field in value_fields:
+        min_ = values["%s_min" % field.name]
+        max_ = values["%s_max" % field.name]
+
+        if isinstance(min_, datetime):
+            min_ = isoformat(min_)
+        if isinstance(max_, datetime):
+            max_ = isoformat(max_)
+
+        summary_metadata[field.name] = {
+            "min": min_,
+            "max": max_,
+        }
+
+    return summary_metadata
 
 
-class EOObjectToCollectionThrough(models.Model):
-    """Relation of objects to collections.
-    Warning: do *not* use bulk methods of query sets of this collection, as it
-    will not invoke the correct `insert` and `remove` methods on the collection.
+def mosaic_insert_coverage(mosaic, coverage):
+    """ Insert a coverage into a mosaic.
     """
 
-    eo_object = models.ForeignKey(EOObject)
-    collection = models.ForeignKey(Collection, related_name="coverages_set")
+    mosaic = cast_eo_object(mosaic)
+    coverage = cast_eo_object(coverage)
 
-    objects = models.GeoManager()
+    assert isinstance(mosaic, Mosaic)
+    assert isinstance(coverage, Coverage)
 
-    def __init__(self, *args, **kwargs):
-        super(EOObjectToCollectionThrough, self).__init__(*args, **kwargs)
+    grid = mosaic.grid
+
+    if mosaic.coverage_type != coverage.coverage_type:
+        raise ManagementError(
+            'Cannot insert Coverage %s as its coverage type does not match '
+            'the Mosaics coverage type.' % coverage
+        )
+    elif grid and grid != coverage.grid:
+        raise ManagementError(
+            'Cannot insert Coverage %s as its grid does not match '
+            'the Mosaics grid.' % coverage
+        )
+
+    mosaic.coverages.add(coverage)
+
+    # compute EO metadata
+    mosaic.begin_time = (
+        min(mosaic.begin_time, coverage.begin_time)
+        if mosaic.begin_time else coverage.begin_time
+    )
+    mosaic.end_time = (
+        max(mosaic.end_time, coverage.end_time)
+        if mosaic.end_time else coverage.end_time
+    )
+    mosaic.footprint = (
+        mosaic.footprint.union(coverage.footprint)
+        if mosaic.footprint else coverage.footprint
+    )
+
+    if grid:
+        # compute new origins and size
+        for i in range(1, 5):
+            if getattr(grid, 'axis_%d_type' % i) is None:
+                break
+
+            # if origin and size were null, use the ones from the coverage
+            if getattr(mosaic, 'axis_%d_origin' % i) is None:
+                setattr(mosaic, 'axis_%d_origin' % i,
+                    getattr(coverage, 'axis_%d_origin' % i)
+                )
+                setattr(mosaic, 'axis_%d_size' % i,
+                    getattr(coverage, 'axis_%d_size' % i)
+                )
+
+            else:
+                offset = float(getattr(grid, 'axis_%d_offset' % i))
+                o_c = float(getattr(coverage, 'axis_%d_origin' % i))
+                o_m = float(getattr(mosaic, 'axis_%d_origin' % i))
+
+                # calculate new origin
+                if offset < 0:
+                    setattr(mosaic, 'axis_%d_origin' % i, max(o_c, o_m))
+                else:
+                    setattr(mosaic, 'axis_%d_origin' % i, min(o_c, o_m))
+
+                # calculate new size
+
+                # TODO: this is flawed. Use all coverages within the mosaic
+
+                if o_c > o_m:
+                    add_size = float(getattr(coverage, 'axis_%d_size' % i))
+                else:
+                    add_size = float(getattr(mosaic, 'axis_%d_size' % i))
+
+                setattr(
+                    mosaic, 'axis_%d_size' % i,
+                    (max(o_c, o_m) - min(o_c, o_m)) / offset + add_size
+                )
+
+    mosaic.full_clean()
+    mosaic.save()
+
+
+def product_add_coverage(product, coverage):
+    """ Add a Coverage to a product.
+        When an EOObject is passed, it is downcast to its actual type. An error
+        is raised when an object of the wrong type is passed.
+        The collections footprint and time-stamps are adjusted when necessary.
+    """
+    coverage = cast_eo_object(coverage)
+    if not isinstance(coverage, Coverage):
+        raise ManagementError(
+            'Cannot insert object of type %r' % type(coverage).__name__
+        )
+
+    product_type = product.product_type
+    coverage_type = coverage.coverage_type
+
+    allowed = True
+    if product_type:
+        allowed = product_type.allowed_coverage_types.filter(
+            pk=coverage_type.pk
+        ).exists()
+
+    if not allowed:
+        raise ManagementError(
+            'Cannot insert Coverage as the coverage type %r is not allowed '
+            'in this product' % coverage_type.name
+        )
+
+    product.coverages.add(coverage)
+
+# ==============================================================================
+# Validators
+# ==============================================================================
+
+
+def validate_grid(grid):
+    """ Validation function for grids.
+    """
+
+    higher_dim = False
+    # for i in range(4, 0, -1):
+    #     axis_type = getattr(grid, 'axis_%d_type' % i, None)
+    #     axis_name = getattr(grid, 'axis_%d_name' % i, None)
+    #     axis_offset = getattr(grid, 'axis_%d_offset' % i, None)
+
+    #     attrs = (axis_type, axis_name, axis_offset)
+
+    #     has_dim = any(attrs)
+
+    #     # check that when this axis is not set, no higher axis is set
+    #     if not has_dim and higher_dim:
+    #         raise ValidationError(
+    #             'Axis %d not set, but higher axis %d is set.' % (i, higher_dim)
+    #         )
+
+    #     # check that all of 'name', 'type', and 'offset' is set
+    #     if has_dim and not all(attrs):
+    #         raise ValidationError(
+    #             "For each axis, 'name', 'type', and 'offset' must be set."
+    #         )
+
+    #     higher_dim = i if has_dim else False
+
+
+def validate_browse_type(browse_type):
+    """ Validate the expressions of the browse type to only reference fields
+        available for that browse type.
+    """
+    expressions = [
+        browse_type.red_or_grey_expression,
+        browse_type.green_expression,
+        browse_type.blue_expression,
+        browse_type.alpha_expression,
+    ]
+
+    fields = set()
+    for expression in expressions:
         try:
-            self._original_eo_object = self.eo_object
-        except:
-            self._original_eo_object = None
+            fields |= set(extract_fields(browse_type.red_or_grey_expression))
+        except BandExpressionError:
+            pass
 
-        try:
-            self._original_collection = self.collection
-        except:
-            self._original_collection = None
+    all_fields = set(
+        FieldType.objects.filter(
+            coverage_type__allowed_product_types__browse_types=browse_type,
+        ).values_list('identifier', flat=True)
+    )
 
-    def save(self, *args, **kwargs):
-        if (self._original_eo_object is not None
-            and self._original_collection is not None
-            and (self._original_eo_object != self.eo_object
-                 or self._original_collection != self.collection)):
-            logger.debug("Relation has been altered!")
-            self._original_collection.remove(self._original_eo_object, self)
-
-        def getter(eo_object):
-            return eo_object.collections.all()
-
-        if detect_circular_reference(self.eo_object, self.collection, getter):
-            raise ValidationError("Circular reference detected.")
-
-        # perform the insertion
-        # TODO: this is a bit buggy, as the insertion cannot be aborted this way
-        # but if the insertion is *before* the save, then EO metadata collecting
-        # still handles previously removed ones.
-        self.collection.insert(self.eo_object, self)
-
-        super(EOObjectToCollectionThrough, self).save(*args, **kwargs)
-
-        self._original_eo_object = self.eo_object
-        self._original_collection = self.collection
-
-    def delete(self, *args, **kwargs):
-        # TODO: pre-remove method? (maybe to cancel remove?)
-        logger.debug(
-            "Deleting relation model between for %s and %s."
-            % (self.collection, self.eo_object)
-        )
-        result = super(EOObjectToCollectionThrough, self).delete(*args, **kwargs)
-        self.collection.remove(self.eo_object, self)
-        return result
-
-    class Meta:
-        unique_together = (("eo_object", "collection"),)
-        verbose_name = "EO Object to Collection Relation"
-        verbose_name_plural = "EO Object to Collection Relations"
-
-
-#===============================================================================
-# Actual Coverage and Collections
-#===============================================================================
-
-
-class RectifiedDataset(Coverage):
-    """ Coverage type using a rectified grid.
-    """
-
-    objects = models.GeoManager()
-
-    class Meta:
-        verbose_name = "Rectified Dataset"
-        verbose_name_plural = "Rectified Datasets"
-
-EO_OBJECT_TYPE_REGISTRY[10] = RectifiedDataset
-
-
-class ReferenceableDataset(Coverage):
-    """ Coverage type using a referenceable grid.
-    """
-
-    objects = models.GeoManager()
-
-    class Meta:
-        verbose_name = "Referenceable Dataset"
-        verbose_name_plural = "Referenceable Datasets"
-
-EO_OBJECT_TYPE_REGISTRY[11] = ReferenceableDataset
-
-
-class RectifiedStitchedMosaic(Coverage, Collection):
-    """ Collection type which can entail rectified datasets that share a common
-        range type and are on the same grid.
-    """
-
-    objects = models.GeoManager()
-
-    class Meta:
-        verbose_name = "Rectified Stitched Mosaic"
-        verbose_name_plural = "Rectified Stitched Mosaics"
-
-    def perform_insertion(self, eo_object, through=None):
-        if eo_object.real_type != RectifiedDataset:
-            raise ValidationError("In a %s only %s can be inserted." % (
-                RectifiedStitchedMosaic._meta.verbose_name,
-                RectifiedDataset._meta.verbose_name_plural
-            ))
-
-        rectified_dataset = eo_object.cast()
-        if self.range_type != rectified_dataset.range_type:
-            raise ValidationError(
-                "Dataset '%s' has a different Range Type as the Rectified "
-                "Stitched Mosaic '%s'." % (rectified_dataset, self.identifier)
+    missing_fields = fields - all_fields
+    if missing_fields:
+        raise ValidationError(
+            "Expressions are referencing unknow field%s: %s. Available field%s: "
+            "%s." % (
+                "s" if len(missing_fields) > 1 else "",
+                ", ".join(("'%s'" % field) for field in missing_fields),
+                "s" if len(all_fields) > 1 else "",
+                ", ".join(("'%s'" % field) for field in all_fields),
             )
-
-        if not is_same_grid((self, rectified_dataset)):
-            raise ValidationError(
-                "Dataset '%s' has not the same base grid as the Rectified "
-                "Stitched Mosaic '%s'." % (rectified_dataset, self.identifier)
-            )
-
-        self.begin_time, self.end_time, self.footprint = collect_eo_metadata(
-            self.eo_objects.all(), insert=[eo_object]
         )
-        # TODO: recalculate size and extent!
-        self.full_clean()
-        self.save()
-        return
 
-    def perform_removal(self, eo_object):
-        self.begin_time, self.end_time, self.footprint = collect_eo_metadata(
-            self.eo_objects.all(), exclude=[eo_object]
-        )
-        # TODO: recalculate size and extent!
-        self.full_clean()
-        self.save()
-        return
-
-EO_OBJECT_TYPE_REGISTRY[20] = RectifiedStitchedMosaic
+# ==============================================================================
+# Utilities
+# ==============================================================================
 
 
-class DatasetSeries(Collection):
-    """ Collection type that can entail any type of EO object, even other
-        collections.
-    """
+def product_get_metadata(product):
+    try:
+        product_metadata = product.product_metadata
+    except ProductMetadata.DoesNotExist:
+        return []
 
-    objects = models.GeoManager()
+    def get_value(product_metadata, field):
+        raw_value = getattr(product_metadata, field.name)
+        if isinstance(field, models.ForeignKey):
+            return raw_value.value
+        elif field.choices:
+            return dict(field.choices)[raw_value]
+        return raw_value
 
-    class Meta:
-        verbose_name = "Dataset Series"
-        verbose_name_plural = "Dataset Series"
-
-    def perform_insertion(self, eo_object, through=None):
-        self.begin_time, self.end_time, self.footprint = collect_eo_metadata(
-            self.eo_objects.all(), insert=[eo_object], bbox=True
-        )
-        self.full_clean()
-        self.save()
-        return
-
-    def perform_removal(self, eo_object):
-        self.begin_time, self.end_time, self.footprint = collect_eo_metadata(
-            self.eo_objects.all(), exclude=[eo_object], bbox=True
-        )
-        self.full_clean()
-        self.save()
-        return
-
-EO_OBJECT_TYPE_REGISTRY[30] = DatasetSeries
+    return [
+        (field.name, get_value(product_metadata, field))
+        for field in ProductMetadata._meta.fields
+        if field.name not in ('id', 'product') and
+        getattr(product_metadata, field.name)
+    ]

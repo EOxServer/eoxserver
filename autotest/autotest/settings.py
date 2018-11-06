@@ -48,7 +48,6 @@ PROJECT_URL_PREFIX = ''
 #TEST_RUNNER = 'django.test.runner.DiscoverRunner'
 
 DEBUG = True
-TEMPLATE_DEBUG = DEBUG
 
 ADMINS = (
     # ('EOX', 'office@eox.at'),
@@ -161,12 +160,21 @@ STATICFILES_FINDERS = (
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = 'tmp'
 
-# List of callables that know how to import templates from various sources.
-TEMPLATE_LOADERS = (
-    'django.template.loaders.filesystem.Loader',
-    'django.template.loaders.app_directories.Loader',
-#     'django.template.loaders.eggs.Loader',
-)
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [],
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [
+                'django.template.context_processors.debug',
+                'django.template.context_processors.request',
+                'django.contrib.auth.context_processors.auth',
+                'django.contrib.messages.context_processors.messages',
+            ],
+        },
+    },
+]
 
 MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',
@@ -186,13 +194,6 @@ ROOT_URLCONF = 'autotest.urls'
 # Python dotted path to the WSGI application used by Django's runserver.
 WSGI_APPLICATION = 'autotest.wsgi.application'
 
-TEMPLATE_DIRS = (
-    # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
-    # Always use forward slashes, even on Windows.
-    # Don't forget to use absolute paths, not relative paths.
-    join(PROJECT_DIR, 'templates'),
-)
-
 INSTALLED_APPS = (
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -208,10 +209,8 @@ INSTALLED_APPS = (
     # Enable the databrowse:
     #'django.contrib.databrowse',
     # Enable for better schema and data-migrations
-    #'south',
     # Enable for debugging
-    #'django_extensions',
-    #'django_nose',
+    # 'django_extensions',
     # Enable EOxServer:
     'eoxserver.core',
     'eoxserver.services',
@@ -234,28 +233,6 @@ INSTALLED_APPS = (
 # modules in the package will be included. With the double '**' a recursive
 # search will be done.
 COMPONENTS = (
-    # backends
-    'eoxserver.backends.storages.*',
-    'eoxserver.backends.packages.*',
-
-    # metadata readers/writers
-    'eoxserver.resources.coverages.metadata.formats.*',
-
-    'eoxserver.resources.coverages.registration.registrators.*',
-
-    # service handlers
-    'eoxserver.services.ows.wcs.**',
-    'eoxserver.services.ows.wms.**',
-    'eoxserver.services.ows.wps.**',
-
-    # renderer components etc.
-    'eoxserver.services.native.**',
-    'eoxserver.services.gdal.**',
-    'eoxserver.services.mapserver.**',
-    'eoxserver.services.opensearch.**',
-
-    # test processes for WPS interface
-    'autotest_services.processes.*',
 )
 
 # A sample logging configuration. The only tangible logging
@@ -269,6 +246,9 @@ LOGGING = {
     'filters': {
         'require_debug_false': {
             '()': 'django.utils.log.RequireDebugFalse'
+        },
+        'require_debug_true': {
+            '()': 'django.utils.log.RequireDebugTrue',
         }
     },
     'formatters': {
@@ -293,6 +273,11 @@ LOGGING = {
             'filename': join(PROJECT_DIR, 'logs', 'django.log'),
             'formatter': 'verbose',
             'filters': [],
+        },
+        'console': {
+            'level': 'DEBUG',
+            'filters': ['require_debug_true'],
+            'class': 'logging.StreamHandler',
         }
     },
     'loggers': {
@@ -306,6 +291,10 @@ LOGGING = {
             'level': 'DEBUG' if DEBUG else 'INFO',
             'propagate': False
         },
+        # 'django.db.backends': {
+        #     'level': 'DEBUG',
+        #     'handlers': ['console'],
+        # }
     }
 }
 
@@ -316,3 +305,15 @@ FIXTURE_DIRS = (
 # Set this variable if the path to the instance cannot be resolved
 # automatically, e.g. in case of redirects
 #FORCE_SCRIPT_NAME="/path/to/instance/"
+
+EOXS_COVERAGE_METADATA_FORMAT_READERS = [
+    # 'eoxserver.resources.coverages.metadata.coverage_formats.dimap_general.DimapGeneralFormatReader',
+    # 'eoxserver.resources.coverages.metadata.coverage_formats.eoom.EOOMFormatReader',
+    'eoxserver.resources.coverages.metadata.coverage_formats.cloudsat.Cloudsat2BGeoprofCoverageMetadataReader',
+    'eoxserver.resources.coverages.metadata.coverage_formats.gdal_dataset.GDALDatasetMetadataReader',
+    # 'eoxserver.resources.coverages.metadata.coverage_formats.inspire.InspireFormatReader',
+    # 'eoxserver.resources.coverages.metadata.coverage_formats.native.NativeFormat',
+    # 'eoxserver.resources.coverages.metadata.coverage_formats.native_config.NativeConfigFormatReader',
+    # 'eoxserver.resources.coverages.metadata.coverage_formats.landsat8_l1.Landsat8L1CoverageMetadataReader',
+]
+

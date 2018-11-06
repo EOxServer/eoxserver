@@ -41,7 +41,11 @@ if os.environ.get('READTHEDOCS', None) != 'True':
         from osgeo.gdal import *
     except ImportError:
         from gdal import *
-    from django.utils.datastructures import SortedDict
+
+    try:
+        from collections import OrderedDict as SortedDict
+    except ImportError:
+        from django.utils.datastructures import SortedDict
 
     UseExceptions()
     AllRegister()
@@ -133,3 +137,16 @@ if os.environ.get('READTHEDOCS', None) != 'True':
     GDT_COMPLEX_TYPES = frozenset(
         (GDT_CInt16, GDT_CInt32, GDT_CFloat32, GDT_CFloat64)
     )
+
+
+def get_extent(ds):
+    """ Gets the extent of the GDAL Dataset in the form (min-x, min-y, max-x, max-y).
+    """
+    gt = ds.GetGeoTransform()
+
+    x_a = gt[0]
+    x_b = gt[0] + gt[1] * ds.RasterXSize
+    y_a = gt[3]
+    y_b = gt[3] + gt[5] * ds.RasterYSize
+
+    return (min(x_a, x_b), min(y_a, y_b), max(x_a, x_b), max(y_a, y_b))

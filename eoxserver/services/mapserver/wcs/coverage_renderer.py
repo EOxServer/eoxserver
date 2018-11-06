@@ -32,18 +32,13 @@ import logging
 
 from lxml import etree
 
-from eoxserver.core import implements, ExtensionPoint
 from eoxserver.contrib import mapserver as ms
 from eoxserver.resources.coverages import models, crss
 from eoxserver.resources.coverages.formats import getFormatRegistry
 from eoxserver.services.exceptions import NoSuchCoverageException
-from eoxserver.services.ows.wcs.interfaces import WCSCoverageRendererInterface
 from eoxserver.services.ows.wcs.v20.encoders import WCS20EOXMLEncoder
 from eoxserver.services.ows.wcs.v20.util import (
     ScaleSize, ScaleExtent, ScaleAxis
-)
-from eoxserver.services.mapserver.interfaces import (
-    ConnectorInterface, LayerFactoryInterface
 )
 from eoxserver.services.mapserver.wcs.base_renderer import (
     BaseRenderer, is_format_supported
@@ -72,32 +67,36 @@ class RectifiedCoverageMapServerRenderer(BaseRenderer):
         the request.
     """
 
-    implements(WCSCoverageRendererInterface)
-
     # ReferenceableDatasets are not handled in WCS >= 2.0
     versions_full = (Version(1, 1), Version(1, 0))
-    versions_partly = (Version(2, 0),)
+    versions_partly = (Version(2, 0), Version(2, 1),)
     versions = versions_full + versions_partly
 
-    handles_full = (
-        models.RectifiedDataset,
-        models.RectifiedStitchedMosaic,
-        models.ReferenceableDataset
-    )
+    # handles_full = (
+    #     models.RectifiedDataset,
+    #     models.RectifiedStitchedMosaic,
+    #     models.ReferenceableDataset
+    # )
 
-    handles_partly = (models.RectifiedDataset, models.RectifiedStitchedMosaic)
-    handles = handles_full + handles_partly
+    # handles_partly = (models.RectifiedDataset, models.RectifiedStitchedMosaic)
+    # handles = handles_full + handles_partly
 
-    connectors = ExtensionPoint(ConnectorInterface)
-    layer_factories = ExtensionPoint(LayerFactoryInterface)
+    # connectors = ExtensionPoint(ConnectorInterface)
+    # layer_factories = ExtensionPoint(LayerFactoryInterface)
 
     def supports(self, params):
+        # return (
+        #     (
+        #         params.version in self.versions_full and
+        #     and issubclass(params.coverage.real_type, self.handles_full))
+        #     or
+        #     (params.version in self.versions_partly
+        #     and issubclass(params.coverage.real_type, self.handles_partly))
+        # )
+
         return (
-            (params.version in self.versions_full
-            and issubclass(params.coverage.real_type, self.handles_full))
-            or
-            (params.version in self.versions_partly
-            and issubclass(params.coverage.real_type, self.handles_partly))
+            params.version in self.versions and
+            not params.coverage.grid.is_referenceable
         )
 
     def render(self, params):
@@ -105,10 +104,10 @@ class RectifiedCoverageMapServerRenderer(BaseRenderer):
         coverage = params.coverage
 
         # ReferenceableDataset are not supported in WCS < 2.0
-        if issubclass(coverage.real_type, models.ReferenceableDataset):
-            raise NoSuchCoverageException((coverage.identifier,))
+        # if params.coverage.grid.is_referenceable:
+        #     raise NoSuchCoverageException((coverage.identifier,))
 
-        data_items = self.data_items_for_coverage(coverage)
+        data_locations = self.arraydata_locations_for_coverage(coverage)
 
         range_type = coverage.range_type
         bands = list(range_type)
@@ -122,8 +121,8 @@ class RectifiedCoverageMapServerRenderer(BaseRenderer):
         map_ = self.create_map()
 
         # configure outputformat
-        native_format = self.get_native_format(coverage, data_items)
-        if get_format_by_mime(native_format) is None:
+        native_format = self.get_native_format(coverage, data_locations)
+        if native_format and get_format_by_mime(native_format) is None:
             native_format = "image/tiff"
 
         frmt = params.format or native_format
@@ -149,16 +148,16 @@ class RectifiedCoverageMapServerRenderer(BaseRenderer):
 
         map_.insertLayer(layer)
 
-        for connector in self.connectors:
-            if connector.supports(data_items):
-                break
-        else:
+        from eoxserver.services.mapserver.connectors import get_connector_by_test
+        connector = get_connector_by_test(coverage, data_locations)
+
+        if not connector:
             raise OperationNotSupportedException(
                 "Could not find applicable layer connector.", "coverage"
             )
 
         try:
-            connector.connect(coverage, data_items, layer, {})
+            connector.connect(coverage, data_locations, layer, {})
             # create request object and dispatch it against the map
             request = ms.create_request(
                 self.translate_params(params, range_type)
@@ -168,12 +167,13 @@ class RectifiedCoverageMapServerRenderer(BaseRenderer):
 
         finally:
             # perform any required layer related cleanup
-            connector.disconnect(coverage, data_items, layer, {})
+            connector.disconnect(coverage, data_locations, layer, {})
 
         result_set = result_set_from_raw_data(raw_result)
 
         if params.version == Version(2, 0):
-            if getattr(params, "mediatype", None) in ("multipart/mixed", "multipart/related"):
+            mediatype = getattr(params, "mediatype", None)
+            if mediatype in ("multipart/mixed", "multipart/related"):
                 encoder = WCS20EOXMLEncoder()
                 is_mosaic = issubclass(
                     coverage.real_type, models.RectifiedStitchedMosaic
@@ -300,12 +300,11 @@ def create_outputformat(mime_type, options, imagemode, basename, parameters):
     outputformat.extension = reg_format.defaultExt
     outputformat.imagemode = imagemode
 
-    #for key, value in options:
+    # for key, value in options:
     #    outputformat.setOption(str(key), str(value))
 
     if mime_type == "image/tiff":
         _apply_gtiff(outputformat, **parameters)
-
 
     filename = basename + reg_format.defaultExt
     outputformat.setOption("FILENAME", str(filename))
@@ -342,6 +341,9 @@ def _apply_gtiff(outputformat, compression=None, jpeg_quality=None,
             outputformat.setOption("BLOCKXSIZE", str(tilewidth))
         if tileheight is not None:
             outputformat.setOption("BLOCKYSIZE", str(tileheight))
+
+    # big fat TODO
+    outputformat.setOption("PROFILE", "BASELINE")
 
 
 def get_format_by_mime(mime_type):

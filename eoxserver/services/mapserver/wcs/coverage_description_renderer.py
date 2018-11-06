@@ -25,16 +25,10 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-
-from eoxserver.core import implements
 from eoxserver.contrib import mapserver as ms
-from eoxserver.resources.coverages import models
 from eoxserver.services.mapserver.wcs.base_renderer import BaseRenderer
 from eoxserver.services.ows.version import Version
 from eoxserver.services.exceptions import NoSuchCoverageException
-from eoxserver.services.ows.wcs.interfaces import (
-    WCSCoverageDescriptionRendererInterface
-)
 from eoxserver.services.result import result_set_from_raw_data
 
 
@@ -42,22 +36,14 @@ class CoverageDescriptionMapServerRenderer(BaseRenderer):
     """ A coverage description renderer implementation using mapserver.
     """
 
-    implements(WCSCoverageDescriptionRendererInterface)
-
     versions = (Version(1, 1), Version(1, 0))
-    handles = (
-        models.RectifiedDataset, models.RectifiedStitchedMosaic,
-        models.ReferenceableDataset
-    )
 
     def supports(self, params):
         return (
-            params.version in self.versions
-            and all(
-                map(
-                    lambda c: issubclass(c.real_type, self.handles),
-                    params.coverages
-                )
+            params.version in self.versions and
+            all(
+                not coverage.grid.is_referenceable
+                for coverage in params.coverages
             )
         )
 
@@ -69,11 +55,11 @@ class CoverageDescriptionMapServerRenderer(BaseRenderer):
         for coverage in params.coverages:
 
             # ReferenceableDatasets are not supported in WCS < 2.0
-            if issubclass(coverage.real_type, models.ReferenceableDataset):
+            if coverage.grid.is_referenceable:
                 raise NoSuchCoverageException((coverage.identifier,))
 
-            data_items = self.data_items_for_coverage(coverage)
-            native_format = self.get_native_format(coverage, data_items)
+            data_locations = self.arraydata_locations_for_coverage(coverage)
+            native_format = self.get_native_format(coverage, data_locations)
             layer = self.layer_for_coverage(
                 coverage, native_format, params.version
             )

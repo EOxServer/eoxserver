@@ -34,13 +34,13 @@ from eoxserver.services.ows.version import Version
 from eoxserver.services.ows.wcs.interfaces import (
     WCSCapabilitiesRendererInterface
 )
-from eoxserver.services.ows.wcs.v20.encoders import WCS20CapabilitiesXMLEncoder
+from eoxserver.services.ows.wcs.v21.encoders import WCS21CapabilitiesXMLEncoder
 
 
-class NativeWCS20CapabilitiesRenderer(Component):
+class NativeWCS21CapabilitiesRenderer(Component):
     implements(WCSCapabilitiesRendererInterface)
 
-    versions = (Version(2, 0),)
+    versions = (Version(2, 1),)
 
     def supports(self, params):
         if params.version not in self.versions:
@@ -53,13 +53,15 @@ class NativeWCS20CapabilitiesRenderer(Component):
         return True
 
     def render(self, params):
-        encoder = WCS20CapabilitiesXMLEncoder()
+        encoder = WCS21CapabilitiesXMLEncoder()
         return [
             ResultBuffer(
                 encoder.serialize(
                     encoder.encode_capabilities(
-                        params.sections or ("all"), params.coverages,
-                        getattr(params, "dataset_series", ()),
+                        params.sections or ("all"),
+                        params.coverages,
+                        params.dataset_series,
+                        # getattr(params, "dataset_series", ()),
                         params.http_request
                     ), pretty_print=settings.DEBUG
                 ),

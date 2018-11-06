@@ -28,18 +28,18 @@
 from django.contrib.gis import admin
 
 from eoxserver.webclient import models
-from eoxserver.resources.coverages.admin import (
-    RectifiedDatasetAdmin, ReferenceableDatasetAdmin,
-    RectifiedStitchedMosaicAdmin, DatasetSeriesAdmin
-)
+# from eoxserver.resources.coverages.admin import (
+#     RectifiedDatasetAdmin, ReferenceableDatasetAdmin,
+#     RectifiedStitchedMosaicAdmin, DatasetSeriesAdmin
+# )
 
 
 class ExtraInline(admin.StackedInline):
     model = models.Extra
 
 
-for admin in (
-    RectifiedDatasetAdmin, ReferenceableDatasetAdmin,
-    RectifiedStitchedMosaicAdmin, DatasetSeriesAdmin
-):
-    admin.inlines = admin.inlines + (ExtraInline,)
+# for admin in (
+#     RectifiedDatasetAdmin, ReferenceableDatasetAdmin,
+#     RectifiedStitchedMosaicAdmin, DatasetSeriesAdmin
+# ):
+#     admin.inlines = admin.inlines + (ExtraInline,)

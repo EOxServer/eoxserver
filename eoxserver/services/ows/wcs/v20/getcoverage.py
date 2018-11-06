@@ -27,13 +27,8 @@
 
 from itertools import chain
 
-from eoxserver.core import Component, implements, ExtensionPoint
 from eoxserver.core.decoders import xml, kvp, typelist
 from eoxserver.services.subset import Subsets
-from eoxserver.services.ows.interfaces import (
-    ServiceHandlerInterface, GetServiceHandlerInterface,
-    PostServiceHandlerInterface
-)
 from eoxserver.services.ows.wcs.basehandlers import WCSGetCoverageHandlerBase
 from eoxserver.services.ows.wcs.v20.util import (
     nsmap, parse_subset_kvp, parse_subset_xml, parse_range_subset_kvp,
@@ -42,18 +37,13 @@ from eoxserver.services.ows.wcs.v20.util import (
     parse_scaleaxis_xml, parse_scalesize_xml, parse_scaleextent_xml,
 )
 from eoxserver.services.ows.wcs.v20.parameters import WCS20CoverageRenderParams
-from eoxserver.services.ows.wcs.interfaces import EncodingExtensionInterface
+from eoxserver.services.ows.wcs.v20.encodings import get_encoding_extensions
 from eoxserver.services.exceptions import InvalidRequestException
 
 
-class WCS20GetCoverageHandler(WCSGetCoverageHandlerBase, Component):
-    implements(ServiceHandlerInterface)
-    implements(GetServiceHandlerInterface)
-    implements(PostServiceHandlerInterface)
-
-    encoding_extensions = ExtensionPoint(EncodingExtensionInterface)
-
+class WCS20GetCoverageHandler(WCSGetCoverageHandlerBase):
     versions = ("2.0.0", "2.0.1")
+    methods = ['GET', 'POST']
 
     def get_decoder(self, request):
         if request.method == "GET":
@@ -64,7 +54,7 @@ class WCS20GetCoverageHandler(WCSGetCoverageHandlerBase, Component):
     def get_params(self, coverage, decoder, request):
         subsets = Subsets(decoder.subsets, crs=decoder.subsettingcrs)
         encoding_params = None
-        for encoding_extension in self.encoding_extensions:
+        for encoding_extension in get_encoding_extensions():
             if encoding_extension.supports(decoder.format, {}):
                 encoding_params = encoding_extension.get_encoding_params(
                     request

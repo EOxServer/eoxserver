@@ -32,14 +32,12 @@ from lxml.builder import ElementMaker
 from django.core.urlresolvers import reverse
 from django.shortcuts import get_object_or_404
 
-from eoxserver.core import Component, ExtensionPoint
 from eoxserver.core.util.xmltools import (
     XMLEncoder, NameSpace, NameSpaceMap
 )
 from eoxserver.resources.coverages import models
-from eoxserver.services.opensearch.interfaces import (
-    SearchExtensionInterface, ResultFormatInterface
-)
+from eoxserver.services.opensearch.formats import get_formats
+from eoxserver.services.opensearch.extensions import get_extensions
 
 
 class OpenSearch11DescriptionEncoder(XMLEncoder):
@@ -51,17 +49,23 @@ class OpenSearch11DescriptionEncoder(XMLEncoder):
             "http://a9.com/-/spec/opensearch/extensions/parameters/1.0/",
             "parameters"
         )
-        nsmap = NameSpaceMap(ns_os, ns_param)
+        ns_atom = NameSpace("http://www.w3.org/2005/Atom", "atom")
+        nsmap = NameSpaceMap(ns_os, ns_param, ns_atom)
         for search_extension in search_extensions:
             nsmap.add(search_extension.namespace)
         self.OS = ElementMaker(namespace=ns_os.uri, nsmap=nsmap)
         self.PARAM = ElementMaker(namespace=ns_param.uri, nsmap=nsmap)
+        self.ATOM = ElementMaker(namespace=ns_atom.uri, nsmap=nsmap)
         self.search_extensions = search_extensions
 
     def encode_description(self, request, collection, result_formats):
+        """ Encode an OpenSearch 1.1 description document.
+        """
         OS = self.OS
         description = OS("OpenSearchDescription",
-            OS("ShortName", collection.identifier if collection else ""),
+            OS("ShortName",
+                collection.identifier if collection is not None else ""
+            ),
             OS("Description")
         )
         for method in ("GET", "POST"):
@@ -73,6 +77,7 @@ class OpenSearch11DescriptionEncoder(XMLEncoder):
             ])
         description.extend([
             OS("Contact"),
+            OS("Tags", "CEOS-OS-BP-V1.1/L1"),
             OS("LongName"),
             OS("Developer"),
             OS("Attribution"),
@@ -85,7 +90,10 @@ class OpenSearch11DescriptionEncoder(XMLEncoder):
         return description
 
     def encode_url(self, request, collection, result_format, method):
-        if collection:
+        """ Encode a single opensearch URL, either for a specific collection, or
+            the whole service.
+        """
+        if collection is not None:
             search_url = reverse("opensearch:collection:search",
                 kwargs={
                     "collection_id": collection.identifier,
@@ -102,14 +110,19 @@ class OpenSearch11DescriptionEncoder(XMLEncoder):
         search_url = request.build_absolute_uri(search_url)
 
         default_parameters = (
-            dict(name="q", type="searchTerms"),
-            dict(name="count", type="count"),
-            dict(name="startIndex", type="startIndex"),
+            dict(name="q", type="searchTerms", profiles=[
+            ]),
+            dict(name="count", type="count", min=0),
+            dict(name="startIndex", type="startIndex", min=0),
         )
+
         parameters = list(chain(default_parameters, *[
             [
                 dict(parameter, **{"namespace": search_extension.namespace})
-                for parameter in search_extension.get_schema()
+                for parameter in search_extension.get_schema(
+                    collection,
+                    models.Collection if collection is None else models.Product
+                )
             ] for search_extension in self.search_extensions
         ]))
 
@@ -132,7 +145,7 @@ class OpenSearch11DescriptionEncoder(XMLEncoder):
             type=result_format.mimetype,
             template="%s?%s" % (search_url, query_template)
             if method == "GET" else search_url,
-            rel="results" if collection else "collection", ** {
+            rel="results" if collection is not None else "collection", ** {
                 self.ns_param("method"): method,
                 self.ns_param("enctype"): "application/x-www-form-urlencoded",
                 "indexOffset": "0"
@@ -143,6 +156,8 @@ class OpenSearch11DescriptionEncoder(XMLEncoder):
 
     def encode_parameter(self, parameter, namespace):
         options = parameter.pop("options", [])
+        profiles = parameter.pop("profiles", [])
+
         attributes = {"name": parameter["name"]}
         if namespace:
             attributes["value"] = "{%s:%s}" % (
@@ -151,18 +166,30 @@ class OpenSearch11DescriptionEncoder(XMLEncoder):
         else:
             attributes["value"] = "{%s}" % parameter.pop("type")
 
+        if 'min' in parameter:
+            attributes['minInclusive'] = str(parameter['min'])
+
+        if 'max' in parameter:
+            attributes['maxInclusive'] = str(parameter['max'])
+
+        pattern = parameter.get("pattern")
+        if pattern:
+            attributes["pattern"] = pattern
+
         return self.PARAM("Parameter", *[
             self.PARAM("Option", value=option, label=option)
             for option in options
+        ] + [
+            self.ATOM("link",
+                rel="profile", href=profile["href"], title=profile["title"]
+            )
+            for profile in profiles
         ], minimum="0" if parameter.get("optional", True) else "1", maximum="1",
             **attributes
         )
 
 
-class OpenSearch11DescriptionHandler(Component):
-    search_extensions = ExtensionPoint(SearchExtensionInterface)
-    result_formats = ExtensionPoint(ResultFormatInterface)
-
+class OpenSearch11DescriptionHandler(object):
     def handle(self, request, collection_id=None):
         collection = None
         if collection_id:
@@ -170,11 +197,13 @@ class OpenSearch11DescriptionHandler(Component):
                 identifier=collection_id
             )
 
-        encoder = OpenSearch11DescriptionEncoder(self.search_extensions)
+        encoder = OpenSearch11DescriptionEncoder([
+            extension() for extension in get_extensions()
+        ])
         return (
             encoder.serialize(
                 encoder.encode_description(
-                    request, collection, self.result_formats
+                    request, collection, [format_() for format_ in get_formats()]
                 )
             ),
             encoder.content_type

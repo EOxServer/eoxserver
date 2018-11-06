@@ -1,0 +1,415 @@
+[
+{
+    "model": "coverages.fieldtype",
+    "pk": 1,
+    "fields": {
+        "coverage_type": 1,
+        "index": 0,
+        "identifier": "ASAR_Amplitude",
+        "description": "ASAR Amplitude Band",
+        "definition": "http://www.opengis.net/def/property/OGC/0/Amplitude",
+        "unit_of_measure": "?",
+        "wavelength": null,
+        "significant_figures": null,
+        "numbits": 16,
+        "signed": false,
+        "is_float": false
+    }
+},
+{
+    "model": "coverages.fieldtype",
+    "pk": 2,
+    "fields": {
+        "coverage_type": 2,
+        "index": 0,
+        "identifier": "red",
+        "description": "Red Channel",
+        "definition": "http://www.opengis.net/def/property/OGC/0/Radiance",
+        "unit_of_measure": "W.m-2.Sr-1",
+        "wavelength": null,
+        "significant_figures": null,
+        "numbits": 8,
+        "signed": false,
+        "is_float": false
+    }
+},
+{
+    "model": "coverages.fieldtype",
+    "pk": 3,
+    "fields": {
+        "coverage_type": 2,
+        "index": 1,
+        "identifier": "green",
+        "description": "Green Channel",
+        "definition": "http://www.opengis.net/def/property/OGC/0/Radiance",
+        "unit_of_measure": "W.m-2.Sr-1",
+        "wavelength": null,
+        "significant_figures": null,
+        "numbits": 8,
+        "signed": false,
+        "is_float": false
+    }
+},
+{
+    "model": "coverages.fieldtype",
+    "pk": 4,
+    "fields": {
+        "coverage_type": 2,
+        "index": 2,
+        "identifier": "blue",
+        "description": "Blue Channel",
+        "definition": "http://www.opengis.net/def/property/OGC/0/Radiance",
+        "unit_of_measure": "W.m-2.Sr-1",
+        "wavelength": null,
+        "significant_figures": null,
+        "numbits": 8,
+        "signed": false,
+        "is_float": false
+    }
+},
+{
+    "model": "coverages.nilvalue",
+    "pk": 1,
+    "fields": {
+        "value": "0",
+        "reason": "http://www.opengis.net/def/nil/OGC/0/unknown",
+        "field_types": [
+            1,
+            2,
+            3,
+            4
+        ]
+    }
+},
+{
+    "model": "coverages.coveragetype",
+    "pk": 1,
+    "fields": {
+        "name": "ASAR"
+    }
+},
+{
+    "model": "coverages.coveragetype",
+    "pk": 2,
+    "fields": {
+        "name": "RGB"
+    }
+},
+{
+    "model": "coverages.grid",
+    "pk": 1,
+    "fields": {
+        "name": null,
+        "coordinate_reference_system": "EPSG:4326",
+        "axis_1_name": "x",
+        "axis_2_name": "y",
+        "axis_3_name": null,
+        "axis_4_name": null,
+        "axis_1_type": 0,
+        "axis_2_type": 0,
+        "axis_3_type": null,
+        "axis_4_type": null,
+        "axis_1_offset": null,
+        "axis_2_offset": null,
+        "axis_3_offset": null,
+        "axis_4_offset": null,
+        "resolution": null
+    }
+},
+{
+    "model": "coverages.grid",
+    "pk": 2,
+    "fields": {
+        "name": "mosaic_MER_FRS_1P_reduced_RGB_grid",
+        "coordinate_reference_system": "EPSG:4326",
+        "axis_1_name": "x",
+        "axis_2_name": "y",
+        "axis_3_name": null,
+        "axis_4_name": null,
+        "axis_1_type": 0,
+        "axis_2_type": 0,
+        "axis_3_type": null,
+        "axis_4_type": null,
+        "axis_1_offset": "0.031355000000000",
+        "axis_2_offset": "-0.031355000000000",
+        "axis_3_offset": null,
+        "axis_4_offset": null,
+        "resolution": null
+    }
+},
+{
+    "model": "coverages.eoobject",
+    "pk": 1,
+    "fields": {
+        "identifier": "ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775",
+        "begin_time": "2005-03-31T08:00:36.342Z",
+        "end_time": "2005-03-31T07:59:36.409Z",
+        "footprint": "SRID=4326;MULTIPOLYGON (((22.302402 -33.038045, 21.198937 -32.789789, 20.103285 -32.531717, 19.015447 -32.26383, 17.927845 -31.984137, 17.927845 -31.984137, 17.534901 -33.046222, 17.134463 -34.107425, 16.726531 -35.167749, 16.726531 -35.167749, 17.845519 -35.454938, 18.972321 -35.732312, 20.106936 -35.999871, 21.257438 -36.259394, 21.257438 -36.259394, 21.613253 -35.186492, 21.961575 -34.112709, 22.302402 -33.038045, 22.302402 -33.038045)))",
+        "inserted": "2017-09-12T15:12:03.637Z",
+        "updated": "2017-09-12T15:12:03.638Z"
+    }
+},
+{
+    "model": "coverages.eoobject",
+    "pk": 2,
+    "fields": {
+        "identifier": "MER_FRS_1P_reduced_RGB",
+        "begin_time": "2006-08-16T09:09:29Z",
+        "end_time": "2006-08-30T10:13:06Z",
+        "footprint": "SRID=4326;POLYGON ((14.322576 46.216558, 14.889221 46.152076, 15.714163 46.044475, 16.939196 45.874384, 18.041168 45.707637, 19.696621 45.437661, 21.061979 45.188708, 22.14653 44.985502, 22.972839 44.817601, 24.216794 44.548719, 25.078471 44.353026, 25.619454 44.222401, 27.096691 43.869453, 27.968591 43.648678, 27.608909 42.914276, 26.904154 41.406745, 26.231198 39.890887, 25.79281 38.857425, 25.159378 37.327455, 24.607823 35.91698, 24.126822 34.659956, 23.695477 33.485864, 23.264471 32.269746, 21.93772 32.597366, 20.617207 32.907609, 20.386391 32.266927, 19.564205 32.473013, 18.208092 32.799957, 16.635975 33.156755, 15.04583 33.490106, 13.468673 33.80242, 11.788656 34.117628, 10.101986 34.404759, 9.013785 34.57527, 8.728287 33.807811, 8.174462999999999 32.264541, 7.346658 32.474457, 5.489001 32.914721, 3.594913 33.329295, 1.679562 33.718949, -0.256213 34.082882, -1.744084 34.340572, -3.437981 34.602948, -3.312138 35.2005, -2.968614 36.757094, -2.68201 38.055796, -2.350759 39.517336, -1.942069 41.300921, -1.55386 42.946216, -1.166995 44.592511, -0.769772 46.218445, 0.288547 46.082906, 2.73342 45.736363, 4.815657 45.39947, 6.894776 45.009482, 8.154914 44.750185, 9.634245999999999 44.419524, 10.9393 44.121347, 11.069402 44.65704, 11.282255 45.550039, 11.452165 46.215382, 12.564601 46.077139, 13.887095 45.898161, 14.224295 45.845343, 14.322576 46.216558))",
+        "inserted": "2017-09-12T15:12:06.328Z",
+        "updated": "2017-09-12T15:12:16.322Z"
+    }
+},
+{
+    "model": "coverages.eoobject",
+    "pk": 3,
+    "fields": {
+        "identifier": "mosaic_MER_FRS_1P_reduced_RGB",
+        "begin_time": "2006-08-16T09:09:29Z",
+        "end_time": "2006-08-30T10:13:06Z",
+        "footprint": "SRID=4326;POLYGON ((14.322576 46.216558, 14.889221 46.152076, 15.714163 46.044475, 16.939196 45.874384, 18.041168 45.707637, 19.696621 45.437661, 21.061979 45.188708, 22.14653 44.985502, 22.972839 44.817601, 24.216794 44.548719, 25.078471 44.353026, 25.619454 44.222401, 27.096691 43.869453, 27.968591 43.648678, 27.608909 42.914276, 26.904154 41.406745, 26.231198 39.890887, 25.79281 38.857425, 25.159378 37.327455, 24.607823 35.91698, 24.126822 34.659956, 23.695477 33.485864, 23.264471 32.269746, 21.93772 32.597366, 20.617207 32.907609, 20.386391 32.266927, 19.564205 32.473013, 18.208092 32.799957, 16.635975 33.156755, 15.04583 33.490106, 13.468673 33.80242, 11.788656 34.117628, 10.101986 34.404759, 9.013785 34.57527, 8.728287 33.807811, 8.174462999999999 32.264541, 7.346658 32.474457, 5.489001 32.914721, 3.594913 33.329295, 1.679562 33.718949, -0.256213 34.082882, -1.744084 34.340572, -3.437981 34.602948, -3.312138 35.2005, -2.968614 36.757094, -2.68201 38.055796, -2.350759 39.517336, -1.942069 41.300921, -1.55386 42.946216, -1.166995 44.592511, -0.769772 46.218445, 0.288547 46.082906, 2.73342 45.736363, 4.815657 45.39947, 6.894776 45.009482, 8.154914 44.750185, 9.634245999999999 44.419524, 10.9393 44.121347, 11.069402 44.65704, 11.282255 45.550039, 11.452165 46.215382, 12.564601 46.077139, 13.887095 45.898161, 14.224295 45.845343, 14.322576 46.216558))",
+        "inserted": "2017-09-12T15:12:08.911Z",
+        "updated": "2017-09-12T15:12:14.822Z"
+    }
+},
+{
+    "model": "coverages.eoobject",
+    "pk": 4,
+    "fields": {
+        "identifier": "mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced",
+        "begin_time": "2006-08-16T09:09:29Z",
+        "end_time": "2006-08-16T09:12:46Z",
+        "footprint": "SRID=4326;MULTIPOLYGON (((14.322576 46.216558, 14.889221 46.152076, 15.714163 46.044475, 16.939196 45.874384, 18.041168 45.707637, 19.696621 45.437661, 21.061979 45.188708, 22.14653 44.985502, 22.972839 44.817601, 24.216794 44.548719, 25.078471 44.353026, 25.619454 44.222401, 27.096691 43.869453, 27.968591 43.648678, 27.608909 42.914276, 26.904154 41.406745, 26.231198 39.890887, 25.79281 38.857425, 25.159378 37.327455, 24.607823 35.91698, 24.126822 34.659956, 23.695477 33.485864, 23.264471 32.269746, 21.93772 32.597366, 20.490342 32.937415, 18.720985 33.329502, 17.307239 33.615994, 16.119969 33.851259, 14.83709 34.086159, 13.692708 34.286728, 12.702329 34.450209, 11.648344 34.612576, 11.818952 35.404302, 12.060892 36.496444, 12.273682 37.456615, 12.465752 38.338768, 12.658489 39.179619, 12.861886 40.085426, 13.125704 41.224754, 13.249298 41.773101, 13.442094 42.58703, 13.647311 43.450338, 13.749196 43.879742, 13.904244 44.51596, 14.076176 45.247154, 14.21562 45.812577, 14.322576 46.216558)))",
+        "inserted": "2017-09-12T15:12:10.291Z",
+        "updated": "2017-09-12T15:12:10.291Z"
+    }
+},
+{
+    "model": "coverages.eoobject",
+    "pk": 5,
+    "fields": {
+        "identifier": "mosaic_MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_RGB_reduced",
+        "begin_time": "2006-08-22T09:20:58Z",
+        "end_time": "2006-08-22T09:24:15Z",
+        "footprint": "SRID=4326;MULTIPOLYGON (((11.452165 46.215382, 12.564601 46.077139, 13.887095 45.898161, 15.274289 45.680874, 16.732635 45.449786, 18.910936 45.051917, 20.408606 44.748012, 21.966967 44.411941, 23.519043 44.042016, 25.093495 43.643722, 24.697623 42.82058, 24.095726 41.526816, 23.448736 40.080868, 22.989465 39.025152, 22.502322 37.851452, 22.015222 36.642482, 21.498852 35.307015, 20.944159 33.815137, 20.386391 32.266927, 19.564205 32.473013, 18.208092 32.799957, 16.635975 33.156755, 15.04583 33.490106, 13.468673 33.80242, 11.788656 34.117628, 10.101986 34.404759, 8.778926 34.61207, 9.065763 35.937735, 9.314689 37.042635, 9.571218999999999 38.211693, 9.910892 39.708832, 10.256937 41.235239, 10.570638 42.571739, 10.804735 43.567274, 11.069402 44.65704, 11.282255 45.550039, 11.452165 46.215382)))",
+        "inserted": "2017-09-12T15:12:11.783Z",
+        "updated": "2017-09-12T15:12:11.783Z"
+    }
+},
+{
+    "model": "coverages.eoobject",
+    "pk": 6,
+    "fields": {
+        "identifier": "mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced",
+        "begin_time": "2006-08-30T10:09:49Z",
+        "end_time": "2006-08-30T10:13:06Z",
+        "footprint": "SRID=4326;MULTIPOLYGON (((-0.769772 46.218445, 0.288547 46.082906, 2.73342 45.736363, 4.815657 45.39947, 6.894776 45.009482, 8.154914 44.750185, 9.634245999999999 44.419524, 11.006182 44.106066, 12.278833 43.799809, 12.874734 43.640356, 12.228748 42.297024, 11.428425 40.540559, 10.660988 38.744184, 9.927538999999999 36.963088, 9.239587999999999 35.18226, 8.728287 33.807811, 8.174462999999999 32.264541, 7.346658 32.474457, 5.489001 32.914721, 3.594913 33.329295, 1.679562 33.718949, -0.256213 34.082882, -1.744084 34.340572, -3.437981 34.602948, -3.312138 35.2005, -2.968614 36.757094, -2.68201 38.055796, -2.350759 39.517336, -1.942069 41.300921, -1.55386 42.946216, -1.166995 44.592511, -0.769772 46.218445)))",
+        "inserted": "2017-09-12T15:12:13.368Z",
+        "updated": "2017-09-12T15:12:13.368Z"
+    }
+},
+{
+    "model": "coverages.collection",
+    "pk": 2,
+    "fields": {
+        "collection_type": null,
+        "grid": null
+    }
+},
+{
+    "model": "coverages.mosaic",
+    "pk": 3,
+    "fields": {
+        "grid": 2,
+        "axis_1_origin": "-3.75",
+        "axis_2_origin": "46.268645",
+        "axis_3_origin": null,
+        "axis_4_origin": null,
+        "axis_1_size": 1022,
+        "axis_2_size": 449,
+        "axis_3_size": null,
+        "axis_4_size": null,
+        "coverage_type": 2,
+        "collections": []
+    }
+},
+{
+    "model": "coverages.coverage",
+    "pk": 1,
+    "fields": {
+        "grid": 1,
+        "axis_1_origin": null,
+        "axis_2_origin": null,
+        "axis_3_origin": null,
+        "axis_4_origin": null,
+        "axis_1_size": 569,
+        "axis_2_size": 486,
+        "axis_3_size": null,
+        "axis_4_size": null,
+        "coverage_type": null,
+        "parent_product": null,
+        "collections": [],
+        "mosaics": []
+    }
+},
+{
+    "model": "coverages.coverage",
+    "pk": 4,
+    "fields": {
+        "grid": 2,
+        "axis_1_origin": "11.331755",
+        "axis_2_origin": "46.268645",
+        "axis_3_origin": null,
+        "axis_4_origin": null,
+        "axis_1_size": 541,
+        "axis_2_size": 449,
+        "axis_3_size": null,
+        "axis_4_size": null,
+        "coverage_type": 2,
+        "parent_product": null,
+        "collections": [
+            2
+        ],
+        "mosaics": [
+            3
+        ]
+    }
+},
+{
+    "model": "coverages.coverage",
+    "pk": 5,
+    "fields": {
+        "grid": 2,
+        "axis_1_origin": "8.47845",
+        "axis_2_origin": "46.268645",
+        "axis_3_origin": null,
+        "axis_4_origin": null,
+        "axis_1_size": 540,
+        "axis_2_size": 449,
+        "axis_3_size": null,
+        "axis_4_size": null,
+        "coverage_type": 2,
+        "parent_product": null,
+        "collections": [
+            2
+        ],
+        "mosaics": [
+            3
+        ]
+    }
+},
+{
+    "model": "coverages.coverage",
+    "pk": 6,
+    "fields": {
+        "grid": 2,
+        "axis_1_origin": "-3.75",
+        "axis_2_origin": "46.268645",
+        "axis_3_origin": null,
+        "axis_4_origin": null,
+        "axis_1_size": 541,
+        "axis_2_size": 449,
+        "axis_3_size": null,
+        "axis_4_size": null,
+        "coverage_type": 2,
+        "parent_product": null,
+        "collections": [
+            2
+        ],
+        "mosaics": [
+            3
+        ]
+    }
+},
+{
+    "model": "coverages.metadataitem",
+    "pk": 1,
+    "fields": {
+        "storage": null,
+        "location": "autotest/data/meris/mosaic_MER_FRS_1P_reduced_RGB/mosaic_ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced.xml",
+        "format": "eogml",
+        "eo_object": 4
+    }
+},
+{
+    "model": "coverages.metadataitem",
+    "pk": 2,
+    "fields": {
+        "storage": null,
+        "location": "autotest/data/meris/mosaic_MER_FRS_1P_reduced_RGB/mosaic_ENVISAT-MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_RGB_reduced.xml",
+        "format": "eogml",
+        "eo_object": 5
+    }
+},
+{
+    "model": "coverages.metadataitem",
+    "pk": 3,
+    "fields": {
+        "storage": null,
+        "location": "autotest/data/meris/mosaic_MER_FRS_1P_reduced_RGB/mosaic_ENVISAT-MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced.xml",
+        "format": "eogml",
+        "eo_object": 6
+    }
+},
+{
+    "model": "coverages.arraydataitem",
+    "pk": 1,
+    "fields": {
+        "storage": null,
+        "location": "autotest/data/asar/ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775.tiff",
+        "format": "image/tiff",
+        "coverage": 1,
+        "field_index": 0,
+        "band_count": 1,
+        "subdataset_type": null,
+        "subdataset_locator": null,
+        "bands_interpretation": 0
+    }
+},
+{
+    "model": "coverages.arraydataitem",
+    "pk": 2,
+    "fields": {
+        "storage": null,
+        "location": "autotest/data/meris/mosaic_MER_FRS_1P_reduced_RGB/mosaic_ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced.tif",
+        "format": "image/tiff",
+        "coverage": 4,
+        "field_index": 0,
+        "band_count": 3,
+        "subdataset_type": null,
+        "subdataset_locator": null,
+        "bands_interpretation": 0
+    }
+},
+{
+    "model": "coverages.arraydataitem",
+    "pk": 3,
+    "fields": {
+        "storage": null,
+        "location": "autotest/data/meris/mosaic_MER_FRS_1P_reduced_RGB/mosaic_ENVISAT-MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_RGB_reduced.tif",
+        "format": "image/tiff",
+        "coverage": 5,
+        "field_index": 0,
+        "band_count": 3,
+        "subdataset_type": null,
+        "subdataset_locator": null,
+        "bands_interpretation": 0
+    }
+},
+{
+    "model": "coverages.arraydataitem",
+    "pk": 4,
+    "fields": {
+        "storage": null,
+        "location": "autotest/data/meris/mosaic_MER_FRS_1P_reduced_RGB/mosaic_ENVISAT-MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced.tif",
+        "format": "image/tiff",
+        "coverage": 6,
+        "field_index": 0,
+        "band_count": 3,
+        "subdataset_type": null,
+        "subdataset_locator": null,
+        "bands_interpretation": 0
+    }
+}
+]

@@ -25,8 +25,10 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
+import subprocess
+import math
 
-from eoxserver.contrib import gdal
+from eoxserver.contrib import gdal, vsi, osr
 
 
 def get_vrt_driver():
@@ -274,3 +276,207 @@ class VRTBuilder2(object):
                 E("ResampleAlg", resample)
             ))
         return etree.tostring(root, pretty_print=True)
+
+
+def gdalbuildvrt(filename, paths, separate=False):
+    args = [
+        '/usr/bin/gdalbuildvrt', '-q', '/vsistdout/'
+    ]
+    if separate:
+        args.append('-separate')
+
+    content = subprocess.check_output(args + paths)
+
+    with vsi.open(filename, "w") as f:
+        f.write(content)
+
+
+def _determine_parameters(datasets):
+    first = datasets[0]
+    first_proj = first.GetProjection()
+    first_srs = osr.SpatialReference(first_proj)
+
+    first_gt = first.GetGeoTransform()
+
+    others = datasets[1:]
+
+    res_x, res_y = first_gt[1], first_gt[5]
+    o_x, o_y = first_gt[0], first_gt[3]
+
+    e_x = o_x + res_x * first.RasterXSize
+    e_y = o_y + res_y * first.RasterYSize
+
+    for dataset in others:
+        proj = dataset.GetProjection()
+        srs = osr.SpatialReference(proj)
+
+        gt = dataset.GetGeoTransform()
+
+        dx, dy = gt[1], gt[5]
+
+        res_x = min(dx, res_x)
+        res_y = max(dy, res_y)
+
+        o_x = min(gt[0], o_x)
+        o_y = max(gt[3], o_y)
+
+        e_x = max(gt[0] + dx * dataset.RasterXSize, e_x)
+        e_y = min(gt[3] + dy * dataset.RasterYSize, e_y)
+
+        assert srs.IsSame(first_srs)
+        assert dataset.RasterCount == first.RasterCount
+
+    x_size = int(math.ceil(abs(o_x - e_x) / res_x))
+    y_size = int(math.ceil(abs(o_y - e_y) / abs(res_y)))
+
+    return first_proj, (o_x, o_y), (e_x, e_y), (res_x, res_y), (x_size, y_size)
+
+
+def _get_dst_rect(dataset, o_x, o_y, res_x, res_y):
+    gt = dataset.GetGeoTransform()
+    dx, dy = gt[1], gt[5]
+
+    x_off = round((gt[0] - o_x) / res_x)
+    y_off = round((o_y - gt[3]) / abs(res_y))
+
+    e_x = gt[0] + dx * dataset.RasterXSize
+    e_y = gt[3] + dy * dataset.RasterYSize
+
+    x_size = round((e_x - o_x) / res_x) - x_off
+    y_size = round((o_y - e_y) / abs(res_y)) - y_off
+
+    return x_off, y_off, x_size, y_size
+
+
+def mosaic(filenames, save=None):
+    """ Creates a mosaic VRT from the specified filenames.
+        This function always uses the highest resolution available. The VRT
+        is stored under the ``save`` filename, when passed
+    """
+    datasets = [
+        gdal.OpenShared(filename)
+        for filename in filenames
+    ]
+
+    first = datasets[0]
+    proj, (o_x, o_y), _, (res_x, res_y), (size_x, size_y) = \
+        _determine_parameters(datasets)
+
+    driver = get_vrt_driver()
+    out_ds = driver.Create(save, size_x, size_y, 0)
+
+    out_ds.SetProjection(proj)
+    out_ds.SetGeoTransform([o_x, res_x, 0, o_y, 0, res_y])
+
+    for i in range(1, first.RasterCount + 1):
+        first_band = first.GetRasterBand(i)
+        out_ds.AddBand(first_band.DataType)
+        band = out_ds.GetRasterBand(i)
+        nodata_value = first_band.GetNoDataValue()
+        if nodata_value is not None:
+            band.SetNoDataValue(nodata_value)
+
+        for dataset, filename in zip(datasets, filenames):
+            x_off, y_off, x_size, y_size = _get_dst_rect(
+                dataset, o_x, o_y, res_x, res_y
+            )
+            nodata_value = dataset.GetRasterBand(i).GetNoDataValue()
+
+            band.SetMetadataItem("source_0", """
+                <{source_type}Source>
+                    <SourceFilename relativeToVRT="1">{filename}</SourceFilename>
+                    <SourceBand>{band}</SourceBand>
+                    <SrcRect xOff="0" yOff="0" xSize="{x_size_orig}" ySize="{y_size_orig}"></SrcRect>
+                    <DstRect xOff="{x_off}" yOff="{y_off}" xSize="{x_size}" ySize="{y_size}"></DstRect>
+                    <NODATA>{nodata_value}</NODATA>
+                </{source_type}Source>
+            """.format(
+                band=i, filename=filename,
+                x_size_orig=dataset.RasterXSize,
+                y_size_orig=dataset.RasterYSize,
+                x_off=x_off, y_off=y_off,
+                x_size=x_size, y_size=y_size,
+                source_type='Complex' if nodata_value is not None else 'Simple',
+                nodata_value=nodata_value if nodata_value is not None else '',
+            ), "new_vrt_sources")
+
+    return out_ds
+
+
+def select_bands(filename, band_indices, save=None):
+    ds = gdal.OpenShared(filename)
+
+    out_ds = get_vrt_driver().Create(save, ds.RasterXSize, ds.RasterYSize, 0)
+    out_ds.SetProjection(ds.GetProjection())
+    out_ds.SetGeoTransform(ds.GetGeoTransform())
+
+    for i, index in enumerate(band_indices, start=1):
+        band = ds.GetRasterBand(index)
+        out_ds.AddBand(band.DataType)
+        out_band = out_ds.GetRasterBand(i)
+
+        nodata_value = band.GetNoDataValue()
+        if nodata_value is not None:
+            out_band.SetNoDataValue(nodata_value)
+
+        out_band.SetMetadataItem("source_0", """
+            <SimpleSource>
+                <SourceFilename relativeToVRT="1">{filename}</SourceFilename>
+                <SourceBand>{band}</SourceBand>
+            </SimpleSource>
+        """.format(
+            band=index, filename=filename
+        ), "new_vrt_sources")
+
+    return out_ds
+
+
+def stack_bands(filenames, save=None):
+    datasets = [
+        gdal.OpenShared(filename)
+        for filename in filenames
+    ]
+
+    first = datasets[0]
+    proj, (o_x, o_y), _, (res_x, res_y), (size_x, size_y) = \
+        _determine_parameters(datasets)
+
+    out_ds = get_vrt_driver().Create(
+        save, first.RasterXSize, first.RasterYSize, 0
+    )
+    out_ds.SetProjection(first.GetProjection())
+    out_ds.SetGeoTransform(first.GetGeoTransform())
+
+    out_index = 1
+    for dataset, filename in zip(datasets, filenames):
+        x_off, y_off, x_size, y_size = _get_dst_rect(
+            dataset, o_x, o_y, res_x, res_y
+        )
+
+        for index in range(1, dataset.RasterCount + 1):
+            band = dataset.GetRasterBand(index)
+            out_ds.AddBand(band.DataType)
+            out_band = out_ds.GetRasterBand(out_index)
+
+            nodata_value = band.GetNoDataValue()
+            if nodata_value is not None:
+                out_band.SetNoDataValue(nodata_value)
+
+            out_band.SetMetadataItem("source_0", """
+                <SimpleSource>
+                    <SourceFilename relativeToVRT="1">{filename}</SourceFilename>
+                    <SourceBand>{band}</SourceBand>
+                    <SrcRect xOff="0" yOff="0" xSize="{x_size_orig}" ySize="{y_size_orig}"></SrcRect>
+                    <DstRect xOff="{x_off}" yOff="{y_off}" xSize="{x_size}" ySize="{y_size}"></DstRect>
+                </SimpleSource>
+            """.format(
+                band=index, filename=filename,
+                x_size_orig=dataset.RasterXSize,
+                y_size_orig=dataset.RasterYSize,
+                x_off=x_off, y_off=y_off,
+                x_size=x_size, y_size=y_size,
+            ), "new_vrt_sources")
+
+            out_index += 1
+
+    return out_ds

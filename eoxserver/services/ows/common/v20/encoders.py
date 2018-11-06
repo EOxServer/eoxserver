@@ -25,10 +25,16 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
+from django.conf import settings
+import traceback
+from itertools import chain
 
+from lxml import etree
 from lxml.builder import ElementMaker
 
 from eoxserver.core.util.xmltools import XMLEncoder, NameSpace, NameSpaceMap
+from eoxserver.services.ows.dispatch import filter_handlers
+from eoxserver.services.urls import get_http_service_url
 
 
 ns_xlink = NameSpace("http://www.w3.org/1999/xlink", "xlink")
@@ -48,6 +54,126 @@ class OWS20Encoder(XMLEncoder):
 
         return OWS(node_name, **attributes)
 
+    def encode_service_identification(self, service, conf, profiles):
+        # get a list of versions in descending order from all active
+        # GetCapabilities handlers.
+        handlers = filter_handlers(
+            service=service, request="GetCapabilities"
+        )
+        versions = sorted(
+            set(chain(*[handler.versions for handler in handlers])),
+            reverse=True
+        )
+
+        elem = OWS("ServiceIdentification",
+            OWS("Title", conf.title),
+            OWS("Abstract", conf.abstract),
+            OWS("Keywords", *[
+                OWS("Keyword", keyword) for keyword in conf.keywords
+            ]),
+            OWS("ServiceType", "OGC WCS", codeSpace="OGC")
+        )
+
+        elem.extend(
+            OWS("ServiceTypeVersion", version) for version in versions
+        )
+
+        elem.extend(
+            OWS("Profile", "http://www.opengis.net/%s" % profile)
+            for profile in profiles
+        )
+
+        elem.extend((
+            OWS("Fees", conf.fees),
+            OWS("AccessConstraints", conf.access_constraints)
+        ))
+        return elem
+
+    def encode_service_provider(self, conf):
+        return OWS("ServiceProvider",
+            OWS("ProviderName", conf.provider_name),
+            self.encode_reference("ProviderSite", conf.provider_site),
+            OWS("ServiceContact",
+                OWS("IndividualName", conf.individual_name),
+                OWS("PositionName", conf.position_name),
+                OWS("ContactInfo",
+                    OWS("Phone",
+                        OWS("Voice", conf.phone_voice),
+                        OWS("Facsimile", conf.phone_facsimile)
+                    ),
+                    OWS("Address",
+                        OWS("DeliveryPoint", conf.delivery_point),
+                        OWS("City", conf.city),
+                        OWS("AdministrativeArea", conf.administrative_area),
+                        OWS("PostalCode", conf.postal_code),
+                        OWS("Country", conf.country),
+                        OWS(
+                            "ElectronicMailAddress",
+                            conf.electronic_mail_address
+                        )
+                    ),
+                    self.encode_reference(
+                        "OnlineResource", conf.onlineresource
+                    ),
+                    OWS("HoursOfService", conf.hours_of_service),
+                    OWS("ContactInstructions", conf.contact_instructions)
+                ),
+                OWS("Role", conf.role)
+            )
+        )
+
+    def encode_operations_metadata(self, request, service, versions):
+        get_handlers = filter_handlers(
+            service=service, versions=versions, method="GET"
+        )
+        post_handlers = filter_handlers(
+            service=service, versions=versions, method="POST"
+        )
+        all_handlers = sorted(
+            set(get_handlers + post_handlers),
+            key=lambda h: (getattr(h, "index", 10000), h.request)
+        )
+
+        http_service_url = get_http_service_url(request)
+
+        operations = []
+        for handler in all_handlers:
+            methods = []
+            if handler in get_handlers:
+                methods.append(
+                    self.encode_reference("Get", http_service_url)
+                )
+            if handler in post_handlers:
+                post = self.encode_reference("Post", http_service_url)
+                post.append(
+                    OWS("Constraint",
+                        OWS("AllowedValues",
+                            OWS("Value", "XML")
+                        ), name="PostEncoding"
+                    )
+                )
+                methods.append(post)
+
+            operations.append(
+                OWS("Operation",
+                    OWS("DCP",
+                        OWS("HTTP", *methods)
+                    ),
+                    # apply default values as constraints
+                    *[
+                        OWS("Constraint",
+                            OWS("NoValues"),
+                            OWS("DefaultValue", str(default)),
+                            name=name
+                        ) for name, default
+                        in getattr(handler(), "constraints", {}).items()
+                    ],
+                    name=handler.request
+                )
+            )
+
+        return OWS("OperationsMetadata", *operations)
+
 
 class OWS20ExceptionXMLEncoder(XMLEncoder):
     def encode_exception(self, message, version, code, locator=None):
@@ -60,10 +186,15 @@ class OWS20ExceptionXMLEncoder(XMLEncoder):
 
         exception_text = (OWS("ExceptionText", message),) if message else ()
 
-        return OWS("ExceptionReport", 
-            OWS("Exception", *exception_text, **exception_attributes
-            ), version=version, **{ns_xml("lang"): "en"}
+        report = OWS("ExceptionReport",
+            OWS("Exception", *exception_text, **exception_attributes),
+            version=version, **{ns_xml("lang"): "en"}
         )
+
+        if getattr(settings, 'DEBUG', False):
+            report.append(etree.Comment(traceback.format_exc()))
+
+        return report
 
     def get_schema_locations(self):
         return nsmap.schema_locations

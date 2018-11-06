@@ -81,7 +81,7 @@ SCALEEXTENT_RE = re.compile(r'(\w+)\(([^:]*):([^)]*)\)')
 class RangeSubset(list):
     def get_band_indices(self, range_type, offset=0):
         current_idx = -1
-        all_bands = range_type.cached_bands[:]
+        all_bands = range_type[:]
 
         for subset in self:
             if isinstance(subset, basestring):
@@ -110,7 +110,7 @@ class RangeSubset(list):
 
     def _find(self, all_bands, name):
         for i, band in enumerate(all_bands):
-            if band.name == name or band.identifier == name:
+            if band.identifier == name:
                 return i
         raise NoSuchFieldException("Field '%s' does not exist." % name, name)
 

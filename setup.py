@@ -88,6 +88,9 @@ setup(
     install_requires=[
         'django>=1.4',
         'python-dateutil',
+        'ply',
+        'django-model-utils',
+        'zipstream',
     ],
     zip_safe=False,
 

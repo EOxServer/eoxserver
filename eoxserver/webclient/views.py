@@ -55,8 +55,9 @@ def configuration(request):
     qs = models.EOObject.objects.filter(
         Q(collection__isnull=False) |
         Q(
-            coverage__isnull=False, coverage__visible=True,
-            collections__isnull=True, collection__isnull=True
+            coverage__isnull=False,
+            coverage__service_visibility__service="wc",
+            coverage__service_visibility__visibility=True,
         )
     )
 
@@ -67,18 +68,18 @@ def configuration(request):
     start_time_full = start_time - timedelta(days=5)
     end_time_full = end_time + timedelta(days=5)
 
-    try:
-        # get only coverages that are in a collection or are visible
-        # limit them to 10 and select the first time, so that we can limit the
-        # initial brush
-        coverages_qs = models.EOObject.objects.filter(
-            Q(collection__isnull=True),
-            Q(collections__isnull=False) | Q(coverage__visible=True)
-        )
-        first = list(coverages_qs.order_by("-begin_time")[:10])[-1]
-        start_time = first.begin_time
-    except (models.EOObject.DoesNotExist, IndexError):
-        pass
+    # try:
+    #     # get only coverages that are in a collection or are visible
+    #     # limit them to 10 and select the first time, so that we can limit the
+    #     # initial brush
+    #     coverages_qs = models.EOObject.objects.filter(
+    #         Q(collection__isnull=True),
+    #         Q(collections__isnull=False) | Q(coverage__visible=True)
+    #     )
+    #     first = list(coverages_qs.order_by("-begin_time")[:10])[-1]
+    #     start_time = first.begin_time
+    # except (models.EOObject.DoesNotExist, IndexError):
+    #     pass
 
     return render(
         request, 'webclient/config.json', {

@@ -32,14 +32,10 @@ from itertools import chain
 
 from django.db.models import Q
 
-from eoxserver.core import Component, implements
 from eoxserver.core.config import get_eoxserver_config
-from eoxserver.core.decoders import xml, kvp, typelist, upper, enum
+from eoxserver.core.decoders import xml, kvp, typelist, enum
+from eoxserver.render.coverage import objects
 from eoxserver.resources.coverages import models
-from eoxserver.services.ows.interfaces import (
-    ServiceHandlerInterface, GetServiceHandlerInterface, 
-    PostServiceHandlerInterface
-)
 from eoxserver.services.ows.wcs.v20.util import (
     nsmap, SectionsMixIn, parse_subset_kvp, parse_subset_xml
 )
@@ -53,13 +49,11 @@ from eoxserver.services.exceptions import (
 
 logger = logging.getLogger(__name__)
 
-class WCS20DescribeEOCoverageSetHandler(Component):
-    implements(ServiceHandlerInterface)
-    implements(GetServiceHandlerInterface)
-    implements(PostServiceHandlerInterface)
 
+class WCS20DescribeEOCoverageSetHandler(object):
     service = "WCS"
     versions = ("2.0.0", "2.0.1")
+    methods = ['GET', 'POST']
     request = "DescribeEOCoverageSet"
 
     index = 20
@@ -80,7 +74,7 @@ class WCS20DescribeEOCoverageSetHandler(Component):
     def handle(self, request):
         decoder = self.get_decoder(request)
         eo_ids = decoder.eo_ids
-        
+
         containment = decoder.containment
         if not containment:
             containment = "overlaps"
@@ -92,135 +86,122 @@ class WCS20DescribeEOCoverageSetHandler(Component):
 
         try:
             subsets = Subsets(
-                decoder.subsets, 
+                decoder.subsets,
                 crs="http://www.opengis.net/def/crs/EPSG/0/4326",
                 allowed_types=Trim
             )
         except ValueError, e:
             raise InvalidSubsettingException(str(e))
 
+        # check whether the DatasetSeries and CoverageDescriptions sections are
+        # included
         inc_dss_section = decoder.section_included("DatasetSeriesDescriptions")
         inc_cov_section = decoder.section_included("CoverageDescriptions")
 
         if len(eo_ids) == 0:
             raise
 
-        # fetch a list of all requested EOObjects
-        available_ids = models.EOObject.objects.filter(
+        # fetch the objects directly referenced by EOID
+        eo_objects = models.EOObject.objects.filter(
             identifier__in=eo_ids
-        ).values_list("identifier", flat=True)
+        ).select_subclasses()
 
-        # match the requested EOIDs against the available ones. If any are
-        # requested, that are not available, raise and exit.
-        failed = [ eo_id for eo_id in eo_ids if eo_id not in available_ids ]
+        # check if all EOIDs are available
+        available_ids = set(eo_object.identifier for eo_object in eo_objects)
+        failed = [
+            eo_id for eo_id in eo_ids if eo_id not in available_ids
+        ]
+
+        # fail when some objects are not available
         if failed:
             raise NoSuchDatasetSeriesOrCoverageException(failed)
 
-        collections_qs = subsets.filter(models.Collection.objects.filter(
-            identifier__in=eo_ids
-        ), containment="overlaps")
+        # split list of objects into Collections, Products and Coverages
+        collections = []
+        products = []
+        coverages = []
 
-        # create a set of all indirectly referenced containers by iterating
-        # recursively. The containment is set to "overlaps", to also include 
-        # collections that might have been excluded with "contains" but would 
-        # have matching coverages inserted.
+        for eo_object in eo_objects:
+            if isinstance(eo_object, models.Collection):
+                collections.append(eo_object)
+            elif isinstance(eo_object, models.Product):
+                products.append(eo_object)
+            elif isinstance(eo_object, models.Coverage):
+                coverages.append(eo_object)
 
-        def recursive_lookup(super_collection, collection_set):
-            sub_collections = models.Collection.objects.filter(
-                collections__in=[super_collection.pk]
-            ).exclude(
-                pk__in=map(lambda c: c.pk, collection_set)
+        # get a QuerySet of all dataset series, directly or indirectly referenced
+        all_dataset_series_qs = subsets.filter(models.EOObject.objects.filter(
+            Q(  # directly referenced Collections
+                collection__isnull=False,
+                identifier__in=[
+                    collection.identifier for collection in collections
+                ],
+            ) |
+            Q(  # directly referenced Products
+                product__isnull=False,
+                identifier__in=[product.identifier for product in products],
+            ) |
+            Q(  # Products within Collections
+                product__isnull=False,
+                product__collections__in=collections
             )
-            sub_collections = subsets.filter(sub_collections, "overlaps")
-
-            # Add all to the set
-            collection_set |= set(sub_collections)
-
-            for sub_collection in sub_collections:
-                recursive_lookup(sub_collection, collection_set)
-
-        collection_set = set(collections_qs)
-        for collection in set(collection_set):
-            recursive_lookup(collection, collection_set)
-
-        collection_pks = map(lambda c: c.pk, collection_set)
-
-        # Get all either directly referenced coverages or coverages that are
-        # within referenced containers. Full subsetting is applied here.
-
-        coverages_qs = subsets.filter(models.Coverage.objects.filter(
-            Q(identifier__in=eo_ids) | Q(collections__in=collection_pks)
         ), containment=containment)
 
-        # save a reference before limits are applied to obtain the full number
-        # of matched coverages.
-        coverages_no_limit_qs = coverages_qs
-
-        
-        num_collections = len(
-            filter(lambda c: not models.iscoverage(c), collection_set)
-        )
-
-        # compute how many (if any) coverages can be retrieved. This depends on
-        # the "count" parameter and default setting. Also, if we already 
-        # exceeded the count, limit the number of dataset series aswell
-
         if inc_dss_section:
-            displayed_collections = num_collections
+            dataset_series_qs = all_dataset_series_qs[:count]
         else:
-            displayed_collections = 0
+            dataset_series_qs = models.EOObject.objects.none()
 
-        if displayed_collections < count and inc_cov_section:
-            coverages_qs = coverages_qs.order_by("identifier")[:count - displayed_collections]
-        elif displayed_collections == count or not inc_cov_section:
-            coverages_qs = []
+        # get a QuerySet for all Coverages, directly or indirectly referenced
+        all_coverages_qs = subsets.filter(models.Coverage.objects.filter(
+            Q(  # directly referenced Coverages
+                identifier__in=[
+                    coverage.identifier for coverage in coverages
+                ]
+            ) |
+            Q(  # Coverages within directly referenced Products
+                parent_product__in=products,
+            ) |
+            Q(  # Coverages within indirectly referenced Products
+                parent_product__collections__in=collections
+            ) |
+            Q(  # Coverages within directly referenced Collections
+                collections__in=collections
+            )
+        ), containment=containment)
+
+        # check if the CoverageDescriptions section is included. If not, use an
+        # empty queryset
+        if inc_cov_section:
+            coverages_qs = all_coverages_qs
         else:
-            coverages_qs = []
-            collection_set = sorted(collection_set, key=lambda c: c.identifier)[:count]
+            coverages_qs = models.Coverage.objects.none()
 
-        # get a number of coverages that *would* have been included, but are not
-        # because of the count parameter
-        count_all_coverages = coverages_no_limit_qs.count()
+        # limit coverages according to the number of dataset series
+        coverages_qs = coverages_qs[:max(0, count - dataset_series_qs.count())]
 
-        # if containment is "contains" we need to check all collections again
-        if containment == "contains":
-            collection_set = filter(lambda c: subsets.matches(c), collection_set)
+        # compute the number of all items that would match
+        number_matched = all_coverages_qs.count() + all_dataset_series_qs.count()
 
-        coverages = set()
-        dataset_series = set()
-
-        # finally iterate over everything that has been retrieved and get
-        # a list of dataset series and coverages to be encoded into the response
-        for eo_object in chain(coverages_qs, collection_set):
-            if inc_cov_section and issubclass(eo_object.real_type, models.Coverage):
-                coverages.add(eo_object.cast())
-            elif inc_dss_section and issubclass(eo_object.real_type, models.DatasetSeries):
-                dataset_series.add(eo_object.cast())
-
-            else:
-                # TODO: what to do here?
-                pass
-
-        # TODO: coverages should be sorted
-        #coverages = sorted(coverages, ) 
-
-        #encoder = WCS20CoverageDescriptionXMLEncoder()
-        #return encoder.encode(coverages)
-
-        # TODO: remove this at some point
+        # create an encoder and encode the result
         encoder = WCS20EOXMLEncoder()
-
         return (
             encoder.serialize(
                 encoder.encode_eo_coverage_set_description(
-                    sorted(dataset_series, key=lambda s: s.identifier), 
-                    sorted(coverages, key=lambda c: c.identifier), 
-                    count_all_coverages + num_collections
+                    dataset_series_set=[
+                        objects.DatasetSeries.from_model(eo_object)
+                        for eo_object in dataset_series_qs
+                    ],
+                    coverages=[
+                        objects.Coverage.from_model(coverage)
+                        for coverage in coverages_qs
+                    ],
+                    number_matched=number_matched
                 ), pretty_print=True
             ),
             encoder.content_type
         )
-    
+
 
 def pos_int(value):
     value = int(value)

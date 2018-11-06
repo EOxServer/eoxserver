@@ -26,6 +26,11 @@
 #-------------------------------------------------------------------------------
 
 from lxml.builder import ElementMaker
+from django.contrib.gis.geos import (
+    Polygon, MultiPolygon,
+    LineString, MultiLineString,
+    GeometryCollection,
+)
 
 from eoxserver.core.util.xmltools import NameSpace, NameSpaceMap
 from eoxserver.core.util.timetools import isoformat
@@ -33,20 +38,36 @@ from eoxserver.resources.coverages import crss
 
 # namespace declarations
 ns_gml = NameSpace("http://www.opengis.net/gml/3.2", "gml")
-ns_gmlcov = NameSpace("http://www.opengis.net/gmlcov/1.0", "gmlcov")
+ns_gmlcov = NameSpace("http://www.opengis.net/gmlcov/1.0", "cis10")
+ns_cis = NameSpace("http://www.opengis.net/cis/1.1/gml", "cis11")
+
 ns_om = NameSpace("http://www.opengis.net/om/2.0", "om")
 ns_eop = NameSpace("http://www.opengis.net/eop/2.0", "eop")
 
-nsmap = NameSpaceMap(ns_gml, ns_gmlcov, ns_om, ns_eop)
+nsmap = NameSpaceMap(ns_gml, ns_gmlcov, ns_cis, ns_om, ns_eop)
 
 # Element factories
 GML = ElementMaker(namespace=ns_gml.uri, nsmap=nsmap)
 GMLCOV = ElementMaker(namespace=ns_gmlcov.uri, nsmap=nsmap)
+CIS = ElementMaker(namespace=ns_cis.uri, nsmap=nsmap)
 OM = ElementMaker(namespace=ns_om.uri, nsmap=nsmap)
 EOP = ElementMaker(namespace=ns_eop.uri, nsmap=nsmap)
 
 
 class GML32Encoder(object):
+    def encode_line_string(self, linestring, sr, base_id):
+        frmt = "%.3f %.3f" if sr.projected else "%.8f %.8f"
+
+        swap = crss.getAxesSwapper(sr.srid)
+        pos_list = " ".join(frmt % swap(*point) for point in linestring)
+
+        return GML("LineString",
+            GML("posList",
+                pos_list
+            ),
+            **{ns_gml("id"): "line_string_%s" % base_id}
+        )
+
     def encode_linear_ring(self, ring, sr):
         frmt = "%.3f %.3f" if sr.projected else "%.8f %.8f"
 
@@ -68,6 +89,25 @@ class GML32Encoder(object):
                 self.encode_linear_ring(interior, polygon.srs)
             ) for interior in polygon[1:]),
             **{ns_gml("id"): "polygon_%s" % base_id}
+        )
+
+    def encode_multi_geometry(self, geom, base_id):
+        if isinstance(geom, LineString):
+            geom = [LineString]
+
+        geometry_members = []
+        for member in geom:
+            encoded = None
+            if isinstance(member, GeometryCollection):
+                encoded = self.encode_multi_geometry(geom, '%s_' % base_id)
+            else:
+                encoded = self.encode_line_string(member, member.srs, base_id)
+
+            geometry_members.append(GML("geometryMember", encoded))
+
+        return GML("MultiGeometry",
+            *geometry_members,
+            **{ns_gml("id"): "multi_geom_%s" % base_id}
         )
 
     def encode_multi_surface(self, geom, base_id):
@@ -102,8 +142,14 @@ class GML32Encoder(object):
 
 class EOP20Encoder(GML32Encoder):
     def encode_footprint(self, footprint, eo_id):
+        if isinstance(footprint, (MultiPolygon, Polygon)):
+            encoded = self.encode_multi_surface(footprint, eo_id)
+
+        elif isinstance(footprint, (LineString, MultiLineString, GeometryCollection)):
+            encoded = self.encode_multi_geometry(footprint, eo_id)
+
         return EOP("Footprint",
-            EOP("multiExtentOf", self.encode_multi_surface(footprint, eo_id)),
+            EOP("multiExtentOf", encoded),
             **{ns_gml("id"): "footprint_%s" % eo_id}
         )
 
@@ -119,32 +165,48 @@ class EOP20Encoder(GML32Encoder):
             )
         )
 
-    def encode_earth_observation(self, eo_metadata, contributing_datasets=None,
+    def encode_earth_observation(self, identifier, begin_time, end_time,
+                                 footprint, contributing_datasets=None,
                                  subset_polygon=None):
-        identifier = eo_metadata.identifier
-        begin_time = eo_metadata.begin_time
-        end_time = eo_metadata.end_time
-        result_time = eo_metadata.end_time
-        footprint = eo_metadata.footprint
 
         if subset_polygon is not None:
             footprint = footprint.intersection(subset_polygon)
 
-        return EOP("EarthObservation",
-            OM("phenomenonTime",
-                self.encode_time_period(
-                    begin_time, end_time, "phen_time_%s" % identifier
+        elements = []
+        if begin_time and end_time:
+            elements.append(
+                OM("phenomenonTime",
+                    self.encode_time_period(
+                        begin_time, end_time, "phen_time_%s" % identifier
+                    )
                 )
-            ),
-            OM("resultTime",
-                self.encode_time_instant(result_time, "res_time_%s" % identifier)
-            ),
+            )
+        if end_time:
+            elements.append(
+                OM("resultTime",
+                    self.encode_time_instant(
+                        end_time, "res_time_%s" % identifier
+                    )
+                )
+            )
+
+        elements.extend([
             OM("procedure"),
             OM("observedProperty"),
-            OM("featureOfInterest",
-                self.encode_footprint(footprint, identifier)
-            ),
+        ])
+
+        if footprint:
+            elements.append(
+                OM("featureOfInterest",
+                    self.encode_footprint(footprint, identifier)
+                )
+            )
+        elements.extend([
             OM("result"),
-            self.encode_metadata_property(identifier, contributing_datasets),
+            self.encode_metadata_property(identifier, contributing_datasets)
+        ])
+
+        return EOP("EarthObservation",
+            *elements,
             **{ns_gml("id"): "eop_%s" % identifier}
         )

@@ -57,9 +57,13 @@ def create_instance(instance_id, target=None, init_spatialite=False,
         'traceback': traceback
     }
 
+    args = [instance_id]
+    if target is not None:
+        args.append(target)
+
     # create the initial django folder structure
     print("Initializing django project folder.")
-    call_command("startproject", instance_id, target, **options)
+    call_command("startproject", *args, **options)
 
     if init_spatialite:
         _init_spatialite(instance_id, target)

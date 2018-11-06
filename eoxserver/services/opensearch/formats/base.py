@@ -1,9 +1,9 @@
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
 #
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Copyright (C) 2015 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -23,7 +23,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 
 import uuid
@@ -33,24 +33,13 @@ from lxml.builder import ElementMaker
 from django.core.urlresolvers import reverse
 
 from eoxserver.contrib import ogr, vsi
-from eoxserver.core import Component, implements
 from eoxserver.core.util.timetools import isoformat
 from eoxserver.core.util.xmltools import NameSpace, NameSpaceMap
 from eoxserver.resources.coverages import models
 from eoxserver.services.gml.v32.encoders import GML32Encoder
-from eoxserver.services.opensearch.interfaces import ResultFormatInterface
 
 
-class BaseResultFormat(Component):
-    """ Base class for result formats
-    """
-
-    implements(ResultFormatInterface)
-
-    abstract = True
-
-
-class BaseOGRResultFormat(BaseResultFormat):
+class BaseOGRResultFormat(object):
     """ Base ckass for result formats using OGR for encoding the records.
     """
     abstract = True
@@ -155,7 +144,7 @@ MEDIA = ElementMaker(namespace=ns_media.uri, nsmap=nsmap)
 OWC = ElementMaker(namespace=ns_owc.uri, nsmap=nsmap)
 
 
-class BaseFeedResultFormat(BaseResultFormat):
+class BaseFeedResultFormat(object):
     """ Abstract base component for feed result formats like RSS and atom. Adds
     functionality to encode the paging mechanisms by using ``atom:link``s.
     """
@@ -235,135 +224,182 @@ class BaseFeedResultFormat(BaseResultFormat):
             ))
         ]
 
-    def encode_item_links(self, request, item):
+    def encode_item_links(self, request, collection_id, item):
         links = []
-        if issubclass(item.real_type, models.Collection):
+        if isinstance(item, models.Collection):
             # add link to opensearch collection search
             links.append(
-                ATOM("link", rel="search", href=request.build_absolute_uri(
-                    reverse("opensearch:collection:description", kwargs={
-                        "collection_id": item.identifier
-                    })
-                ))
+                ATOM("link",
+                    rel="search", type="application/opensearchdescription+xml",
+                    href=request.build_absolute_uri(
+                        reverse("opensearch:collection:description", kwargs={
+                            'collection_id': item.identifier
+                        })
+                    )
+                )
             )
             # TODO: link to WMS (GetCapabilities)
 
-        if issubclass(item.real_type, models.Coverage):
+        if isinstance(item, models.Product):
+            footprint = item.footprint
+            if footprint:
+
+                links.append(
+                    ATOM("link", rel="enclosure",
+                        href=self._create_download_link(request, item)
+                    )
+                )
+
+                wms_get_capabilities = request.build_absolute_uri(
+                    "%s?service=WMS&version=1.3.0&request=GetCapabilities"
+                    % reverse("ows")
+                )
+
+                thumbnail_link = self._create_thumbail_link(request, item)
+                wms_small = self._create_map_link(request, item, 100)
+                wms_large = self._create_map_link(request, item, 500)
+
+                # media RSS style links
+                if wms_large:
+                    # "Browse" image
+                    links.append(
+                        MEDIA("content",
+                            MEDIA("category", "QUICKLOOK"),
+                            url=wms_large
+                        )
+                    )
+
+                if wms_small:
+                    # "Thumbnail" image
+                    links.append(
+                        MEDIA("content",
+                            MEDIA("category", "THUMBNAIL"),
+                            url=thumbnail_link or wms_small
+                        )
+                    )
+
+                links.extend([
+                    OWC("offering",
+                        OWC("operation",
+                            code="GetCapabilities", method="GET",
+                            type="application/xml", href=wms_get_capabilities
+                        ),
+                        OWC("operation",
+                            code="GetMap", method="GET",
+                            type="image/png", href=wms_large
+                        ),
+                        code="http://www.opengis.net/spec/owc-atom/1.0/req/wms",
+                    ),
+                ])
+
+                wcs_offering = OWC("offering",
+                    OWC("operation",
+                        code="GetCapabilities", method="GET",
+                        type="application/xml", href=request.build_absolute_uri(
+                            "%s?service=WCS&version=2.0.1"
+                            "&request=GetCapabilities"
+                            % reverse("ows")
+                        )
+                    ),
+                    code="http://www.opengis.net/spec/owc-atom/1.0/req/wcs",
+                )
+                for coverage in item.coverages.all():
+                    wcs_offering.extend(self.encode_coverage_offerings(
+                        request, coverage
+                    ))
+
+                links.append(wcs_offering)
+
+        if isinstance(item, models.Coverage):
             # add a link for a Describe and GetCoverage request for
             # metadata and data download
 
-            minx, miny, maxx, maxy = item.extent_wgs84
-
-            fx = 1.0
-            fy = 1.0
-
-            if (maxx - minx) > (maxy - miny):
-                fy = (maxy - miny) / (maxx - minx)
-            else:
-                fx = (maxx - minx) / (maxy - miny)
-
-            wms_get_capabilities = request.build_absolute_uri(
-                "%s?service=WMS&version=1.3.0&request=GetCapabilities"
-            )
-
-            wms_small = request.build_absolute_uri(
-                "%s?service=WMS&version=1.3.0&request=GetMap"
-                "&layers=%s&format=image/png&TRANSPARENT=true"
-                "&width=%d&height=%d&CRS=EPSG:4326&STYLES="
-                "&BBOX=%f,%f,%f,%f"
-                "" % (
-                    reverse("ows"), item.identifier,
-                    int(100 * fx), int(100 * fy),
-                    miny, minx, maxy, maxx
-                )
-            )
-
-            wms_large = request.build_absolute_uri(
-                "%s?service=WMS&version=1.3.0&request=GetMap"
-                "&layers=%s&format=image/png&TRANSPARENT=true"
-                "&width=%d&height=%d&CRS=EPSG:4326&STYLES="
-                "&BBOX=%f,%f,%f,%f"
-                "" % (
-                    reverse("ows"), item.identifier,
-                    int(500 * fx), int(500 * fy),
-                    miny, minx, maxy, maxx
-                )
-            )
-
             wcs_get_capabilities = request.build_absolute_uri(
                 "%s?service=WCS&version=2.0.1&request=GetCapabilities"
-            )
-
-            wcs_describe_coverage = request.build_absolute_uri(
-                "%s?service=WCS&version=2.0.1&request=DescribeCoverage"
-                "&coverageId=%s" % (reverse("ows"), item.identifier)
-            )
-
-            wcs_get_coverage = request.build_absolute_uri(
-                "%s?service=WCS&version=2.0.1&request=GetCoverage"
-                "&coverageId=%s" % (reverse("ows"), item.identifier)
+                % reverse("ows")
             )
 
             links.extend([
-                ATOM("link", rel="enclosure", href=wcs_get_coverage),
-                ATOM("link", rel="via", href=wcs_describe_coverage),
+                ATOM("link", rel="enclosure",
+                    href=self._create_coverage_link(
+                        request, coverage
+                    )
+                ),
+                ATOM("link", rel="via",
+                    href=self._create_coverage_description_link(
+                        request, coverage
+                    )
+                ),
                 # "Browse" image
-                ATOM("link", rel="icon", href=wms_large),
+                # ATOM("link", rel="icon", href=wms_large),
             ])
 
-            # media RSS style links
+            # OWC offerings for WCS
             links.extend([
-                # "Browse" image
-                MEDIA("content",
-                    MEDIA("category", "QUICKLOOK"),
-                    url=wms_large
-                ),
-                # "Thumbnail" image
-                MEDIA("content",
-                    MEDIA("category", "THUMBNAIL"),
-                    url=wms_small
-                ),
-            ])
-
-            # OWC offerings for WMS/WCS
-            links.extend([
-                OWC("offering",
-                    OWC("operation",
-                        code="GetCapabilities", method="GET",
-                        type="application/xml", href=wms_get_capabilities
-                    ),
-                    OWC("operation",
-                        code="GetMap", method="GET",
-                        type="image/png", href=wms_large
-                    ),
-                    code="http://www.opengis.net/spec/owc-atom/1.0/req/wms",
-                ),
                 OWC("offering",
                     OWC("operation",
                         code="GetCapabilities", method="GET",
                         type="application/xml", href=wcs_get_capabilities
                     ),
-                    OWC("operation",
-                        code="DescribeCoverage", method="GET",
-                        type="application/xml", href=wcs_describe_coverage
-                    ),
-                    OWC("operation",
-                        code="GetCoverage", method="GET",
-                        type="image/tiff", href=wcs_get_coverage
-                        # TODO: native format
-                    ),
-                    code="http://www.opengis.net/spec/owc-atom/1.0/req/wcs",
+                    *self.encode_coverage_offerings(request, item),
+                    **{
+                        "code": "http://www.opengis.net/spec/owc-atom/1.0/req/wcs"
+                    }
                 )
             ])
+
+        semantic_to_rel = {
+            1: 'alternate',
+            2: 'describedby',
+        }
+
+        links.extend([
+            ATOM("link",
+                rel=semantic_to_rel[metadata_item.semantic],
+                href=self._make_metadata_href(request, item, metadata_item)
+            )
+            for metadata_item in item.metadata_items.filter(
+                semantic__in=semantic_to_rel.keys()
+            )
+        ])
+
         return links
 
-    def encode_summary(self, request, item):
+    def encode_summary(self, request, collection_id, item):
         pass
+
+    def encode_coverage_offerings(self, request, coverage):
+        return [
+            OWC("operation",
+                code="DescribeCoverage", method="GET",
+                type="application/xml",
+                href=self._create_coverage_description_link(request, coverage)
+            ),
+            OWC("operation",
+                code="GetCoverage", method="GET",
+                type="image/tiff", href=self._create_coverage_link(
+                    request, coverage
+                )
+            )
+        ]
 
     def encode_spatio_temporal(self, item):
         entries = []
+
+        begin_time = item.begin_time
+        end_time = item.end_time
+        if begin_time and end_time:
+            if begin_time != end_time:
+                entries.append(
+                    DC("date", "%s/%s" % (
+                        isoformat(begin_time), isoformat(end_time)
+                    ))
+                )
+            else:
+                entries.append(DC("date", isoformat(begin_time)))
+
         if item.footprint:
-            extent = item.extent_wgs84
+            extent = item.footprint.extent
             entries.append(
                 GEORSS("box",
                     "%f %f %f %f" % (extent[1], extent[0], extent[3], extent[2])
@@ -377,15 +413,99 @@ class BaseFeedResultFormat(BaseResultFormat):
                 )
             )
 
-        begin_time, end_time = item.time_extent
-        if begin_time and end_time:
-            if begin_time != end_time:
-                entries.append(
-                    DC("date", "%s/%s" % (
-                        isoformat(begin_time), isoformat(end_time)
-                    ))
-                )
-            else:
-                entries.append(DC("date", isoformat(begin_time)))
-
         return entries
+
+    def _create_map_link(self, request, item, size):
+        footprint = item.footprint
+
+        if footprint:
+            minx, miny, maxx, maxy = footprint.extent
+
+            fx = 1.0
+            fy = 1.0
+
+            if (maxx - minx) > (maxy - miny):
+                fy = (maxy - miny) / (maxx - minx)
+            else:
+                fx = (maxx - minx) / (maxy - miny)
+
+            return request.build_absolute_uri(
+                "%s?service=WMS&version=1.3.0&request=GetMap"
+                "&layers=%s&format=image/png&TRANSPARENT=true"
+                "&width=%d&height=%d&CRS=EPSG:4326&STYLES="
+                "&BBOX=%f,%f,%f,%f"
+                "" % (
+                    reverse("ows"), item.identifier,
+                    int(size * fx), int(size * fy),
+                    miny, minx, maxy, maxx
+                )
+            )
+        return None
+
+    def _create_coverage_link(self, request, coverage):
+        return request.build_absolute_uri(
+            "%s?service=WCS&version=2.0.1&request=GetCoverage"
+            "&coverageId=%s" % (reverse("ows"), coverage.identifier)
+        )
+
+    def _create_coverage_description_link(self, request, coverage):
+        return request.build_absolute_uri(
+            "%s?service=WCS&version=2.0.1&request=DescribeCoverage"
+            "&coverageId=%s" % (reverse("ows"), coverage.identifier)
+        )
+
+    def _create_eo_coverage_set_description(self, request, eo_object):
+        return request.build_absolute_uri(
+            "%s?service=WCS&version=2.0.1&request=DescribeEOCoverageSet"
+            "&eoId=%s" % (reverse("ows"), eo_object.identifier)
+        )
+
+    def _create_self_link(self, request, collection_id, item, format=None):
+        if collection_id is None:
+            return "%s?uid=%s" % (
+                request.build_absolute_uri(
+                    reverse("opensearch:search", kwargs={
+                        "format_name": format if format else self.name
+                    })
+                ), item.identifier
+            )
+
+        return "%s?uid=%s" % (
+            request.build_absolute_uri(
+                reverse("opensearch:collection:search", kwargs={
+                    "collection_id": collection_id,
+                    "format_name": format if format else self.name
+                })
+            ), item.identifier
+        )
+
+    def _create_download_link(self, request, product):
+        package = product.package
+        if package:
+            if package.storage_type in ('HTTP', 'FTP'):
+                return package.url
+
+        return request.build_absolute_uri(
+            "%s?service=DSEO&version=1.0.0&request=GetProduct&ProductURI=%s" % (
+                reverse("ows"), product.identifier
+            )
+        )
+
+    def _create_thumbail_link(self, request, item):
+        semantic = models.MetaDataItem.semantic_codes['thumbnail']
+        if item.metadata_items.filter(semantic=semantic).exists():
+            return request.build_absolute_uri(
+                reverse("metadata", kwargs={
+                    'identifier': item.identifier,
+                    'semantic': 'thumbnail'
+                })
+            )
+
+    def _make_metadata_href(self, request, item, metadata_item):
+        semantic_name = models.MetaDataItem.semantic_names[metadata_item.semantic]
+        return request.build_absolute_uri(
+            reverse("metadata", kwargs={
+                'identifier': item.identifier,
+                'semantic': semantic_name
+            })
+        )

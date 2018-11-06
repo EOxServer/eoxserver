@@ -25,28 +25,21 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-
-import os.path
-
-from eoxserver.core import Component, implements
-from eoxserver.backends.access import connect
-from eoxserver.services.mapserver.interfaces import ConnectorInterface
+from eoxserver.backends.access import get_vsi_path
 
 
-class TileIndexConnector(Component):
+class TileIndexConnector(object):
     """ Connects a tile index with the given layer. The tileitem is fixed to
         "location".
     """
 
-    implements(ConnectorInterface)
-
-    def supports(self, data_items):
+    def supports(self, coverage, data_items):
         return (
             len(data_items) == 1 and data_items[0].semantic == "tileindex"
         )
 
     def connect(self, coverage, data_items, layer, options):
-        layer.tileindex = os.path.abspath(connect(data_items[0]))
+        layer.tileindex = get_vsi_path(data_items[0])
         layer.tileitem = "location"
 
     def disconnect(self, coverage, data_items, layer, options):
