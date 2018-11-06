@@ -120,7 +120,7 @@ class GDALReferenceableDatasetRenderer(object):
 
             if hasattr(scale_y_obj, 'scale'):
                 scale_y = getattr(scale_y_obj, 'scale')
-            if hasattr(scale_x_obj, 'size'):
+            if hasattr(scale_y_obj, 'size'):
                 s_y = getattr(scale_y_obj, 'size')
                 scale_y = float(s_y) / dst_rect.size_y
 
