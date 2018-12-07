@@ -30,6 +30,7 @@
 from django.contrib.gis import admin
 from django.core.urlresolvers import reverse, NoReverseMatch
 from django.utils.safestring import mark_safe
+from django.conf import settings
 
 from eoxserver.resources.coverages import models
 
@@ -156,11 +157,29 @@ class CollectionMetadataInline(admin.StackedInline):
 class EOObjectAdmin(admin.GeoModelAdmin):
     date_hierarchy = 'inserted'
 
-    wms_name = 'EOX Maps'
-    wms_url = '//tiles.maps.eox.at/wms/'
-    wms_layer = 'terrain-light'
-    default_lon = 16
-    default_lat = 48
+    @property
+    def wms_name(self):
+        return getattr(settings, 'EOXS_ADMIN_WMS_NAME', 'EOX Maps')
+
+    @property
+    def wms_url(self):
+        return getattr(settings, 'EOXS_ADMIN_WMS_URL', '//tiles.maps.eox.at/wms/')
+
+    @property
+    def wms_layer(self):
+        return getattr(settings, 'EOXS_ADMIN_WMS_LAYER', 'terrain-light')
+
+    @property
+    def default_lon(self):
+        return getattr(settings, 'EOXS_ADMIN_DEFAULT_LON', 16)
+
+    @property
+    def default_lat(self):
+        return getattr(settings, 'EOXS_ADMIN_DEFAULT_LAT', 48)
+
+    @property
+    def default_zoom(self):
+        return getattr(settings, 'EOXS_ADMIN_DEFAULT_ZOOM', 4)
 
 # ==============================================================================
 # "Type" model admins
