@@ -117,8 +117,10 @@ class BaseOGRResultFormat(object):
             ogr.CreateGeometryFromWkb(str(eo_object.footprint.wkb))
         )
         feature.SetField("id", eo_object.identifier.encode("utf-8"))
-        feature.SetField("begin_time", isoformat(eo_object.begin_time))
-        feature.SetField("end_time", isoformat(eo_object.end_time))
+        if eo_object.begin_time:
+            feature.SetField("begin_time", isoformat(eo_object.begin_time))
+        if eo_object.end_time:
+            feature.SetField("end_time", isoformat(eo_object.end_time))
 
     def cleanup(self, driver, datasource, filename):
         """ Perform any necessary cleanup steps, like removing the temporary
@@ -423,6 +425,10 @@ class BaseFeedResultFormat(object):
 
             fx = 1.0
             fy = 1.0
+
+            # in case of points
+            if minx == maxx or miny == maxy:
+                return None
 
             if (maxx - minx) > (maxy - miny):
                 fy = (maxy - miny) / (maxx - minx)

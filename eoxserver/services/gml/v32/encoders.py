@@ -78,6 +78,8 @@ class GML32Encoder(object):
             ]
         elif geom.geom_typeid == 3:     # Polygon
             polygons = [self.encode_polygon(geom, base_id)]
+        else:
+            polygons = []
 
         return GML("MultiSurface",
             *[GML("surfaceMember", polygon) for polygon in polygons],
