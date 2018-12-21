@@ -33,6 +33,7 @@ import json
 from datetime import datetime
 import re
 
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
 from django.contrib.gis.db import models
@@ -304,12 +305,13 @@ class GridFixture(models.Model):
 # Actual item models: Collection, Product and Coverage
 # ==============================================================================
 
+eo_object_identifier_validators = identifier_validators if getattr(settings, 'EOXS_VALIDATE_IDS_NCNAME', True) else []
 
 @python_2_unicode_compatible
 class EOObject(models.Model):
     """ Base class for Collections, Products and Coverages
     """
-    identifier = models.CharField(max_length=256, unique=True, validators=identifier_validators, **mandatory)
+    identifier = models.CharField(max_length=256, unique=True, validators=eo_object_identifier_validators, **mandatory)
 
     begin_time = models.DateTimeField(**optional)
     end_time = models.DateTimeField(**optional)
