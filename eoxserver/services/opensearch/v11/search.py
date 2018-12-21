@@ -108,7 +108,9 @@ class OpenSearch11SearchHandler(object):
             namespaces.add(search_extension.namespace)
             all_parameters[search_extension.namespace.prefix] = params
 
-        total_count = len(qs)
+        # use [:] here, otherwise the queryset would be evaluated and return
+        # lists upon slicing
+        total_count = len(qs[:])
 
         # read the configuration and determine the count parameter
         conf = OpenSearchConfigReader(get_eoxserver_config())
@@ -125,7 +127,7 @@ class OpenSearch11SearchHandler(object):
         else:
             qs = qs[start_index:start_index+requested_count]
 
-        result_count = len(qs)
+        result_count = len(qs[:])
 
         try:
             result_format = next(
