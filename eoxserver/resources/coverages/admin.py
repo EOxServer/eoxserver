@@ -108,6 +108,11 @@ class BrowseInline(admin.StackedInline):
     extra = 0
 
 
+class ProductDataItemInline(admin.StackedInline):
+    model = models.ProductDataItem
+    extra = 0
+
+
 class MetaDataItemInline(admin.StackedInline):
     model = models.MetaDataItem
     extra = 0
@@ -229,7 +234,7 @@ admin.site.register(models.Coverage, CoverageAdmin)
 
 class ProductAdmin(EOObjectAdmin):
     inlines = [
-        MaskInline, BrowseInline, MetaDataItemInline, ProductMetadataInline
+        MaskInline, BrowseInline, ProductDataItemInline, MetaDataItemInline, ProductMetadataInline
     ]
 
 admin.site.register(models.Product, ProductAdmin)

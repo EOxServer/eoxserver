@@ -451,6 +451,10 @@ class Mask(backends.DataItem):
     geometry = models.GeometryField(**optional)
 
 
+class ProductDataItem(backends.DataItem):
+    product = models.ForeignKey(Product, related_name='product_data_items', **mandatory)
+
+
 class ArrayDataItem(backends.DataItem):
     BANDS_INTERPRETATION_CHOICES = [
         (0, 'fields'),
