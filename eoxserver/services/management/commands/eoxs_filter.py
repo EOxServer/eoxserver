@@ -1,5 +1,3 @@
-from optparse import make_option
-
 from django.core.management.base import BaseCommand, CommandError
 
 from eoxserver.resources.coverages import models
@@ -9,29 +7,38 @@ from eoxserver.services.filters import get_field_mapping_for_model
 
 
 class Command(CommandOutputMixIn, BaseCommand):
-    option_list = BaseCommand.option_list + (
-        make_option('--collection', '-c', dest='collection_id',
+
+    def add_arguments(self, parser):
+        parser.add_argument(
+            'cql_filters', nargs='+', help='The search filters'
+        )
+
+        parser.add_argument(
+            '--collection', '-c', dest='collection_id',
             help='Optional. Only list datasets in this collection.'
-        ),
-        make_option('--type', '-t', dest='type', default='EOObject',
+        )
+        parser.add_argument(
+            '--type', '-t', dest='type', default='EOObject',
             help='Optional. Limit datasets to objects of that type.'
-        ),
-        make_option('--exclude', '-e', dest='exclude',
+        )
+        parser.add_argument(
+            '--exclude', '-e', dest='exclude',
             action='store_true', default=False,
             help=(
                 'Optional. Reverse the lookup: instead of including the matched '
                 'datasets in the result, exclude them and include everything '
                 'else.'
             )
-        ),
-        make_option('--show-attributes', '--show', '-s', dest='show_attributes',
+        )
+
+        parser.add_argument(
+            '--show-attributes', '--show', '-s', dest='show_attributes',
             action='store_true', default=False,
             help=(
                 'Optional. Display the available attributes for the given '
                 'record type.'
             )
         )
-    )
 
     args = '<cql-filter>'
 
@@ -40,7 +47,7 @@ class Command(CommandOutputMixIn, BaseCommand):
         The dataset IDs will be written to stdout.
     """
 
-    def handle(self, *args, **options):
+    def handle(self, cql_filters, **options):
         self.verbosity = int(options.get('verbosity', 1))
 
         # get the model class and the field mapping (with choices)
@@ -65,11 +72,11 @@ class Command(CommandOutputMixIn, BaseCommand):
         else:
             qs = ModelClass.objects.all()
 
-        if len(args) < 1:
+        if len(cql_filters) < 1:
             raise CommandError('No CQL filter passed.')
 
-        for arg in args:
-            ast = parse(arg)
+        for cql_filter in cql_filters:
+            ast = parse(cql_filter)
 
             if self.verbosity >= 2:
                 self.print_msg(get_repr(ast), 2)
