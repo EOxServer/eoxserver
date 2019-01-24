@@ -56,6 +56,7 @@ class ECQLParser(object):
         )
 
     def parse(self, text):
+        self.__query = text
         return self.parser.parse(
             input=text,
             lexer=self.lexer
@@ -256,6 +257,12 @@ class ECQLParser(object):
         if p:
             print dir(p)
             print("Syntax error at token", p.type, p.value, p.lexpos, p.lineno)
+
+            print self.__query.split('\n')
+            line = self.__query.split('\n')[p.lineno - 1]
+            print(line)
+            print((' ' * p.lexpos) + '^')
+
             # Just discard the token and tell the parser it's okay.
             #p.parser.errok()
         else:

@@ -99,7 +99,7 @@ class ECQLLexer(object):
 
     # a simple pattern that allows the simple float and integer notations (but
     # not the scientific ones). Maybe TODO
-    number_pattern = r'[0-9]*\.?[0-9]+'
+    number_pattern = r'-?[0-9]*\.?[0-9]+'
 
     coordinate_2d_pattern = r'%s\s+%s\s*' % (number_pattern, number_pattern)
     coordinate_3d_pattern = r'%s\s+%s\s*' % (
