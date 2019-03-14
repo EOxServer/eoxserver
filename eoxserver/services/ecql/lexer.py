@@ -87,11 +87,11 @@ class ECQLLexer(object):
     # float_pattern = r'(?:[0-9]+[.][0-9]*|[.][0-9]+)(?:[Ee][-+]?[0-9]+)?'
     float_pattern = r'[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?'
 
-    time_pattern = "\d{4}-\d{2}-\d{2}T[0-2][0-9]:[0-5][0-9]:[0-5][0-9]Z"
+    time_pattern = r"\d{4}-\d{2}-\d{2}T[0-2][0-9]:[0-5][0-9]:[0-5][0-9]Z"
     duration_pattern = (
         # "P(?=[YMDHMS])"  # positive lookahead here... TODO: does not work
         # "((\d+Y)?(\d+M)?(\d+D)?)?(T(\d+H)?(\d+M)?(\d+S)?)?"
-        "P((\d+Y)?(\d+M)?(\d+D)?)?(T(\d+H)?(\d+M)?(\d+S)?)?"
+        r"P((\d+Y)?(\d+M)?(\d+D)?)?(T(\d+H)?(\d+M)?(\d+S)?)?"
     )
     quoted_string_pattern = r'(\"[^"]*\")|(\'[^\']*\')'
 
