@@ -25,6 +25,9 @@
 # THE SOFTWARE.
 # ------------------------------------------------------------------------------
 
+from django.conf import settings
+from django.utils.module_loading import import_string
+
 
 # default for EOXS_OPENSEARCH_FORMATS
 DEFAULT_EOXS_OPENSEARCH_FORMATS = [
@@ -46,3 +49,13 @@ DEFAULT_EOXS_OPENSEARCH_EXTENSIONS = [
 
 # default for EOXS_OPENSEARCH_SUMMARY_TEMPLATE
 DEFAULT_EOXS_OPENSEARCH_SUMMARY_TEMPLATE = "opensearch/summary.html"
+
+# default for the EOXS_OPENSEARCH_RECORD_MODEL
+DEFAULT_EOXS_OPENSEARCH_RECORD_MODEL = "eoxserver.resources.coverages.models.EOObject"
+
+
+def get_opensearch_record_model():
+    class_name = getattr(
+        settings, 'EOXS_OPENSEARCH_RECORD_MODEL', DEFAULT_EOXS_OPENSEARCH_RECORD_MODEL
+    )
+    return import_string(class_name)
