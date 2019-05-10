@@ -41,8 +41,8 @@ from os.path import join, abspath, dirname
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = 'tmp'
 
-import django
-django.setup()
+# import django
+# django.setup()
 
 PROJECT_DIR = dirname(abspath(__file__))
 PROJECT_URL_PREFIX = ''
