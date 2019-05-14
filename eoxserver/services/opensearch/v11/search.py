@@ -34,6 +34,7 @@ from eoxserver.core.config import get_eoxserver_config
 from eoxserver.core.decoders import kvp, config
 from eoxserver.core.util.xmltools import NameSpaceMap
 from eoxserver.resources.coverages import models
+from eoxserver.services.opensearch.config import get_opensearch_record_model
 from eoxserver.services.opensearch.formats import get_formats
 from eoxserver.services.opensearch.extensions import get_extensions
 
@@ -74,13 +75,20 @@ class OpenSearch11SearchHandler(object):
         if collection_id:
             # search for products in that collection and coverages not
             # associated with a product but contained in this collection
-            qs = models.EOObject.objects.filter(
-                Q(product__collections__identifier=collection_id) |
-                Q(
-                    coverage__collections__identifier=collection_id,
-                    coverage__parent_product__isnull=True
-                )
-            ).select_subclasses()
+
+            ModelClass = get_opensearch_record_model()
+
+            qs = ModelClass.objects.all()
+            if ModelClass == models.EOObject:
+                qs = qs.filter(
+                    Q(product__collections__identifier=collection_id) |
+                    Q(
+                        coverage__collections__identifier=collection_id,
+                        coverage__parent_product__isnull=True
+                    )
+                ).select_subclasses()
+            else:
+                qs = qs.filter(collections__identifier=collection_id)
 
         else:
             qs = models.Collection.objects.all()
