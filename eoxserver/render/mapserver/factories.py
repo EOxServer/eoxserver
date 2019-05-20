@@ -507,7 +507,7 @@ def _create_geometry_class(color_name, background_color_name=None,
         cls_obj.insertStyle(fill_style_obj)
 
     if background_color_name:
-        style_obj.backgroundcolor = ms.colorObj(
+        outline_style_obj.backgroundcolor = ms.colorObj(
             *BASE_COLORS[background_color_name]
         )
 

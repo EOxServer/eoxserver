@@ -221,13 +221,13 @@ class Mask(object):
 
     def load_geometry(self):
         ds = DataSource(self.filename)
-        layer = next(ds)
+        layer = ds[0]
         geometries = layer.get_geoms()
 
         first = geometries[0]
         for other in geometries[1:]:
             first = first.union(other)
-        return first
+        return first.geos
 
     @classmethod
     def from_model(cls, mask_model):

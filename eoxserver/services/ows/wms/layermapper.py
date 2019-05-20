@@ -296,7 +296,7 @@ class LayerMapper(object):
                     # When available use the default browse
                     elif browse:
                         masked_browses.append(
-                            MaskedBrowse.from_model(product, browse, mask)
+                            MaskedBrowse.from_models(product, browse, mask)
                         )
 
                     # As fallback use the default browse type (with empty name)
