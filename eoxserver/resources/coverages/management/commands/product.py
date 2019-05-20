@@ -99,6 +99,7 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
 
         register_parser.add_argument(
             '--mask', '-m', dest='mask_locations', default=[], action='append',
+            nargs=2,
             help=(
                 'Add a mask to associate with the product. List of items, '
                 'first one is the mask name, the rest is the location '

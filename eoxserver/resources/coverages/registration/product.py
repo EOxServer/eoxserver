@@ -56,7 +56,7 @@ class ProductRegistrator(base.BaseRegistrator):
         component = ProductMetadataComponent()
 
         browse_handles = []
-        mask_locations = []
+        mask_locations = mask_locations or []
         metadata = {}
 
         package = None
@@ -161,7 +161,7 @@ class ProductRegistrator(base.BaseRegistrator):
                     name=mask_handle[0], product_type=product_type
                 )
             except models.MaskType.DoesNotExist:
-                continue
+                raise
 
             models.Mask.objects.create(
                 product=product,
