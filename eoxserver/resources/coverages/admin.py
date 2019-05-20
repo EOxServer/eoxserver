@@ -128,7 +128,7 @@ class MetaDataItemInline(admin.StackedInline):
                     )
                 )
             ))
-        except NoReverseMatch:
+        except (NoReverseMatch, KeyError):
             return mark_safe('<i>Metadata URL not configured.</i>')
     download_link.short_description = 'Download Link'
 
