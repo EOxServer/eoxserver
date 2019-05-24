@@ -8,6 +8,10 @@ function dumpdata_coverages() {
   python manage.py dumpdata --indent=4 coverages.EOObject coverages.Coverage coverages.Collection coverages.ArrayDataItem coverages.MetaDataItem coverages.Grid
 }
 
+function dumpdata_products() {
+  python manage.py dumpdata --indent=4 coverages.EOObject coverages.Product coverages.ProductType coverages.Collection coverages.BrowseType coverages.Browse coverages.MaskType coverages.Mask
+}
+
 ##
 
 # TODO: make documentation
@@ -93,10 +97,8 @@ python manage.py coveragetype delete MERIS_uint16
 # Load RGB coveragetypes
 python manage.py coveragetype import autotest/data/rgb_definition.json
 
-
-# TODO: dump coveragetype for RGB as-well?
-
-
+# dump RGB coverage type to fixture
+dumpdata_coveragetype > autotest/data/fixtures/range_types.json
 
 # create a collection for the coverages
 python manage.py collection create MER_FRS_1P_reduced_RGB
@@ -153,3 +155,17 @@ dumpdata_coverages > autotest/data/misc/crosses_dateline.json
 python manage.py coverage deregister crosses_dateline
 # We are using the same RGB coveragetypes as MERIS RGB, so we deregister RGB coverages/coverage types one time here
 python manage.py coveragetype delete RGB
+
+#
+# MERIS Product with browses and masks
+#
+
+python manage.py producttype create Meris_RGB -m clouds
+product_id=$(python manage.py product register -t Meris_RGB -m clouds /opt/instance/autotest/data/meris/mask/mask.json -r --print-identifier --metadata-file /opt/instance/autotest/data/meris/mosaic_MER_FRS_1P_reduced_RGB/mosaic_ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced.xml)
+
+python manage.py browse register $product_id /opt/instance/autotest/data/meris/mosaic_MER_FRS_1P_reduced_RGB/mosaic_ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced.tif
+
+dumpdata_products > autotest/data/meris/meris_products_rgb.json
+
+python manage.py product deregister $product_id
+python manage.py producttype delete Meris_RGB

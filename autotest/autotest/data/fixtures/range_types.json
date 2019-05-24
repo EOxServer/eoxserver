@@ -1,168 +1,73 @@
 [
 {
-    "pk": 1, 
-    "model": "coverages.nilvalueset", 
-    "fields": {
-        "name": "RGB Nil Value Set", 
-        "data_type": 1
-    }
-},
-{
-    "pk": 1, 
-    "model": "coverages.nilvalue", 
-    "fields": {
-        "reason": "http://www.opengis.net/def/nil/OGC/0/unknown", 
-        "nil_value_set": 1, 
-        "raw_value": "0"
-    }
-},
-{
-    "pk": 1, 
-    "model": "coverages.rangetype", 
+    "model": "coverages.coveragetype",
+    "pk": 3,
     "fields": {
         "name": "RGB"
     }
 },
 {
-    "pk": 2, 
-    "model": "coverages.rangetype", 
+    "model": "coverages.fieldtype",
+    "pk": 17,
     "fields": {
-        "name": "Grayscale"
+        "coverage_type": 3,
+        "index": 0,
+        "identifier": "red",
+        "description": "Red Channel",
+        "definition": "http://www.opengis.net/def/property/OGC/0/Radiance",
+        "unit_of_measure": "W.m-2.Sr-1",
+        "wavelength": null,
+        "significant_figures": null,
+        "numbits": 8,
+        "signed": false,
+        "is_float": false
     }
 },
 {
-    "pk": 3, 
-    "model": "coverages.rangetype", 
+    "model": "coverages.fieldtype",
+    "pk": 18,
     "fields": {
-        "name": "RGBA"
+        "coverage_type": 3,
+        "index": 1,
+        "identifier": "green",
+        "description": "Green Channel",
+        "definition": "http://www.opengis.net/def/property/OGC/0/Radiance",
+        "unit_of_measure": "W.m-2.Sr-1",
+        "wavelength": null,
+        "significant_figures": null,
+        "numbits": 8,
+        "signed": false,
+        "is_float": false
     }
 },
 {
-    "pk": 1, 
-    "model": "coverages.band", 
+    "model": "coverages.fieldtype",
+    "pk": 19,
     "fields": {
-        "index": 0, 
-        "name": "red", 
-        "data_type": 1, 
-        "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
-        "range_type": 1, 
-        "color_interpretation": 3, 
-        "identifier": "red", 
-        "uom": "W.m-2.Sr-1", 
-        "description": "Red Channel", 
-        "nil_value_set": 1 
+        "coverage_type": 3,
+        "index": 2,
+        "identifier": "blue",
+        "description": "Blue Channel",
+        "definition": "http://www.opengis.net/def/property/OGC/0/Radiance",
+        "unit_of_measure": "W.m-2.Sr-1",
+        "wavelength": null,
+        "significant_figures": null,
+        "numbits": 8,
+        "signed": false,
+        "is_float": false
     }
 },
 {
-    "pk": 2, 
-    "model": "coverages.band", 
+    "model": "coverages.nilvalue",
+    "pk": 1,
     "fields": {
-        "index": 1, 
-        "name": "green", 
-        "data_type": 1, 
-        "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
-        "range_type": 1, 
-        "color_interpretation": 4, 
-        "identifier": "green", 
-        "uom": "W.m-2.Sr-1", 
-        "description": "Green Channel", 
-        "nil_value_set": 1 
-    }
-},
-{
-    "pk": 3, 
-    "model": "coverages.band", 
-    "fields": {
-        "index": 2, 
-        "name": "blue", 
-        "data_type": 1, 
-        "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
-        "range_type": 1, 
-        "color_interpretation": 5, 
-        "identifier": "blue", 
-        "uom": "W.m-2.Sr-1", 
-        "description": "Blue Channel", 
-        "nil_value_set": 1 
-    }
-},
-{
-    "pk": 4, 
-    "model": "coverages.band", 
-    "fields": {
-        "index": 0, 
-        "name": "gray", 
-        "data_type": 1, 
-        "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
-        "range_type": 2, 
-        "color_interpretation": 0, 
-        "identifier": "gray", 
-        "uom": "W.m-2.Sr-1", 
-        "description": "Gray Channel", 
-        "nil_value_set": 1 
-    }
-},
-{
-    "pk": 5, 
-    "model": "coverages.band", 
-    "fields": {
-        "index": 0, 
-        "name": "red", 
-        "data_type": 1, 
-        "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
-        "range_type": 3, 
-        "color_interpretation": 3, 
-        "identifier": "red", 
-        "uom": "W.m-2.Sr-1", 
-        "description": "Red Channel", 
-        "nil_value_set": 1 
-    }
-},
-{
-    "pk": 6, 
-    "model": "coverages.band", 
-    "fields": {
-        "index": 1, 
-        "name": "green", 
-        "data_type": 1, 
-        "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
-        "range_type": 3, 
-        "color_interpretation": 4, 
-        "identifier": "green", 
-        "uom": "W.m-2.Sr-1", 
-        "description": "Green Channel", 
-        "nil_value_set": 1 
-    }
-},
-{
-    "pk": 7, 
-    "model": "coverages.band", 
-    "fields": {
-        "index": 2, 
-        "name": "blue", 
-        "data_type": 1, 
-        "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
-        "range_type": 3, 
-        "color_interpretation": 5, 
-        "identifier": "blue", 
-        "uom": "W.m-2.Sr-1", 
-        "description": "Blue Channel", 
-        "nil_value_set": 1 
-    }
-},
-{
-    "pk": 8, 
-    "model": "coverages.band", 
-    "fields": {
-        "index": 3, 
-        "name": "alpha", 
-        "data_type": 1, 
-        "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
-        "range_type": 3, 
-        "color_interpretation": 6, 
-        "identifier": "alpha", 
-        "uom": "W.m-2.Sr-1", 
-        "description": "Alpha Channel", 
-        "nil_value_set": 1 
+        "value": "0",
+        "reason": "http://www.opengis.net/def/nil/OGC/0/unknown",
+        "field_types": [
+            17,
+            18,
+            19
+        ]
     }
 }
 ]

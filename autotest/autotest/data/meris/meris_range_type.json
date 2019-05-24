@@ -1,9 +1,16 @@
 [
 {
-    "model": "coverages.fieldtype",
-    "pk": 1,
+    "model": "coverages.coveragetype",
+    "pk": 2,
     "fields": {
-        "coverage_type": 1,
+        "name": "MERIS_uint16"
+    }
+},
+{
+    "model": "coverages.fieldtype",
+    "pk": 2,
+    "fields": {
+        "coverage_type": 2,
         "index": 0,
         "identifier": "MERIS_radiance_01_uint16",
         "description": "MERIS uint16 first band",
@@ -18,9 +25,9 @@
 },
 {
     "model": "coverages.fieldtype",
-    "pk": 2,
+    "pk": 3,
     "fields": {
-        "coverage_type": 1,
+        "coverage_type": 2,
         "index": 1,
         "identifier": "MERIS_radiance_02_uint16",
         "description": "MERIS uint16 second band",
@@ -35,9 +42,9 @@
 },
 {
     "model": "coverages.fieldtype",
-    "pk": 3,
+    "pk": 4,
     "fields": {
-        "coverage_type": 1,
+        "coverage_type": 2,
         "index": 2,
         "identifier": "MERIS_radiance_03_uint16",
         "description": "MERIS uint16 third band",
@@ -52,9 +59,9 @@
 },
 {
     "model": "coverages.fieldtype",
-    "pk": 4,
+    "pk": 5,
     "fields": {
-        "coverage_type": 1,
+        "coverage_type": 2,
         "index": 3,
         "identifier": "MERIS_radiance_04_uint16",
         "description": "MERIS uint16 fourth band",
@@ -69,9 +76,9 @@
 },
 {
     "model": "coverages.fieldtype",
-    "pk": 5,
+    "pk": 6,
     "fields": {
-        "coverage_type": 1,
+        "coverage_type": 2,
         "index": 4,
         "identifier": "MERIS_radiance_05_uint16",
         "description": "MERIS uint16 fifth band",
@@ -86,9 +93,9 @@
 },
 {
     "model": "coverages.fieldtype",
-    "pk": 6,
+    "pk": 7,
     "fields": {
-        "coverage_type": 1,
+        "coverage_type": 2,
         "index": 5,
         "identifier": "MERIS_radiance_06_uint16",
         "description": "MERIS uint16 sixth band",
@@ -103,9 +110,9 @@
 },
 {
     "model": "coverages.fieldtype",
-    "pk": 7,
+    "pk": 8,
     "fields": {
-        "coverage_type": 1,
+        "coverage_type": 2,
         "index": 6,
         "identifier": "MERIS_radiance_07_uint16",
         "description": "MERIS uint16 seventh band",
@@ -120,9 +127,9 @@
 },
 {
     "model": "coverages.fieldtype",
-    "pk": 8,
+    "pk": 9,
     "fields": {
-        "coverage_type": 1,
+        "coverage_type": 2,
         "index": 7,
         "identifier": "MERIS_radiance_08_uint16",
         "description": "MERIS uint16 eighth band",
@@ -137,9 +144,9 @@
 },
 {
     "model": "coverages.fieldtype",
-    "pk": 9,
+    "pk": 10,
     "fields": {
-        "coverage_type": 1,
+        "coverage_type": 2,
         "index": 8,
         "identifier": "MERIS_radiance_09_uint16",
         "description": "MERIS uint16 ninth band",
@@ -154,9 +161,9 @@
 },
 {
     "model": "coverages.fieldtype",
-    "pk": 10,
+    "pk": 11,
     "fields": {
-        "coverage_type": 1,
+        "coverage_type": 2,
         "index": 9,
         "identifier": "MERIS_radiance_10_uint16",
         "description": "MERIS uint16 tenth band",
@@ -171,9 +178,9 @@
 },
 {
     "model": "coverages.fieldtype",
-    "pk": 11,
+    "pk": 12,
     "fields": {
-        "coverage_type": 1,
+        "coverage_type": 2,
         "index": 10,
         "identifier": "MERIS_radiance_11_uint16",
         "description": "MERIS uint16 eleventh band",
@@ -188,9 +195,9 @@
 },
 {
     "model": "coverages.fieldtype",
-    "pk": 12,
+    "pk": 13,
     "fields": {
-        "coverage_type": 1,
+        "coverage_type": 2,
         "index": 11,
         "identifier": "MERIS_radiance_12_uint16",
         "description": "MERIS uint16 twelfth band",
@@ -205,9 +212,9 @@
 },
 {
     "model": "coverages.fieldtype",
-    "pk": 13,
+    "pk": 14,
     "fields": {
-        "coverage_type": 1,
+        "coverage_type": 2,
         "index": 12,
         "identifier": "MERIS_radiance_13_uint16",
         "description": "MERIS uint16 thirteenth band",
@@ -222,9 +229,9 @@
 },
 {
     "model": "coverages.fieldtype",
-    "pk": 14,
+    "pk": 15,
     "fields": {
-        "coverage_type": 1,
+        "coverage_type": 2,
         "index": 13,
         "identifier": "MERIS_radiance_14_uint16",
         "description": "MERIS uint16 fourteenth band",
@@ -239,9 +246,9 @@
 },
 {
     "model": "coverages.fieldtype",
-    "pk": 15,
+    "pk": 16,
     "fields": {
-        "coverage_type": 1,
+        "coverage_type": 2,
         "index": 14,
         "identifier": "MERIS_radiance_15_uint16",
         "description": "MERIS uint16 fifteenth band",
@@ -261,7 +268,6 @@
         "value": "0",
         "reason": "http://www.opengis.net/def/nil/OGC/0/unknown",
         "field_types": [
-            1,
             2,
             3,
             4,
@@ -275,15 +281,9 @@
             12,
             13,
             14,
-            15
+            15,
+            16
         ]
-    }
-},
-{
-    "model": "coverages.coveragetype",
-    "pk": 1,
-    "fields": {
-        "name": "MERIS_uint16"
     }
 }
 ]
