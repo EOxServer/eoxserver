@@ -269,13 +269,13 @@ class WMS13GetMapCrossesDatelineDatasetTestCase(wmsbase.WMS13GetMapTestCase):
 # Masked
 #===============================================================================
 
-MASK_FIXTURES = wmsbase.WMS13GetMapTestCase.fixtures + ["meris_coverages_rgb_mask.json"]
+MASK_FIXTURES = wmsbase.WMS13GetMapTestCase.fixtures + ["meris_products_rgb.json"]
 
-class WMS13GetMapDatasetMaskedTestCase(wmsbase.WMS13GetMapTestCase):
+class WMS13GetMapProductMaskedTestCase(wmsbase.WMS13GetMapTestCase):
     """ Test a GetMap request with the masked layer for a dataset. """
     fixtures = MASK_FIXTURES
 
-    layers = ("mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced_masked",)
+    layers = ("product_mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced__masked_clouds",)
     bbox = (11, 32, 28, 46) 
 
 class WMS13GetMapDatasetSeriesMaskedTestCase(wmsbase.WMS13GetMapTestCase):
@@ -289,11 +289,11 @@ class WMS13GetMapDatasetSeriesMaskedTestCase(wmsbase.WMS13GetMapTestCase):
 # Cloud Mask
 #===============================================================================
 
-class WMS13GetMapDatasetCloudMaskTestCase(wmsbase.WMS13GetMapTestCase):
+class WMS13GetMapProductCloudMaskTestCase(wmsbase.WMS13GetMapTestCase):
     """ Test a GetMap request for cloudmask of a dataset. """
     fixtures = MASK_FIXTURES
 
-    layers = ("mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced_clouds",)
+    layers = ("product_mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced__clouds",)
     styles = ("magenta",)
     bbox = (11, 32, 28, 46) 
 
@@ -309,11 +309,11 @@ class WMS13GetMapDatasetSeriesCloudMaskTestCase(wmsbase.WMS13GetMapTestCase):
 # Masked Outlines
 #===============================================================================
 
-class WMS13GetMapDatasetMaskedOutlinesTestCase(wmsbase.WMS13GetMapTestCase):
+class WMS13GetMapProductMaskedOutlinesTestCase(wmsbase.WMS13GetMapTestCase):
     """ Test a GetMap request with the masked outlines layer for a dataset. """
     fixtures = MASK_FIXTURES
 
-    layers = ("mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced_masked_outlines",)
+    layers = ("product_mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced__outlines_masked_clouds",)
     bbox = (11, 32, 28, 46)
 
 class WMS13GetMapDatasetSeriesMaskedTestCase(wmsbase.WMS13GetMapTestCase):
