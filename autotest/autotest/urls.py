@@ -3,6 +3,7 @@ from django.conf import settings
 
 from django.conf.urls import include, url
 from django.contrib import admin
+from django.conf.urls.static import static
 
 from eoxserver.resources.processes import views as processes
 from eoxserver.services.opensearch.urls import urlpatterns as opensearch
@@ -31,4 +32,4 @@ urlpatterns = [
     # (r'^process/status/(?P<requestType>[^/]{,64})/(?P<requestID>[^/]{,64})$', procViews.status ),
     # (r'^process/task$', procViews.task ),
     url(r'^process/response/(?P<requestType>[^/]{,64})/(?P<requestID>[^/]{,64})', processes.response ),
-]
+] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
