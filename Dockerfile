@@ -26,6 +26,8 @@ RUN pip install -r requirements.txt && \
 RUN mkdir /opt/instance && \
   eoxserver-instance.py instance /opt/instance
 
+WORKDIR /opt/instance
+
 EXPOSE 8000
 
 CMD ["gunicorn", "--chdir", "/opt/instance", "--bind", ":8000", "instance.wsgi:application", "--workers", "10",  "--worker-class", "eventlet", "--timeout", "600"]
