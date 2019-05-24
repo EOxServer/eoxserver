@@ -132,4 +132,24 @@ python manage.py coverage deregister mosaic_MER_FRS_1PNPDE20060822_092058_000001
 python manage.py coverage deregister mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced
 
 python manage.py mosaic delete mosaic_MER_FRS_1P_reduced_RGB
+python manage.py grid delete mosaic_MER_FRS_1P_reduced_RGB_grid
+
 python manage.py collection delete MER_FRS_1P_reduced_RGB
+
+#
+# CROSSES_DATELINE
+#
+
+# register CROSSES data
+python manage.py coverage register \
+    -i crosses_dateline \
+    -t RGB \
+    -d autotest/data/misc/crosses_dateline.tif
+
+# save ASAR coverages fixtures
+dumpdata_coverages > autotest/data/misc/crosses_dateline.json
+
+# deregister CROSSES_DATELINE coverages/coverage types
+python manage.py coverage deregister crosses_dateline
+# We are using the same RGB coveragetypes as MERIS RGB, so we deregister RGB coverages/coverage types one time here
+python manage.py coveragetype delete RGB

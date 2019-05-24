@@ -38,6 +38,11 @@ https://docs.djangoproject.com/en/1.4/ref/settings/
 
 import os
 from os.path import join, abspath, dirname
+# Make this unique, and don't share it with anybody.
+SECRET_KEY = 'tmp'
+
+# import django
+# django.setup()
 
 PROJECT_DIR = dirname(abspath(__file__))
 PROJECT_URL_PREFIX = ''
@@ -56,26 +61,16 @@ ADMINS = (
 MANAGERS = ADMINS
 
 # Configure which database to use. Default is spatialite.
-DATABASE = os.environ.get('DB', 'spatialite')
-
-if DATABASE == 'spatialite':
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.contrib.gis.db.backends.spatialite',
-            'NAME': join(PROJECT_DIR, 'data/config.sqlite'),
-        }
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.contrib.gis.db.backends.postgis',
+        'HOST': os.environ['DB_HOST'],
+        'NAME': os.environ['DB_NAME'],
+        'USER': os.environ['DB_USER'],
+        'PASSWORD': os.environ['DB_PW'],
     }
-else:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.contrib.gis.db.backends.postgis',
-            'NAME': 'eoxserver_testing',
-            'USER': 'eoxserver',
-            'PASSWORD': 'eoxserver',
-        }
-    }
+}
 
-SPATIALITE_SQL = join(PROJECT_DIR, 'data/init_spatialite-2.3.sql')
 
 # Use faster ramfs tablespace for testing in case of PostGIS e.g. in Jenkins
 # Configure via:
@@ -157,8 +152,6 @@ STATICFILES_FINDERS = (
 #    'django.contrib.staticfiles.finders.DefaultStorageFinder',
 )
 
-# Make this unique, and don't share it with anybody.
-SECRET_KEY = 'tmp'
 
 TEMPLATES = [
     {
@@ -177,16 +170,16 @@ TEMPLATES = [
 ]
 
 MIDDLEWARE_CLASSES = (
-    'django.middleware.common.CommonMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-# Commented because of POST requests:    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    # Uncomment the next line for simple clickjacking protection:
+    # 'django.middleware.security.SecurityMiddleware',
+    # 'django.contrib.sessions.middleware.SessionMiddleware',
+    # 'django.middleware.common.CommonMiddleware',
+    # 'django.middleware.csrf.CsrfViewMiddleware',
+    # 'django.contrib.auth.middleware.AuthenticationMiddleware',
+    # 'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
+    # 'django.contrib.messages.middleware.MessageMiddleware',
     # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
-
-    # For management of the per/request cache system.
-    'eoxserver.backends.middleware.BackendsCacheMiddleware',
+    # # For management of the per/request cache system.
+    # 'eoxserver.backends.middleware.BackendsCacheMiddleware',
 )
 
 ROOT_URLCONF = 'autotest.urls'
@@ -195,17 +188,13 @@ ROOT_URLCONF = 'autotest.urls'
 WSGI_APPLICATION = 'autotest.wsgi.application'
 
 INSTALLED_APPS = (
+    'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
-    'django.contrib.sites',
     'django.contrib.messages',
-    'django.contrib.gis',
     'django.contrib.staticfiles',
-    # Enable the admin:
-    'django.contrib.admin',
-    # Enable admin documentation:
-    'django.contrib.admindocs',
+    'django.contrib.gis',
     # Enable the databrowse:
     #'django.contrib.databrowse',
     # Enable for better schema and data-migrations
@@ -232,8 +221,7 @@ INSTALLED_APPS = (
 # path can end with either a '*' or '**'. The single '*' means that all direct
 # modules in the package will be included. With the double '**' a recursive
 # search will be done.
-COMPONENTS = (
-)
+COMPONENTS = ()
 
 # A sample logging configuration. The only tangible logging
 # performed by this configuration is to send an email to
