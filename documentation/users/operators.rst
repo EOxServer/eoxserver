@@ -572,26 +572,20 @@ guide.
 
 
 
-.. _eoxs-register-ds:
+.. _coverage-ds:
 
-eoxs_dataset_register
-~~~~~~~~~~~~~~~~~~~~~
+coverage
+~~~~~~~~
 
 Besides this tool EOxServer adds some custom commands to Django's manage.py
-script. The ``eoxs_dataset_register`` command is detailed in the
+script. This command has two subcommands: ``coverage register`` and ``coverage deregister``. The ``coverage register`` command is detailed in the
 :ref:`Data Registration` section.
 
-
-.. _eoxs-deregister-ds:
-
-eoxs_dataset_deregister
-~~~~~~~~~~~~~~~~~~~~~~~
-
-The ``eoxs_dataset_deregister`` command allows the de-registration of existing
+The ``coverage deregister`` command allows the de-registration of existing
 datasets (simple coverage types as Rectified and Referenceables datasets only)
 from an EOxServer instance including proper unlinking from relevant
 container types. The functionality of this command is complementary to the
-:ref:`eoxs-register-ds` command.
+:ref:`coverage register` command.
 
 It is worth to mention that the de-registration does not remove physical
 data stored in the file system or different storage backende. Therefore an
@@ -601,17 +595,17 @@ their storage.
 To de-register a dataset (coverage) identified by its (Coverage/EO) identifier
 the following command shall be invoked::
 
-    python manage.py eoxs_dataset_deregister <identifier>
+    python manage.py coverage deregister <identifier>
 
 The de-registration command allows convenient de-registration of an arbitrary
 number of datasets at the same time::
 
-    python manage.py eoxs_dataset_deregister <identifier> [<identifier> ...]
+    python manage.py coverage deregister <identifier> [<identifier> ...]
 
-The ``eoxs_dataset_deregister`` does not allow the removing of container objects
+The ``coverage deregister`` does not allow the removing of container objects
 such as Rectified Stitched Mosaics or Dataset Series.
 
-The ``eoxs_dataset_deregister`` command, by default, does not allow the
+The ``coverage deregister`` command, by default, does not allow the
 de-registration of automatic datasets (i.e, datasets registered by the
 synchronisation process, see :ref:`what_is_sync`). Although this restriction
 can be overridden by the ``--force`` option, it is not recommended to do so.
@@ -621,9 +615,9 @@ Updating Datasets
 
 There is currently no way how to update registered EOxServer datasets from the
 command line. In case such an action would be needed it is recommended to
-de-register the existing dataset first (see :ref:`eoxs-deregister-ds`
+de-register the existing dataset first (see :ref:`coverage-ds`
 command) and register it again with the updated parameters (see
-:ref:`eoxs-register-ds` command). Special attention should be paid to
+:ref:`coverage-ds` command). Special attention should be paid to
 linking of the *updated* dataset to all the container objects during the
 registration as this information is removed  by the de-registration.
 
@@ -757,7 +751,7 @@ HowTo
 ^^^^^
 
 Synchronization can be triggered by a custom `Django admin command
-<https://docs.djangoproject.com/en/1.4/ref/django-admin/>`_, called
+<https://docs.djangoproject.com/en/1.11/ref/django-admin/>`_, called
 ``eoxs_collection_synchronize``.
 
 To start the synchronization process, navigate to your instances directory and

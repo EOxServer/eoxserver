@@ -117,10 +117,10 @@ to be customized:
 
 You can also customize further settings, for a complete reference please refer
 to the `Django settings overview
-<https://docs.djangoproject.com/en/1.4/topics/settings/>`_.
+<https://docs.djangoproject.com/en/1.11/topics/settings/>`_.
 
 Please especially consider the setting of the `TIME_ZONE
-<https://docs.djangoproject.com/en/1.4/ref/settings/#std:setting-TIME_ZONE>`_
+<https://docs.djangoproject.com/en/1.11/ref/settings/#std:setting-TIME_ZONE>`_
 parameter and read the Notes provided in the ``settings.py`` file.
 
 The file ``conf/eoxserver.conf`` contains EOxServer specific settings. Please
@@ -202,7 +202,7 @@ In the ``settings.py`` the following entry has to be added::
     }
 
 Please refer to `GeoDjango Database API
-<https://docs.djangoproject.com/en/1.4/ref/contrib/gis/db-api/>`_ for more
+<https://docs.djangoproject.com/en/1.11/ref/contrib/gis/db-api/>`_ for more
 instructions.
 
 .. index::
@@ -215,7 +215,7 @@ Deployment
 ----------
 
 EOxServer is deployed using the Python WSGI interface standard as any other
-`Django application <https://docs.djangoproject.com/en/1.4/howto/deployment/>`_.
+`Django application <https://docs.djangoproject.com/en/1.11/howto/deployment/>`_.
 The WSGI endpoint accepts HTTP requests passed from the web server and
 processes them synchronously. Each request is executed independently.
 
@@ -284,13 +284,13 @@ admin interface, which is explained in detail in the :ref:`ops_admin` section.
 
 Another convenient way to register datasets is the command line interface to
 EOxServer. As a Django application, the instance can be configured using the
-`manage.py <https://docs.djangoproject.com/en/1.4/ref/django-admin/>`_ script.
+`manage.py <https://docs.djangoproject.com/en/1.11/ref/django-admin/>`_ script.
 
-EOxServer provides a specific command to insert datasets into the instance,
-called ``eoxs_dataset_register``. It is invoked from command line from your
+EOxServer provides a specific command and a subcommand to insert datasets into the instance,
+called ``coverage register``. It is invoked from command line from your
 instance base folder::
 
-    python manage.py eoxs_dataset_register --data DATAFILES --range-type RANGETYPE
+    python manage.py coverage register --data DATAFILES --coverage-type COVERAGETYPE    
 
 The mandatory parameter ``--data`` is a path to a file containing the raster
 data for the dataset to be inserted. If the file resides in a package (a ZIP or
@@ -302,7 +302,7 @@ data files. By default it is assumed that the data is available locally, but
 other storages (such as FTP or HTTP backends) are also possible. If used, it
 must be declared as first item in the aforementioned in the chain.
 
-For each ``--data`` item a ``--semantic`` can be stated. The semantic defines
+For each ``--data`` item a ``--semantic`` can be stated. The semantic defines\]
 how this data item is being used. For example a semantic of ``"bands[1:3]"``
 defines that the first three bands of the dataset is in the first data item.
 
@@ -311,25 +311,20 @@ This basically creates a ``--data`` item with ``"metadata"`` semantic. Also,
 these files are preferred when trying to determine the mandatory metadata of a
 dataset.
 
-To specify the Range Type of the dataset, the ``--range-type`` parameter is
-mandatory to specify the name of a previously registered Range Type.
+To specify the Coverage Type of the dataset, the ``--coverage-type`` parameter is
+mandatory to specify the name of a previously registered Coverage Type.
 
 The following options are used to supply metadata values that are either not
 possible to retrieve automatically or are to overwrite values automatically
 collected:
 
   * ``--identifier``: the main identifier of the dataset
-  * ``--extent``: the (minx,miny,maxx,maxy) bounding box of the dataset
-                  expressed in the units defined in ``--srid`` or
-                  ``--projection``
+  * ``--grid GRID``: the name of the grid to associate the coverage with.
   * ``--size``: the pixel size of the dataset (size_x,size_y)
-  * ``--srid`` or ``--projection``: the native projection of the dataset
+  * ``--footprint-from-extent``: the footprint from the coverages extent, reprojected to WGS 84
   * ``--footprint``: the footprint (multi-) polygon in WKT format
   * ``--begin-time`` and ``--end-time``: the datasets time span
   * ``--coverage-type``: the type of the dataset
-
-By default, a dataset is not advertised in WMS/WCS GetCapabilities. In order to
-enable this, use the ``--visible`` flag.
 
 When this dataset shall be inserted into a collection, use the ``--collection``
 option with the collections identifier. This option can be set multiple times
