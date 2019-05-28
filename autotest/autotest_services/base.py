@@ -576,6 +576,12 @@ class ExceptionTestCase(XMLTestCase):
         logger.info("Checking OWS Exception Code ...")
 
         tree = etree.fromstring(self.getXMLData())
+
+        try:
+            tree.xpath(self.getExceptionCodeLocation(), namespaces=tree.nsmap)[0]
+        except etree.XPathEvalError as exc:
+            self.fail("Failed to extract exception code. Error was '%s'" % exc)
+
         self.assertEqual(
             self.getExpectedExceptionCode(),
             tree.xpath(self.getExceptionCodeLocation(), namespaces=tree.nsmap)[0]
