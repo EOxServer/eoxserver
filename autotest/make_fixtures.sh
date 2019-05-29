@@ -5,7 +5,7 @@ function dumpdata_coveragetype() {
 }
 
 function dumpdata_coverages() {
-  python manage.py dumpdata --indent=4 coverages.EOObject coverages.Coverage coverages.Collection coverages.ArrayDataItem coverages.MetaDataItem coverages.Grid
+  python manage.py dumpdata --indent=4 coverages.EOObject coverages.Coverage coverages.Collection coverages.Mosaic coverages.ArrayDataItem coverages.MetaDataItem coverages.Grid
 }
 
 function dumpdata_products() {
@@ -81,11 +81,28 @@ python manage.py collection insert MER_FRS_1P_reduced MER_FRS_1PNPDE20060830_100
 
 dumpdata_coverages > autotest/data/meris/meris_coverages_uint16.json
 
-# deregister coverages and collections
+# deregister coverages
 python manage.py coverage deregister MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed
 python manage.py coverage deregister MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed
 python manage.py coverage deregister MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_uint16_reduced_compressed
+
+# delete the MER_FRS_1P_reduced collection
+
 python manage.py collection delete MER_FRS_1P_reduced
+
+
+#
+# MERIS Uint16 reprojected
+#
+
+python manage.py coverage register \
+    -t MERIS_uint16 \
+    -d autotest/data/meris/MER_FRS_1P_reduced_reprojected/ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed_reprojected.tif \
+    -m autotest/data/meris/MER_FRS_1P_reduced_reprojected/ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed_reprojected.xml
+
+dumpdata_coverages > autotest/data/meris/meris_coverages_reprojected_uint16.json
+
+python manage.py coverage deregister MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed_reprojected
 
 # deregister MERIS Uint16 coverages/coverage types
 python manage.py coveragetype delete MERIS_uint16
@@ -161,11 +178,26 @@ python manage.py coveragetype delete RGB
 #
 
 python manage.py producttype create Meris_RGB -m clouds
-product_id=$(python manage.py product register -t Meris_RGB -m clouds /opt/instance/autotest/data/meris/mask/mask.json -r --print-identifier --metadata-file /opt/instance/autotest/data/meris/mosaic_MER_FRS_1P_reduced_RGB/mosaic_ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced.xml)
+python manage.py product register -i product_mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced -t Meris_RGB -m clouds /opt/instance/autotest/data/meris/mask/mask.json -r --print-identifier --metadata-file /opt/instance/autotest/data/meris/mosaic_MER_FRS_1P_reduced_RGB/mosaic_ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced.xml
 
-python manage.py browse register $product_id /opt/instance/autotest/data/meris/mosaic_MER_FRS_1P_reduced_RGB/mosaic_ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced.tif
+python manage.py browse register product_mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced /opt/instance/autotest/data/meris/mosaic_MER_FRS_1P_reduced_RGB/mosaic_ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced.tif
 
 dumpdata_products > autotest/data/meris/meris_products_rgb.json
 
-python manage.py product deregister $product_id
+python manage.py product deregister product_mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced
 python manage.py producttype delete Meris_RGB
+
+#
+# Cryoland
+#
+
+python manage.py coveragetype import autotest/data/cryoland/cryo_range_type_definition.json
+
+dumpdata_coveragetype > autotest/data/cryoland/cryo_range_type.json
+
+python manage.py coverage register -t Snow -d autotest/data/cryoland/FSC_0.0025deg_201303030930_201303031110_MOD_Alps_ENVEOV2.1.00.tif_20130913121829.tif -m autotest/data/cryoland/FSC_0.0025deg_201303030930_201303031110_MOD_Alps_ENVEOV2.1.00.tif_20130913121829.xml -m autotest/data/cryoland/FSC_Alps_default.sld
+
+dumpdata_coverages > autotest/data/cryoland/cryo_coverages.json
+
+python manage.py coverage deregister FSC_0.0025deg_201303030930_201303031110_MOD_Alps_ENVEOV2.1.00
+python manage.py coveragetype delete Snow

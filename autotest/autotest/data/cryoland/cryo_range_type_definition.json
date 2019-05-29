@@ -1,0 +1,14 @@
+[{
+  "bands": [
+      {
+          "definition": "",
+          "description": "Snow",
+          "gdal_interpretation": "Undefined",
+          "identifier": "Snowtype",
+          "name": "Snowtype",
+          "uom": "?"
+      }
+  ],
+  "data_type": "Byte",
+  "name": "Snow"
+}]

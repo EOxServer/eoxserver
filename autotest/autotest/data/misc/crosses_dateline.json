@@ -1,21 +1,21 @@
 [
 {
     "model": "coverages.eoobject",
-    "pk": 11,
+    "pk": 12,
     "fields": {
         "identifier": "crosses_dateline",
         "begin_time": null,
         "end_time": null,
         "footprint": null,
-        "inserted": "2019-05-24T13:14:55.183Z",
-        "updated": "2019-05-24T13:14:55.184Z"
+        "inserted": "2019-05-29T13:42:30.602Z",
+        "updated": "2019-05-29T13:42:30.602Z"
     }
 },
 {
     "model": "coverages.coverage",
-    "pk": 11,
+    "pk": 12,
     "fields": {
-        "grid": 6,
+        "grid": 7,
         "axis_1_origin": "95.3700000001",
         "axis_2_origin": "83.9299999999",
         "axis_3_origin": null,
@@ -24,7 +24,7 @@
         "axis_2_size": 2260,
         "axis_3_size": null,
         "axis_4_size": null,
-        "coverage_type": 2,
+        "coverage_type": 3,
         "parent_product": null,
         "collections": [],
         "mosaics": []
@@ -32,12 +32,12 @@
 },
 {
     "model": "coverages.arraydataitem",
-    "pk": 8,
+    "pk": 9,
     "fields": {
         "storage": null,
         "location": "autotest/data/misc/crosses_dateline.tif",
         "format": "image/tiff",
-        "coverage": 11,
+        "coverage": 12,
         "field_index": 0,
         "band_count": 3,
         "subdataset_type": null,
@@ -131,7 +131,28 @@
 },
 {
     "model": "coverages.grid",
-    "pk": 6,
+    "pk": 5,
+    "fields": {
+        "name": null,
+        "coordinate_reference_system": "EPSG:3035",
+        "axis_1_name": "x",
+        "axis_2_name": "y",
+        "axis_3_name": null,
+        "axis_4_name": null,
+        "axis_1_type": 0,
+        "axis_2_type": 0,
+        "axis_3_type": null,
+        "axis_4_type": null,
+        "axis_1_offset": "3012.8219553",
+        "axis_2_offset": "-3012.8219553",
+        "axis_3_offset": null,
+        "axis_4_offset": null,
+        "resolution": 3012
+    }
+},
+{
+    "model": "coverages.grid",
+    "pk": 7,
     "fields": {
         "name": null,
         "coordinate_reference_system": "EPSG:4326",
