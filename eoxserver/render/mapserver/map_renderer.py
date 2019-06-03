@@ -90,7 +90,6 @@ class MapserverMapRenderer(object):
         map_obj.setConfigOption('MS_NONSQUARE', 'yes')
 
         layers_plus_factories = self._get_layers_plus_factories(render_map)
-
         layers_plus_factories_plus_data = [
             (layer, factory, factory.create(map_obj, layer))
             for layer, factory in layers_plus_factories
@@ -103,14 +102,17 @@ class MapserverMapRenderer(object):
                 f.seek(0)
                 logger.debug(f.read())
 
-        # actually render the map
-        image_obj = map_obj.draw()
+        try:
+            # actually render the map
+            image_obj = map_obj.draw()
+            return image_obj.getBytes(), outputformat_obj.mimetype
 
-        # disconnect
-        for layer, factory, data in layers_plus_factories_plus_data:
-            factory.destroy(map_obj, layer, data)
+        finally:
+            # disconnect
+            import pdb; pdb.set_trace()
+            for layer, factory, data in layers_plus_factories_plus_data:
+                factory.destroy(map_obj, layer, data)
 
-        return image_obj.getBytes(), outputformat_obj.mimetype
 
     def _get_layers_plus_factories(self, render_map):
         layers_plus_factories = []

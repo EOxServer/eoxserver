@@ -105,6 +105,7 @@ class CoverageLayerFactoryMixIn(object):
                               style=None, range_=None):
         """ Creates a mapserver layer object for the given coverage
         """
+
         layer_obj = _create_raster_layer_obj(
             map_obj,
             coverage.extent if not coverage.grid.is_referenceable else None,
@@ -115,6 +116,8 @@ class CoverageLayerFactoryMixIn(object):
             (field, coverage.get_location_for_field(field))
             for field in fields
         ]
+
+        layer_obj.name = coverage.identifier
 
         # layer_obj.setProcessingKey("SCALE", "AUTO")
         layer_obj.setProcessingKey("CLOSE_CONNECTION", "CLOSE")
@@ -151,7 +154,14 @@ class CoverageLayerFactoryMixIn(object):
             ]))
 
         elif num_locations > 1:
-            layer_obj.data = _build_vrt(coverage.size, field_locations)
+            if len(set(field_location[1].path for field_location in field_locations)) == 1:
+                layer_obj.data = field_locations[0][1].path
+                if len(field_locations) == 3:
+                    layer_obj.setProcessingKey("BANDS", "1,2,3")
+                else:
+                    layer_obj.setProcessingKey("BANDS", "1")
+            else:
+                _build_vrt(coverage.size, field_locations)
 
         # make a color-scaled layer
         if len(fields) == 1:
