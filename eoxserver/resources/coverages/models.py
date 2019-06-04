@@ -305,13 +305,16 @@ class GridFixture(models.Model):
 # Actual item models: Collection, Product and Coverage
 # ==============================================================================
 
-eo_object_identifier_validators = identifier_validators if getattr(settings, 'EOXS_VALIDATE_IDS_NCNAME', True) else []
+def eo_object_identifier_validator(value):
+    if getattr(settings, 'EOXS_VALIDATE_IDS_NCNAME', True):
+        identifier_validators[0](value)
+
 
 @python_2_unicode_compatible
 class EOObject(models.Model):
     """ Base class for Collections, Products and Coverages
     """
-    identifier = models.CharField(max_length=256, unique=True, validators=eo_object_identifier_validators, **mandatory)
+    identifier = models.CharField(max_length=256, unique=True, validators=[eo_object_identifier_validator], **mandatory)
 
     begin_time = models.DateTimeField(**optional)
     end_time = models.DateTimeField(**optional)
