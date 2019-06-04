@@ -5,11 +5,11 @@ function dumpdata_coveragetype() {
 }
 
 function dumpdata_coverages() {
-  python manage.py dumpdata --indent=4 coverages.EOObject coverages.Coverage coverages.Collection coverages.Mosaic coverages.ArrayDataItem coverages.MetaDataItem coverages.Grid
+  python manage.py dumpdata --indent=4 coverages.EOObject coverages.Coverage coverages.Collection coverages.Mosaic coverages.ArrayDataItem coverages.MetaDataItem coverages.Grid services.ServiceVisibility
 }
 
 function dumpdata_products() {
-  python manage.py dumpdata --indent=4 coverages.EOObject coverages.Product coverages.ProductType coverages.Collection coverages.BrowseType coverages.Browse coverages.MaskType coverages.Mask
+  python manage.py dumpdata --indent=4 coverages.EOObject coverages.Product coverages.ProductType coverages.Collection coverages.BrowseType coverages.Browse coverages.MaskType coverages.Mask services.ServiceVisibility
 }
 
 ##
@@ -35,6 +35,9 @@ python manage.py coverage register \
     --begin-time 2005-03-31T08:00:36.342970Z \
     --end-time 2005-03-31T07:59:36.409059Z \
     -d autotest/data/asar/ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775.tiff
+
+# change the service visibility
+python manage.py visibility --all --show ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775
 
 # save ASAR coverages fixtures
 dumpdata_coverages > autotest/data/asar/asar_coverages.json
@@ -79,6 +82,9 @@ python manage.py collection insert MER_FRS_1P_reduced MER_FRS_1PNPDE20060816_090
 python manage.py collection insert MER_FRS_1P_reduced MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed
 python manage.py collection insert MER_FRS_1P_reduced MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_uint16_reduced_compressed
 
+# change the service visibility
+python manage.py visibility --all --show MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed
+
 dumpdata_coverages > autotest/data/meris/meris_coverages_uint16.json
 
 # deregister coverages
@@ -89,7 +95,6 @@ python manage.py coverage deregister MER_FRS_1PNPDE20060830_100949_000001972050_
 # delete the MER_FRS_1P_reduced collection
 
 python manage.py collection delete MER_FRS_1P_reduced
-
 
 #
 # MERIS Uint16 reprojected
@@ -143,6 +148,9 @@ python manage.py coverage register \
 # insert coverages into mosaic and collection
 python manage.py mosaic insert mosaic_MER_FRS_1P_reduced_RGB mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced mosaic_MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_RGB_reduced mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced
 python manage.py collection insert MER_FRS_1P_reduced_RGB mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced mosaic_MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_RGB_reduced mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced
+
+# change the service visibility
+python manage.py visibility --all --show mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced
 
 dumpdata_coverages > autotest/data/meris/meris_coverages_rgb.json
 
