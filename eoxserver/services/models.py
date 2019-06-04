@@ -41,6 +41,9 @@ class ServiceVisibility(models.Model):
         ("wc", "WebClient")
     ]
 
-    eo_object = models.OneToOneField(coverage_models.EOObject, related_name="service_visibility")
+    eo_object = models.ForeignKey(coverage_models.EOObject, related_name="service_visibility")
     service = models.CharField(max_length=4, choices=SERVICE_CHOICES)
     visibility = models.BooleanField(default=True)
+
+    class Meta:
+        unique_together = ['eo_object', 'service']
