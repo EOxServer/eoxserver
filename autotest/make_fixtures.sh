@@ -1,15 +1,21 @@
 #!/bin/bash -xe
 
 function dumpdata_coveragetype() {
-  python manage.py dumpdata --indent=4 coverages.CoverageType coverages.FieldType coverages.AllowedValueRange coverages.NilValue 
+  python manage.py dumpdata --indent=4 coverages.CoverageType coverages.FieldType coverages.AllowedValueRange coverages.NilValue  \
+  | sed 's/        "inserted":.*/        "inserted": "2019-01-01T00:00:00.000Z",/g' \
+  | sed 's/        "updated":.*/        "updated": "2019-01-01T00:00:00.000Z"/g'
 }
 
 function dumpdata_coverages() {
-  python manage.py dumpdata --indent=4 coverages.EOObject coverages.Coverage coverages.Collection coverages.Mosaic coverages.ArrayDataItem coverages.MetaDataItem coverages.Grid services.ServiceVisibility
+  python manage.py dumpdata --indent=4 coverages.EOObject coverages.Coverage coverages.Collection coverages.Mosaic coverages.ArrayDataItem coverages.MetaDataItem coverages.Grid services.ServiceVisibility \
+  | sed 's/        "inserted":.*/        "inserted": "2019-01-01T00:00:00.000Z",/g' \
+  | sed 's/        "updated":.*/        "updated": "2019-01-01T00:00:00.000Z"/g'
 }
 
 function dumpdata_products() {
-  python manage.py dumpdata --indent=4 coverages.EOObject coverages.Product coverages.ProductType coverages.Collection coverages.BrowseType coverages.Browse coverages.MaskType coverages.Mask services.ServiceVisibility
+  python manage.py dumpdata --indent=4 coverages.EOObject coverages.Product coverages.ProductType coverages.Collection coverages.BrowseType coverages.Browse coverages.MaskType coverages.Mask services.ServiceVisibility \
+  | sed 's/        "inserted":.*/        "inserted": "2019-01-01T00:00:00.000Z",/g' \
+  | sed 's/        "updated":.*/        "updated": "2019-01-01T00:00:00.000Z"/g'
 }
 
 ##
@@ -150,7 +156,7 @@ python manage.py mosaic insert mosaic_MER_FRS_1P_reduced_RGB mosaic_MER_FRS_1PNP
 python manage.py collection insert MER_FRS_1P_reduced_RGB mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced mosaic_MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_RGB_reduced mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced
 
 # change the service visibility
-python manage.py visibility --all --show mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced
+python manage.py visibility --all --show mosaic_MER_FRS_1P_reduced_RGB mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced
 
 dumpdata_coverages > autotest/data/meris/meris_coverages_rgb.json
 

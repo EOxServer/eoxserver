@@ -7,8 +7,8 @@
         "begin_time": "2005-03-31T08:00:36.342Z",
         "end_time": "2005-03-31T07:59:36.409Z",
         "footprint": null,
-        "inserted": "2019-05-29T13:41:07.540Z",
-        "updated": "2019-05-29T13:41:07.540Z"
+        "inserted": "2019-01-01T00:00:00.000Z",
+        "updated": "2019-01-01T00:00:00.000Z"
     }
 },
 {
@@ -64,6 +64,42 @@
         "axis_3_offset": null,
         "axis_4_offset": null,
         "resolution": null
+    }
+},
+{
+    "model": "services.servicevisibility",
+    "pk": 1,
+    "fields": {
+        "eo_object": 1,
+        "service": "wms",
+        "visibility": true
+    }
+},
+{
+    "model": "services.servicevisibility",
+    "pk": 2,
+    "fields": {
+        "eo_object": 1,
+        "service": "wcs",
+        "visibility": true
+    }
+},
+{
+    "model": "services.servicevisibility",
+    "pk": 3,
+    "fields": {
+        "eo_object": 1,
+        "service": "os",
+        "visibility": true
+    }
+},
+{
+    "model": "services.servicevisibility",
+    "pk": 4,
+    "fields": {
+        "eo_object": 1,
+        "service": "wc",
+        "visibility": true
     }
 }
 ]
