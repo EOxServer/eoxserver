@@ -1,12 +1,11 @@
 from django.conf import settings
-
-
 from django.conf.urls import include, url
 from django.contrib import admin
 from django.conf.urls.static import static
 
 from eoxserver.resources.processes import views as processes
 from eoxserver.services.opensearch.urls import urlpatterns as opensearch
+from eoxserver.services.openapi.urls import urlpatterns as openapi
 from eoxserver.webclient.urls import urlpatterns as webclient
 from eoxserver.views import index
 
@@ -18,6 +17,8 @@ urlpatterns = [
     url(r'^$', index),
     url(r'^ows', include("eoxserver.services.urls")),
     url(r'^opensearch/', include(opensearch)),
+
+    url(r'^oapi/', include(openapi)),
 
     # enable the client
     url(r'^client/', include(webclient)),
