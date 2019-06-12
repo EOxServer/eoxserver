@@ -1,0 +1,27 @@
+{% block content %}
+<h1>{{identifier}}</h1>
+<ul>
+{% for coverage in coverages %}
+  <li>
+    <a href="{{ coverage.href }}">{{ coverage.identifier }}</a>
+  </li>
+{% endfor %}
+</ul>
+
+{% if links.first is not None %}
+  <a href="{{ links.first }}">First</a>
+{% endif %}
+
+{% if links.prev is not None %}
+  <a href="{{ links.prev }}">Previous</a>
+{% endif %}
+
+{% if links.next is not None %}
+  <a href="{{ links.next }}">Next</a>
+{% endif %}
+
+{% if links.last is not None %}
+  <a href="{{ links.last }}">Last</a>
+{% endif %}
+
+{% endblock content %}
