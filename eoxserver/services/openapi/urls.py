@@ -37,7 +37,7 @@ urlpatterns = ([
         url(r'^coverages/$', views.coverages, name='coverages'),
         url(r'^coverages/(?P<coverage_id>[^/]+)/', include([
             url(r'^$', views.coverage, name='coverage'),
-            url(r'domainset^$', views.domainset, name='domainset'),
+            url(r'^domainset$', views.domainset, name='domainset'),
             url(r'^rangetype$', views.rangetype, name='rangetype'),
             url(r'^metadata$', views.metadata, name='metadata'),
             url(r'^rangeset$', views.rangeset, name='rangeset'),
