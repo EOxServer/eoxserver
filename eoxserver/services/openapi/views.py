@@ -201,12 +201,16 @@ def encode_domainset(coverage, frmt):
         # TODO: CIS 1.1 encoding
         pass
 
-def encode_rangetype(coverage, frmt):
+def encode_rangetype(coverage, frmt, rangesubset=None):
+    render_coverage = Coverage.from_model(coverage)
+    range_type = render_coverage.range_type
+
     if frmt == 'text/xml':
-        render_coverage = Coverage.from_model(coverage)
         encoder = WCS20EOXMLEncoder()
+        if rangesubset:
+            range_type = range_type.subset(rangesubset)
         return encoder.serialize(
-            encoder.encode_range_type(render_coverage.range_type),
+            encoder.encode_range_type(range_type),
             pretty_print=settings.DEBUG,
         )
     elif frmt == 'application/json':
@@ -278,6 +282,8 @@ def coverage(request, coverage):
     rangetype_format = subparts.get('rangetype')
     rangeset_format = subparts.get('rangeset')
 
+    decoder = WCS20GetCoverageKVPDecoder(request.GET)
+
     metadata = ResultBuffer(
         encode_metadata(coverage, metadata_format),
         content_type=metadata_format,
@@ -287,7 +293,7 @@ def coverage(request, coverage):
         content_type=domainset_format,
     )
     rangetype = ResultBuffer(
-        encode_rangetype(coverage, rangetype_format),
+        encode_rangetype(coverage, rangetype_format, decoder.rangesubset),
         content_type=rangetype_format,
     )
     rangeset_items = encode_rangeset(request, coverage, rangeset_format)

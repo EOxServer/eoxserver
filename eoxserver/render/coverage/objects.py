@@ -26,6 +26,9 @@
 # ------------------------------------------------------------------------------
 
 from itertools import izip_longest
+from copy import deepcopy
+
+from django.utils import six
 
 from eoxserver.core.util.timetools import parse_iso8601, parse_duration
 from eoxserver.contrib import gdal
@@ -136,6 +139,25 @@ class RangeType(list):
             )
         except StopIteration:
             raise KeyError(name)
+
+    def subset(self, subsets):
+        fields = []
+        for subset in subsets:
+            if isinstance(subset, six.string_types):
+                fields.append(deepcopy(self.get_field(subset)))
+            elif isinstance(subset, list):
+                start_id, stop_id = subset
+                start = self.index(self.get_field(start_id))
+                stop = self.index(self.get_field(stop_id))
+                fields.extend(
+                    deepcopy(item)
+                    for item in self[start:stop + (1 if start > stop else -1)]
+                )
+
+        for i, field in enumerate(fields):
+            field._index = i
+
+        return type(self)(self.name, fields)
 
     @classmethod
     def from_coverage_type(cls, coverage_type):
