@@ -184,6 +184,7 @@ class ECQLParser(object):
                               | DWITHIN LPAREN expression COMMA expression COMMA number COMMA UNITS RPAREN
                               | BEYOND LPAREN expression COMMA expression COMMA number COMMA UNITS RPAREN
                               | BBOX LPAREN expression COMMA number COMMA number COMMA number COMMA number COMMA QUOTED RPAREN
+                              | BBOX LPAREN expression COMMA number COMMA number COMMA number COMMA number RPAREN
         """
         op = p[1]
         lhs = p[3]
