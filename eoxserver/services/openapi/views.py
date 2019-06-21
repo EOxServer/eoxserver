@@ -54,10 +54,13 @@ class HttpResponseNotAcceptable(HttpResponse):
 
 def collection_view(view):
     @wraps(view)
-    def wrapper(request, collection_id):
-        collection = get_object_or_404(models.Collection,
-            identifier=collection_id,
-        )
+    def wrapper(request, collection_id=None):
+        if collection_id:
+            collection = get_object_or_404(models.Collection,
+                identifier=collection_id,
+            )
+        else:
+            collection = None
         return view(request, collection)
 
     return wrapper
@@ -65,12 +68,17 @@ def collection_view(view):
 
 def coverage_view(view):
     @wraps(view)
-    def wrapper(request, collection_id, coverage_id):
-        coverage = get_object_or_404(models.Coverage,
-            collections__identifier=collection_id,
-            identifier=coverage_id,
-        )
-        return view(request, coverage)
+    def wrapper(request, collection_id=None, coverage_id=None):
+        if collection_id:
+            coverage = get_object_or_404(models.Coverage,
+                collections__identifier=collection_id,
+                identifier=coverage_id,
+            )
+        else:
+            coverage = get_object_or_404(models.Coverage,
+                identifier=coverage_id,
+            )
+        return view(request, coverage, collection_id)
 
     return wrapper
 
@@ -94,13 +102,15 @@ def collections(request):
         ]
     }
     match = get_best_match(
-        request.META.get('HTTP_ACCEPT'),
+        request.GET.get('f', request.META.get('HTTP_ACCEPT')),
         ['text/html', 'application/json']
     )
-    if match == 'text/html':
-        return render(request, 'openapi/index.html', data)
-    elif match == 'application/json':
+
+    if match == 'application/json':
         return JsonResponse(data)
+    elif match == 'text/html':
+        return render(request, 'openapi/index.html', data)
+
     return HttpResponseNotAcceptable()
 
 
@@ -109,25 +119,34 @@ def collections(request):
 def collection(request, collection):
     # TODO: show collection metadata?
     data = {
-        "identifier": collection.identifier
+        "identifier": collection.identifier,
+        "coverages_href": reverse(
+            "openapi:collection:coverages",
+            kwargs={"collection_id": collection.identifier}
+        )
     }
     match = get_best_match(
-        request.META.get('HTTP_ACCEPT'),
+        request.GET.get('f', request.META.get('HTTP_ACCEPT')),
         ['text/html', 'application/json']
     )
 
     if match == 'application/json':
         return JsonResponse(data)
+    elif match == 'text/html':
+        return render(request, 'openapi/collection.html', data)
 
     return HttpResponseNotAcceptable()
 
 @csrf_exempt
 @collection_view
-def coverages(request, collection):
+def coverages(request, collection=None):
     offset = int(request.GET.get('offset', 0))
     limit = int(request.GET.get('limit', 10))
 
-    qs = base_qs = collection.coverages.all()
+    if collection:
+        qs = base_qs = collection.coverages.all()
+    else:
+        qs = base_qs = models.Coverage.objects.all()
 
     # TODO: implement filtering of coverages etc
     qs = base_qs[offset:offset+limit]
@@ -136,21 +155,30 @@ def coverages(request, collection):
         reverse(
             "openapi:collection:coverages",
             kwargs={"collection_id": collection.identifier}
-        )
+        ) if collection else reverse("openapi:coverages")
     )
 
     count = base_qs.count()
 
     data = {
-        "identifier": collection.identifier,
+        "identifier": collection.identifier if collection else None,
         "coverages": [{
                 "identifier": coverage.identifier,
-                "href": reverse(
-                    "openapi:collection:coverage:coverage",
-                    kwargs={
-                        "collection_id": collection.identifier,
-                        "coverage_id": coverage.identifier,
-                    }
+                "href": request.build_absolute_uri(
+                    reverse(
+                        "openapi:collection:coverage:coverage",
+                        kwargs={
+                            "collection_id": collection.identifier,
+                            "coverage_id": coverage.identifier,
+                        }
+                    )
+                ) if collection else request.build_absolute_uri(
+                    reverse(
+                        "openapi:coverage:coverage",
+                        kwargs={
+                            "coverage_id": coverage.identifier,
+                        }
+                    )
                 )
             } for coverage in qs
         ],
@@ -165,25 +193,46 @@ def coverages(request, collection):
         }
     }
 
+    frmt = request.GET.get('f', request.META.get('HTTP_ACCEPT'))
     match = get_best_match(
-        request.META.get('HTTP_ACCEPT'),
+        request.GET.get('f', request.META.get('HTTP_ACCEPT')),
         ['text/html', 'application/json']
     )
-    if match == 'text/html':
-        return render(request, 'openapi/coverages.html', data)
-    elif match == 'application/json':
-        return JsonResponse(data)
-    return HttpResponseNotAcceptable()
 
+    if match == 'application/json':
+        return JsonResponse(data)
+    elif match == 'text/html':
+        return render(request, 'openapi/coverages.html', data)
+
+    return HttpResponseNotAcceptable("%s %s" %(frmt, match))
+
+
+def encode_description(coverage, frmt):
+    if frmt == 'text/xml':
+        render_coverage = Coverage.from_model(coverage)
+        encoder = WCS20EOXMLEncoder()
+        return ResultBuffer(
+            encoder.serialize(
+                encoder.encode_coverage_description(render_coverage),
+                pretty_print=settings.DEBUG,
+            ),
+            content_type='text/xml'
+        )
+    elif frmt == 'application/json':
+        # TODO: CIS 1.1 encoding
+        pass
 
 
 def encode_metadata(coverage, frmt):
     if frmt == 'text/xml':
         render_coverage = Coverage.from_model(coverage)
         encoder = WCS20EOXMLEncoder()
-        return encoder.serialize(
-            encoder.encode_eo_metadata(render_coverage),
-            pretty_print=settings.DEBUG,
+        return ResultBuffer(
+            encoder.serialize(
+                encoder.encode_eo_metadata(render_coverage),
+                pretty_print=settings.DEBUG,
+            ),
+            content_type='text/xml'
         )
     elif frmt == 'application/json':
         # TODO: CIS 1.1 encoding
@@ -193,9 +242,12 @@ def encode_domainset(coverage, frmt):
     if frmt == 'text/xml':
         render_coverage = Coverage.from_model(coverage)
         encoder = WCS20EOXMLEncoder()
-        return encoder.serialize(
-            encoder.encode_domain_set(render_coverage),
-            pretty_print=settings.DEBUG,
+        return ResultBuffer(
+                encoder.serialize(
+                encoder.encode_domain_set(render_coverage),
+                pretty_print=settings.DEBUG,
+            ),
+            content_type='text/xml'
         )
     elif frmt == 'application/json':
         # TODO: CIS 1.1 encoding
@@ -204,14 +256,17 @@ def encode_domainset(coverage, frmt):
 def encode_rangetype(coverage, frmt, rangesubset=None):
     render_coverage = Coverage.from_model(coverage)
     range_type = render_coverage.range_type
+    if rangesubset:
+        range_type = range_type.subset(rangesubset)
 
     if frmt == 'text/xml':
         encoder = WCS20EOXMLEncoder()
-        if rangesubset:
-            range_type = range_type.subset(rangesubset)
-        return encoder.serialize(
-            encoder.encode_range_type(range_type),
-            pretty_print=settings.DEBUG,
+        return ResultBuffer(
+                encoder.serialize(
+                encoder.encode_range_type(range_type),
+                pretty_print=settings.DEBUG,
+            ),
+            content_type='text/xml'
         )
     elif frmt == 'application/json':
         # TODO: CIS 1.1 encoding
@@ -226,12 +281,13 @@ def encode_rangeset(request, coverage, frmt):
     encoding_params = None
 
     match = get_best_acceptable_type(
-        request.META.get('HTTP_ACCEPT'),
+        request.GET.get('f', request.META.get('HTTP_ACCEPT')),
         ['image/tiff', 'application/*']
     )
 
     if match:
         encoding_params = match.parameters
+        encoding_params.pop('q', None)
 
     scalefactor = decoder.scalefactor
     scales = list(
@@ -264,93 +320,165 @@ def encode_rangeset(request, coverage, frmt):
     renderer = get_coverage_renderer(params)
     return renderer.render(params)
 
+@csrf_exempt
+@coverage_view
+def coverage(request, coverage, collection_id=None):
+    match = get_best_acceptable_type(
+        request.GET.get('f', request.META.get('HTTP_ACCEPT')),
+        ['multipart/related', 'image/tiff', 'application/*', 'text/html']
+    )
 
-import re
-PATTERN = re.compile(r'''((?:[^;"']|"[^"]*"|'[^']*')+)''')
+    if match.matches('multipart/related'):
+        metadata_format = match.parameters.get('metadata', 'text/xml')
+        domainset_format = match.parameters.get('domainset', 'text/xml')
+        rangetype_format = match.parameters.get('rangetype', 'text/xml')
+        rangeset_format = match.parameters.get('rangeset', 'text/xml')
+
+        decoder = WCS20GetCoverageKVPDecoder(request.GET)
+
+        metadata = encode_metadata(coverage, metadata_format)
+        domainset = encode_domainset(coverage, domainset_format)
+        rangetype = encode_rangetype(
+            coverage, rangetype_format, decoder.rangesubset
+        )
+        rangeset_items = encode_rangeset(request, coverage, rangeset_format)
+
+        return to_http_response([
+            metadata, domainset, rangetype
+        ] + rangeset_items)
+
+    elif match.matches('text/html'):
+        return render(request, 'openapi/coverage.html', {
+            'identifier': coverage.identifier,
+            'links': {
+                'description': reverse(
+                    "openapi:collection:coverage:description",
+                    kwargs={
+                        "collection_id": collection_id,
+                        "coverage_id": coverage.identifier,
+                    }
+                ),
+                'domainset': reverse(
+                    "openapi:collection:coverage:domainset",
+                    kwargs={
+                        "collection_id": collection_id,
+                        "coverage_id": coverage.identifier,
+                    }
+                ),
+                'rangetype': reverse(
+                    "openapi:collection:coverage:rangetype",
+                    kwargs={
+                        "collection_id": collection_id,
+                        "coverage_id": coverage.identifier,
+                    }
+                ),
+                'metadata': reverse(
+                    "openapi:collection:coverage:metadata",
+                    kwargs={
+                        "collection_id": collection_id,
+                        "coverage_id": coverage.identifier,
+                    }
+                ),
+                'rangeset': reverse(
+                    "openapi:collection:coverage:rangeset",
+                    kwargs={
+                        "collection_id": collection_id,
+                        "coverage_id": coverage.identifier,
+                    }
+                ),
+            } if collection_id else {
+                'description': reverse(
+                    "openapi:coverage:description",
+                    kwargs={"coverage_id": coverage.identifier}
+                ),
+                'domainset': reverse(
+                    "openapi:coverage:domainset",
+                    kwargs={"coverage_id": coverage.identifier}
+                ),
+                'rangetype': reverse(
+                    "openapi:coverage:rangetype",
+                    kwargs={"coverage_id": coverage.identifier}
+                ),
+                'metadata': reverse(
+                    "openapi:coverage:metadata",
+                    kwargs={"coverage_id": coverage.identifier}
+                ),
+                'rangeset': reverse(
+                    "openapi:coverage:rangeset",
+                    kwargs={"coverage_id": coverage.identifier}
+                ),
+            }
+        })
+
+    elif match.matches('image/tiff'):
+        return to_http_response(
+            encode_rangeset(request, coverage, match.mime_type)
+        )
+    raise ""
+
 
 @csrf_exempt
 @coverage_view
-def coverage(request, coverage):
-    parts = PATTERN.split(request.META.get('HTTP_ACCEPT'))[1::2]
-    
-    subparts = dict(
-        part.replace('"', '').replace("'", '').split('=', 1)
-        for part in parts[1:]
-    )
-    metadata_format = subparts.get('metadata')
-    domainset_format = subparts.get('domainset')
-    rangetype_format = subparts.get('rangetype')
-    rangeset_format = subparts.get('rangeset')
-
-    decoder = WCS20GetCoverageKVPDecoder(request.GET)
-
-    metadata = ResultBuffer(
-        encode_metadata(coverage, metadata_format),
-        content_type=metadata_format,
-    )
-    domainset = ResultBuffer(
-        encode_domainset(coverage, domainset_format),
-        content_type=domainset_format,
-    )
-    rangetype = ResultBuffer(
-        encode_rangetype(coverage, rangetype_format, decoder.rangesubset),
-        content_type=rangetype_format,
-    )
-    rangeset_items = encode_rangeset(request, coverage, rangeset_format)
-
-    return to_http_response([
-        metadata, domainset, rangetype
-    ] + rangeset_items)
-
-
-@csrf_exempt
-@coverage_view
-def metadata(request, coverage):
+def description(request, coverage, collection_id=None):
     match = get_best_match(
-        request.META.get('HTTP_ACCEPT'),
+        request.GET.get('f', request.META.get('HTTP_ACCEPT')),
         ['text/xml', 'application/json']
     )
     if match:
-        return HttpResponse(
-            encode_metadata(coverage, match),
-            content_type=match,
+        return to_http_response(
+            [encode_description(coverage, match)]
         )
     return HttpResponseNotAcceptable()
 
 
 @csrf_exempt
 @coverage_view
-def domainset(request, coverage):
+def metadata(request, coverage, collection_id=None):
     match = get_best_match(
-        request.META.get('HTTP_ACCEPT'),
+        request.GET.get('f', request.META.get('HTTP_ACCEPT')),
         ['text/xml', 'application/json']
     )
     if match:
-        return HttpResponse(
-            encode_domainset(coverage, match),
-            content_type=match,
+        return to_http_response(
+            [encode_metadata(coverage, match)]
         )
     return HttpResponseNotAcceptable()
 
 
 @csrf_exempt
 @coverage_view
-def rangetype(request, coverage):
+def domainset(request, coverage, collection_id=None):
     match = get_best_match(
-        request.META.get('HTTP_ACCEPT'),
+        request.GET.get('f', request.META.get('HTTP_ACCEPT')),
         ['text/xml', 'application/json']
     )
     if match:
-        return HttpResponse(
-            encode_rangetype(coverage, match),
-            content_type=match,
+        return to_http_response(
+            [encode_domainset(coverage, match)]
         )
     return HttpResponseNotAcceptable()
 
 
 @csrf_exempt
 @coverage_view
-def rangeset(request, coverage):
+def rangetype(request, coverage, collection_id=None):
+    match = get_best_match(
+        request.GET.get('f', request.META.get('HTTP_ACCEPT')),
+        ['text/xml', 'application/json']
+    )
+    if match:
+        return to_http_response(
+            [encode_rangetype(coverage, match)]
+        )
+    return HttpResponseNotAcceptable()
+
+
+@csrf_exempt
+@coverage_view
+def rangeset(request, coverage, collection_id=None):
     return to_http_response(
-        encode_rangeset(request, coverage, request.META.get('HTTP_ACCEPT'))
+        encode_rangeset(
+            request, coverage,
+            request.GET.get('f', request.META.get('HTTP_ACCEPT'))
+        )
     )

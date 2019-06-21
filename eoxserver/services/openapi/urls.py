@@ -31,12 +31,22 @@ from eoxserver.services.openapi import views
 
 
 urlpatterns = ([
+    url(r'^coverages/$', views.coverages, name='coverages'),
+    url(r'^coverages/(?P<coverage_id>[^/]+)/', include([
+        url(r'^$', views.coverage, name='coverage'),
+        url(r'^description$', views.description, name='description'),
+        url(r'^domainset$', views.domainset, name='domainset'),
+        url(r'^rangetype$', views.rangetype, name='rangetype'),
+        url(r'^metadata$', views.metadata, name='metadata'),
+        url(r'^rangeset$', views.rangeset, name='rangeset'),
+    ], namespace='coverage')),
     url(r'^collections/$', views.collections, name='collections'),
     url(r'^collections/(?P<collection_id>[^/]+)/', include([
         url(r'^$', views.collection, name='collection'),
         url(r'^coverages/$', views.coverages, name='coverages'),
         url(r'^coverages/(?P<coverage_id>[^/]+)/', include([
             url(r'^$', views.coverage, name='coverage'),
+            url(r'^description$', views.description, name='description'),
             url(r'^domainset$', views.domainset, name='domainset'),
             url(r'^rangetype$', views.rangetype, name='rangetype'),
             url(r'^metadata$', views.metadata, name='metadata'),
