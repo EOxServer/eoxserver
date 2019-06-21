@@ -1,9 +1,12 @@
 {% extends 'openapi/base.html' %}
 {% block content %}
-<h1>Index of OpenAPI</h1>
+<h1>OGC API Coverages Index</h1>
 <ul>
-  {% for collection in collections %}
-    <li><a href="{{ collection.href }}">{{ collection.identifier }}</a></li>
-  {% endfor %}
+  <li>
+    <a href="{% url 'openapi:coverages' %}">Coverages</a>
+  </li>
+  <li>
+    <a href="{% url 'openapi:collections' %}">Collections</a>
+  </li>
 </ul>
 {% endblock %}

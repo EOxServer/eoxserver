@@ -31,6 +31,7 @@ from eoxserver.services.openapi import views
 
 
 urlpatterns = ([
+    url(r'^$', views.index, name='index'),
     url(r'^coverages/$', views.coverages, name='coverages'),
     url(r'^coverages/(?P<coverage_id>[^/]+)/', include([
         url(r'^$', views.coverage, name='coverage'),

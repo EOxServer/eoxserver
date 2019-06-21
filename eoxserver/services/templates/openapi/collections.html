@@ -1,0 +1,9 @@
+{% extends 'openapi/base.html' %}
+{% block content %}
+<h1>Collections</h1>
+<ul>
+  {% for collection in collections %}
+    <li><a href="{{ collection.link.0.href }}">{{ collection.title }}</a></li>
+  {% endfor %}
+</ul>
+{% endblock %}

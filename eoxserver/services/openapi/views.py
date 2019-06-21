@@ -87,17 +87,48 @@ def conformance(request):
     # TODO: implement
     pass
 
+def index(request):
+    data = {
+        "links": [{
+            "href": request.build_absolute_uri(
+                reverse("openapi:collections")
+            ),
+            "rel": "collections",
+        }, {
+            "href": request.build_absolute_uri(
+                reverse("openapi:coverages")
+            ),
+            "rel": "coverages",
+        }],
+    }
+    match = get_best_match(
+        request.GET.get('f', request.META.get('HTTP_ACCEPT')),
+        ['text/html', 'application/json']
+    )
+
+    if match == 'application/json':
+        return JsonResponse(data)
+    elif match == 'text/html':
+        return render(request, 'openapi/index.html', data)
+
+    return HttpResponseNotAcceptable()
+
 
 def collections(request):
     data = {
         "collections": [{
-            "identifier": collection.identifier,
-            "href": request.build_absolute_uri(
-                reverse(
-                    "openapi:collection:collection",
-                    kwargs={"collection_id": collection.identifier}
-                )
-            )
+            "id": collection.identifier,
+            "title": collection.identifier,
+            "description": "",
+            "links": [{
+                "href": request.build_absolute_uri(
+                    reverse(
+                        "openapi:collection:collection",
+                        kwargs={"collection_id": collection.identifier}
+                    )
+                ),
+                "rel": "collection",
+            }],
         } for collection in models.Collection.objects.all()
         ]
     }
@@ -109,7 +140,7 @@ def collections(request):
     if match == 'application/json':
         return JsonResponse(data)
     elif match == 'text/html':
-        return render(request, 'openapi/index.html', data)
+        return render(request, 'openapi/collections.html', data)
 
     return HttpResponseNotAcceptable()
 
@@ -312,7 +343,7 @@ def encode_rangeset(request, coverage, frmt):
         axes.add(scale.axis)
 
     params = WCS20CoverageRenderParams(
-        render_coverage, subsets, decoder.rangesubset, decoder.format,
+        render_coverage, subsets, decoder.rangesubset, frmt,
         decoder.outputcrs, decoder.mediatype, decoder.interpolation,
         scalefactor, scales, encoding_params or {}, request
     )
