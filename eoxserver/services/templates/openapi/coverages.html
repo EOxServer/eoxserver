@@ -3,7 +3,7 @@
 <ul>
 {% for coverage in coverages %}
   <li>
-    <a href="{{ coverage.href }}">{{ coverage.identifier }}</a>
+    <a href="{{ coverage.links.0.href }}">{{ coverage.identifier }}</a>
   </li>
 {% endfor %}
 </ul>

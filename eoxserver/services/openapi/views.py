@@ -26,7 +26,8 @@
 # ------------------------------------------------------------------------------
 
 from functools import wraps
-from itertools import chain
+from itertools import chain, product
+import json
 
 from django.http import HttpResponse, JsonResponse, QueryDict
 from django.urls import reverse
@@ -87,19 +88,30 @@ def conformance(request):
     # TODO: implement
     pass
 
+def encode_links(links, formats):
+    out_links = []
+    for link, format_ in product(links, formats):
+        href = link['href']
+        out_links.append({
+            'href': "%s%sf=%s" % (href, "?" if "?" not in href else "&", format_),
+            'rel': link['rel'],
+            'type': format_,
+        })
+    return out_links
+
 def index(request):
     data = {
-        "links": [{
+        "links": encode_links([{
             "href": request.build_absolute_uri(
                 reverse("openapi:collections")
             ),
-            "rel": "collections",
+            "rel": "data",
         }, {
             "href": request.build_absolute_uri(
                 reverse("openapi:coverages")
             ),
-            "rel": "coverages",
-        }],
+            "rel": "data",
+        }], formats=('text/html', 'application/json')),
     }
     match = get_best_match(
         request.GET.get('f', request.META.get('HTTP_ACCEPT')),
@@ -120,7 +132,7 @@ def collections(request):
             "id": collection.identifier,
             "title": collection.identifier,
             "description": "",
-            "links": [{
+            "links": encode_links([{
                 "href": request.build_absolute_uri(
                     reverse(
                         "openapi:collection:collection",
@@ -128,7 +140,7 @@ def collections(request):
                     )
                 ),
                 "rel": "collection",
-            }],
+            }], formats=('text/html', 'application/json')),
         } for collection in models.Collection.objects.all()
         ]
     }
@@ -151,10 +163,13 @@ def collection(request, collection):
     # TODO: show collection metadata?
     data = {
         "identifier": collection.identifier,
-        "coverages_href": reverse(
-            "openapi:collection:coverages",
-            kwargs={"collection_id": collection.identifier}
-        )
+        "links": encode_links([{
+            "href": reverse(
+                "openapi:collection:coverages",
+                kwargs={"collection_id": collection.identifier}
+            ),
+            "rel": "data",
+        }], formats=('text/html', 'application/json'))
     }
     match = get_best_match(
         request.GET.get('f', request.META.get('HTTP_ACCEPT')),
@@ -167,6 +182,7 @@ def collection(request, collection):
         return render(request, 'openapi/collection.html', data)
 
     return HttpResponseNotAcceptable()
+
 
 @csrf_exempt
 @collection_view
@@ -192,9 +208,10 @@ def coverages(request, collection=None):
     count = base_qs.count()
 
     data = {
-        "identifier": collection.identifier if collection else None,
+        "identifier": collection.identifier if collection else 'Coverages',
         "coverages": [{
-                "identifier": coverage.identifier,
+            "identifier": coverage.identifier,
+            "links": encode_links([{
                 "href": request.build_absolute_uri(
                     reverse(
                         "openapi:collection:coverage:coverage",
@@ -210,8 +227,10 @@ def coverages(request, collection=None):
                             "coverage_id": coverage.identifier,
                         }
                     )
-                )
-            } for coverage in qs
+                ),
+                "rel": "coverage",
+            }], formats=('text/html', 'multipart/related', 'image/tiff'))
+        } for coverage in qs
         ],
         "count": count,
         "offset": offset,
@@ -251,7 +270,12 @@ def encode_description(coverage, frmt):
         )
     elif frmt == 'application/json':
         # TODO: CIS 1.1 encoding
-        pass
+        return ResultBuffer(
+            json.dumps({
+                'placeholder': 'for CIS 1.1',
+            }),
+            content_type='application/json',
+        )
 
 
 def encode_metadata(coverage, frmt):
@@ -267,7 +291,12 @@ def encode_metadata(coverage, frmt):
         )
     elif frmt == 'application/json':
         # TODO: CIS 1.1 encoding
-        pass
+        return ResultBuffer(
+            json.dumps({
+                'placeholder': 'for CIS 1.1',
+            }),
+            content_type='application/json',
+        )
 
 def encode_domainset(coverage, frmt):
     if frmt == 'text/xml':
@@ -282,7 +311,12 @@ def encode_domainset(coverage, frmt):
         )
     elif frmt == 'application/json':
         # TODO: CIS 1.1 encoding
-        pass
+        return ResultBuffer(
+            json.dumps({
+                'placeholder': 'for CIS 1.1',
+            }),
+            content_type='application/json',
+        )
 
 def encode_rangetype(coverage, frmt, rangesubset=None):
     render_coverage = Coverage.from_model(coverage)
@@ -301,7 +335,12 @@ def encode_rangetype(coverage, frmt, rangesubset=None):
         )
     elif frmt == 'application/json':
         # TODO: CIS 1.1 encoding
-        pass
+        return ResultBuffer(
+            json.dumps({
+                'placeholder': 'for CIS 1.1',
+            }),
+            content_type='application/json',
+        )
 
 
 def encode_rangeset(request, coverage, frmt):
@@ -363,7 +402,7 @@ def coverage(request, coverage, collection_id=None):
         metadata_format = match.parameters.get('metadata', 'text/xml')
         domainset_format = match.parameters.get('domainset', 'text/xml')
         rangetype_format = match.parameters.get('rangetype', 'text/xml')
-        rangeset_format = match.parameters.get('rangeset', 'text/xml')
+        rangeset_format = match.parameters.get('rangeset', 'image/tiff')
 
         decoder = WCS20GetCoverageKVPDecoder(request.GET)
 
@@ -445,7 +484,8 @@ def coverage(request, coverage, collection_id=None):
         return to_http_response(
             encode_rangeset(request, coverage, match.mime_type)
         )
-    raise ""
+
+    raise HttpResponseNotAcceptable()
 
 
 @csrf_exempt
@@ -459,6 +499,7 @@ def description(request, coverage, collection_id=None):
         return to_http_response(
             [encode_description(coverage, match)]
         )
+
     return HttpResponseNotAcceptable()
 
 
@@ -473,6 +514,7 @@ def metadata(request, coverage, collection_id=None):
         return to_http_response(
             [encode_metadata(coverage, match)]
         )
+
     return HttpResponseNotAcceptable()
 
 
@@ -487,6 +529,7 @@ def domainset(request, coverage, collection_id=None):
         return to_http_response(
             [encode_domainset(coverage, match)]
         )
+
     return HttpResponseNotAcceptable()
 
 
@@ -501,6 +544,7 @@ def rangetype(request, coverage, collection_id=None):
         return to_http_response(
             [encode_rangetype(coverage, match)]
         )
+
     return HttpResponseNotAcceptable()
 
 
