@@ -40,7 +40,7 @@
     <link rel="shortcut icon" href="{% static 'favicon.ico' %}" type="image/x-icon">
 </head>
 <body>
-    
+
 
     <h1>Welcome to this EOxServer instance</h1>
 
@@ -53,8 +53,9 @@
                 <li><a href="{% url 'ows' %}?service=wps&amp;request=getcapabilities">WPS</a></li>
             </ul>
         <li><a href="{% url 'opensearch:description' %}">OpenSearch</a></li>
+        <li><a href="{% url 'openapi:index' %}">OAPI</a></li>
         <li><a href="{% url 'webclient:index' %}">Web Client</a></li>
-        
+
         <li><a href="{% url 'admin:index' %}">Admin Client</a></li>
     </ul>
 
