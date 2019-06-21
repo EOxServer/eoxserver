@@ -3,7 +3,7 @@ import re
 from decimal import Decimal
 
 valid_mime_type = re.compile(r'^(\*|[a-zA-Z0-9._-]+)(/(\*|[a-zA-Z0-9._-]+))?$')
-
+QUOTED_SEMICOLON_PATTERN = re.compile(r'''((?:[^;"']|"[^"]*"|'[^']*')+)''')
 
 class AcceptableType:
     mime_type = None
@@ -12,8 +12,8 @@ class AcceptableType:
 
     def __init__(self, raw_mime_type):
         bits = raw_mime_type.split(';', 1)
-
         mime_type = bits[0]
+
         if not valid_mime_type.match(mime_type):
             raise ValueError('"%s" is not a valid mime type' % mime_type)
 
@@ -23,8 +23,8 @@ class AcceptableType:
 
         parameters = dict(
             parameter.split('=', 1)
-            for parameter in tail.split(';')
-        )
+            for parameter in QUOTED_SEMICOLON_PATTERN.split(tail)[1::2]
+        ) if tail else {}
 
         self.mime_type = mime_type
         self.weight = get_weight(tail)
