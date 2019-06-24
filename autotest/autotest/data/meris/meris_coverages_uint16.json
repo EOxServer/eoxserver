@@ -198,27 +198,6 @@
 },
 {
     "model": "coverages.grid",
-    "pk": 1,
-    "fields": {
-        "name": null,
-        "coordinate_reference_system": "EPSG:4326",
-        "axis_1_name": "x",
-        "axis_2_name": "y",
-        "axis_3_name": null,
-        "axis_4_name": null,
-        "axis_1_type": 0,
-        "axis_2_type": 0,
-        "axis_3_type": null,
-        "axis_4_type": null,
-        "axis_1_offset": "1.0",
-        "axis_2_offset": "1.0",
-        "axis_3_offset": null,
-        "axis_4_offset": null,
-        "resolution": null
-    }
-},
-{
-    "model": "coverages.grid",
     "pk": 2,
     "fields": {
         "name": null,
