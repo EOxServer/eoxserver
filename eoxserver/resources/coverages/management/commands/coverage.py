@@ -29,6 +29,7 @@ from pprint import pprint
 
 from django.core.management.base import CommandError, BaseCommand
 from django.db import transaction
+from django.db.models import Q
 
 from eoxserver.core.util.timetools import parse_iso8601
 from eoxserver.resources.coverages import models
@@ -211,6 +212,17 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
         """ Handle the deregistration a coverage
         """
         try:
-            models.Coverage.objects.get(identifier=identifier).delete()
+            coverage = models.Coverage.objects.get(identifier=identifier)
+            grid = coverage.grid
+            coverage.delete()
+
+            grid_used = models.EOObject.objects.filter(
+                Q(coverage__grid=grid) | Q(mosaic__grid=grid),
+            ).exists()
+
+            # clean up grid as well, if it is not referenced anymore
+            if grid and not grid_used:
+                grid.delete()
+
         except models.Coverage.DoesNotExist:
             raise CommandError('No such Coverage %r' % identifier)
