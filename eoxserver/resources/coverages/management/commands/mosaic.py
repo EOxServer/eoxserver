@@ -158,6 +158,10 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
         for coverage in coverages:
             try:
                 models.mosaic_insert_coverage(mosaic, coverage)
+                self.print_msg(
+                    'Successfully inserted coverage %s into mosaic %s'
+                    % (coverage.identifier, mosaic.identifier)
+                )
             except Exception as e:
                 raise CommandError(
                     "Could not insert coverage %r into mosaic %r. "
@@ -187,6 +191,10 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
         for coverage in coverages:
             try:
                 models.mosaic_exclude_coverage(mosaic, coverage)
+                self.print_msg(
+                    'Successfully excluded coverage %s from mosaic %s'
+                    % (coverage.identifier, mosaic.identifier)
+                )
             except Exception as e:
                 raise CommandError(
                     "Could not exclude coverage %r from mosic %r. "

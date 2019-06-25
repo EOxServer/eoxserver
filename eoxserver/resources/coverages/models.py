@@ -38,7 +38,8 @@ from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
 from django.contrib.gis.db import models
 from django.contrib.gis.db.models import Extent, Union
-from django.db.models import Min, Max, Q
+from django.db.models import Min, Max, Q, F, ExpressionWrapper
+from django.db.models.functions import Cast
 from django.utils.timezone import now
 from django.utils.encoding import python_2_unicode_compatible
 from model_utils.managers import InheritanceManager
@@ -963,62 +964,102 @@ def mosaic_insert_coverage(mosaic, coverage):
 
     mosaic.coverages.add(coverage)
 
-    # compute EO metadata
-    mosaic.begin_time = (
-        min(mosaic.begin_time, coverage.begin_time)
-        if mosaic.begin_time else coverage.begin_time
-    )
-    mosaic.end_time = (
-        max(mosaic.end_time, coverage.end_time)
-        if mosaic.end_time else coverage.end_time
-    )
-    mosaic.footprint = (
-        mosaic.footprint.union(coverage.footprint)
-        if mosaic.footprint else coverage.footprint
-    )
+    mosaic_recalc_metadata(mosaic)
+    mosaic.full_clean()
+    mosaic.save()
 
+
+def mosaic_exclude_coverage(mosaic, coverage):
+    """ Exclude a coverage from a mosaic.
+    """
+    mosaic = cast_eo_object(mosaic)
+    coverage = cast_eo_object(coverage)
+
+    assert isinstance(mosaic, Mosaic)
+    assert isinstance(coverage, Coverage)
+
+    if not mosaic.coverages.filter(identifier=coverage.identifier).exists():
+        raise ManagementError(
+            'Cannot exclude Coverage %s as is not contained in the mosaic.'
+            % coverage
+        )
+
+    mosaic.coverages.remove(coverage)
+
+    mosaic_recalc_metadata(mosaic)
+    mosaic.full_clean()
+    mosaic.save()
+
+
+
+def mosaic_recalc_metadata(mosaic):
+    """ Recalculates axis origins and time/footprint metadata
+        for the given mosaic model. Does not save the model.
+    """
+    values = mosaic.coverages.aggregate(
+        begin_time=Min('begin_time'),
+        end_time=Max('end_time'),
+        footprint=Union('footprint'),
+    )
+    mosaic.begin_time = values['begin_time']
+    mosaic.end_time = values['end_time']
+    mosaic.footprint = values['footprint']
+
+    grid = mosaic.grid
     if grid:
         # compute new origins and size
+
+        casts = {}
+        annotations = {}
+        aggregates = {}
         for i in range(1, 5):
             if getattr(grid, 'axis_%d_type' % i) is None:
                 break
 
-            # if origin and size were null, use the ones from the coverage
-            if getattr(mosaic, 'axis_%d_origin' % i) is None:
-                setattr(mosaic, 'axis_%d_origin' % i,
-                    getattr(coverage, 'axis_%d_origin' % i)
-                )
-                setattr(mosaic, 'axis_%d_size' % i,
-                    getattr(coverage, 'axis_%d_size' % i)
-                )
+            offset = float(getattr(grid, 'axis_%d_offset' % i))
 
+            casts['axis_%d_origin_float' % i] = Cast(
+                'axis_%d_origin' % i, models.FloatField()
+            )
+            annotations['axis_%d_top' % i] = ExpressionWrapper(
+                F('axis_%d_origin_float' % i) + F('axis_%d_size' % i) * offset,
+                output_field=models.FloatField(),
+            )
+
+            if offset < 0:
+                aggregates['axis_%d_min' % i] = Max('axis_%d_origin_float' % i)
+                aggregates['axis_%d_max' % i] = Min('axis_%d_top' % i)
             else:
-                offset = float(getattr(grid, 'axis_%d_offset' % i))
-                o_c = float(getattr(coverage, 'axis_%d_origin' % i))
-                o_m = float(getattr(mosaic, 'axis_%d_origin' % i))
+                aggregates['axis_%d_min' % i] = Min('axis_%d_origin_float' % i)
+                aggregates['axis_%d_max' % i] = Max('axis_%d_top' % i)
 
-                # calculate new origin
-                if offset < 0:
-                    setattr(mosaic, 'axis_%d_origin' % i, max(o_c, o_m))
-                else:
-                    setattr(mosaic, 'axis_%d_origin' % i, min(o_c, o_m))
+        # create a query to get the min/max for each axis
+        values = mosaic.coverages.annotate(
+            **casts
+        ).annotate(
+            **annotations
+        ).aggregate(
+            **aggregates
+        )
 
-                # calculate new size
+        for i in range(1, 5):
+            if 'axis_%d_min' % i not in values:
+                break
 
-                # TODO: this is flawed. Use all coverages within the mosaic
+            offset = float(getattr(grid, 'axis_%d_offset' % i))
 
-                if o_c > o_m:
-                    add_size = float(getattr(coverage, 'axis_%d_size' % i))
-                else:
-                    add_size = float(getattr(mosaic, 'axis_%d_size' % i))
-
+            if values['axis_%d_min' % i] is not None:
                 setattr(
                     mosaic, 'axis_%d_size' % i,
-                    (max(o_c, o_m) - min(o_c, o_m)) / offset + add_size
+                    (values['axis_%d_max' % i] - values['axis_%d_min' % i]) / offset
                 )
-
-    mosaic.full_clean()
-    mosaic.save()
+                setattr(
+                    mosaic, 'axis_%d_origin' % i,
+                    values['axis_%d_min' % i]
+                )
+            else:
+                setattr(mosaic, 'axis_%d_size' % i, 0)
+                setattr(mosaic, 'axis_%d_origin' % i, None)
 
 
 def product_add_coverage(product, coverage):
