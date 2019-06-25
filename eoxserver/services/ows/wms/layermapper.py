@@ -71,8 +71,6 @@ class LayerMapper(object):
             coverage = RenderCoverage.from_model(eo_object)
             return LayerDescription.from_mosaic(coverage, raster_styles)
         elif isinstance(eo_object, (models.Product, models.Collection)):
-            mask_types = []
-            browse_types = []
             if getattr(eo_object, "product_type", None):
                 browse_types = eo_object.product_type.browse_types.all()
                 mask_types = eo_object.product_type.mask_types.all()
@@ -83,6 +81,9 @@ class LayerMapper(object):
                 mask_types = models.MaskType.objects.filter(
                     product_type__allowed_collection_types__collections=eo_object
                 )
+            else:
+                mask_types = []
+                browse_types = []
 
             sub_layers = [
                 LayerDescription(
@@ -174,13 +175,23 @@ class LayerMapper(object):
             raise NoSuchLayer('Layer %r does not exist' % layer_name)
 
         if isinstance(eo_object, models.Coverage):
-            if suffix not in ('', 'bands'):
+            if suffix in ('', 'bands'):
+                return CoverageLayer(
+                    full_name, style,
+                    RenderCoverage.from_model(eo_object),
+                    bands, wavelengths, time, elevation, range
+                )
+
+            elif suffix == 'outlines':
+                return OutlinesLayer(
+                    name=full_name, style=style, fill=None,
+                    footprints=[eo_object.footprint]
+                )
+
+            # TODO: masked coverages, when using the coverages product
+
+            else:
                 raise NoSuchLayer('Invalid layer suffix %r' % suffix)
-            return CoverageLayer(
-                full_name, style,
-                RenderCoverage.from_model(eo_object),
-                bands, wavelengths, time, elevation, range
-            )
 
         # TODO: deprecated
         elif isinstance(eo_object, models.Mosaic):
