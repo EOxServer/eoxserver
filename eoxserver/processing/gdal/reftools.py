@@ -104,6 +104,17 @@ class WARP_OPTIONS(C.Structure):
 _libgdal = C.LibraryLoader(C.CDLL).LoadLibrary(find_library("gdal"))
 
 
+class GCP(C.Structure):
+    _fields_ = [
+        ("pszId", C.c_char_p),
+        ("pszInfo", C.c_char_p),
+        ("dfGCPPixel", C.c_double),
+        ("dfGCPLine", C.c_double),
+        ("dfGCPX", C.c_double),
+        ("dfGCPY", C.c_double),
+        ("dfGCPZ", C.c_double),
+    ]
+
 GDALGetGCPs = _libgdal.GDALGetGCPs
 GDALGetGCPs.restype = C.c_void_p # actually array of GCPs, but more info not required
 GDALGetGCPs.argtypes = [C.c_void_p]
@@ -234,12 +245,11 @@ def _create_referenceable_grid_transformer(ds, method, order):
     num_gcps = ds.GetGCPCount()
     gcps = GDALGetGCPs(C.cast(long(ds.this), C.c_void_p))
     handle = None
-
     if method == METHOD_GCP:
-        handle = GDALCreateGCPTransformer(num_gcps, gcps, order, 0);
+        handle = GDALCreateGCPTransformer(num_gcps, C.c_void_p(gcps), order, 0)
     elif method == METHOD_TPS:
         if GDALCreateTPS2TransformerExt:
-            handle = GDALCreateTPS2TransformerExt(num_gcps, gcps, 0, order)
+            handle = GDALCreateTPS2TransformerExt(num_gcps, C.c_void_p(gcps), 0, order)
         else:
             handle = GDALCreateTPSTransformer(num_gcps, gcps, 0)
 
@@ -480,7 +490,6 @@ def rect_from_subset(path_or_ds, srid, minx, miny, maxx, maxy,
               subset in image coordinates
     """
 
-    #import pdb; pdb.set_trace()
     ds = path_or_ds
 
     x_size = ds.RasterXSize
