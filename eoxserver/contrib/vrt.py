@@ -53,6 +53,8 @@ class VRTBuilder(object):
                  vrt_filename=None):
         driver = get_vrt_driver()
         data_type = data_type if data_type is not None else gdal.GDT_Byte
+
+        print vrt_filename
         self._ds = driver.Create(
             vrt_filename or "", size_x, size_y, num_bands, data_type
         )
@@ -278,12 +280,26 @@ class VRTBuilder2(object):
         return etree.tostring(root, pretty_print=True)
 
 
-def gdalbuildvrt(filename, paths, separate=False):
+def gdalbuildvrt(filename, paths, separate=False, nodata=None):
+    """ Builds a VRT file from the passed files using the
+        `gdalbuildvrt` command and stores the resulting file
+        under the passed filename.
+    """
     args = [
-        '/usr/bin/gdalbuildvrt', '-q', '/vsistdout/'
+        '/usr/bin/gdalbuildvrt',
+        '-resolution',
+        'highest',
+        '-q',
+        '/vsistdout/',
     ]
     if separate:
         args.append('-separate')
+
+    if nodata is not None:
+        args.extend([
+            '-srcnodata',
+            ' '.join(str(value) for value in nodata)
+        ])
 
     content = subprocess.check_output(args + paths)
 
