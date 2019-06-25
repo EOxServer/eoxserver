@@ -45,16 +45,18 @@ from eoxserver.core.config import get_eoxserver_config
 from eoxserver.core.util import multiparttools as mp
 from eoxserver.contrib import gdal, osr
 from eoxserver.testing.xcomp import xmlCompareFiles
+from eoxserver.testing.utils import tag
 
 
 root_dir = settings.PROJECT_DIR
 
-# BASE_FIXTURES = [
-#     "range_types.json", "meris_range_type.json",
-#     "asar_range_type.json",
-# ]
 
-BASE_FIXTURES = ["fixtures.json"]
+BASE_FIXTURES = [
+    "range_types.json", "meris_range_type.json",
+    "meris_coverages_uint16.json", "meris_coverages_rgb.json",
+    "meris_coverages_reprojected_uint16.json",
+    "asar_range_type.json", "asar_coverages.json"
+]
 
 logger = logging.getLogger(__name__)
 
@@ -96,7 +98,7 @@ def _getMime(s):
 
 REQUEST_CACHE = {}
 
-
+@tag('ows')
 class OWSTestCase(TransactionTestCase):
     """ Main base class for testing the OWS interface
         of EOxServer.
@@ -319,11 +321,25 @@ class OWSTestCase(TransactionTestCase):
                     "response in '%s'." % (response_path, expected_path)
                 )
 
+    def get_exception_message(self, content):
+        try:
+            tree = etree.fromstring(content)
+            return tree.xpath("//*[local-name() = 'ExceptionText']")[0].text
+        except Exception as e:
+            return None
+
     def testStatus(self):
         logger.info("Checking HTTP Status ...")
+        if self.response.status_code != 200:
+            message = "Request status code: %s != 200" % (self.response.status_code)
+            exception_message = self.get_exception_message(self.response.content)
+            if exception_message:
+                message += " Exception: '%s'" % exception_message
+            self.fail(message)
         self.assertEqual(self.response.status_code, 200)
 
 
+@tag('raster')
 class RasterTestCase(OWSTestCase):
     """
     Base class for test cases that expect a raster as response.
@@ -349,6 +365,7 @@ class RasterTestCase(OWSTestCase):
             self.skipTest("No 'Content-Disposition' header detected.")
 
 
+@tag('gdal')
 class GDALDatasetTestCase(RasterTestCase):
     """
     Extended RasterTestCases that open the result with GDAL and
@@ -386,6 +403,7 @@ class GDALDatasetTestCase(RasterTestCase):
             self.skipTest("Expected response in '%s' is not present" % exp_path)
 
 
+@tag('rectifiedgrid')
 class RectifiedGridCoverageTestCase(GDALDatasetTestCase):
     def testSize(self):
         self._openDatasets()
@@ -421,6 +439,7 @@ class RectifiedGridCoverageTestCase(GDALDatasetTestCase):
         self.assertEqual(self.res_ds.RasterCount, self.exp_ds.RasterCount)
 
 
+@tag('referenceablegrid')
 class ReferenceableGridCoverageTestCase(GDALDatasetTestCase):
     def testSize(self):
         self._openDatasets()
@@ -464,6 +483,7 @@ class XMLNoValTestCase(OWSTestCase):
         self._testXMLComparison()
 
 
+@tag('xml')
 class XMLTestCase(XMLNoValTestCase):
     """
     Base class for test cases that expects XML output, which is parsed
@@ -511,6 +531,7 @@ class XMLTestCase(XMLNoValTestCase):
             self.fail(str(e))
 
 
+@tag('schematron')
 class SchematronTestMixIn(object):  # requires to be mixed in with XMLTestCase
     """
     Mixin class for XML test cases that uses XML schematrons for validation.
@@ -552,6 +573,7 @@ class SchematronTestMixIn(object):  # requires to be mixed in with XMLTestCase
             self.fail(str(errors))
 
 
+@tag('exception')
 class ExceptionTestCase(XMLTestCase):
     """
     Exception test cases expect the request to fail and examine the

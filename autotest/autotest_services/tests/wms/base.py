@@ -25,6 +25,8 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
+from eoxserver.testing.utils import tag
+
 from autotest_services import base as testbase
 
 
@@ -34,6 +36,7 @@ format_to_extension = {
     "image/gif": "gif"
 }
 
+@tag('wms', 'wms11', 'getmap')
 class WMS11GetMapTestCase(testbase.RasterTestCase):
     layers = []
     styles = []
@@ -75,6 +78,7 @@ class WMS11GetMapTestCase(testbase.RasterTestCase):
         else:
             return (params, "kvp", self.httpHeaders)
 
+@tag('wms', 'wms13', 'getmap')
 class WMS13GetMapTestCase(testbase.RasterTestCase):
     layers = []
     styles = []
@@ -121,6 +125,8 @@ class WMS13GetMapTestCase(testbase.RasterTestCase):
         else:
             return (params, "kvp", self.httpHeaders)
 
+
+@tag('wms', 'wms13', 'exception')
 class WMS13ExceptionTestCase(testbase.ExceptionTestCase):
     def getExceptionCodeLocation(self):
         return "ogc:ServiceException/@code"
