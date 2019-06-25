@@ -147,9 +147,9 @@ def dispatch(map_, request):
             # try to parse the output as XML
             _, data = iterate(raw_bytes).next()
             tree = etree.fromstring(str(data))
-            exception_elem = tree.xpath("*[local-name() = 'Exception']")[0]
-            locator = exception_elem.attrib["locator"]
-            code = exception_elem.attrib["exceptionCode"]
+            exception_elem = tree.xpath("*[local-name() = 'Exception']|*[local-name() = 'ServiceException']")[0]
+            locator = exception_elem.attrib.get("locator")
+            code = exception_elem.attrib.get("exceptionCode")
             message = exception_elem[0].text
 
             raise MapServerException(message, locator, code)
