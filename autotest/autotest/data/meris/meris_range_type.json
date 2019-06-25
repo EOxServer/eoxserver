@@ -263,7 +263,7 @@
 },
 {
     "model": "coverages.nilvalue",
-    "pk": 1,
+    "pk": 2,
     "fields": {
         "value": "0",
         "reason": "http://www.opengis.net/def/nil/OGC/0/unknown",

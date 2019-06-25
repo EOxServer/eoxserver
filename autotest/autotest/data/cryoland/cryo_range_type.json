@@ -22,14 +22,5 @@
         "signed": false,
         "is_float": false
     }
-},
-{
-    "model": "coverages.nilvalue",
-    "pk": 1,
-    "fields": {
-        "value": "0",
-        "reason": "http://www.opengis.net/def/nil/OGC/0/unknown",
-        "field_types": []
-    }
 }
 ]
