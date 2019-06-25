@@ -43,48 +43,24 @@ class MosaicConnector(object):
         return isinstance(mosaic, Mosaic)
 
     def connect(self, mosaic, data_items, layer, options):
+        try:
+            nodata_values = [
+                field.nil_values[0][0]
+                for field in mosaic.range_type
+            ]
+        except IndexError:
+            nodata_values = None
+
         vrt_path = '/vsimem/%s.vrt' % uuid4().hex
-        vrt.gdalbuildvrt(vrt_path, [
-            coverage.arraydata_locations[0].path
-            for coverage in mosaic.coverages
-        ])
+        vrt.gdalbuildvrt(
+            vrt_path, [
+                coverage.arraydata_locations[0].path
+                for coverage in mosaic.coverages
+            ],
+            nodata=nodata_values
+        )
         layer.data = vrt_path
 
-        # data = data_items[0].path
-
-        # if coverage.grid.is_referenceable:
-        #     vrt_path = join("/vsimem", uuid4().hex)
-        #     reftools.create_rectified_vrt(data, vrt_path)
-        #     data = vrt_path
-        #     layer.setMetaData("eoxs_ref_data", data)
-
-        # if not layer.metadata.get("eoxs_wrap_dateline") == "true":
-        #     layer.data = data
-        # else:
-        #     sr = coverage.grid.spatial_reference
-        #     extent = coverage.extent
-        #     e = wrap_extent_around_dateline(extent, sr.srid)
-
-        #     vrt_path = join("/vsimem", uuid4().hex)
-        #     ds = gdal.Open(data)
-        #     vrt_ds = create_simple_vrt(ds, vrt_path)
-        #     size_x = ds.RasterXSize
-        #     size_y = ds.RasterYSize
-
-        #     dx = abs(e[0] - e[2]) / size_x
-        #     dy = abs(e[1] - e[3]) / size_y
-
-        #     vrt_ds.SetGeoTransform([e[0], dx, 0, e[3], 0, -dy])
-        #     vrt_ds = None
-
-        #     layer.data = vrt_path
-
     def disconnect(self, coverage, data_items, layer, options):
-        # if layer.metadata.get("eoxs_wrap_dateline") == "true":
-        #     vsi.remove(layer.data)
-
-        # vrt_path = layer.metadata.get("eoxs_ref_data")
-        # if vrt_path:
-        #     vsi.remove(vrt_path)
         if layer.data:
             vsi.remove(layer.data)
