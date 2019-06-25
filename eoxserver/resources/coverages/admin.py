@@ -240,6 +240,12 @@ class ProductAdmin(EOObjectAdmin):
 admin.site.register(models.Product, ProductAdmin)
 
 
+class MosaicAdmin(EOObjectAdmin):
+    inlines = []
+
+admin.site.register(models.Mosaic, MosaicAdmin)
+
+
 class CollectionAdmin(EOObjectAdmin):
     inlines = [CollectionMetadataInline]
 
