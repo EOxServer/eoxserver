@@ -3,3 +3,4 @@ gunicorn
 eventlet
 greenlet>=0.4.14
 psycopg2
+lxml
