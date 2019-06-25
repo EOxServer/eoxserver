@@ -177,6 +177,7 @@ class CoverageLayerFactoryMixIn(object):
             for i, field in enumerate(fields, start=1):
                 range_ = _get_range(field, range_)
                 layer_obj.setProcessingKey("SCALE_%d" % i, "%s,%s" % range_)
+
                 layer_obj.offsite = ms.colorObj(0, 0, 0)
 
         else:
@@ -217,6 +218,8 @@ class MosaicLayerFactory(CoverageLayerFactoryMixIn, BaseMapServerLayerFactory):
     handled_layer_types = [MosaicLayer]
 
     def create(self, map_obj, layer):
+
+        import pdb; pdb.set_trace()
         mosaic = layer.mosaic
         fields = self.get_fields(
             mosaic.range_type, layer.bands, layer.wavelengths
@@ -457,7 +460,7 @@ class OutlinesLayerFactory(BaseMapServerLayerFactory):
 # ------------------------------------------------------------------------------
 
 
-def _create_raster_layer_obj(map_obj, extent, sr, resample='AVERAGE'):
+def _create_raster_layer_obj(map_obj, extent, sr, resample=None):
     layer_obj = ms.layerObj(map_obj)
     layer_obj.type = ms.MS_LAYER_RASTER
     layer_obj.status = ms.MS_ON
@@ -474,7 +477,9 @@ def _create_raster_layer_obj(map_obj, extent, sr, resample='AVERAGE'):
             layer_obj.setMetaData("wms_srs", short_epsg)
 
     layer_obj.setProjection(sr.proj)
-    layer_obj.setProcessingKey('RESAMPLE', resample)
+
+    if resample:
+        layer_obj.setProcessingKey('RESAMPLE', resample)
 
     return layer_obj
 

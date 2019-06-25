@@ -69,6 +69,8 @@ class MapserverMapRenderer(object):
 
         if render_map.bgcolor:
             map_obj.imagecolor.setHex("#" + render_map.bgcolor.lower())
+        else:
+            map_obj.imagecolor.setRGB(0, 0, 0)
 
         frmt = getFormatRegistry().getFormatByMIME(render_map.format)
 
@@ -109,7 +111,6 @@ class MapserverMapRenderer(object):
 
         finally:
             # disconnect
-            import pdb; pdb.set_trace()
             for layer, factory, data in layers_plus_factories_plus_data:
                 factory.destroy(map_obj, layer, data)
 
