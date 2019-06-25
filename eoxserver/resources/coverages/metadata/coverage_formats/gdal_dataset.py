@@ -71,7 +71,7 @@ class GDALDatasetMetadataReader(object):
         # NOTE: If the projection is a non-zero string then
         #       the geocoding is given by the Geo-Trasnformation
         #       matrix - not matter what are the values.
-        if projection:
+        if projection and not (ds.GetGCPProjection() and ds.GetGCPCount() > 0):
             sr = osr.SpatialReference(projection)
             if sr.srid is not None:
                 projection = 'EPSG:%d' % sr.srid
