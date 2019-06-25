@@ -158,8 +158,17 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
                     coverage_type=coverage_type
                 )
                 coverages.delete()
+            nil_values = set(models.NilValue.objects.filter(
+                field_types__coverage_type=coverage_type
+            ))
 
             coverage_type.delete()
+
+            # delete orphaned nil-values
+            for nil_value in nil_values:
+                if nil_value.field_types.count() == 0:
+                    nil_value.delete()
+
         except models.CoverageType.DoesNotExist:
             raise CommandError('No such coverage type: %r' % name)
 
@@ -234,11 +243,20 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
 
             nil_value_definitions = field_type_definition.get('nil_values', [])
             for nil_value_definition in nil_value_definitions:
-                nil_value, _ = models.NilValue.objects.get_or_create(
+                # TODO: in Django 1.11 a `get` query did not work
+                nil_value = next(iter(models.NilValue.objects.filter(
                     value=nil_value_definition['value'],
-                    reason=nil_value_definition['reason']
-                )
+                    reason=nil_value_definition['reason'],
+                    field_types__coverage_type=coverage_type,
+                )), None)
+                if not nil_value:
+                    nil_value = models.NilValue.objects.create(
+                        value=nil_value_definition['value'],
+                        reason=nil_value_definition['reason'],
+                    )
+
                 nil_value.field_types.add(field_type)
+                nil_value.save()
 
             allowed_value_ranges = field_type_definition.get(
                 'allowed_value_ranges', []

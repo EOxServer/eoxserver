@@ -131,7 +131,8 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
         ).exists()
 
         # clean up grid as well, if it is not referenced anymore
-        if grid and not grid_used:
+        # but saving named (user defined) grids
+        if grid and not grid.name and not grid_used:
             grid.delete()
 
 

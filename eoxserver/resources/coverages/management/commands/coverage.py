@@ -85,6 +85,15 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             help="Override origin."
         )
         register_parser.add_argument(
+            "--highest-resolution",
+            dest="highest_resolution", action="store_true", default=False,
+            help=(
+                "Optional. If the coverage is comprised of raster files of "
+                "different resolutions, the highest resolution is used, and all "
+                "raster files of a lower resolution will be resampled."
+            )
+        )
+        register_parser.add_argument(
             "--footprint", "-f",
             dest="footprint", default=None,
             help=(
@@ -177,6 +186,7 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             coverage_type_name=coverage_type_name,
             footprint_from_extent=kwargs['footprint_from_extent'],
             overrides=overrides,
+            highest_resolution=kwargs['highest_resolution'],
             replace=kwargs['replace'],
         )
 
@@ -221,7 +231,8 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             ).exists()
 
             # clean up grid as well, if it is not referenced anymore
-            if grid and not grid_used:
+            # but saving named (user defined) grids
+            if grid and not grid.name and not grid_used:
                 grid.delete()
 
         except models.Coverage.DoesNotExist:
