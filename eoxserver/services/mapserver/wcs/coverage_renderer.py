@@ -49,6 +49,7 @@ from eoxserver.services.exceptions import (
     RenderException, OperationNotSupportedException,
     InterpolationMethodNotSupportedException, InvalidOutputCrsException
 )
+from eoxserver.services.mapserver.connectors import get_connector_by_test
 
 
 logger = logging.getLogger(__name__)
@@ -100,7 +101,7 @@ class RectifiedCoverageMapServerRenderer(BaseRenderer):
         coverage = params.coverage
 
         # ReferenceableDataset are not supported in WCS < 2.0
-        if params.coverage.grid.is_referenceable:
+        if params.coverage.grid.is_referenceable and params.version:
             raise NoSuchCoverageException((coverage.identifier,))
 
         data_locations = self.arraydata_locations_for_coverage(coverage)
@@ -143,8 +144,6 @@ class RectifiedCoverageMapServerRenderer(BaseRenderer):
         layer = self.layer_for_coverage(coverage, native_format, params.version)
 
         map_.insertLayer(layer)
-
-        from eoxserver.services.mapserver.connectors import get_connector_by_test
         connector = get_connector_by_test(coverage, data_locations)
 
         if not connector:
@@ -171,11 +170,8 @@ class RectifiedCoverageMapServerRenderer(BaseRenderer):
             mediatype = getattr(params, "mediatype", None)
             if mediatype in ("multipart/mixed", "multipart/related"):
                 encoder = WCS20EOXMLEncoder()
-                is_mosaic = issubclass(
-                    coverage.real_type, models.RectifiedStitchedMosaic
-                )
 
-                if not is_mosaic:
+                if not issubclass(coverage, models.Mosaic):
                     tree = encoder.alter_rectified_dataset(
                         coverage, getattr(params, "http_request", None),
                         etree.parse(result_set[0].data_file).getroot(),
