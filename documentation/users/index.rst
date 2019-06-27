@@ -48,6 +48,7 @@ and APIs please refer to the :ref:`EOxServer Developers' Guide`.
    :maxdepth: 3
 
    basics
+   concept
    global_use_case
    install
    centos_installation

@@ -282,18 +282,18 @@ Data Registration
 To insert data into an EOxServer instance there are several ways. One is the
 admin interface, which is explained in detail in the :ref:`ops_admin` section.
 
-Another convenient way to register datasets is the command line interface to
+Another convenient way to register datasets -coverages- is the command line interface to
 EOxServer. As a Django application, the instance can be configured using the
 `manage.py <https://docs.djangoproject.com/en/1.11/ref/django-admin/>`_ script.
 
-EOxServer provides a specific command and a subcommand to insert datasets into the instance,
+EOxServer provides a specific command and a subcommand to insert coverages into the instance,
 called ``coverage register``. It is invoked from command line from your
 instance base folder::
 
     python manage.py coverage register --data DATAFILES --coverage-type COVERAGETYPE    
 
 The mandatory parameter ``--data`` is a path to a file containing the raster
-data for the dataset to be inserted. If the file resides in a package (a ZIP or
+data for the coverage to be inserted. If the file resides in a package (a ZIP or
 TAR archive) then the location must be preceeded with the following:
 ``<package-type>:<package-location>``. It also possible to chain multiple
 packages, e.g a ZIP file in a ZIP file containing the actual raster data.
@@ -304,28 +304,28 @@ must be declared as first item in the aforementioned in the chain.
 
 For each ``--data`` item a ``--semantic`` can be stated. The semantic defines\]
 how this data item is being used. For example a semantic of ``"bands[1:3]"``
-defines that the first three bands of the dataset is in the first data item.
+defines that the first three bands of the coverage is in the first data item.
 
 The same rules also apply for files declared via the ``--meta-data`` directive.
 This basically creates a ``--data`` item with ``"metadata"`` semantic. Also,
 these files are preferred when trying to determine the mandatory metadata of a
-dataset.
+coverage.
 
-To specify the Coverage Type of the dataset, the ``--coverage-type`` parameter is
+To specify the Coverage Type of the coverage, the ``--coverage-type`` parameter is
 mandatory to specify the name of a previously registered Coverage Type.
 
 The following options are used to supply metadata values that are either not
 possible to retrieve automatically or are to overwrite values automatically
 collected:
 
-  * ``--identifier``: the main identifier of the dataset
+  * ``--identifier``: the main identifier of the coverage
   * ``--grid GRID``: the name of the grid to associate the coverage with.
-  * ``--size``: the pixel size of the dataset (size_x,size_y)
+  * ``--size``: the pixel size of the coverage (size_x,size_y)
   * ``--footprint-from-extent``: the footprint from the coverages extent, reprojected to WGS 84
   * ``--footprint``: the footprint (multi-) polygon in WKT format
-  * ``--begin-time`` and ``--end-time``: the datasets time span
-  * ``--coverage-type``: the type of the dataset
+  * ``--begin-time`` and ``--end-time``: the coverage's time span
+  * ``--coverage-type``: the type of the coverage
 
-When this dataset shall be inserted into a collection, use the ``--collection``
+When this coverage shall be inserted into a collection, use the ``--collection``
 option with the collections identifier. This option can be set multiple times
 for different collections.

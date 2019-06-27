@@ -46,7 +46,7 @@ description.
 In the language of the OGC Abstract Specification, coverages are mappings from
 a domain set that is related to some area of the Earth to a range set. So, the
 data model for coverages contains information about the structure of the
-domain set and of the range set (the so-called Range Type).
+domain set and of the range set (the so-called Coverage Type).
 
 In the :ref:`ops_coverages` section below you find more detailed information
 about what data and metadata is stored by EOxServer.
@@ -151,11 +151,11 @@ acquisition time and the area of interest whithin the coverage.
 
 .. _ops_range_types:
 
-Range Types
+Coverage Types
 ~~~~~~~~~~~
 
-Every coverage has a range type describing the structure of the data.
-Each range type has a given data type whereas the following data types are
+Every coverage has a coverage type describing the structure of the data.
+Each coverrage type has a given data type whereas the following data types are
 supported:
 
 ============== ===============
@@ -175,16 +175,16 @@ CFloat32       10
 CFloat64       11
 ============== ===============
 
-A range type contains of one or more bands. For each band you may specify a
+A coverage type contains of one or more bands. For each band you may specify a
 name, an identifier and a definition that describes the property measured
 (e.g. radiation). Furthermore, you can define nil values for each band (i.e.
 values that indicate that there is no measurement at the given position).
 
-This range type metadata is used in the coverage description metadata that is
+This coverage type metadata is used in the coverage description metadata that is
 returned by WCS operations and for configuring WMS layers.
 
 Note that WMS supports only one data type (Byte) and only Grayscale and RGB
-output. Any other range types will be mapped to these: for single-band coverages,
+output. Any other coverage types will be mapped to these: for single-band coverages,
 Grayscale output is generated and RGB output using the first three bands for all
 others. Automatic scaling is applied when mapping from another data type to
 Byte. That means the minimum-maximum interval for the given subset of the
@@ -237,7 +237,7 @@ Rectified Stitched Mosaics
 
 Rectified Stitched Mosaics are EO coverages that are composed of a set of
 homogeneous Rectified Datasets. That means, the datasets must have the same
-range type and their domain sets must be subsets of the same rectified grid.
+coverage type and their domain sets must be subsets of the same rectified grid.
 
 When creating a Rectified Stitched Mosaic a homogeneous coverage is generated
 from the contained Rectified Datasets. Where datasets overlap the most recent
@@ -424,16 +424,16 @@ details.
 Use the username and password you provided during the `syncdb` step as
 described in the :ref:`Creating an Instance` section.
 
-Creating a custom Range Type
+Creating a custom Coverage Type
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Before registering any data in EOxServer some vital information on the datasets
 has to be provided. Detailed information regarding the kind of data stored can
-be defined in the Range Type. A Range Type is a collection of bands which
+be defined in the Coverage Type. A Coverage Type is a collection of bands which
 themselves are assigned to a specific Data Type (see :ref:`ops_range_types`).
 
 A simple standard PNG for example holds 4 bands (RGB + Alpha) each of them able
-to store 8 bit data. Therefore the Range Type would have to be defined with four
+to store 8 bit data. Therefore the Coverage Type would have to be defined with four
 bands (red, green, blue, alpha) each of them having 'Byte' as Data Type.
 
 In our example we use the reduced MERIS RGB data provided in the autotest
@@ -446,9 +446,9 @@ instance. ``gdalinfo`` provides us with the most important information:
     Band 3 Block=541x5 Type=Byte, ColorInterp=Blue
 
 
-In order to define a new Range Type we click on the "Add" button next to the
-"Range Types" in the home menu of the admin client. Here we define the name of
-the Range Type and add bands to it by clicking on "Add another band".
+In order to define a new Coverage Type we click on the "Add" button next to the
+"Coverage Types" in the home menu of the admin client. Here we define the name of
+the Coverage Type and add bands to it by clicking on "Add another band".
 
 For each band in "Name", "Identifier" and "Description" you can enter the
 same content for now. The default "Definition" value for now can be
@@ -460,7 +460,7 @@ of the possible values of its data type it is best to define "Raw value min" and
 "Raw value max" to have a better visual representation in e.g WMS. You can add
 a Nilvalue set to each of the bands, which is explained in the next section.
 
-With the "index" you can finetune the index of the band within the range type.
+With the "index" you can finetune the index of the band within the coverage type.
 
 .. _fig_admin_app_01_add_range_type:
 .. figure:: images/admin_app_01_add_range_type.png
@@ -472,14 +472,14 @@ the button "Add Nil Value Set". Here you can define a name of the set (which you
 can later use to set it in the band) and set the nil value(s) definition and
 reason. You can also add additional nil values to the set by clicking "Add
 another Nil Value". To add the NilValue set to the band(s), you have to navigate
-back to your range type admin page and set the nilvalue set to your band.
+back to your coverage type admin page and set the nilvalue set to your band.
 
 .. _fig_admin_app_02_add_nil_value_set:
 .. figure:: images/admin_app_02_add_nilvalue_set.png
    :align: center
 
-To list, export, and load range types using the command-line tools see
-:ref:`eoxs-range-type`.
+To list, export, and load coverage types using the command-line tools see
+:ref:`coveragetype`.
 
 Creating a Dataset
 ~~~~~~~~~~~~~~~~~~
@@ -489,7 +489,7 @@ of the "Add" buttons next to the corresponding dataset type in the home screen.
 For both Dataset types the following fields must be set:
 
   * Identifier: a unique identifier for the Dataset
-  * Range Type
+  * Coverage Type
   * Size for both X and Y axis
   * The bounding box (min x, min y, max x, max y). The bounding box is expressed
     in the CRS defined by either "SRID" or "Projection" of which one *must* be
@@ -549,7 +549,7 @@ automatically collected upon the save.
 The creation of a Stitched Mosaic is similar to the creation of a Dataset Series
 with some restrictions:
 
-  * the Range Type, overall size and exact bounding box must be specified
+  * the Coverage Type, overall size and exact bounding box must be specified
     (exactly as with Datasets)
   * only Rectified Datasets that lie on the exact same grid can be added
 
@@ -621,15 +621,15 @@ command) and register it again with the updated parameters (see
 linking of the *updated* dataset to all the container objects during the
 registration as this information is removed  by the de-registration.
 
-eoxs_collection_create
+collection create
 ~~~~~~~~~~~~~~~~~~~~~~
 
-The ``eoxs_collection_create`` command allows the creation of a dataset series
+The ``collection create`` command allows the creation of a dataset series
 with initial data sources or coverages included. In it's simplest use case,
 only the ``--identifier`` parameter is required, which has to be a valid and not
 yet taken identifier for the collection. By default a Dataset Series is created.
 
-Range types for datasets can be read from configuration files that are
+Coverage types for datasets can be read from configuration files that are
 accompanying them. There can be a configuration file for each dataset or one
 that applies to all datasets contained within a directory corresponding to a
 data source. Configuration files have the file extension ``.conf``. The file
@@ -642,7 +642,7 @@ as follows::
    range_type_name=<range type name>
 
 Both approaches may be combine and configuration files produced only for
-some of the datasets in a directory and a default range type defined in
+some of the datasets in a directory and a default coverage type defined in
 ``__default__.conf``. EOxServer will first look up the dataset configuration
 file and fall back to the default only if there is no individual ``.conf``
 file.
@@ -656,7 +656,7 @@ can be inserted via the ``--collection`` parameter that also requires the
 identifier of the collection. Again, this parameter can be used multiple times.
 
 
-eoxs_collection_delete
+collection delete
 ~~~~~~~~~~~~~~~~~~~~~~
 
 With this command an existing collection can be removed. When the ``--force``
@@ -665,170 +665,86 @@ switch is not set, only empty collections can be deleted. With the
 
 This command does *never* remove any Datasets.
 
-.. _eoxs-dss-remove-ds:
-.. _eoxs-dss-insert-ds:
+.. _collection exclude:
+.. _collection insert:
 
-eoxs_collection_link and eoxs_collection_unlink
+collection insert and collection exclude
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 These two commands insert and remove links between objects and collections. To
 insert an object into a collection use the following command:
 ::
 
-  eoxs_collection_link --add <object-identifier> --collection <collection-identifier>
+  collection insert --add <object-identifier> --collection <collection-identifier>
 
 To do the opposite do the following:
 ::
 
-  eoxs_collection_unlink --remove <object-identifier> --collection <collection-identifier>
+  collection exclude --remove <object-identifier> --collection <collection-identifier>
 
-eoxs_collection_purge
+collection purge
 ~~~~~~~~~~~~~~~~~~~~~
 
 To quickly remove the contents of a single collection from the database, the 
-``eoxs_collection_purge`` command can be used. This command deregisters all
+``collection purge`` command can be used. This command deregisters all
 contained datasets of a collection. When the ``--recursive`` option is set, all
 contained sub-collections are purged aswell.
 Using the ``--delete`` option, the purged collections themselves are deleted too. 
 
-eoxs_collection_datasource
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. _id check:
 
-This command allows to add a datasource to a collection. A datasource consists
-of a primary ``source`` and zero or more secondary ``templates``. The ``source``
-should be a path using unix shell regular expressions to match files in the
-given directory structure. The ``templates`` are similar, but should make use of
-template tags that are then replaced the values of the ``source``. Possible tags
-are:
-
-  - ``{basename}``: the sources file basename (name without directory)
-  - ``{root}``: like ``{basename}``, but without file extension
-  - ``{extension}``: the source files extension
-  - ``{dirname}``: the directory path of the source file
-  - ``{source}``: the full path of the source file
-
-Example:
-::
-
-  python manage.py eoxs_collection_datasource -i MER_FRS_1P \
-      -s data/MER_FRS_1P_reduced/*tif \
-      -t data/MER_FRS_1P_reduced/{root}.xml
-
-eoxs_collection_synchronize
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-This command allows to synchronize a collection with the file system using its
-datasources.
-
-.. _what_is_sync:
-
-What is synchronization?
-^^^^^^^^^^^^^^^^^^^^^^^^
-
-In the context of EOxServer, synchronization is the process of updating the
-database models for container objects (such as RectifiedStitchedMosaics or
-DatasetSeries) according to changes in the file system.
-
-Automatic datasets are deleted from the database, when their data files cannot
-be found in the file system. Similar, new datasets will be created when new
-files matching the search pattern in the subscripted directories are found.
-
-When datasets are added to or deleted from a container object, the metadata
-(e.g the footprint of the features of interest or the time extent of the image)
-of the container is also likely to be adjusted.
-
-Reasons for Synchronization
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-There are several occasions, where synchronization is necessary:
-
- * A file has been added to a folder associated with a container
- * A file from a folder associated with a container has been removed
- * EO Metadata has been changed
- * A regular check for database consistency
-
-HowTo
-^^^^^
-
-Synchronization can be triggered by a custom `Django admin command
-<https://docs.djangoproject.com/en/1.11/ref/django-admin/>`_, called
-``eoxs_collection_synchronize``.
-
-To start the synchronization process, navigate to your instances directory and
-type:
-::
-
-    python manage.py eoxs_synchronize -i <ID> [ -i <ID> ... ]
-
-whereas ``<IDs>`` are the coverage/EO IDs of the containers that shall be
-synchronized.
-
-Alternatively, with the ``-a`` or ``--all`` option, all container objects in
-the database will be synchronized. This option is useful for a daily cron-job,
-ensuring the databases consistency with the file system.
-::
-
-    python manage.py eoxs_collection_synchronize --all
-
-The synchronization process may take some time, especially when FTP/Rasdaman
-storages are used and also depends on the number of synchronized objects.
-
-.. _eoxs-check-id:
-
-eoxs_id_check
+id check
 ~~~~~~~~~~~~~
 
-The ``eoxs_check_id`` commands allows checking about status of the queried
-coverage/EO identifier. The command returns the status via its return code (0 -
-``True`` or 1 - ``False``).
+The ``id check`` commands allows checking about status of the queried
+coverage/EO identifier. The command returns the status of the identifier usage
 
 By default the command checks whether an identifier can be used (is available)
-as a new Coverage/Collection ID::
+as a new Coverage/Collection ID and outputs the result in the console::
 
-    python manage.py eoxs_id_check <ID> && echo True || echo False
+    python manage.py id check <ID>
 
 It is possible to check if the identifier is used for a specific type of object.
 For example, the following would check if the identifier is used for a
 Dataset Series:
 ::
 
-  python manage.py eoxs_id_check <ID> --type DatasetSeries && echo True || echo False
+  python manage.py id check <ID> --type DatasetSeries
 
-.. _eoxs-range-type:
+.. _coveragetype:
 
-Range Type Handling
+Coverage Type Handling
 ~~~~~~~~~~~~~~~~~~~
 
-The ``eoxs_rangetypes_list`` command, by default, lists the names of all
-registered range types::
+The ``coveragetype list`` command, by default, lists the names of all
+registered coverage types::
 
-    python manage.py eoxs_rangetypes_list
+    python manage.py coveragetype list
 
-In case of more range types details required verbose listing may be requested by
-``--details`` option. When one or more range type names are specified the output
-will be limited to the specified range-types only::
+In case of more coverage types details required verbose listing may be requested by
+``--details`` option. When one or more coverage type names are specified the output
+will be limited to the specified coverage-types only::
 
-    python manage.py eoxs_rangetypes_list --details [<range-type-name> ...]
+    python manage.py coveragetype list --details [<range-type-name> ...]
 
-The same command can be also used to export rangetype in JSON format
-(``--json`` option). Following example prints the selected RGB range type in
-JSON format::
+Coveragetype data can be saved using *Django* command ``dumpdata``.
+``dumpdata`` outputs the contents of the database as a fixture of the given format (using
+each model's default manager unless ``--all`` is specified). 
+Following
+example saves all the registered coverage-types to a file named
+``rangetypes.json`` in the same directory::
+    python manage.py dumpdata --indent=4 coverages.CoverageType coverages.FieldType coverages.AllowedValueRange coverages.NilValue \
+    > rangetypes.json
 
-    python manage.py eoxs_rangetypes_list --json RGB
-
-The output may be directly savaved to file by using the ``-o`` option. Following
-example saves all the registered range-types to a file named
-``rangetypes.json``::
-
-    python manage.py eoxs_rangetypes_list --json -o rangetypes.json
+``rangtypes.json`` will contain fields of ``CoverageType``, ``FieldType``, ``AllowedValueRange``, ``NilValue``
 
 
-The rangetypes saved in JSON format can be loaded (e.g., by another *EOxServer*
-instance) by using of the ``eoxs_rangetypes_load`` command. By default, this
+The Coveragetypes saved in JSON format can be loaded (e.g., by another *EOxServer*
+instance) by using of the ``coveragetype import`` command. By default, this
 command reads the JSON data from the standard input. To force the command to
 read the input from a file use ``-i`` ::
 
-    python manage.py eoxs_rangetypes_load -i rangetypes.json
+    python manage.py coveragetype import rangetypes.json
 
 
 Performance
