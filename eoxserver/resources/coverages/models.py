@@ -802,7 +802,7 @@ def collection_exclude_eo_object(collection, eo_object):
         collection.products.remove(eo_object)
 
     elif isinstance(eo_object, Coverage):
-        collection.coverage.remove(eo_object)
+        collection.coverages.remove(eo_object)
 
     collection_collect_metadata(collection,
         eo_object.footprint is not None,
@@ -980,7 +980,7 @@ def mosaic_exclude_coverage(mosaic, coverage):
 
     if not mosaic.coverages.filter(identifier=coverage.identifier).exists():
         raise ManagementError(
-            'Cannot exclude Coverage %s as is not contained in the mosaic.'
+            'Cannot exclude Coverage %s as it is not contained in the mosaic.'
             % coverage
         )
 

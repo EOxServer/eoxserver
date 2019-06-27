@@ -156,6 +156,14 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             'identifier', nargs=1,
             help='The identifier of the coverage to derigster'
         )
+        deregister_parser.add_argument(
+            '--not-refresh-collections', dest='not_refresh_collections',
+            default=False, action='store_true',
+            help=(
+                'When this flag is set, the collections and mosaics this '
+                'coverage is part of will not have their metadata refreshed.'
+            )
+        )
 
     @transaction.atomic
     def handle(self, subcommand, *args, **kwargs):
@@ -214,16 +222,31 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
         if kwargs['print_identifier']:
             print(report.coverage.identifier)
 
-        elif int(kwargs.get('verbosity', 0)) > 1:
-            pprint(report.metadata_parsers)
-            pprint(report.retrieved_metadata)
+        else:
+            self.print_msg(
+                'Successfully registered coverage %s' % report.coverage.identifier
+            )
 
-    def handle_deregister(self, identifier, **kwargs):
+            if int(kwargs.get('verbosity', 0)) > 1:
+                pprint(report.metadata_parsers)
+                pprint(report.retrieved_metadata)
+
+    def handle_deregister(self, identifier, not_refresh_collections, **kwargs):
         """ Handle the deregistration a coverage
         """
         try:
             coverage = models.Coverage.objects.get(identifier=identifier)
+            collections = list(coverage.collections.all())
+            mosaics = list(coverage.mosaics.all())
             grid = coverage.grid
+
+            if not not_refresh_collections:
+                for collection in collections:
+                    models.collection_exclude_eo_object(collection, coverage)
+
+                for mosaic in mosaics:
+                    models.mosaic_exclude_coverage(mosaic, coverage)
+
             coverage.delete()
 
             grid_used = models.EOObject.objects.filter(
@@ -234,6 +257,10 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             # but saving named (user defined) grids
             if grid and not grid.name and not grid_used:
                 grid.delete()
+
+            self.print_msg(
+                'Successfully deregistered coverage %s' % identifier
+            )
 
         except models.Coverage.DoesNotExist:
             raise CommandError('No such Coverage %r' % identifier)

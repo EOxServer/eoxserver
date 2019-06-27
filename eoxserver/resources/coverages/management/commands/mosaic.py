@@ -44,10 +44,11 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
         delete_parser = self.add_subparser(parser, 'delete')
         insert_parser = self.add_subparser(parser, 'insert')
         exclude_parser = self.add_subparser(parser, 'exclude')
+        refresh_parser = self.add_subparser(parser, 'refresh')
         purge_parser = self.add_subparser(parser, 'purge')
         parsers = [
             create_parser, delete_parser, insert_parser, exclude_parser,
-            purge_parser
+            refresh_parser, purge_parser
         ]
 
         # identifier is a common argument
@@ -90,6 +91,8 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             self.handle_insert(identifier, *args, **kwargs)
         elif subcommand == "exclude":
             self.handle_exclude(identifier, *args, **kwargs)
+        elif subcommand == "refresh":
+            self.handle_refresh(identifier, *args, **kwargs)
         elif subcommand == "purge":
             self.handle_purge(identifier, *args, **kwargs)
 
@@ -201,6 +204,24 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
                     "Error was: %s"
                     % (coverage.identifier, mosaic.identifier, e)
                 )
+
+    def handle_refresh(self, identifier, **kwargs):
+        mosaic = self.get_mosaic(identifier)
+        try:
+            models.mosaic_recalc_metadata(mosaic)
+            mosaic.full_clean()
+            mosaic.save()
+
+            self.print_msg(
+                'Successfully refreshed metadata for mosaic %s'
+                % (mosaic.identifier)
+            )
+        except Exception as e:
+            raise CommandError(
+                "Could not refresh metadata for mosaic %r. "
+                "Error was: %s"
+                % (mosaic.identifier, e)
+            )
 
     def handle_purge(self, identifier, **kwargs):
         pass
