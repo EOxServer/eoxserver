@@ -727,17 +727,11 @@ will be limited to the specified coverage-types only::
 
     python manage.py coveragetype list --details [<range-type-name> ...]
 
-Coveragetype data can be saved using *Django* command ``dumpdata``.
-``dumpdata`` outputs the contents of the database as a fixture of the given format (using
-each model's default manager unless ``--all`` is specified). 
-Following
-example saves all the registered coverage-types to a file named
-``rangetypes.json`` in the same directory::
-    python manage.py dumpdata --indent=4 coverages.CoverageType coverages.FieldType coverages.AllowedValueRange coverages.NilValue \
-    > rangetypes.json
+The sub-command ``coveragetype export`` can be used to export coveragetypes.
+Following example prints a Coverage type,the output is directly saved to a file 
+named ``rangetypes.json`` by using the ``-o``::
 
-``rangtypes.json`` will contain fields of ``CoverageType``, ``FieldType``, ``AllowedValueRange``, ``NilValue``
-
+    python manage.py coveragetype export -o rangetypes.json
 
 The Coveragetypes saved in JSON format can be loaded (e.g., by another *EOxServer*
 instance) by using of the ``coveragetype import`` command. By default, this
