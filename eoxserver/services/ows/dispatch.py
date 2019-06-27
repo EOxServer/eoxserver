@@ -223,7 +223,7 @@ def query_exception_handler(request):
     try:
         decoder = get_decoder(request)
         handlers = sorted([
-                handler
+                handler()
                 for handler in EXCEPTION_HANDLERS
                 if handler_supports_service(handler, decoder.service)
             ],
