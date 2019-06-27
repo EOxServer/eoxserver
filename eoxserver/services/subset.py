@@ -33,6 +33,7 @@ from django.contrib.gis.geos import Polygon, LineString
 
 from eoxserver.core.config import get_eoxserver_config
 from eoxserver.core.decoders import config, enum
+from eoxserver.contrib.osr import SpatialReference
 from eoxserver.resources.coverages import crss
 from eoxserver.services.exceptions import (
     InvalidAxisLabelException, InvalidSubsettingException,
@@ -437,13 +438,13 @@ class Subsets(list):
     def bounding_polygon(self, coverage):
         """ Returns a minimum bounding :class:`django.contrib.gis.geos.Polygon`
         for the given :class:`Coverage
-        <eoxserver.resources.coverages.models.Coverage>`
+        <eoxserver.render.coverages.objects.Coverage>`
 
         :param coverage: the coverage to calculate the bounding polygon for
         :returns: the calculated ``Polygon``
         """
 
-        srid = coverage.srid
+        srid = SpatialReference(coverage.grid.coordinate_reference_system).srid
         extent = coverage.extent
         size_x, size_y = coverage.size
         footprint = coverage.footprint
