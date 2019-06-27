@@ -36,10 +36,8 @@ from django.contrib.gis.geos import GEOSGeometry
 from eoxserver.core.config import get_eoxserver_config
 from eoxserver.core.decoders import config
 from eoxserver.core.util.rect import Rect
-from eoxserver.backends.access import connect
 from eoxserver.contrib import gdal, osr
 from eoxserver.contrib.vrt import VRTBuilder
-from eoxserver.resources.coverages.grid import is_referenceable
 from eoxserver.services.ows.version import Version
 from eoxserver.services.result import ResultFile, ResultBuffer
 from eoxserver.services.ows.wcs.v20.encoders import WCS20EOXMLEncoder
@@ -58,13 +56,13 @@ class GDALReferenceableDatasetRenderer(object):
 
     def supports(self, params):
         return (
-            is_referenceable(params.coverage) and params.version in self.versions
+            params.coverage.grid.is_referenceable and params.version in self.versions
         )
 
     def render(self, params):
         # get the requested coverage, data items and range type.
         coverage = params.coverage
-        data_items = coverage.arraydata_items.all()
+        data_locations = coverage.arraydata_locations
         range_type = coverage.range_type
 
         subsets = params.subsets
@@ -72,7 +70,7 @@ class GDALReferenceableDatasetRenderer(object):
         # GDAL source dataset. Either a single file dataset or a composed VRT
         # dataset.
         src_ds = self.get_source_dataset(
-            coverage, data_items, range_type
+            coverage, data_locations, range_type
         )
 
         # retrieve area of interest of the source image according to given
@@ -80,7 +78,7 @@ class GDALReferenceableDatasetRenderer(object):
         src_rect, dst_rect = self.get_source_and_dest_rect(src_ds, subsets)
 
         # deduct "native" format of the source image
-        native_format = data_items[0].format if len(data_items) == 1 else None
+        native_format = data_locations[0].format if len(data_locations) == 1 else None
 
         # get the requested image format, which defaults to the native format
         # if available
@@ -156,7 +154,7 @@ class GDALReferenceableDatasetRenderer(object):
 
     def get_source_dataset(self, coverage, data_items, range_type):
         if len(data_items) == 1:
-            return gdal.OpenShared(abspath(connect(data_items[0])))
+            return gdal.OpenShared(data_items[0].path)
         else:
             vrt = VRTBuilder(
                 coverage.size_x, coverage.size_y,
@@ -168,7 +166,7 @@ class GDALReferenceableDatasetRenderer(object):
 
             compound_index = 0
             for data_item in data_items:
-                path = abspath(connect(data_item))
+                path = data_item.path
 
                 # iterate over all bands of the data item
                 indices = self._data_item_band_indices(data_item)
@@ -233,7 +231,7 @@ class GDALReferenceableDatasetRenderer(object):
         if rangesubset:
             subset_bands = rangesubset.get_band_indices(range_type, 1)
         else:
-            subset_bands = xrange(1, len(range_type) + 1)
+            subset_bands = range(1, len(range_type) + 1)
 
         for dst_index, src_index in enumerate(subset_bands, start=1):
             input_band = input_bands[src_index-1]
