@@ -70,10 +70,10 @@ class WCS20GetCapabilitiesHandler(WCSGetCapabilitiesHandlerBase, Component):
         )
 
         if inc_coverages:
-            coverages = models.Coverage.objects.filter(
+            coverages = models.EOObject.objects.filter(
                 service_visibility__service='wcs',
                 service_visibility__visibility=True
-            )
+            ).select_subclasses(models.Coverage, models.Mosaic)
         else:
             coverages = models.Coverage.objects.none()
 

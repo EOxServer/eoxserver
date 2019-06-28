@@ -90,7 +90,7 @@ class WCS20DescribeEOCoverageSetHandler(object):
                 crs="http://www.opengis.net/def/crs/EPSG/0/4326",
                 allowed_types=Trim
             )
-        except ValueError, e:
+        except ValueError as e:
             raise InvalidSubsettingException(str(e))
 
         # check whether the DatasetSeries and CoverageDescriptions sections are
@@ -118,12 +118,15 @@ class WCS20DescribeEOCoverageSetHandler(object):
 
         # split list of objects into Collections, Products and Coverages
         collections = []
+        mosaics = []
         products = []
         coverages = []
 
         for eo_object in eo_objects:
             if isinstance(eo_object, models.Collection):
                 collections.append(eo_object)
+            elif isinstance(eo_object, models.Mosaic):
+                mosaics.append(eo_object)
             elif isinstance(eo_object, models.Product):
                 products.append(eo_object)
             elif isinstance(eo_object, models.Coverage):
@@ -167,6 +170,9 @@ class WCS20DescribeEOCoverageSetHandler(object):
             ) |
             Q(  # Coverages within directly referenced Collections
                 collections__in=collections
+            ) |
+            Q(  # Coverages within directly referenced Collections
+                mosaics__in=mosaics
             )
         ), containment=containment)
 
@@ -178,7 +184,9 @@ class WCS20DescribeEOCoverageSetHandler(object):
             coverages_qs = models.Coverage.objects.none()
 
         # limit coverages according to the number of dataset series
-        coverages_qs = coverages_qs[:max(0, count - dataset_series_qs.count())]
+        coverages_qs = coverages_qs[:max(
+            0, count - dataset_series_qs.count() - len(mosaics)
+        )]
 
         # compute the number of all items that would match
         number_matched = all_coverages_qs.count() + all_dataset_series_qs.count()
@@ -195,6 +203,9 @@ class WCS20DescribeEOCoverageSetHandler(object):
                     coverages=[
                         objects.Coverage.from_model(coverage)
                         for coverage in coverages_qs
+                    ] + [
+                        objects.Mosaic.from_model(mosaic)
+                        for mosaic in mosaics
                     ],
                     number_matched=number_matched
                 ), pretty_print=True
