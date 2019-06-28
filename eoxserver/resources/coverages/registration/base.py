@@ -221,10 +221,10 @@ class BaseRegistrator(object):
         # when we replaced the coverage, re-insert the newly created coverage to
         # the collections and/or product
         for collection in collections:
-            models.collection_insert_eo_object(coverage)
+            models.collection_insert_eo_object(collection, coverage)
 
         if product:
-            models.product_add_coverage(coverage)
+            models.product_add_coverage(product, coverage)
 
         return RegistrationReport(
             coverage, replaced, metadata_parsers, retrieved_metadata
