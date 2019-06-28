@@ -171,7 +171,7 @@ class RectifiedCoverageMapServerRenderer(BaseRenderer):
             if mediatype in ("multipart/mixed", "multipart/related"):
                 encoder = WCS20EOXMLEncoder()
 
-                if not issubclass(coverage, models.Mosaic):
+                if not isinstance(coverage, models.Mosaic):
                     tree = encoder.alter_rectified_dataset(
                         coverage, getattr(params, "http_request", None),
                         etree.parse(result_set[0].data_file).getroot(),
