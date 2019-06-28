@@ -202,8 +202,8 @@
     "fields": {
         "name": null,
         "coordinate_reference_system": "EPSG:4326",
-        "axis_1_name": "x",
-        "axis_2_name": "y",
+        "axis_1_name": "long",
+        "axis_2_name": "lat",
         "axis_3_name": null,
         "axis_4_name": null,
         "axis_1_type": 0,
@@ -223,8 +223,8 @@
     "fields": {
         "name": null,
         "coordinate_reference_system": "EPSG:4326",
-        "axis_1_name": "x",
-        "axis_2_name": "y",
+        "axis_1_name": "long",
+        "axis_2_name": "lat",
         "axis_3_name": null,
         "axis_4_name": null,
         "axis_1_type": 0,
@@ -244,8 +244,8 @@
     "fields": {
         "name": null,
         "coordinate_reference_system": "EPSG:4326",
-        "axis_1_name": "x",
-        "axis_2_name": "y",
+        "axis_1_name": "long",
+        "axis_2_name": "lat",
         "axis_3_name": null,
         "axis_4_name": null,
         "axis_1_type": 0,
