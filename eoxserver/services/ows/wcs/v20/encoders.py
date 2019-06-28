@@ -41,6 +41,7 @@ from eoxserver.contrib.osr import SpatialReference
 # from eoxserver.resources.coverages.models import (
 #     RectifiedStitchedMosaic, ReferenceableDataset
 # )
+from eoxserver.render.coverage import objects
 from eoxserver.resources.coverages.formats import getFormatRegistry
 from eoxserver.resources.coverages import crss
 from eoxserver.services.gml.v32.encoders import GML32Encoder, EOP20Encoder
@@ -74,14 +75,15 @@ PROFILES = [
 
 class WCS20BaseXMLEncoder(object):
     def get_coverage_subtype(self, coverage):
-        subtype = "RectifiedDataset"
-        if not coverage.footprint or not coverage.begin_time or \
+        if isinstance(coverage, objects.Mosaic):
+            return "RectifiedStitchedMosaic"
+        elif coverage.grid and coverage.grid.is_referenceable:
+            return "ReferenceableDataset"
+        elif not coverage.footprint or not coverage.begin_time or \
                 not coverage.end_time:
-            subtype = "RectifiedGridCoverage"
-        elif coverage.grid and coverage.grid[0].offset is None:
-            subtype = "ReferenceableDataset"
+            return "RectifiedGridCoverage"
 
-        return subtype
+        return "RectifiedDataset"
 
 
 class WCS20CapabilitiesXMLEncoder(WCS20BaseXMLEncoder, OWS20Encoder):
@@ -123,10 +125,11 @@ class WCS20CapabilitiesXMLEncoder(WCS20BaseXMLEncoder, OWS20Encoder):
         contents = []
 
         # reduce data transfer by only selecting required elements
-        coverages_qs = coverages_qs.only(
-             "identifier", "begin_time", "end_time", "footprint", "grid"
-        ).select_related('grid')
-        coverages = list(coverages_qs)
+        # coverages_qs = coverages_qs.select_related('grid')
+        coverages = [
+            objects.from_model(coverage_model)
+            for coverage_model in coverages_qs
+        ]
 
         if coverages:
             contents.extend([
@@ -258,9 +261,13 @@ class GMLCOV10Encoder(WCS20BaseXMLEncoder, GML32Encoder):
         sr = SpatialReference(grid.coordinate_reference_system)
         url = sr.url
 
+        frmt = "%.3f" if sr.IsProjected() else "%.8f"
         offset_vectors = [
             GML("offsetVector",
-                " ".join(["0"] * i + [str(offset)] + ["0"] * (len(offsets) - i)),
+                " ".join(
+                    [frmt % 0.0] * i + [frmt % offset]
+                    + [frmt % 0.0] * (len(offsets) - i - 1)
+                ),
                 srsName=url
             )
             for i, offset in enumerate(offsets)
@@ -268,8 +275,17 @@ class GMLCOV10Encoder(WCS20BaseXMLEncoder, GML32Encoder):
 
         if crss.hasSwappedAxes(sr.srid):
             axis_names[0:2] = [axis_names[1], axis_names[0]]
-            offset_vectors[0:2] = [offset_vectors[1], offset_vectors[0]]
+            # offset_vectors[0:2] = [offset_vectors[1], offset_vectors[0]]
+            for offset_vector in offset_vectors[0:2]:
+                parts = offset_vector.text.split(" ")
+                parts[0:2] = reversed(parts[0:2])
+                offset_vector.text = " ".join(parts)
+
             origin[0:2] = [origin[1], origin[0]]
+
+        origin_str = " ".join(
+            ["%.3f" if sr.IsProjected() else "%.8f"] * len(origin)
+        ) % tuple(origin)
 
         return GML("RectifiedGrid",
             GML("limits",
@@ -278,7 +294,7 @@ class GMLCOV10Encoder(WCS20BaseXMLEncoder, GML32Encoder):
             GML("axisLabels", " ".join(axis_names)),
             GML("origin",
                 GML("Point",
-                    GML("pos", " ".join(str(o) for o in origin)),
+                    GML("pos", origin_str),
                     **{
                         ns_gml("id"): self.get_gml_id("%s_origin" % name),
                         "srsName": url
@@ -292,7 +308,7 @@ class GMLCOV10Encoder(WCS20BaseXMLEncoder, GML32Encoder):
             }
         )
 
-    def encode_referenceable_grid(self, coverage, grid_name):
+    def encode_referenceable_grid(self, size, sr, grid_name):
         size_x, size_y = size
         swap = crss.getAxesSwapper(sr.srid)
         labels = ("x", "y") if sr.IsProjected() else ("long", "lat")
@@ -300,7 +316,7 @@ class GMLCOV10Encoder(WCS20BaseXMLEncoder, GML32Encoder):
 
         return GML("ReferenceableGrid",
             GML("limits",
-                self.encode_grid_envelope(0, 0, size_x - 1, size_y - 1)
+                self.encode_grid_envelope([size_x - 1, size_y - 1])
             ),
             GML("axisLabels", axis_labels),
             **{
@@ -313,26 +329,53 @@ class GMLCOV10Encoder(WCS20BaseXMLEncoder, GML32Encoder):
                           rectified=True):
         grid_name = "%s_grid" % coverage.identifier
         grid = coverage.grid
-        # srs = SpatialReference(srid) if srid is not None else None
+        sr = SpatialReference(grid.coordinate_reference_system)
 
-        if grid:
+        if grid and not grid.is_referenceable:
             return GML("domainSet",
                 self.encode_rectified_grid(
                     grid, coverage, grid_name
                 )
             )
-        # else:
-        #     return GML("domainSet",
-        #         self.encode_referenceable_grid(
-        #             size or coverage.size, srs or coverage.spatial_reference,
-        #             grid_name
-        #         )
-        #     )
+        else:
+            return GML("domainSet",
+                self.encode_referenceable_grid(
+                    size or coverage.size,
+                    sr,
+                    grid_name
+                )
+            )
 
     def encode_bounded_by(self, coverage, grid=None):
         # if grid is None:
         footprint = coverage.footprint
-        if footprint:
+
+        if grid:
+            sr = SpatialReference(grid.coordinate_reference_system)
+            labels = grid.names
+            axis_units = " ".join(
+                ["m" if sr.IsProjected() else "deg"] * len(labels)
+            )
+            extent = list(coverage.extent)
+
+            lc = extent[:len(extent) / 2]
+            uc = extent[len(extent) / 2:]
+
+            if crss.hasSwappedAxes(sr.srid):
+                labels[0:2] = labels[1], labels[0]
+                lc[0:2] = lc[1], lc[0]
+                uc[0:2] = uc[1], uc[0]
+
+            frmt = " ".join(
+                ["%.3f" if sr.IsProjected() else "%.8f"] * len(labels)
+            )
+
+            lower_corner = frmt % tuple(lc)
+            upper_corner = frmt % tuple(uc)
+            axis_labels = " ".join(labels)
+            srs_name = sr.url
+
+        elif footprint:
             minx, miny, maxx, maxy = footprint.extent
             sr = SpatialReference(4326)
             swap = crss.getAxesSwapper(sr.srid)
@@ -355,31 +398,6 @@ class GMLCOV10Encoder(WCS20BaseXMLEncoder, GML32Encoder):
 
             lower_corner = frmt % swap(minx, miny)
             upper_corner = frmt % swap(maxx, maxy)
-            srs_name = sr.url
-
-        elif grid:
-            sr = SpatialReference(grid.coordinate_reference_system)
-            labels = grid.names
-            axis_units = " ".join(
-                ["m" if sr.IsProjected() else "deg"] * len(labels)
-            )
-            extent = list(coverage.extent)
-
-            lc = extent[:len(extent) / 2]
-            uc = extent[len(extent) / 2:]
-
-            if crss.hasSwappedAxes(sr.srid):
-                labels[0:2] = labels[1], labels[0]
-                lc[0:2] = lc[1], lc[0]
-                uc[0:2] = uc[1], uc[0]
-
-            frmt = " ".join(
-                ["%.3f" if sr.IsProjected() else "%.8f %.8f"] * len(labels)
-            )
-
-            lower_corner = frmt % tuple(lc)
-            upper_corner = frmt % tuple(uc)
-            axis_labels = " ".join(labels)
             srs_name = sr.url
 
         else:
@@ -417,7 +435,7 @@ class GMLCOV10Encoder(WCS20BaseXMLEncoder, GML32Encoder):
                 SWE("constraint",
                     SWE("AllowedValues",
                         *[
-                            SWE("interval", "%s %s" % value_range)
+                            SWE("interval", "%g %g" % value_range)
                             for value_range in field.allowed_values
                         ] + [
                             SWE("significantFigures", str(
@@ -470,7 +488,7 @@ class WCS20EOXMLEncoder(WCS20CoverageDescriptionXMLEncoder, EOP20Encoder,
     def encode_eo_metadata(self, coverage, request=None, subset_polygon=None):
         metadata_items = [
             metadata_location
-            for metadata_location in coverage.metadata_locations
+            for metadata_location in getattr(coverage, 'metadata_locations', [])
             if metadata_location.format == "eogml"
         ]
         if len(metadata_items) >= 1:
@@ -531,7 +549,7 @@ class WCS20EOXMLEncoder(WCS20CoverageDescriptionXMLEncoder, EOP20Encoder,
     def encode_coverage_description(self, coverage, srid=None, size=None,
                                     extent=None, footprint=None):
         source_mime = None
-        for arraydata_location in coverage.arraydata_locations:
+        for arraydata_location in getattr(coverage, 'arraydata_locations', []):
             if arraydata_location.format:
                 source_mime = arraydata_location.format
                 break
@@ -662,13 +680,13 @@ class WCS20EOXMLEncoder(WCS20CoverageDescriptionXMLEncoder, EOP20Encoder,
     def encode_referenceable_dataset(self, coverage, range_type, reference,
                                      mime_type, subset=None):
         # handle subset
-        dst_srid = coverage.srid
+        dst_srid = SpatialReference(coverage.grid.coordinate_reference_system).srid
 
         if not subset:
             # whole area - no subset
             domain_set = self.encode_domain_set(coverage, rectified=False)
             eo_metadata = self.encode_eo_metadata(coverage)
-            extent = coverage.extent
+            extent = coverage.footprint.extent
             sr = SpatialReference(dst_srid)
 
         else:
