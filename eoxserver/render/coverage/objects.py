@@ -31,6 +31,7 @@ from eoxserver.core.util.timetools import parse_iso8601, parse_duration
 from eoxserver.contrib import gdal
 from eoxserver.contrib.osr import SpatialReference
 from eoxserver.backends.access import get_vsi_path
+from eoxserver.resources.coverages import models
 
 GRID_TYPE_ELEVATION = 1
 GRID_TYPE_TEMPORAL = 2
@@ -715,3 +716,10 @@ class DatasetSeries(object):
         return cls(
             model.identifier, model.footprint, model.begin_time, model.end_time
         )
+
+
+def from_model(eo_object_model):
+    if isinstance(eo_object_model, models.Coverage):
+        return Coverage.from_model(eo_object_model)
+    elif isinstance(eo_object_model, models.Mosaic):
+        return Mosaic.from_model(eo_object_model)
