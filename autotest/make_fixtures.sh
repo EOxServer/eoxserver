@@ -38,8 +38,9 @@ dumpdata_coveragetype > autotest/data/asar/asar_range_type.json
 # register ASAR data
 python manage.py coverage register \
     -i ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775 \
-    --begin-time 2005-03-31T08:00:36.342970Z \
-    --end-time 2005-03-31T07:59:36.409059Z \
+    --begin-time 2005-03-31T07:59:36.409059Z \
+    --end-time 2005-03-31T08:00:36.342970Z \
+    -t ASAR \
     -d autotest/data/asar/ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775.tiff
 
 # change the service visibility
@@ -168,6 +169,20 @@ python manage.py mosaic delete mosaic_MER_FRS_1P_reduced_RGB
 python manage.py grid delete mosaic_MER_FRS_1P_reduced_RGB_grid
 
 python manage.py collection delete MER_FRS_1P_reduced_RGB
+
+#
+# MERIS RGB JPEG2000
+#
+
+python manage.py coverage register \
+    -t RGB \
+    --identifier mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced_JPEG2000 \
+    -d autotest/data/meris/mosaic_MER_FRS_1P_reduced_RGB/mosaic_ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced.jp2 \
+    -m autotest/data/meris/mosaic_MER_FRS_1P_reduced_RGB/mosaic_ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced.xml
+
+dumpdata_coverages > autotest/data/meris/meris_coverages_jpeg2000.json
+
+python manage.py coverage deregister mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced_JPEG2000
 
 #
 # CROSSES_DATELINE

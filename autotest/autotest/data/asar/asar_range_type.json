@@ -17,10 +17,19 @@
         "definition": "http://www.opengis.net/def/property/OGC/0/Amplitude",
         "unit_of_measure": "?",
         "wavelength": null,
-        "significant_figures": null,
+        "significant_figures": 5,
         "numbits": 16,
         "signed": false,
         "is_float": false
+    }
+},
+{
+    "model": "coverages.allowedvaluerange",
+    "pk": 1,
+    "fields": {
+        "field_type": 1,
+        "start": 0.0,
+        "end": 65535.0
     }
 },
 {
