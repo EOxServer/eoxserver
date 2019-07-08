@@ -124,14 +124,13 @@ class WCS20CapabilitiesXMLEncoder(WCS20BaseXMLEncoder, OWS20Encoder):
     def encode_contents(self, coverages_qs, dataset_series_qs):
         contents = []
 
-        # reduce data transfer by only selecting required elements
-        # coverages_qs = coverages_qs.select_related('grid')
-        coverages = [
-            objects.from_model(coverage_model)
-            for coverage_model in coverages_qs
-        ]
-
-        if coverages:
+        if coverages_qs is not None:
+            # reduce data transfer by only selecting required elements
+            # coverages_qs = coverages_qs.select_related('grid')
+            coverages = [
+                objects.from_model(coverage_model)
+                for coverage_model in coverages_qs
+            ]
             contents.extend([
                 WCS("CoverageSummary",
                     WCS("CoverageId", coverage.identifier),
@@ -141,12 +140,12 @@ class WCS20CapabilitiesXMLEncoder(WCS20BaseXMLEncoder, OWS20Encoder):
                 ) for coverage in coverages
             ])
 
-        # reduce data transfer by only selecting required elements
-        dataset_series_qs = dataset_series_qs.only(
-           "identifier", "begin_time", "end_time", "footprint"
-        )
-        dataset_series_set = list(dataset_series_qs)
-        if dataset_series_set:
+        if dataset_series_qs is not None:
+            # reduce data transfer by only selecting required elements
+            dataset_series_qs = dataset_series_qs.only(
+            "identifier", "begin_time", "end_time", "footprint"
+            )
+            dataset_series_set = list(dataset_series_qs)
             dataset_series_elements = []
             for dataset_series in dataset_series_qs:
                 footprint = dataset_series.footprint
@@ -225,7 +224,7 @@ class WCS20CapabilitiesXMLEncoder(WCS20BaseXMLEncoder, OWS20Encoder):
             caps.append(
                 self.encode_contents(
                     coverages_qs if inc_coverage_summary else None,
-                    dataset_series_qs if inc_dataset_series_summary else None
+                    dataset_series_qs if inc_dataset_series_summary else None,
                 )
             )
 
@@ -346,17 +345,17 @@ class GMLCOV10Encoder(WCS20BaseXMLEncoder, GML32Encoder):
                 )
             )
 
-    def encode_bounded_by(self, coverage, grid=None):
+    def encode_bounded_by(self, coverage, grid=None, subset_extent=None):
         # if grid is None:
         footprint = coverage.footprint
 
-        if grid:
+        if grid and not grid.is_referenceable:
             sr = SpatialReference(grid.coordinate_reference_system)
             labels = grid.names
             axis_units = " ".join(
                 ["m" if sr.IsProjected() else "deg"] * len(labels)
             )
-            extent = list(coverage.extent)
+            extent = subset_extent or list(coverage.extent)
 
             lc = extent[:len(extent) / 2]
             uc = extent[len(extent) / 2:]
@@ -376,7 +375,7 @@ class GMLCOV10Encoder(WCS20BaseXMLEncoder, GML32Encoder):
             srs_name = sr.url
 
         elif footprint:
-            minx, miny, maxx, maxy = footprint.extent
+            minx, miny, maxx, maxy = subset_extent or footprint.extent
             sr = SpatialReference(4326)
             swap = crss.getAxesSwapper(sr.srid)
             labels = ("x", "y") if sr.IsProjected() else ("long", "lat")
@@ -710,7 +709,7 @@ class WCS20EOXMLEncoder(WCS20CoverageDescriptionXMLEncoder, EOP20Encoder,
             sr = SpatialReference(srid)
 
         return EOWCS("ReferenceableDataset",
-            self.encode_bounded_by(coverage, coverage.grid),
+            self.encode_bounded_by(coverage, coverage.grid, extent),
             domain_set,
             self.encode_range_set(reference, mime_type),
             self.encode_range_type(range_type),
