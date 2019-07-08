@@ -73,7 +73,7 @@ class WCS20GetCapabilitiesHandler(WCSGetCapabilitiesHandlerBase, Component):
             coverages = models.EOObject.objects.filter(
                 service_visibility__service='wcs',
                 service_visibility__visibility=True
-            ).select_subclasses(models.Coverage, models.Mosaic)
+            ).order_by('id').select_subclasses(models.Coverage, models.Mosaic)
         else:
             coverages = models.Coverage.objects.none()
 
