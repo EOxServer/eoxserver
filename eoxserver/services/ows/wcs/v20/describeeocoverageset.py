@@ -156,25 +156,33 @@ class WCS20DescribeEOCoverageSetHandler(object):
             dataset_series_qs = models.EOObject.objects.none()
 
         # get a QuerySet for all Coverages, directly or indirectly referenced
-        all_coverages_qs = subsets.filter(models.Coverage.objects.filter(
+        all_coverages_qs = subsets.filter(models.EOObject.objects.filter(
             Q(  # directly referenced Coverages
                 identifier__in=[
                     coverage.identifier for coverage in coverages
                 ]
             ) |
             Q(  # Coverages within directly referenced Products
-                parent_product__in=products,
+                coverage__parent_product__in=products,
             ) |
             Q(  # Coverages within indirectly referenced Products
-                parent_product__collections__in=collections
+                coverage__parent_product__collections__in=collections
             ) |
             Q(  # Coverages within directly referenced Collections
-                collections__in=collections
+                coverage__collections__in=collections
             ) |
             Q(  # Coverages within directly referenced Collections
-                mosaics__in=mosaics
+                coverage__mosaics__in=mosaics
+            ) |
+            Q(  # directly referenced Mosaics
+                identifier__in=[
+                    mosaic.identifier for mosaic in mosaics
+                ]
+            ) |
+            Q(  # Mosaics within directly referenced Collections
+                mosaic__collections__in=collections
             )
-        ), containment=containment)
+        ).select_subclasses(models.Coverage, models.Mosaic), containment=containment)
 
         # check if the CoverageDescriptions section is included. If not, use an
         # empty queryset
@@ -201,11 +209,8 @@ class WCS20DescribeEOCoverageSetHandler(object):
                         for eo_object in dataset_series_qs
                     ],
                     coverages=[
-                        objects.Coverage.from_model(coverage)
+                        objects.from_model(coverage)
                         for coverage in coverages_qs
-                    ] + [
-                        objects.Mosaic.from_model(mosaic)
-                        for mosaic in mosaics
                     ],
                     number_matched=number_matched
                 ), pretty_print=True
