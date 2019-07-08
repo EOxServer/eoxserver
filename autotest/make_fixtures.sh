@@ -132,9 +132,8 @@ dumpdata_coveragetype > autotest/data/fixtures/range_types.json
 # create a collection for the coverages
 python manage.py collection create MER_FRS_1P_reduced_RGB
 
-# create a grid + mosaic for the coverages
-python manage.py grid create mosaic_MER_FRS_1P_reduced_RGB_grid EPSG:4326 -n x -n y -t spatial -t spatial -o 0.031355000000000 -o -0.031355000000000
-python manage.py mosaic create mosaic_MER_FRS_1P_reduced_RGB -t RGB --grid mosaic_MER_FRS_1P_reduced_RGB_grid
+# create a grid for the coverages and the mosaic
+python manage.py grid create mosaic_MER_FRS_1P_reduced_RGB_grid EPSG:4326 -n long -n lat -t spatial -t spatial -o 0.031355000000000 -o -0.031355000000000
 
 # register MERIS RGB data
 python manage.py coverage register \
@@ -152,7 +151,8 @@ python manage.py coverage register \
     -d autotest/data/meris/mosaic_MER_FRS_1P_reduced_RGB/mosaic_ENVISAT-MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced.tif \
     -m autotest/data/meris/mosaic_MER_FRS_1P_reduced_RGB/mosaic_ENVISAT-MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced.xml
 
-# insert coverages into mosaic and collection
+# create a mosaic and insert coverages into mosaic and collection
+python manage.py mosaic create mosaic_MER_FRS_1P_reduced_RGB -t RGB --grid mosaic_MER_FRS_1P_reduced_RGB_grid
 python manage.py mosaic insert mosaic_MER_FRS_1P_reduced_RGB mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced mosaic_MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_RGB_reduced mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced
 python manage.py collection insert MER_FRS_1P_reduced_RGB mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced mosaic_MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_RGB_reduced mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced
 
