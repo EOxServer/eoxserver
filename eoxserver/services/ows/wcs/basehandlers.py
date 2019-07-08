@@ -242,7 +242,7 @@ class WCSGetCoverageHandlerBase(object):
                     Q(coverage__isnull=False) | Q(mosaic__isnull=False)
                 )
             )
-        except models.Coverage.DoesNotExist:
+        except models.EOObject.DoesNotExist:
             raise NoSuchCoverageException((coverage_id,))
 
         if isinstance(obj, models.Coverage):
