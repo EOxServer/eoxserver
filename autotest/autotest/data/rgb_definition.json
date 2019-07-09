@@ -12,7 +12,11 @@
                     "value": 0
                 }
             ],
-            "uom": "W.m-2.Sr-1"
+            "uom": "W.m-2.Sr-1",
+            "significant_figures": 3,
+            "allowed_value_ranges": [
+                [0, 255]
+            ]
         },
         {
             "definition": "http://www.opengis.net/def/property/OGC/0/Radiance",
@@ -26,7 +30,11 @@
                     "value": 0
                 }
             ],
-            "uom": "W.m-2.Sr-1"
+            "uom": "W.m-2.Sr-1",
+            "significant_figures": 3,
+            "allowed_value_ranges": [
+                [0, 255]
+            ]
         },
         {
             "definition": "http://www.opengis.net/def/property/OGC/0/Radiance",
@@ -40,7 +48,11 @@
                     "value": 0
                 }
             ],
-            "uom": "W.m-2.Sr-1"
+            "uom": "W.m-2.Sr-1",
+            "significant_figures": 3,
+            "allowed_value_ranges": [
+                [0, 255]
+            ]
         }
     ],
     "data_type": "Byte",
