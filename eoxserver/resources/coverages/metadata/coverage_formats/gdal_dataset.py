@@ -84,7 +84,7 @@ class GDALDatasetMetadataReader(object):
                 'coordinate_reference_system': projection,
                 'axis_offsets': [gt[1], gt[5]],
                 'axis_types': ['spatial', 'spatial'],
-                'axis_names': ['x', 'y'],
+                'axis_names': ['x', 'y'] if sr.IsProjected() else ['long', 'lat'],
             }
 
             if sr.GetLinearUnitsName() in ('metre', 'meter', 'm') \
@@ -107,7 +107,7 @@ class GDALDatasetMetadataReader(object):
                 'coordinate_reference_system': projection,
                 'axis_offsets': [None, None],
                 'axis_types': ['spatial', 'spatial'],
-                'axis_names': ['x', 'y']
+                'axis_names': ['x', 'y'] if sr.IsProjected() else ['long', 'lat']
             }
             values['origin'] = [None, None]
 
