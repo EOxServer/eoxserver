@@ -133,7 +133,7 @@ class WCS20DescribeEOCoverageSetHandler(object):
                 coverages.append(eo_object)
 
         # get a QuerySet of all dataset series, directly or indirectly referenced
-        all_dataset_series_qs = subsets.filter(models.EOObject.objects.filter(
+        all_dataset_series_qs = models.EOObject.objects.filter(
             Q(  # directly referenced Collections
                 collection__isnull=False,
                 identifier__in=[
@@ -146,9 +146,10 @@ class WCS20DescribeEOCoverageSetHandler(object):
             ) |
             Q(  # Products within Collections
                 product__isnull=False,
-                product__collections__in=collections
+                product__collections__in=collections,
+                **subsets.get_filters(containment=containment)
             )
-        ), containment=containment)
+        )
 
         if inc_dss_section:
             dataset_series_qs = all_dataset_series_qs[:count]
@@ -156,7 +157,9 @@ class WCS20DescribeEOCoverageSetHandler(object):
             dataset_series_qs = models.EOObject.objects.none()
 
         # get a QuerySet for all Coverages, directly or indirectly referenced
-        all_coverages_qs = subsets.filter(models.EOObject.objects.filter(
+        all_coverages_qs = models.EOObject.objects.filter(
+            **subsets.get_filters(containment=containment)
+        ).filter(
             Q(  # directly referenced Coverages
                 identifier__in=[
                     coverage.identifier for coverage in coverages
@@ -182,7 +185,7 @@ class WCS20DescribeEOCoverageSetHandler(object):
             Q(  # Mosaics within directly referenced Collections
                 mosaic__collections__in=collections
             )
-        ).select_subclasses(models.Coverage, models.Mosaic), containment=containment)
+        ).select_subclasses(models.Coverage, models.Mosaic)
 
         # check if the CoverageDescriptions section is included. If not, use an
         # empty queryset
