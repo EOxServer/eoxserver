@@ -33,6 +33,8 @@ import logging
 from lxml import etree
 
 from eoxserver.contrib import mapserver as ms
+from eoxserver.contrib import gdal, vsi
+from eoxserver.render.coverage import objects
 from eoxserver.resources.coverages import models, crss
 from eoxserver.resources.coverages.formats import getFormatRegistry
 from eoxserver.services.exceptions import NoSuchCoverageException
@@ -169,18 +171,46 @@ class RectifiedCoverageMapServerRenderer(BaseRenderer):
         if params.version == Version(2, 0):
             mediatype = getattr(params, "mediatype", None)
             if mediatype in ("multipart/mixed", "multipart/related"):
+                with vsi.TemporaryVSIFile.from_buffer(str(result_set[1].data)) as f:
+                    ds = gdal.Open(f.name)
+                    grid = objects.Grid.from_gdal_dataset(ds)
+
+                    # get the output CRS definition
+                    crs = params.outputcrs or subsets.crs
+                    if crs == 'imageCRS':
+                        crs = coverage.grid.coordinate_reference_system
+                    grid._coordinate_reference_system = crs
+
+                    origin = objects.Origin.from_gdal_dataset(ds)
+                    size = [ds.RasterXSize, ds.RasterYSize]
+
+                range_type = coverage.range_type
+                if params.rangesubset:
+                    range_type = range_type.subset(params.rangesubset)
+
+                coverage._grid = grid
+                coverage._origin = origin
+                coverage._size = size
+                coverage._range_type = range_type
+
+                reference = 'cid:coverage/%s' % result_set[1].filename
+
                 encoder = WCS20EOXMLEncoder()
 
-                if not isinstance(coverage, models.Mosaic):
-                    tree = encoder.alter_rectified_dataset(
-                        coverage, getattr(params, "http_request", None),
-                        etree.parse(result_set[0].data_file).getroot(),
+                if not isinstance(coverage, objects.Mosaic):
+                    tree = encoder.encode_rectified_dataset(
+                        coverage,
+                        getattr(params, "http_request", None),
+                        reference,
+                        mime_type,
                         subsets.bounding_polygon(coverage) if subsets else None
                     )
                 else:
-                    tree = encoder.alter_rectified_stitched_mosaic(
-                        coverage.cast(), getattr(params, "http_request", None),
-                        etree.parse(result_set[0].data_file).getroot(),
+                    tree = encoder.encode_rectified_stitched_mosaic(
+                        coverage,
+                        getattr(params, "http_request", None),
+                        reference,
+                        mime_type,
                         subsets.bounding_polygon(coverage) if subsets else None
                     )
 
