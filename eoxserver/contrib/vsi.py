@@ -267,8 +267,10 @@ class TemporaryVSIFile(VSIFile):
         """
         if not filename:
             filename = "/vsimem/%s" % uuid4().hex
-        FileFromMemBuffer(filename, buf)
-        return cls(filename, mode)
+        f = cls(filename, mode)
+        f.write(buf)
+        f.seek(0)
+        return f
 
     def close(self):
         """ Close the file. This also deletes it.
