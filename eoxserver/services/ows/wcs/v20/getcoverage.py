@@ -51,6 +51,9 @@ class WCS20GetCoverageHandler(WCSGetCoverageHandlerBase):
         elif request.method == "POST":
             return WCS20GetCoverageXMLDecoder(request.body)
 
+    def get_subsets(self, decoder):
+        return Subsets(decoder.subsets, crs=decoder.subsettingcrs)
+
     def get_params(self, coverage, decoder, request):
         subsets = Subsets(decoder.subsets, crs=decoder.subsettingcrs)
         encoding_params = None

@@ -227,7 +227,11 @@ class WCSGetCoverageHandlerBase(object):
         """ Interface method to get the correct decoder for this request.
         """
 
-    def lookup_coverage(self, decoder):
+    def get_subsets(self, decoder):
+        """ Interface method to get the subsets for this request.
+        """
+
+    def lookup_coverage(self, decoder, subsets):
         """ Default implementation of the coverage lookup. Returns the coverage
             model for the given request decoder or raises an exception if it is
             not found.
@@ -248,7 +252,11 @@ class WCSGetCoverageHandlerBase(object):
         if isinstance(obj, models.Coverage):
             return Coverage.from_model(obj)
         else:
-            return Mosaic.from_model(obj, obj.coverages.all())
+            coverages = obj.coverages.all().order_by("-begin_time")
+            if subsets:
+                subset_polygon = subsets.bounding_polygon(Mosaic.from_model(obj, []))
+                coverages = coverages.filter(footprint__intersects=subset_polygon)
+            return Mosaic.from_model(obj, coverages)
 
     def get_params(self, coverages, decoder, request):
         """ Interface method to return a render params object from the given
@@ -278,8 +286,11 @@ class WCSGetCoverageHandlerBase(object):
         # parse the request
         decoder = self.get_decoder(request)
 
+        # get the decoded subsets
+        subsets = self.get_subsets(decoder)
+
         # get the coverage model
-        coverage = self.lookup_coverage(decoder)
+        coverage = self.lookup_coverage(decoder, subsets)
 
         # create the render params
         params = self.get_params(coverage, decoder, request)
