@@ -1,7 +1,7 @@
 [
 {
     "model": "coverages.eoobject",
-    "pk": 12,
+    "pk": 13,
     "fields": {
         "identifier": "crosses_dateline",
         "begin_time": null,
@@ -13,9 +13,9 @@
 },
 {
     "model": "coverages.coverage",
-    "pk": 12,
+    "pk": 13,
     "fields": {
-        "grid": 7,
+        "grid": 8,
         "axis_1_origin": "95.3700000001",
         "axis_2_origin": "83.9299999999",
         "axis_3_origin": null,
@@ -32,12 +32,12 @@
 },
 {
     "model": "coverages.arraydataitem",
-    "pk": 9,
+    "pk": 10,
     "fields": {
         "storage": null,
         "location": "autotest/data/misc/crosses_dateline.tif",
         "format": "image/tiff",
-        "coverage": 12,
+        "coverage": 13,
         "field_index": 0,
         "band_count": 3,
         "subdataset_type": null,
@@ -47,7 +47,7 @@
 },
 {
     "model": "coverages.grid",
-    "pk": 7,
+    "pk": 8,
     "fields": {
         "name": null,
         "coordinate_reference_system": "EPSG:4326",

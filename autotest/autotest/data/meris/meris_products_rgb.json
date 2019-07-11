@@ -1,7 +1,7 @@
 [
 {
     "model": "coverages.eoobject",
-    "pk": 13,
+    "pk": 14,
     "fields": {
         "identifier": "product_mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced",
         "begin_time": "2006-08-16T09:09:29Z",
@@ -13,7 +13,7 @@
 },
 {
     "model": "coverages.product",
-    "pk": 13,
+    "pk": 14,
     "fields": {
         "product_type": 1,
         "package": null,
@@ -35,7 +35,7 @@
         "storage": null,
         "location": "/opt/instance/autotest/data/meris/mosaic_MER_FRS_1P_reduced_RGB/mosaic_ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced.tif",
         "format": null,
-        "product": 13,
+        "product": 14,
         "browse_type": null,
         "style": null,
         "coordinate_reference_system": "GEOGCS[\"WGS 84\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563,AUTHORITY[\"EPSG\",\"7030\"]],AUTHORITY[\"EPSG\",\"6326\"]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433],AUTHORITY[\"EPSG\",\"4326\"]]",
@@ -62,7 +62,7 @@
         "storage": null,
         "location": "/opt/instance/autotest/data/meris/mask/mask.json",
         "format": null,
-        "product": 13,
+        "product": 14,
         "mask_type": 1,
         "geometry": null
     }

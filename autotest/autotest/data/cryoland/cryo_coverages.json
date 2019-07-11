@@ -1,7 +1,7 @@
 [
 {
     "model": "coverages.eoobject",
-    "pk": 14,
+    "pk": 15,
     "fields": {
         "identifier": "FSC_0.0025deg_201303030930_201303031110_MOD_Alps_ENVEOV2.1.00",
         "begin_time": "2013-09-13T00:00:00Z",
@@ -13,9 +13,9 @@
 },
 {
     "model": "coverages.coverage",
-    "pk": 14,
+    "pk": 15,
     "fields": {
-        "grid": 8,
+        "grid": 9,
         "axis_1_origin": "5.69482421875",
         "axis_2_origin": "48.583984375",
         "axis_3_origin": null,
@@ -32,12 +32,12 @@
 },
 {
     "model": "coverages.arraydataitem",
-    "pk": 10,
+    "pk": 11,
     "fields": {
         "storage": null,
         "location": "autotest/data/cryoland/FSC_0.0025deg_201303030930_201303031110_MOD_Alps_ENVEOV2.1.00.tif_20130913121829.tif",
         "format": "image/tiff",
-        "coverage": 14,
+        "coverage": 15,
         "field_index": 0,
         "band_count": 1,
         "subdataset_type": null,
@@ -47,29 +47,29 @@
 },
 {
     "model": "coverages.metadataitem",
-    "pk": 9,
+    "pk": 10,
     "fields": {
         "storage": null,
         "location": "autotest/data/cryoland/FSC_0.0025deg_201303030930_201303031110_MOD_Alps_ENVEOV2.1.00.tif_20130913121829.xml",
         "format": "native",
-        "eo_object": 14,
+        "eo_object": 15,
         "semantic": null
     }
 },
 {
     "model": "coverages.metadataitem",
-    "pk": 10,
+    "pk": 11,
     "fields": {
         "storage": null,
         "location": "autotest/data/cryoland/FSC_Alps_default.sld",
         "format": null,
-        "eo_object": 14,
+        "eo_object": 15,
         "semantic": null
     }
 },
 {
     "model": "coverages.grid",
-    "pk": 8,
+    "pk": 9,
     "fields": {
         "name": null,
         "coordinate_reference_system": "EPSG:4326",

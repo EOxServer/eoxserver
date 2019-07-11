@@ -17,7 +17,7 @@
         "definition": "http://www.opengis.net/def/property/OGC/0/Radiance",
         "unit_of_measure": "W.m-2.Sr-1",
         "wavelength": null,
-        "significant_figures": null,
+        "significant_figures": 3,
         "numbits": 8,
         "signed": false,
         "is_float": false
@@ -34,7 +34,7 @@
         "definition": "http://www.opengis.net/def/property/OGC/0/Radiance",
         "unit_of_measure": "W.m-2.Sr-1",
         "wavelength": null,
-        "significant_figures": null,
+        "significant_figures": 3,
         "numbits": 8,
         "signed": false,
         "is_float": false
@@ -51,10 +51,37 @@
         "definition": "http://www.opengis.net/def/property/OGC/0/Radiance",
         "unit_of_measure": "W.m-2.Sr-1",
         "wavelength": null,
-        "significant_figures": null,
+        "significant_figures": 3,
         "numbits": 8,
         "signed": false,
         "is_float": false
+    }
+},
+{
+    "model": "coverages.allowedvaluerange",
+    "pk": 17,
+    "fields": {
+        "field_type": 17,
+        "start": 0.0,
+        "end": 255.0
+    }
+},
+{
+    "model": "coverages.allowedvaluerange",
+    "pk": 18,
+    "fields": {
+        "field_type": 18,
+        "start": 0.0,
+        "end": 255.0
+    }
+},
+{
+    "model": "coverages.allowedvaluerange",
+    "pk": 19,
+    "fields": {
+        "field_type": 19,
+        "start": 0.0,
+        "end": 255.0
     }
 },
 {
