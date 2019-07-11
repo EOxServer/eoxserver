@@ -26,9 +26,11 @@
 # ------------------------------------------------------------------------------
 
 from itertools import izip_longest
+from copy import deepcopy
 
+from django.utils import six
 from eoxserver.core.util.timetools import parse_iso8601, parse_duration
-from eoxserver.contrib import gdal
+from eoxserver.contrib import gdal, osr
 from eoxserver.contrib.osr import SpatialReference
 from eoxserver.backends.access import get_vsi_path
 from eoxserver.resources.coverages import models
@@ -118,6 +120,8 @@ class Field(object):
         except AttributeError:
             return False
 
+    def __repr__(self):
+        return '<Field %r>' % self.identifier
 
 class RangeType(list):
     def __init__(self, name, fields):
@@ -137,6 +141,25 @@ class RangeType(list):
             )
         except StopIteration:
             raise KeyError(name)
+
+    def subset(self, subsets):
+        fields = []
+        for subset in subsets:
+            if isinstance(subset, six.string_types):
+                fields.append(deepcopy(self.get_field(subset)))
+            elif isinstance(subset, (list, tuple)):
+                start_id, stop_id = subset
+                start = self.index(self.get_field(start_id))
+                stop = self.index(self.get_field(stop_id))
+                fields.extend([
+                    deepcopy(item)
+                    for item in self[start:stop + (1 if stop > start else -1)]
+                ])
+
+        for i, field in enumerate(fields):
+            field._index = i
+
+        return type(self)(self.name, fields)
 
     @classmethod
     def from_coverage_type(cls, coverage_type):
@@ -290,6 +313,19 @@ class Grid(list):
 
         return cls(grid_model.coordinate_reference_system, axes)
 
+    @classmethod
+    def from_gdal_dataset(cls, ds):
+        projection = ds.GetProjection()
+        gt = ds.GetGeoTransform()
+        sr = osr.SpatialReference(projection)
+
+        axis_names = ['x', 'y'] if sr.IsProjected() else ['long', 'lat']
+
+        return cls(projection, [
+            Axis(axis_names[0], 'spatial', gt[1]),
+            Axis(axis_names[1], 'spatial', gt[5]),
+        ])
+
     @property
     def spatial_reference(self):
         return SpatialReference(self.coordinate_reference_system)
@@ -329,6 +365,14 @@ class Origin(list):
         return cls([
             parse_iso8601(orig) if type_ == GRID_TYPE_TEMPORAL else float(orig)
             for type_, orig in zip(axis_types, origins)
+        ])
+
+    @classmethod
+    def from_gdal_dataset(cls, ds):
+        gt = ds.GetGeoTransform()
+        return cls([
+            float(gt[0]),
+            float(gt[3]),
         ])
 
 
