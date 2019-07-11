@@ -145,7 +145,6 @@ class WCS20CapabilitiesXMLEncoder(WCS20BaseXMLEncoder, OWS20Encoder):
             dataset_series_qs = dataset_series_qs.only(
             "identifier", "begin_time", "end_time", "footprint"
             )
-            dataset_series_set = list(dataset_series_qs)
             dataset_series_elements = []
             for dataset_series in dataset_series_qs:
                 footprint = dataset_series.footprint
@@ -188,7 +187,8 @@ class WCS20CapabilitiesXMLEncoder(WCS20BaseXMLEncoder, OWS20Encoder):
 
                 dataset_series_elements.append(dataset_series_summary)
 
-            contents.append(WCS("Extension", *dataset_series_elements))
+            if dataset_series_elements:
+                contents.append(WCS("Extension", *dataset_series_elements))
 
         return WCS("Contents", *contents)
 
@@ -355,7 +355,7 @@ class GMLCOV10Encoder(WCS20BaseXMLEncoder, GML32Encoder):
             axis_units = " ".join(
                 ["m" if sr.IsProjected() else "deg"] * len(labels)
             )
-            extent = subset_extent or list(coverage.extent)
+            extent = list(subset_extent) if subset_extent else list(coverage.extent)
 
             lc = extent[:len(extent) / 2]
             uc = extent[len(extent) / 2:]
@@ -607,7 +607,7 @@ class WCS20EOXMLEncoder(WCS20CoverageDescriptionXMLEncoder, EOP20Encoder,
                     **{
                         ns_xlink("arcrole"): "fileReference",
                         ns_xlink("href"): reference,
-                        ns_xlink("role"): mime_type
+                        ns_xlink("role"): "http://www.opengis.net/spec/GMLCOV_geotiff-coverages/1.0/conf/geotiff-coverage"
                     }
                 ),
                 GML("fileReference", reference),
@@ -626,37 +626,26 @@ class WCS20EOXMLEncoder(WCS20CoverageDescriptionXMLEncoder, EOP20Encoder,
         contributions.append(footprint)
         return footprint
 
-    def encode_contributing_datasets(self, coverage, subset_polygon=None):
-        eo_objects = coverage.eo_objects
-        if subset_polygon:
-            if subset_polygon.srid != 4326:
-                subset_polygon = subset_polygon.transform(4326, True)
-
-            eo_objects = eo_objects.filter(
-                footprint__intersects=subset_polygon
-            )
-
-        # iterate over all subsets in reverse order to get the
-        eo_objects = eo_objects.order_by("-begin_time")
+    def encode_contributing_datasets(self, mosaic, subset_polygon=None):
         actual_contributions = []
         all_contributions = []
-        for eo_object in eo_objects:
+        for coverage in mosaic.coverages:
             contribution = self.calculate_contribution(
-                eo_object.footprint, all_contributions, subset_polygon
+                coverage.footprint, all_contributions, subset_polygon
             )
             if not contribution.empty and contribution.num_geom > 0:
-                actual_contributions.append((eo_object, contribution))
+                actual_contributions.append((coverage, contribution))
 
         return EOWCS("datasets", *[
             EOWCS("dataset",
-                WCS("CoverageId", eo_object.identifier),
+                WCS("CoverageId", coverage.identifier),
                 EOWCS("contributingFootprint",
                     self.encode_footprint(
-                        contrib, eo_object.identifier
+                        contrib, coverage.identifier
                     )
                 )
             )
-            for eo_object, contrib in reversed(actual_contributions)
+            for coverage, contrib in reversed(actual_contributions)
         ])
 
     def alter_rectified_dataset(self, coverage, request, tree,
@@ -675,6 +664,33 @@ class WCS20EOXMLEncoder(WCS20CoverageDescriptionXMLEncoder, EOP20Encoder,
                 self.encode_contributing_datasets(coverage, subset_polygon)
             ]
         ), **tree.attrib)
+
+    def encode_rectified_dataset(self, coverage, request, reference,
+                                 mime_type, subset_polygon=None):
+        return EOWCS("RectifiedDataset",
+            self.encode_bounded_by(coverage, coverage.grid),
+            self.encode_domain_set(coverage, rectified=True),
+            self.encode_range_set(reference, mime_type),
+            self.encode_range_type(coverage.range_type),
+            self.encode_eo_metadata(coverage, request, subset_polygon),
+            **{
+                ns_gml("id"): self.get_gml_id(coverage.identifier)
+            }
+        )
+
+    def encode_rectified_stitched_mosaic(self, coverage, request, reference,
+                                         mime_type, subset_polygon=None):
+        return EOWCS("RectifiedStitchedMosaic",
+            self.encode_bounded_by(coverage, coverage.grid),
+            self.encode_domain_set(coverage, rectified=True),
+            self.encode_range_set(reference, mime_type),
+            self.encode_range_type(coverage.range_type),
+            self.encode_eo_metadata(coverage, request, subset_polygon),
+            self.encode_contributing_datasets(coverage, subset_polygon),
+            **{
+                ns_gml("id"): self.get_gml_id(coverage.identifier)
+            }
+        )
 
     def encode_referenceable_dataset(self, coverage, range_type, reference,
                                      mime_type, subset=None):
