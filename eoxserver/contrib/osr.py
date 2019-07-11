@@ -50,7 +50,9 @@ class SpatialReference(object):
         self.sr = sr = _SpatialReference()
         if raw is not None:
             format = format.upper() if format is not None else None
-            if format == "WKT":
+            if format == "WKT" or (
+                isinstance(raw, basestring) and (raw.startswith('PROJCS') or raw.startswith('GEOGCS'))
+            ):
                 sr.ImportFromWkt(raw)
             elif isinstance(raw, int) or format == "EPSG":
                 sr.ImportFromEPSG(int(raw))
