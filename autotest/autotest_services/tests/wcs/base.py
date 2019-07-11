@@ -71,7 +71,6 @@ class GeoTIFFMixIn(object):
     expected_tiling = None # (width, height)
 
     def test_geotiff(self):
-        self._openDatasets()
         ds = self.res_ds
 
         img_str = ds.GetMetadata("IMAGE_STRUCTURE")
