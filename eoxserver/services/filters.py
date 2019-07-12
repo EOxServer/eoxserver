@@ -433,8 +433,8 @@ def spatial(lhs, rhs, op, pattern=None, distance=None, units=None):
         # TODO: maybe use D.unit_attname(units)
         d = D(**{UNITS_LOOKUP[units]: distance})
         if op == "DWITHIN":
-            return Q(**{"%s__dwithin" % lhs.name: (rhs, d)})
-        return Q(**{"%s__distance_gt" % lhs.name: (rhs, d)})
+            return Q(**{"%s__distance_lte" % lhs.name: (rhs, d, 'spheroid')})
+        return Q(**{"%s__distance_gte" % lhs.name: (rhs, d, 'spheroid')})
 
 
 def bbox(lhs, minx, miny, maxx, maxy, crs=None, bboverlaps=True):

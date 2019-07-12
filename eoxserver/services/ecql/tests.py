@@ -433,12 +433,17 @@ class ECQLTestCase(TransactionTestCase):
             ('A',)
         )
 
-    # TODO: enable when sure about distance queries
-    # def test_dwithin(self):
-    #     self.evaluate(
-    #         'DWITHIN(footprint, POINT(0 0), 10, meters)',
-    #         ('A',)
-    #     )
+    def test_dwithin(self):
+        self.evaluate(
+            'DWITHIN(footprint, POINT(0 0), 10, meters)',
+            ('A',)
+        )
+
+    def test_beyond(self):
+        self.evaluate(
+            'BEYOND(footprint, POINT(0 0), 10, meters)',
+            ('B',)
+        )
 
     def test_bbox(self):
         self.evaluate(
