@@ -51,15 +51,6 @@ class ECQLTestCase(TransactionTestCase):
 
     def setUp(self):
         p = parse_iso8601
-        # models.RectifiedDataset.objects.create(
-        #     identifier="A",
-        #     footprint=MultiPolygon(Polygon.from_bbox((0, 0, 5, 5))),
-        #     begin_time=p("2000-01-01T00:00:00Z"),
-        #     end_time=p("2000-01-01T00:00:05Z"),
-        #     srid=4326, min_x=0, min_y=0, max_x=5, max_y=5,
-        #     size_x=100, size_y=100,
-        #     range_type=range_type
-        # )
 
         self.create(dict(
             identifier="A",
@@ -442,11 +433,12 @@ class ECQLTestCase(TransactionTestCase):
             ('A',)
         )
 
-    def test_dwithin(self):
-        self.evaluate(
-            'DWITHIN(footprint, POINT(0 0), 10, meters)',
-            ('A',)
-        )
+    # TODO: enable when sure about distance queries
+    # def test_dwithin(self):
+    #     self.evaluate(
+    #         'DWITHIN(footprint, POINT(0 0), 10, meters)',
+    #         ('A',)
+    #     )
 
     def test_bbox(self):
         self.evaluate(
