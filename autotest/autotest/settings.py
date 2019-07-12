@@ -61,16 +61,24 @@ ADMINS = (
 MANAGERS = ADMINS
 
 # Configure which database to use. Default is spatialite.
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.contrib.gis.db.backends.postgis',
-        'HOST': os.environ['DB_HOST'],
-        'NAME': os.environ['DB_NAME'],
-        'USER': os.environ['DB_USER'],
-        'PASSWORD': os.environ['DB_PW'],
+db_type = os.environ.get('DB', 'postgis')
+if db_type == 'postgis':
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.contrib.gis.db.backends.postgis',
+            'HOST': os.environ['DB_HOST'],
+            'NAME': os.environ['DB_NAME'],
+            'USER': os.environ['DB_USER'],
+            'PASSWORD': os.environ['DB_PW'],
+        }
     }
-}
-
+elif db_type == 'spatialite':
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.contrib.gis.db.backends.spatialite',
+            'NAME': join(PROJECT_DIR, 'data/config.sqlite'),
+        }
+    }
 
 # Use faster ramfs tablespace for testing in case of PostGIS e.g. in Jenkins
 # Configure via:
