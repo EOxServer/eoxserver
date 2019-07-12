@@ -360,7 +360,7 @@ class Coverage(EOObject, GridFixture):
 class ReservedIDManager(models.Manager):
     """ Model manager for `ReservedID` models for easier handling. Returns only
         `QuerySets` that contain valid reservations.
-        """
+    """
     def get_original_queryset(self):
         return super(ReservedIDManager, self).get_queryset()
 
