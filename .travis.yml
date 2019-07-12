@@ -1,6 +1,6 @@
 language: python
 env:
-- DJANGO=">=1.11,<1.12" GDAL=1.10 DB=spatialite
+- DJANGO=">=1.11,<1.12" GDAL=1.10 DB=postgis DB_HOST=localhost DB_NAME=eoxserver_testing DB_USER=eoxserver DB_PW=eoxserver
 python:
 - '2.7'
 services:
