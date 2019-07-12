@@ -261,7 +261,7 @@ class Subsets(list):
             return queryset
 
         filters = self.get_filters(containment)
-        return queryset.filter(filters)
+        return queryset.filter(**filters)
 
     def matches(self, eo_object, containment="overlaps"):
         """ Check if the given :class:`EOObject
