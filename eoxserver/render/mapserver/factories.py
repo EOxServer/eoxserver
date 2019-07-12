@@ -218,8 +218,6 @@ class MosaicLayerFactory(CoverageLayerFactoryMixIn, BaseMapServerLayerFactory):
     handled_layer_types = [MosaicLayer]
 
     def create(self, map_obj, layer):
-
-        import pdb; pdb.set_trace()
         mosaic = layer.mosaic
         fields = self.get_fields(
             mosaic.range_type, layer.bands, layer.wavelengths
