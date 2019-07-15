@@ -269,7 +269,7 @@ class FTPStorageHandler(BaseStorageHandler):
     def list_files(self, location, glob_pattern=None):
         try:
             filenames = self.ftp.nlst(location)
-        except ftplib.error_perm, resp:
+        except ftplib.error_perm as resp:
             if str(resp).startswith("550"):
                 filenames = []
             else:
