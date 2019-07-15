@@ -506,19 +506,22 @@ class Coverage(object):
         lows = []
         highs = []
 
-        axes = izip_longest(types, offsets, self.origin, self.size)
-        for type_, offset, origin, size in axes:
-            a = origin
-            b = origin + size * offset
+        if offsets[0] is not None:
+            axes = izip_longest(types, offsets, self.origin, self.size)
+            for type_, offset, origin, size in axes:
+                a = origin
+                b = origin + size * offset
 
-            if offset > 0:
-                lows.append(a)
-                highs.append(b)
-            else:
-                lows.append(b)
-                highs.append(a)
+                if offset > 0:
+                    lows.append(a)
+                    highs.append(b)
+                else:
+                    lows.append(b)
+                    highs.append(a)
 
-        return tuple(lows + highs)
+            return tuple(lows + highs)
+        elif self.footprint:
+            return self.footprint.extent
 
     def get_location_for_field(self, field_or_identifier):
         if isinstance(field_or_identifier, Field):
