@@ -19,9 +19,9 @@ before_install:
 - chmod +x docker-compose
 - sudo mv docker-compose /usr/local/bin
 - docker build . -t eoxserver --add-host=browse:127.0.0.1
-- cd autotest
 
 script:
+- cd autotest
 - docker-compose up -d
 - sleep 5
 - docker exec -it $(docker ps --format "{{.ID}}\t{{.Names}}" | grep autotest_autotest_1 | cut -f1) /bin/bash -c " cd /opt/instance/ && python manage.py test autotest_services -v2"
