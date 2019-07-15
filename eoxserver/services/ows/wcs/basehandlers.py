@@ -269,7 +269,8 @@ class WCSGetCoverageHandlerBase(object):
         renderer = get_coverage_renderer(params)
         if not renderer:
             raise OperationNotSupportedException(
-                "No renderer found for coverage '%s'." % params.coverage,
+                "No renderer found for coverage '%s'."
+                % params.coverage.identifier,
                 self.request
             )
         return renderer
