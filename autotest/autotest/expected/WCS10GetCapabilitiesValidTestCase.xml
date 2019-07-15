@@ -99,8 +99,8 @@
       <name>ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775</name>
       <label>ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775</label>
       <lonLatEnvelope srsName="urn:ogc:def:crs:OGC:1.3:CRS84">
-        <gml:pos>16.727605 -36.259107</gml:pos>
-        <gml:pos>22.301754 -31.984922</gml:pos>
+        <gml:pos>16.726531 -36.259394</gml:pos>
+        <gml:pos>22.302402 -31.984137</gml:pos>
       </lonLatEnvelope>
     </CoverageOfferingBrief>
     <CoverageOfferingBrief>
@@ -123,8 +123,8 @@
       <name>mosaic_MER_FRS_1P_reduced_RGB</name>
       <label>mosaic_MER_FRS_1P_reduced_RGB</label>
       <lonLatEnvelope srsName="urn:ogc:def:crs:OGC:1.3:CRS84">
-        <gml:pos>-3.75 32.158895</gml:pos>
-        <gml:pos>28.326165 46.3</gml:pos>
+        <gml:pos>-3.75 32.19025</gml:pos>
+        <gml:pos>28.263455 46.268645</gml:pos>
       </lonLatEnvelope>
     </CoverageOfferingBrief>
   </ContentMetadata>
