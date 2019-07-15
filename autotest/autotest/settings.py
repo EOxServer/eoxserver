@@ -231,6 +231,24 @@ INSTALLED_APPS = (
 # search will be done.
 COMPONENTS = ()
 
+
+#
+#
+#
+#
+EOXS_PROCESSES = [
+    'autotest_services.processes.test00_identity_literal.TestProcess00',
+    'autotest_services.processes.test01_identity_bbox.TestProcess01',
+    'autotest_services.processes.test02_identity_complex.TestProcess02',
+    'autotest_services.processes.test03_binary_complex.TestProcess03',
+    'autotest_services.processes.test04_datetime_tzaware_input.TestProcess04',
+    'autotest_services.processes.test05_datetime_tzaware_output.TestProcess05',
+    'autotest_services.processes.test06_minimal_process.Test06MinimalValidProcess',
+    'autotest_services.processes.test06_minimal_process.Test06MinimalAllowedProcess',
+    'autotest_services.processes.test07_request_parameter.Test07RequestParameterTest',
+]
+
+
 # A sample logging configuration. The only tangible logging
 # performed by this configuration is to send an email to
 # the site admins on every HTTP 500 error when DEBUG=False.
