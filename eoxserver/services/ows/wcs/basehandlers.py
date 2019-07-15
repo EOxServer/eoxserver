@@ -252,7 +252,7 @@ class WCSGetCoverageHandlerBase(object):
         if isinstance(obj, models.Coverage):
             return Coverage.from_model(obj)
         else:
-            coverages = obj.coverages.all().order_by("-begin_time")
+            coverages = obj.coverages.all().order_by("begin_time")
             if subsets:
                 subset_polygon = subsets.bounding_polygon(Mosaic.from_model(obj, []))
                 coverages = coverages.filter(footprint__intersects=subset_polygon)
