@@ -48,7 +48,7 @@ PROJECT_DIR = dirname(abspath(__file__))
 PROJECT_URL_PREFIX = ''
 
 #TODO
-#TEST_RUNNER = 'eoxserver.testing.core.EOxServerTestRunner'
+TEST_RUNNER = 'eoxserver.testing.core.EOxServerTestRunner'
 #TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
 #TEST_RUNNER = 'django.test.runner.DiscoverRunner'
 
