@@ -38,7 +38,14 @@ try:
 except ImportError:
     from django.utils.datastructures import SortedDict as OrderedDict
 
+from django.conf import settings
+from django.utils.module_loading import import_string
+
 from eoxserver.core.util.multiparttools import iterate as iterate_multipart
+from eoxserver.services.ows.wps.config import (
+    DEFAULT_EOXS_PROCESSES, DEFAULT_EOXS_ASYNC_BACKENDS
+)
+
 
 def parse_named_parts(request):
     """ Extract named parts of the multi-part request
@@ -96,3 +103,43 @@ class InMemoryURLResolver(object):
                 return fobj.read()
         except URLError as exc:
             raise ValueError(str(exc))
+
+
+PROCESSES = None
+ASYNC_BACKENDS = None
+
+def _setup_processes():
+    global PROCESSES
+    specifiers = getattr(
+        settings, 'EOXS_PROCESSES',
+        DEFAULT_EOXS_PROCESSES
+    )
+    PROCESSES = [
+        import_string(identifier)()
+        for identifier in specifiers
+    ]
+
+def _setup_async_backends():
+    global ASYNC_BACKENDS
+    specifiers = getattr(
+        settings, 'EOXS_ASYNC_BACKENDS',
+        DEFAULT_EOXS_ASYNC_BACKENDS
+    )
+    ASYNC_BACKENDS = [
+        import_string(identifier)()
+        for identifier in specifiers
+    ]
+
+
+def get_processes():
+    if PROCESSES is None:
+        _setup_processes()
+
+    return PROCESSES
+
+
+def get_async_backends():
+    if ASYNC_BACKENDS is None:
+        _setup_async_backends()
+
+    return ASYNC_BACKENDS

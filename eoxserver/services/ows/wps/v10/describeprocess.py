@@ -25,13 +25,8 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-from eoxserver.core import Component, ExtensionPoint, implements
 from eoxserver.core.decoders import kvp, xml, typelist
-from eoxserver.services.ows.interfaces import (
-    ServiceHandlerInterface, GetServiceHandlerInterface,
-    PostServiceHandlerInterface
-)
-from eoxserver.services.ows.wps.interfaces import ProcessInterface
+from eoxserver.services.ows.wps.util import get_processes
 from eoxserver.services.ows.wps.exceptions import NoSuchProcessError
 from eoxserver.services.ows.wps.v10.encoders import (
     WPS10ProcessDescriptionsXMLEncoder
@@ -39,18 +34,13 @@ from eoxserver.services.ows.wps.v10.encoders import (
 from eoxserver.services.ows.wps.v10.util import nsmap
 
 
-class WPS10DescribeProcessHandler(Component):
+class WPS10DescribeProcessHandler(object):
     """ WPS 1.0 DescribeProcess service handler. """
-
-    implements(ServiceHandlerInterface)
-    implements(GetServiceHandlerInterface)
-    implements(PostServiceHandlerInterface)
 
     service = "WPS"
     versions = ("1.0.0",)
     request = "DescribeProcess"
-
-    processes = ExtensionPoint(ProcessInterface)
+    methods = ['GET', 'POST']
 
     @staticmethod
     def get_decoder(request):
@@ -67,7 +57,7 @@ class WPS10DescribeProcessHandler(Component):
         identifiers = set(decoder.identifiers)
 
         used_processes = []
-        for process in self.processes:
+        for process in get_processes():
             process_identifier = (
                 getattr(process, 'identifier', None) or type(process).__name__
             )

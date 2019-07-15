@@ -25,34 +25,24 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-from eoxserver.core import Component, ExtensionPoint, implements
 from eoxserver.core.decoders import kvp, xml
-from eoxserver.services.ows.interfaces import (
-    ServiceHandlerInterface, GetServiceHandlerInterface,
-    PostServiceHandlerInterface, VersionNegotiationInterface
-)
-from eoxserver.services.ows.wps.interfaces import ProcessInterface
+from eoxserver.services.ows.wps.util import get_processes
 from eoxserver.services.ows.wps.v10.encoders import WPS10CapabilitiesXMLEncoder
 from eoxserver.services.ows.wps.v10.util import nsmap
 
 
-class WPS10GetCapabilitiesHandler(Component):
+class WPS10GetCapabilitiesHandler(object):
     """ WPS 1.0 GetCapabilities service handler. """
-    implements(ServiceHandlerInterface)
-    implements(GetServiceHandlerInterface)
-    implements(PostServiceHandlerInterface)
-    implements(VersionNegotiationInterface)
 
     service = "WPS"
     versions = ("1.0.0",)
     request = "GetCapabilities"
-
-    processes = ExtensionPoint(ProcessInterface)
+    methods = ['GET', 'POST']
 
     def handle(self, request):
         """ Handle HTTP request. """
         encoder = WPS10CapabilitiesXMLEncoder()
-        return encoder.serialize(encoder.encode_capabilities(self.processes))
+        return encoder.serialize(encoder.encode_capabilities(get_processes()))
 
 
 class WPS10GetCapabilitiesKVPDecoder(kvp.Decoder):

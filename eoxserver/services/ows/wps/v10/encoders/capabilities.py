@@ -30,7 +30,7 @@
 #pylint: disable=bad-continuation
 
 from eoxserver.core.config import get_eoxserver_config
-from eoxserver.services.ows.component import ServiceComponent, env
+from eoxserver.services.ows.dispatch import filter_handlers
 from eoxserver.services.ows.common.config import CapabilitiesConfigReader
 from eoxserver.services.ows.wps.v10.util import (
     OWS, WPS, ns_xlink, ns_xml,
@@ -114,12 +114,11 @@ class WPS10CapabilitiesXMLEncoder(WPS10BaseXMLEncoder):
 
 def _encode_operations_metadata(conf):
     """ Encode OperationsMetadata XML element. """
-    component = ServiceComponent(env)
     versions = ("1.0.0",)
-    get_handlers = component.query_service_handlers(
+    get_handlers = filter_handlers(
         service="WPS", versions=versions, method="GET"
     )
-    post_handlers = component.query_service_handlers(
+    post_handlers = filter_handlers(
         service="WPS", versions=versions, method="POST"
     )
     all_handlers = sorted(

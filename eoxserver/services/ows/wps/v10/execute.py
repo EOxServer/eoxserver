@@ -27,17 +27,13 @@
 #-------------------------------------------------------------------------------
 
 from logging import getLogger
-from eoxserver.core import Component, implements, ExtensionPoint
+
 from eoxserver.core.util import multiparttools as mp
-from eoxserver.services.ows.interfaces import (
-    ServiceHandlerInterface, GetServiceHandlerInterface,
-    PostServiceHandlerInterface
-)
 from eoxserver.services.ows.wps.interfaces import (
     ProcessInterface, AsyncBackendInterface,
 )
 from eoxserver.services.ows.wps.util import (
-    parse_named_parts, InMemoryURLResolver,
+    parse_named_parts, InMemoryURLResolver, get_processes
 )
 from eoxserver.services.ows.wps.exceptions import (
     NoSuchProcessError, InvalidParameterValue, StorageNotSupported,
@@ -57,18 +53,13 @@ from eoxserver.services.ows.wps.v10.execute_util import (
     resolve_request_parameters,
 )
 
-class WPS10ExcecuteHandler(Component):
+class WPS10ExecuteHandler(object):
     """ WPS 1.0 Execute service handler. """
-    implements(ServiceHandlerInterface)
-    implements(GetServiceHandlerInterface)
-    implements(PostServiceHandlerInterface)
 
     service = "WPS"
     versions = ("1.0.0",)
     request = "Execute"
-
-    processes = ExtensionPoint(ProcessInterface)
-    async_backends = ExtensionPoint(AsyncBackendInterface)
+    methods = ['GET', 'POST']
 
     @staticmethod
     def get_decoder(request):
@@ -86,7 +77,7 @@ class WPS10ExcecuteHandler(Component):
 
     def get_process(self, identifier):
         """ Get process component matched by the identifier. """
-        for process in self.processes:
+        for process in get_processes():
             process_identifier = (
                 getattr(process, 'identifier', None) or type(process).__name__
             )
