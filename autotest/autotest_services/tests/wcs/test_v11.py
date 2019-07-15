@@ -131,7 +131,7 @@ class WCS11DescribeCoverageReferenceableFaultTestCase(testbase.ExceptionTestCase
         return (params, "kvp")
 
     def getExpectedExceptionCode(self):
-        return "NoSuchCoverage"
+        return "OperationNotSupported"
 
 @tag('wcs', 'wcs11')
 class WCS11GetCoverageReferenceableFaultTestCase(testbase.ExceptionTestCase):
@@ -140,7 +140,7 @@ class WCS11GetCoverageReferenceableFaultTestCase(testbase.ExceptionTestCase):
         return (params, "kvp")
 
     def getExpectedExceptionCode(self):
-        return "NoSuchCoverage"
+        return "OperationNotSupported"
 
 @tag('wcs', 'wcs11')
 class WCS11GetCoverageBBoxFaultTestCase(testbase.ExceptionTestCase):
