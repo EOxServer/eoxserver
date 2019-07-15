@@ -58,8 +58,10 @@ class NativeWCS20CapabilitiesRenderer(Component):
             ResultBuffer(
                 encoder.serialize(
                     encoder.encode_capabilities(
-                        params.sections or ("all"), params.coverages,
-                        getattr(params, "dataset_series", ()),
+                        params.sections or ("all"),
+                        params.coverages,
+                        params.dataset_series,
+                        # getattr(params, "dataset_series", ()),
                         params.http_request
                     ), pretty_print=settings.DEBUG
                 ),

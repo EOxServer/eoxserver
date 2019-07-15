@@ -29,7 +29,7 @@
 
 from datetime import datetime, date, time, timedelta
 from django.utils.dateparse import parse_date, parse_datetime, parse_time, utc
-from django.utils.tzinfo import FixedOffset
+from django.utils.timezone import FixedOffset
 
 from eoxserver.core.util.timetools import parse_duration
 

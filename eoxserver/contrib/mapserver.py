@@ -106,7 +106,7 @@ class Map(MetadataMixIn, mapObj):
 
 
 def dispatch(map_, request):
-    """ Wraps the ``OWSDispatch`` method. Perfoms all necessary steps for a 
+    """ Wraps the ``OWSDispatch`` method. Perfoms all necessary steps for a
         further handling of the result.
     """
 
@@ -122,18 +122,18 @@ def dispatch(map_, request):
                 logger.debug(f.read())
         finally:
             os.remove(filename)
-    
+
     try:
         logger.debug("MapServer: Dispatching.")
         ts = time.time()
-        # Execute the OWS request by mapserver, obtain the status in 
+        # Execute the OWS request by mapserver, obtain the status in
         # dispatch_status (0 is OK)
         status = map_.OWSDispatch(request)
         te = time.time()
         logger.debug("MapServer: Dispatch took %f seconds." % (te - ts))
     except Exception, e:
         raise MapServerException(str(e), "NoApplicableCode")
-    
+
     raw_bytes = msIO_getStdoutBufferBytes()
 
     # check whether an error occurred
@@ -147,9 +147,9 @@ def dispatch(map_, request):
             # try to parse the output as XML
             _, data = iterate(raw_bytes).next()
             tree = etree.fromstring(str(data))
-            exception_elem = tree.xpath("*[local-name() = 'Exception']")[0]
-            locator = exception_elem.attrib["locator"]
-            code = exception_elem.attrib["exceptionCode"]
+            exception_elem = tree.xpath("*[local-name() = 'Exception']|*[local-name() = 'ServiceException']")[0]
+            locator = exception_elem.attrib.get("locator")
+            code = exception_elem.attrib.get("exceptionCode")
             message = exception_elem[0].text
 
             raise MapServerException(message, locator, code)
@@ -195,7 +195,7 @@ class Style(styleObj):
 
 
 def create_request(values, request_type=MS_GET_REQUEST):
-    """ Creates a mapserver request from 
+    """ Creates a mapserver request from
     """
     used_keys = {}
 
@@ -206,7 +206,7 @@ def create_request(values, request_type=MS_GET_REQUEST):
         for key, value in values:
             key = key.lower()
             used_keys.setdefault(key, 0)
-            # addParameter() available in MapServer >= 6.2 
+            # addParameter() available in MapServer >= 6.2
             # https://github.com/mapserver/mapserver/issues/3973
             try:
                 request.addParameter(key.lower(), escape(value))
@@ -234,9 +234,9 @@ def gdalconst_to_imagemode(const):
     elif const == gdal.GDT_Float32:
         return MS_IMAGEMODE_FLOAT32
     else:
-        raise InternalError(
-            "MapServer is not capable to process the datatype '%s' (%d)." 
-            % gdal.GetDataTypeName(const), const
+        raise ValueError(
+            "MapServer is not capable to process the datatype '%s' (%d)."
+            % (gdal.GetDataTypeName(const), const)
         )
 
 

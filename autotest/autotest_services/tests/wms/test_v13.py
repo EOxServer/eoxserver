@@ -176,25 +176,25 @@ class WMS13GetMapReferenceableGridReprojectionTestCase(wmsbase.WMS13GetMapTestCa
     height = 451
     swap_axes = False
 
-class WMS13GetMapDatasetSeriesTestCase(wmsbase.WMS13GetMapTestCase):
+class WMS13GetMapCollectionTestCase(wmsbase.WMS13GetMapTestCase):
     """ Test a GetMap request with a dataset series. """
     layers = ("MER_FRS_1P_reduced_RGB",)
     width = 200
     bbox = (-3.75, 32.158895, 28.326165, 46.3)
 
-class WMS13GetMapDatasetSeriesTimePointTestCase(wmsbase.WMS13GetMapTestCase):
+class WMS13GetMapCollectionTimePointTestCase(wmsbase.WMS13GetMapTestCase):
     layers = ("MER_FRS_1P_reduced_RGB",)
     width = 200
     bbox = (-3.75, 32.158895, 28.326165, 46.3)
     time = "2006-08-30T10:09:49Z"
 
-class WMS13GetMapDatasetSeriesTimeIntervalTestCase(wmsbase.WMS13GetMapTestCase):
+class WMS13GetMapCollectionTimeIntervalTestCase(wmsbase.WMS13GetMapTestCase):
     layers = ("MER_FRS_1P_reduced_RGB",)
     width = 200
     bbox = (-3.75, 32.158895, 28.326165, 46.3)
     time = "2006-08-01T00:00:00Z/2006-08-22T23:59:59Z"
 
-class WMS13GetMapDatasetSeriesTimeIntervalBorderTestCase(wmsbase.WMS13GetMapTestCase):
+class WMS13GetMapCollectionTimeIntervalBorderTestCase(wmsbase.WMS13GetMapTestCase):
     layers = ("MER_FRS_1P_reduced_RGB",)
     width = 200
     bbox = (-3.75, 32.158895, 28.326165, 46.3)
@@ -204,24 +204,24 @@ class WMS13GetMapDatasetSeriesTimeIntervalBorderTestCase(wmsbase.WMS13GetMapTest
 # Outlines
 #===============================================================================
 
-class WMS13GetMapDatasetSeriesOutlinesTestCase(wmsbase.WMS13GetMapTestCase):
-    layers = ("MER_FRS_1P_reduced_outlines",)
+class WMS13GetMapCollectionOutlinesTestCase(wmsbase.WMS13GetMapTestCase):
+    layers = ("MER_FRS_1P_reduced__outlines",)
     width = 200
     bbox = (-3.75, 32.158895, 28.326165, 46.3)
 
 class WMS13GetMapRectifiedStitchedMosaicOutlinesTestCase(wmsbase.WMS13GetMapTestCase):
-    layers = ("mosaic_MER_FRS_1P_reduced_RGB_outlines",)
+    layers = ("mosaic_MER_FRS_1P_reduced_RGB__outlines",)
     width = 200
     bbox = (-3.75, 32.158895, 28.326165, 46.3)
 
 class WMS13GetMapRectifiedStitchedMosaicOutlinesWhiteTestCase(wmsbase.WMS13GetMapTestCase):
-    layers = ("mosaic_MER_FRS_1P_reduced_RGB_outlines",)
+    layers = ("mosaic_MER_FRS_1P_reduced_RGB__outlines",)
     width = 200
     bbox = (-3.75, 32.158895, 28.326165, 46.3)
     styles = ("white",)
 
-class WMS13GetMapDatasetSeriesOutlinesTimeIntervalTestCase(wmsbase.WMS13GetMapTestCase):
-    layers = ("MER_FRS_1P_reduced_RGB_outlines",)
+class WMS13GetMapCollectionOutlinesTimeIntervalTestCase(wmsbase.WMS13GetMapTestCase):
+    layers = ("MER_FRS_1P_reduced_RGB__outlines",)
     width = 200
     bbox = (-3.75, 32.158895, 28.326165, 46.3)
     time = "2006-08-16T09:09:29Z/2006-08-16T09:15:46Z"
@@ -269,39 +269,39 @@ class WMS13GetMapCrossesDatelineDatasetTestCase(wmsbase.WMS13GetMapTestCase):
 # Masked
 #===============================================================================
 
-MASK_FIXTURES = wmsbase.WMS13GetMapTestCase.fixtures + ["meris_coverages_rgb_mask.json"]
+MASK_FIXTURES = wmsbase.WMS13GetMapTestCase.fixtures + ["meris_products_rgb.json"]
 
-class WMS13GetMapDatasetMaskedTestCase(wmsbase.WMS13GetMapTestCase):
+class WMS13GetMapProductMaskedTestCase(wmsbase.WMS13GetMapTestCase):
     """ Test a GetMap request with the masked layer for a dataset. """
     fixtures = MASK_FIXTURES
 
-    layers = ("mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced_masked",)
+    layers = ("product_mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced__masked_clouds",)
     bbox = (11, 32, 28, 46) 
 
-class WMS13GetMapDatasetSeriesMaskedTestCase(wmsbase.WMS13GetMapTestCase):
+class WMS13GetMapCollectionMaskedTestCase(wmsbase.WMS13GetMapTestCase):
     """ Test a GetMap request with the masked layer for a dataset series. """
     fixtures = MASK_FIXTURES
 
-    layers = ("MER_FRS_1P_reduced_RGB_masked",)
+    layers = ("MER_FRS_1P_reduced_RGB__masked_clouds",)
     bbox = (11, 32, 28, 46)
 
 #===============================================================================
 # Cloud Mask
 #===============================================================================
 
-class WMS13GetMapDatasetCloudMaskTestCase(wmsbase.WMS13GetMapTestCase):
+class WMS13GetMapProductCloudMaskTestCase(wmsbase.WMS13GetMapTestCase):
     """ Test a GetMap request for cloudmask of a dataset. """
     fixtures = MASK_FIXTURES
 
-    layers = ("mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced_clouds",)
+    layers = ("product_mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced__clouds",)
     styles = ("magenta",)
     bbox = (11, 32, 28, 46) 
 
-class WMS13GetMapDatasetSeriesCloudMaskTestCase(wmsbase.WMS13GetMapTestCase):
+class WMS13GetMapCollectionCloudMaskTestCase(wmsbase.WMS13GetMapTestCase):
     """ Test a GetMap request for cloudmask of a dataset series. """
     fixtures = MASK_FIXTURES
 
-    layers = ("MER_FRS_1P_reduced_RGB_clouds",)
+    layers = ("MER_FRS_1P_reduced_RGB__clouds",)
     styles = ("magenta",)
     bbox = (11, 32, 28, 46) 
 
@@ -309,18 +309,18 @@ class WMS13GetMapDatasetSeriesCloudMaskTestCase(wmsbase.WMS13GetMapTestCase):
 # Masked Outlines
 #===============================================================================
 
-class WMS13GetMapDatasetMaskedOutlinesTestCase(wmsbase.WMS13GetMapTestCase):
+class WMS13GetMapProductMaskedOutlinesTestCase(wmsbase.WMS13GetMapTestCase):
     """ Test a GetMap request with the masked outlines layer for a dataset. """
     fixtures = MASK_FIXTURES
 
-    layers = ("mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced_masked_outlines",)
+    layers = ("product_mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced__outlines_masked_clouds",)
     bbox = (11, 32, 28, 46)
 
-class WMS13GetMapDatasetSeriesMaskedTestCase(wmsbase.WMS13GetMapTestCase):
+class WMS13GetMapCollectionMaskedTestCase(wmsbase.WMS13GetMapTestCase):
     """ Test a GetMap request with the masked layer for a dataset series. """
     fixtures = MASK_FIXTURES
 
-    layers = ("MER_FRS_1P_reduced_RGB_masked",)
+    layers = ("MER_FRS_1P_reduced_RGB__masked_clouds",)
     bbox = (11, 32, 28, 46)
 
 #===============================================================================
@@ -348,7 +348,7 @@ class WMS13GetFeatureInfoTestCase(testbase.HTMLTestCase):
     """ Test a GetFeatureInfo on an outline layer. """
     
     def getRequest(self):
-        params = "SERVICE=WMS&VERSION=1.3.0&REQUEST=GetFeatureInfo&LAYERS=MER_FRS_1P_reduced_RGB_outlines&QUERY_LAYERS=MER_FRS_1P_reduced_RGB_outlines&STYLES=&BBOX=32.158895,-3.75,46.3,28.326165&FEATURE_COUNT=10&HEIGHT=100&WIDTH=200&FORMAT=image%2Fpng&INFO_FORMAT=text/html&CRS=EPSG:4326&I=100&J=50";
+        params = "SERVICE=WMS&VERSION=1.3.0&REQUEST=GetFeatureInfo&LAYERS=MER_FRS_1P_reduced_RGB__outlines&QUERY_LAYERS=MER_FRS_1P_reduced_RGB_outlines&STYLES=&BBOX=32.158895,-3.75,46.3,28.326165&FEATURE_COUNT=10&HEIGHT=100&WIDTH=200&FORMAT=image%2Fpng&INFO_FORMAT=text/html&CRS=EPSG:4326&I=100&J=50";
         return (params, "kvp")
 
 class WMS13GetFeatureInfoTimeIntervalTestCase(testbase.HTMLTestCase):

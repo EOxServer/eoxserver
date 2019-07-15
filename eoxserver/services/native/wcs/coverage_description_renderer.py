@@ -38,10 +38,10 @@ from eoxserver.services.ows.wcs.interfaces import (
 
 
 class NativeWCS20CoverageDescriptionRenderer(Component):
-    """ Coverage description renderer for WCS 2.0 using the EO application 
+    """ Coverage description renderer for WCS 2.0 using the EO application
         profile.
     """
-    
+
     implements(WCSCoverageDescriptionRendererInterface)
 
     versions = (Version(2, 0),)

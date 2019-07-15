@@ -33,6 +33,7 @@ class LayerNotDefined(Exception):
     locator = "layers"
     code = "LayerNotDefined"
 
+
 class InvalidCRS(Exception):
     def __init__(self, value, crs_param_name):
         super(InvalidCRS, self).__init__(
@@ -41,6 +42,7 @@ class InvalidCRS(Exception):
         )
         self.locator = crs_param_name
     code = "InvalidCRS"
+
 
 class InvalidFormat(Exception):
     def __init__(self, value):

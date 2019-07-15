@@ -38,6 +38,11 @@ https://docs.djangoproject.com/en/1.4/ref/settings/
 
 import os
 from os.path import join, abspath, dirname
+# Make this unique, and don't share it with anybody.
+SECRET_KEY = 'tmp'
+
+# import django
+# django.setup()
 
 PROJECT_DIR = dirname(abspath(__file__))
 PROJECT_URL_PREFIX = ''
@@ -48,7 +53,6 @@ PROJECT_URL_PREFIX = ''
 #TEST_RUNNER = 'django.test.runner.DiscoverRunner'
 
 DEBUG = True
-TEMPLATE_DEBUG = DEBUG
 
 ADMINS = (
     # ('EOX', 'office@eox.at'),
@@ -57,26 +61,24 @@ ADMINS = (
 MANAGERS = ADMINS
 
 # Configure which database to use. Default is spatialite.
-DATABASE = os.environ.get('DB', 'spatialite')
-
-if DATABASE == 'spatialite':
+db_type = os.environ.get('DB', 'postgis')
+if db_type == 'postgis':
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.contrib.gis.db.backends.postgis',
+            'HOST': os.environ['DB_HOST'],
+            'NAME': os.environ['DB_NAME'],
+            'USER': os.environ['DB_USER'],
+            'PASSWORD': os.environ['DB_PW'],
+        }
+    }
+elif db_type == 'spatialite':
     DATABASES = {
         'default': {
             'ENGINE': 'django.contrib.gis.db.backends.spatialite',
             'NAME': join(PROJECT_DIR, 'data/config.sqlite'),
         }
     }
-else:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.contrib.gis.db.backends.postgis',
-            'NAME': 'eoxserver_testing',
-            'USER': 'eoxserver',
-            'PASSWORD': 'eoxserver',
-        }
-    }
-
-SPATIALITE_SQL = join(PROJECT_DIR, 'data/init_spatialite-2.3.sql')
 
 # Use faster ramfs tablespace for testing in case of PostGIS e.g. in Jenkins
 # Configure via:
@@ -158,27 +160,34 @@ STATICFILES_FINDERS = (
 #    'django.contrib.staticfiles.finders.DefaultStorageFinder',
 )
 
-# Make this unique, and don't share it with anybody.
-SECRET_KEY = 'tmp'
 
-# List of callables that know how to import templates from various sources.
-TEMPLATE_LOADERS = (
-    'django.template.loaders.filesystem.Loader',
-    'django.template.loaders.app_directories.Loader',
-#     'django.template.loaders.eggs.Loader',
-)
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [],
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [
+                'django.template.context_processors.debug',
+                'django.template.context_processors.request',
+                'django.contrib.auth.context_processors.auth',
+                'django.contrib.messages.context_processors.messages',
+            ],
+        },
+    },
+]
 
 MIDDLEWARE_CLASSES = (
-    'django.middleware.common.CommonMiddleware',
+    'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-# Commented because of POST requests:    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.middleware.common.CommonMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    # Uncomment the next line for simple clickjacking protection:
-    # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
-
-    # For management of the per/request cache system.
-    'eoxserver.backends.middleware.BackendsCacheMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    # # For management of the per/request cache system.
+    # 'eoxserver.backends.middleware.BackendsCacheMiddleware',
 )
 
 ROOT_URLCONF = 'autotest.urls'
@@ -186,32 +195,19 @@ ROOT_URLCONF = 'autotest.urls'
 # Python dotted path to the WSGI application used by Django's runserver.
 WSGI_APPLICATION = 'autotest.wsgi.application'
 
-TEMPLATE_DIRS = (
-    # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
-    # Always use forward slashes, even on Windows.
-    # Don't forget to use absolute paths, not relative paths.
-    join(PROJECT_DIR, 'templates'),
-)
-
 INSTALLED_APPS = (
+    'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
-    'django.contrib.sites',
     'django.contrib.messages',
-    'django.contrib.gis',
     'django.contrib.staticfiles',
-    # Enable the admin:
-    'django.contrib.admin',
-    # Enable admin documentation:
-    'django.contrib.admindocs',
+    'django.contrib.gis',
     # Enable the databrowse:
     #'django.contrib.databrowse',
     # Enable for better schema and data-migrations
-    #'south',
     # Enable for debugging
-    #'django_extensions',
-    #'django_nose',
+    # 'django_extensions',
     # Enable EOxServer:
     'eoxserver.core',
     'eoxserver.services',
@@ -233,30 +229,7 @@ INSTALLED_APPS = (
 # path can end with either a '*' or '**'. The single '*' means that all direct
 # modules in the package will be included. With the double '**' a recursive
 # search will be done.
-COMPONENTS = (
-    # backends
-    'eoxserver.backends.storages.*',
-    'eoxserver.backends.packages.*',
-
-    # metadata readers/writers
-    'eoxserver.resources.coverages.metadata.formats.*',
-
-    'eoxserver.resources.coverages.registration.registrators.*',
-
-    # service handlers
-    'eoxserver.services.ows.wcs.**',
-    'eoxserver.services.ows.wms.**',
-    'eoxserver.services.ows.wps.**',
-
-    # renderer components etc.
-    'eoxserver.services.native.**',
-    'eoxserver.services.gdal.**',
-    'eoxserver.services.mapserver.**',
-    'eoxserver.services.opensearch.**',
-
-    # test processes for WPS interface
-    'autotest_services.processes.*',
-)
+COMPONENTS = ()
 
 # A sample logging configuration. The only tangible logging
 # performed by this configuration is to send an email to
@@ -269,6 +242,9 @@ LOGGING = {
     'filters': {
         'require_debug_false': {
             '()': 'django.utils.log.RequireDebugFalse'
+        },
+        'require_debug_true': {
+            '()': 'django.utils.log.RequireDebugTrue',
         }
     },
     'formatters': {
@@ -293,6 +269,11 @@ LOGGING = {
             'filename': join(PROJECT_DIR, 'logs', 'django.log'),
             'formatter': 'verbose',
             'filters': [],
+        },
+        'console': {
+            'level': 'DEBUG',
+            'filters': ['require_debug_true'],
+            'class': 'logging.StreamHandler',
         }
     },
     'loggers': {
@@ -306,6 +287,10 @@ LOGGING = {
             'level': 'DEBUG' if DEBUG else 'INFO',
             'propagate': False
         },
+        # 'django.db.backends': {
+        #     'level': 'DEBUG',
+        #     'handlers': ['console'],
+        # }
     }
 }
 

@@ -1,0 +1,8 @@
+from .getcapabilities import WCS11GetCapabilitiesHandler
+from .describecoverage import WCS11DescribeCoverageHandler
+from .getcoverage import WCS11GetCoverageHandler
+
+
+GetCapabilitiesHandler = WCS11GetCapabilitiesHandler
+DescribeCoverageHandler = WCS11DescribeCoverageHandler
+GetCoverageHandler = WCS11GetCoverageHandler

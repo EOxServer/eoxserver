@@ -28,30 +28,24 @@
 from os.path import join
 from uuid import uuid4
 
-from eoxserver.core import Component, implements
-from eoxserver.backends.access import connect
+from eoxserver.backends.access import get_vsi_path
 from eoxserver.contrib import vsi, gdal
-from eoxserver.services.mapserver.interfaces import ConnectorInterface
 from eoxserver.processing.gdal.vrt import create_simple_vrt
 from eoxserver.processing.gdal import reftools
 from eoxserver.resources.coverages.dateline import wrap_extent_around_dateline
-from eoxserver.resources.coverages import models
 
 
-class SimpleConnector(Component):
+class SimpleConnector(object):
     """ Connector for single file layers.
     """
-    implements(ConnectorInterface)
 
-    def supports(self, data_items):
-        filtered = filter(lambda d: d.semantic.startswith("bands"), data_items)
-        return len(filtered) == 1
+    def supports(self, coverage, data_items):
+        return len(data_items) == 1
 
     def connect(self, coverage, data_items, layer, options):
-        filtered = filter(lambda d: d.semantic.startswith("bands"), data_items)
-        data = connect(filtered[0])
+        data = data_items[0].path
 
-        if isinstance(coverage, models.ReferenceableDataset):
+        if coverage.grid.is_referenceable:
             vrt_path = join("/vsimem", uuid4().hex)
             reftools.create_rectified_vrt(data, vrt_path)
             data = vrt_path
@@ -60,7 +54,9 @@ class SimpleConnector(Component):
         if not layer.metadata.get("eoxs_wrap_dateline") == "true":
             layer.data = data
         else:
-            e = wrap_extent_around_dateline(coverage.extent, coverage.srid)
+            sr = coverage.grid.spatial_reference
+            extent = coverage.extent
+            e = wrap_extent_around_dateline(extent, sr.srid)
 
             vrt_path = join("/vsimem", uuid4().hex)
             ds = gdal.Open(data)

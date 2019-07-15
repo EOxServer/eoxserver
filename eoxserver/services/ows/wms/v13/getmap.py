@@ -41,11 +41,8 @@ from eoxserver.services.result import to_http_response
 from eoxserver.services.ows.wms.exceptions import InvalidCRS
 
 
-class WMS13GetMapHandler(Component):
-    implements(ServiceHandlerInterface)
-    implements(GetServiceHandlerInterface)
-
-    renderer = UniqueExtensionPoint(WMSMapRendererInterface)
+class WMS13GetMapHandler(object):
+    methods = ['GET']
 
     service = ("WMS", None)
     versions = ("1.3.0", "1.3")
@@ -80,20 +77,61 @@ class WMS13GetMapHandler(Component):
         if time:
             subsets.append(time)
 
-        renderer = self.renderer
-        root_group = lookup_layers(layers, subsets, renderer.suffixes)
+        # TODO: adjust way to get to renderer
 
-        result, _ = renderer.render(
-            root_group, request.GET.items(),
-            width=int(decoder.width), height=int(decoder.height),
-            time=decoder.time, bands=decoder.dim_bands, subsets=subsets,
-            elevation=decoder.elevation,
-            dimensions=dict(
-                (key[4:], values) for key, values in decoder.dimensions
-            )
+        styles = decoder.styles
+
+        if styles:
+            styles = styles.split(',')
+
+        from eoxserver.services.ows.wms.layerquery import LayerQuery
+
+        render_map = LayerQuery().create_map(
+            layers=layers, styles=styles, bbox=bbox, crs=crs,
+            width=decoder.width, height=decoder.height,
+            format=decoder.format, transparent=decoder.transparent,
+            bgcolor=decoder.bgcolor,
+            time=time,
+
+            range=decoder.dim_range,
+
+            bands=None,
+            wavelengths=None,
+            elevation=None,
+            cql=decoder.cql,
         )
 
-        return to_http_response(result)
+
+        from eoxserver.render.mapserver.map_renderer import MapserverMapRenderer
+
+        return MapserverMapRenderer().render_map(render_map)
+
+        # root_group = lookup_layers(layers, subsets, renderer.suffixes)
+
+        # result, _ = renderer.render(
+        #     root_group, request.GET.items(),
+        #     width=int(decoder.width), height=int(decoder.height),
+        #     time=decoder.time, bands=decoder.dim_bands, subsets=subsets,
+        #     elevation=decoder.elevation,
+        #     dimensions=dict(
+        #         (key[4:], values) for key, values in decoder.dimensions
+        #     )
+        # )
+
+        # return to_http_response(result)
+
+
+def parse_transparent(value):
+    value = value.upper()
+    if value == 'TRUE':
+        return True
+    elif value == 'FALSE':
+        return False
+    raise ValueError("Invalid value for 'transparent' parameter.")
+
+
+def parse_range(value):
+    return map(float, value.split(','))
 
 
 class WMS13GetMapDecoder(kvp.Decoder):
@@ -105,6 +143,11 @@ class WMS13GetMapDecoder(kvp.Decoder):
     width  = kvp.Parameter(num=1)
     height = kvp.Parameter(num=1)
     format = kvp.Parameter(num=1)
+    bgcolor = kvp.Parameter(num='?')
+    transparent = kvp.Parameter(num='?', default=False, type=parse_transparent)
     dim_bands = kvp.Parameter(type=typelist(int_or_str, ","), num="?")
+    dim_range = kvp.Parameter(type=parse_range, num="?")
     elevation = kvp.Parameter(type=float, num="?")
     dimensions = kvp.MultiParameter(lambda s: s.startswith("dim_"), locator="dimension", num="*")
+
+    cql = kvp.Parameter(num="?")

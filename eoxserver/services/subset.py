@@ -33,6 +33,7 @@ from django.contrib.gis.geos import Polygon, LineString
 
 from eoxserver.core.config import get_eoxserver_config
 from eoxserver.core.decoders import config, enum
+from eoxserver.contrib.osr import SpatialReference
 from eoxserver.resources.coverages import crss
 from eoxserver.services.exceptions import (
     InvalidAxisLabelException, InvalidSubsettingException,
@@ -129,19 +130,18 @@ class Subsets(list):
             return srid
         return None
 
-    def filter(self, queryset, containment="overlaps"):
+    def get_filters(self, containment="overlaps"):
         """ Filter a :class:`Django QuerySet <django.db.models.query.QuerySet>`
         of objects inheriting from :class:`EOObject
         <eoxserver.resources.coverages.models.EOObject>`.
 
         :param queryset: the ``QuerySet`` to filter
         :param containment: either "overlaps" or "contains"
-        :returns: a ``QuerySet`` with additional filters applied
+        :returns: a ``dict`` with the filters
         """
+        filters = {}
         if not len(self):
-            return queryset
-
-        qs = queryset
+            return filters
 
         bbox = [None, None, None, None]
         srid = self.srid
@@ -174,38 +174,26 @@ class Subsets(list):
 
             if subset.is_temporal:
                 if is_slice or (high == low and containment == "overlaps"):
-                    qs = qs.filter(
-                        begin_time__lte=value,
-                        end_time__gte=value
-                    )
+                    filters['begin_time__lte'] = value
+                    filters['end_time__gte'] = value
 
                 elif high == low:
-                    qs = qs.filter(
-                        begin_time__gte=value,
-                        end_time__lte=value
-                    )
+                    filters['begin_time__gte'] = value
+                    filters['end_time__lte'] = value
 
                 else:
                     # check if the temporal bounds must be strictly contained
                     if containment == "contains":
                         if high is not None:
-                            qs = qs.filter(**{
-                                "end_time" + lt_op: high
-                            })
+                            filters['end_time' + lt_op] = high
                         if low is not None:
-                            qs = qs.filter(**{
-                                "begin_time" + gt_op: low
-                            })
+                            filters['begin_time' + gt_op] = low
                     # or just overlapping
                     else:
                         if high is not None:
-                            qs = qs.filter(**{
-                                "begin_time" + lt_op: high
-                            })
+                            filters['begin_time' + lt_op] = high
                         if low is not None:
-                            qs = qs.filter(**{
-                                "end_time" + gt_op: low
-                            })
+                            filters['end_time' + gt_op] = low
 
             else:
                 if is_slice:
@@ -222,7 +210,7 @@ class Subsets(list):
                     line.srid = srid
                     if srid != 4326:
                         line.transform(4326)
-                    qs = qs.filter(footprint__intersects=line)
+                    filters['footprint__intersects'] = line
 
                 else:
                     if subset.is_x:
@@ -253,11 +241,27 @@ class Subsets(list):
             if srid != 4326:
                 poly.transform(4326)
             if containment == "overlaps":
-                qs = qs.filter(footprint__intersects=poly)
+                filters['footprint__intersects'] = poly
             elif containment == "contains":
-                qs = qs.filter(footprint__within=poly)
+                filters['footprint__within'] = poly
 
-        return qs
+        return filters
+
+    def filter(self, queryset, containment="overlaps"):
+        """ Filter a :class:`Django QuerySet <django.db.models.query.QuerySet>`
+        of objects inheriting from :class:`EOObject
+        <eoxserver.resources.coverages.models.EOObject>`.
+
+        :param queryset: the ``QuerySet`` to filter
+        :param containment: either "overlaps" or "contains"
+        :returns: a ``QuerySet`` with additional filters applied
+        """
+
+        if not len(self):
+            return queryset
+
+        filters = self.get_filters(containment)
+        return queryset.filter(**filters)
 
     def matches(self, eo_object, containment="overlaps"):
         """ Check if the given :class:`EOObject
@@ -437,13 +441,13 @@ class Subsets(list):
     def bounding_polygon(self, coverage):
         """ Returns a minimum bounding :class:`django.contrib.gis.geos.Polygon`
         for the given :class:`Coverage
-        <eoxserver.resources.coverages.models.Coverage>`
+        <eoxserver.render.coverages.objects.Coverage>`
 
         :param coverage: the coverage to calculate the bounding polygon for
         :returns: the calculated ``Polygon``
         """
 
-        srid = coverage.srid
+        srid = SpatialReference(coverage.grid.coordinate_reference_system).srid
         extent = coverage.extent
         size_x, size_y = coverage.size
         footprint = coverage.footprint

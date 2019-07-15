@@ -27,6 +27,7 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 -->
+{% load static %}
 <html>
 <head>
     <meta charset="utf-8">
@@ -35,11 +36,11 @@
     <meta name="description" content="">
     <meta name="viewport" content="width=device-width">
 
-    <link rel="icon" href="{{STATIC_URL}}favicon.ico" type="image/x-icon">
-    <link rel="shortcut icon" href="{{STATIC_URL}}favicon.ico" type="image/x-icon">
+    <link rel="icon" href="{% static 'favicon.ico' %}" type="image/x-icon">
+    <link rel="shortcut icon" href="{% static 'favicon.ico' %}" type="image/x-icon">
 </head>
 <body>
-    {% load url from future %}
+    
 
     <h1>Welcome to this EOxServer instance</h1>
 
@@ -52,12 +53,13 @@
                 <li><a href="{% url 'ows' %}?service=wps&amp;request=getcapabilities">WPS</a></li>
             </ul>
         <li><a href="{% url 'opensearch:description' %}">OpenSearch</a></li>
-        <li><a href="{% url 'eoxserver.webclient.views.index' %}">Web Client</a></li>
+        <li><a href="{% url 'webclient:index' %}">Web Client</a></li>
+        
         <li><a href="{% url 'admin:index' %}">Admin Client</a></li>
     </ul>
 
     Powered by<br/>
-    <a href="http://eoxserver.org" target="_blank"><img src="{{STATIC_URL}}EOxServer_logo_small.png" alt="EOxServer"/></a><br/>
+    <a href="http://eoxserver.org" target="_blank"><img src="{% static 'EOxServer_logo_small.png' %}" alt="EOxServer"/></a><br/>
     version {{version}}<br/>
     See <a href="http://eoxserver.org/doc" target="_blank">EOxServer documentation</a> for help.
 </body>

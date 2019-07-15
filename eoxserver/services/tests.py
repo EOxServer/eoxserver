@@ -117,79 +117,97 @@ class TemporalSubsetsTestCase(TransactionTestCase):
         """
         p = parse_iso8601
 
-        range_type = models.RangeType.objects.create(name="RGB")
+        grid = models.Grid.objects.create(
+            coordinate_reference_system='EPSG:4326',
+            axis_1_name='long',
+            axis_2_name='lat',
+            axis_1_type=0,
+            axis_2_type=0,
+            axis_1_offset=5/100,
+            axis_2_offset=5/100,
+        )
+
+        coverage_type = models.CoverageType.objects.create(name="RGB")
         self.datasets = [
-            models.RectifiedDataset.objects.create(
+            models.Coverage.objects.create(
                 identifier="A",
                 footprint=MultiPolygon(Polygon.from_bbox((0, 0, 5, 5))),
                 begin_time=p("2000-01-01T00:00:00Z"),
                 end_time=p("2000-01-01T00:00:05Z"),
-                srid=4326, min_x=0, min_y=0, max_x=5, max_y=5,
-                size_x=100, size_y=100,
-                range_type=range_type
+                grid=grid,
+                axis_1_size=100, axis_2_size=100,
+                axis_1_origin=0, axis_2_origin=0,
+                coverage_type=coverage_type
             ),
-            models.RectifiedDataset.objects.create(
+            models.Coverage.objects.create(
                 identifier="B",
                 footprint=MultiPolygon(Polygon.from_bbox((0, 0, 5, 5))),
                 begin_time=p("2000-01-01T00:00:10Z"),
                 end_time=p("2000-01-01T00:00:15Z"),
-                srid=4326, min_x=0, min_y=0, max_x=5, max_y=5,
-                size_x=100, size_y=100,
-                range_type=range_type
+                grid=grid,
+                axis_1_size=100, axis_2_size=100,
+                axis_1_origin=0, axis_2_origin=0,
+                coverage_type=coverage_type
             ),
-            models.RectifiedDataset.objects.create(
+            models.Coverage.objects.create(
                 identifier="C",
                 footprint=MultiPolygon(Polygon.from_bbox((0, 0, 5, 5))),
                 begin_time=p("2000-01-01T00:00:12Z"),
                 end_time=p("2000-01-01T00:00:17Z"),
-                srid=4326, min_x=0, min_y=0, max_x=5, max_y=5,
-                size_x=100, size_y=100,
-                range_type=range_type
+                grid=grid,
+                axis_1_size=100, axis_2_size=100,
+                axis_1_origin=0, axis_2_origin=0,
+                coverage_type=coverage_type
             ),
-            models.RectifiedDataset.objects.create(
+            models.Coverage.objects.create(
                 identifier="D",
                 footprint=MultiPolygon(Polygon.from_bbox((0, 0, 5, 5))),
                 begin_time=p("2000-01-01T00:00:15Z"),
                 end_time=p("2000-01-01T00:00:20Z"),
-                srid=4326, min_x=0, min_y=0, max_x=5, max_y=5,
-                size_x=100, size_y=100,
-                range_type=range_type
+                grid=grid,
+                axis_1_size=100, axis_2_size=100,
+                axis_1_origin=0, axis_2_origin=0,
+                coverage_type=coverage_type
             ),
-            models.RectifiedDataset.objects.create(
+            models.Coverage.objects.create(
                 identifier="E",
                 footprint=MultiPolygon(Polygon.from_bbox((0, 0, 5, 5))),
                 begin_time=p("2000-01-01T00:00:18Z"),
                 end_time=p("2000-01-01T00:00:23Z"),
-                srid=4326, min_x=0, min_y=0, max_x=5, max_y=5,
-                size_x=100, size_y=100,
-                range_type=range_type
+                grid=grid,
+                axis_1_size=100, axis_2_size=100,
+                axis_1_origin=0, axis_2_origin=0,
+                coverage_type=coverage_type
             ),
-            models.RectifiedDataset.objects.create(
+            models.Coverage.objects.create(
                 identifier="F",
                 footprint=MultiPolygon(Polygon.from_bbox((0, 0, 5, 5))),
                 begin_time=p("2000-01-01T00:00:20Z"),
                 end_time=p("2000-01-01T00:00:25Z"),
-                srid=4326, min_x=0, min_y=0, max_x=5, max_y=5,
-                size_x=100, size_y=100,
-                range_type=range_type
+                grid=grid,
+                axis_1_size=100, axis_2_size=100,
+                axis_1_origin=0, axis_2_origin=0,
+                coverage_type=coverage_type
             ),
-            models.RectifiedDataset.objects.create(
+            models.Coverage.objects.create(
                 identifier="G",
                 footprint=MultiPolygon(Polygon.from_bbox((0, 0, 5, 5))),
                 begin_time=p("2000-01-01T00:00:30Z"),
                 end_time=p("2000-01-01T00:00:35Z"),
-                srid=4326, min_x=0, min_y=0, max_x=5, max_y=5,
-                size_x=100, size_y=100,
-                range_type=range_type
+                grid=grid,
+                axis_1_size=100, axis_2_size=100,
+                axis_1_origin=0, axis_2_origin=0,
+                coverage_type=coverage_type
             ),
-            models.RectifiedDataset.objects.create(
+            models.Coverage.objects.create(
                 identifier="H",
                 footprint=MultiPolygon(Polygon.from_bbox((0, 0, 5, 5))),
                 begin_time=p("2000-01-01T00:00:40Z"),
                 end_time=p("2000-01-01T00:00:40Z"),
-                srid=4326, min_x=0, min_y=0, max_x=5, max_y=5,
-                size_x=100, size_y=100,
-                range_type=range_type
+                grid=grid,
+                axis_1_size=100, axis_2_size=100,
+                axis_1_origin=0, axis_2_origin=0,
+                coverage_type=coverage_type
             )
         ]
 
@@ -213,9 +231,7 @@ class TemporalSubsetsTestCase(TransactionTestCase):
         """ Evaluates the subset via QuerySet filter and via the matches()
             functionality.
         """
-        qs = subsets.filter(
-            models.EOObject.objects.all(), containment
-        )
+        qs = models.EOObject.objects.filter(**subsets.get_filters(containment))
 
         # test the "filter()" function
         self.assertItemsEqual(

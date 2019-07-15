@@ -55,72 +55,72 @@ def create(Model, *args, **kwargs):
     return model
 
 
-class RetrieveTestCase(TestCase):
-    def setUp(self):
-        pass
+# class RetrieveTestCase(TestCase):
+#     def setUp(self):
+#         pass
 
-    def tearDown(self):
-        pass
+#     def tearDown(self):
+#         pass
 
-    def test_retrieve_http(self):
-        import storages, packages
+#     def test_retrieve_http(self):
+#         import storages, packages
 
-        storage = create(models.Storage,
-            url="http://eoxserver.org/export/2523/downloads",
-            storage_type="HTTP"
-        )
-        dataset = create(models.DataItem,
-            location="EOxServer_documentation-0.3.0.pdf",
-            storage=storage,
-            semantic="pdffile"
-        )
+#         storage = create(models.Storage,
+#             url="http://eoxserver.org/export/2523/downloads",
+#             storage_type="HTTP"
+#         )
+#         dataset = create(models.DataItem,
+#             location="EOxServer_documentation-0.3.0.pdf",
+#             storage=storage,
+#             semantic="pdffile"
+#         )
 
-        with CacheContext() as c:
-            cache_path = retrieve(dataset, c)
-            self.assertTrue(os.path.exists(cache_path))
+#         with CacheContext() as c:
+#             cache_path = retrieve(dataset, c)
+#             self.assertTrue(os.path.exists(cache_path))
 
-        self.assertFalse(os.path.exists(cache_path))
+#         self.assertFalse(os.path.exists(cache_path))
 
-    @skip("not yet implemented")
-    @withFTPServer()
-    def test_retrieve_ftp_zip(self):
-        import storages
-        import packages
+#     @skip("not yet implemented")
+#     @withFTPServer()
+#     def test_retrieve_ftp_zip(self):
+#         import storages
+#         import packages
 
-        storage = create(models.Storage,
-            url="ftp://anonymous:@localhost:2121/",
-            storage_type="FTP"
-        )
+#         storage = create(models.Storage,
+#             url="ftp://anonymous:@localhost:2121/",
+#             storage_type="FTP"
+#         )
 
-        package = create(models.Package,
-            location="package.zip",
-            format="ZIP",
-            storage=storage
-        )
+#         package = create(models.Package,
+#             location="package.zip",
+#             format="ZIP",
+#             storage=storage
+#         )
 
-        dataset = create(models.DataItem,
-            location="file.txt",
-            package=package,
-            semantic="textfile"
-        )
+#         dataset = create(models.DataItem,
+#             location="file.txt",
+#             package=package,
+#             semantic="textfile"
+#         )
 
-        dataset2 = create(models.DataItem,
-            location="file2.txt",
-            package=package,
-            semantic="textfile"
-        )
+#         dataset2 = create(models.DataItem,
+#             location="file2.txt",
+#             package=package,
+#             semantic="textfile"
+#         )
 
-        with CacheContext() as c:
-            cache_path = retrieve(dataset, c)
-            cache_path2 = retrieve(dataset2, c)
-            self.assertTrue(os.path.exists(cache_path))
-            self.assertTrue(os.path.exists(cache_path2))
+#         with CacheContext() as c:
+#             cache_path = retrieve(dataset, c)
+#             cache_path2 = retrieve(dataset2, c)
+#             self.assertTrue(os.path.exists(cache_path))
+#             self.assertTrue(os.path.exists(cache_path2))
 
-            with open(cache_path) as f:
-                self.assertEqual(f.read(), "test\n")
+#             with open(cache_path) as f:
+#                 self.assertEqual(f.read(), "test\n")
 
-            with open(cache_path2) as f:
-                self.assertEqual(f.read(), "test 2\n")
+#             with open(cache_path2) as f:
+#                 self.assertEqual(f.read(), "test 2\n")
 
-        self.assertFalse(os.path.exists(cache_path))
-        self.assertFalse(os.path.exists(cache_path2))
+#         self.assertFalse(os.path.exists(cache_path))
+#         self.assertFalse(os.path.exists(cache_path2))

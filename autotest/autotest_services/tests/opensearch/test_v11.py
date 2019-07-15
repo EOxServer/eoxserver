@@ -1,15 +1,19 @@
 import json
 
-from django.test import TestCase, Client
+from django.test import TestCase, Client, tag
 from django.core.urlresolvers import reverse
 
-from eoxserver.core.util.xmltools import etree
+from eoxserver.core.util.xmltools import etree, parse
 from eoxserver.contrib import gdal, ogr
 
 NSMAP = {
     'kml': 'http://www.opengis.net/kml/2.2',
     'atom': 'http://www.w3.org/2005/Atom'
 }
+
+@tag('opensearch')
+class BaseOpenSearchMixIn(object):
+    pass
 
 
 class GeoJSONMixIn(object):
@@ -38,20 +42,10 @@ class AtomMixIn(object):
     format_name = 'atom'
 
     def get_ids(self, response):
-        ids = []
-        gdal.FileFromMemBuffer('/vsimem/temp', response.content)
-
-        ds = ogr.Open('/vsimem/temp')
-        lyr = ds.GetLayer(0)
-        feat = lyr.GetNextFeature()
-        while feat is not None:
-            ids.append(feat.GetFieldAsString('id'))
-            feat.Destroy()
-            feat = lyr.GetNextFeature()
-
-        ds.Destroy()
-        gdal.Unlink('/vsimem/temp')
-        return ids
+        root = parse(response.content).getroot()
+        return root.xpath('atom:entry/atom:id/text()', namespaces={
+            'atom': 'http://www.w3.org/2005/Atom'
+        })
 
 
 class RSSMixIn(object):
@@ -75,12 +69,14 @@ class RSSMixIn(object):
 
 
 class BaseSearchMixIn(object):
-    fixtures = [
-        "range_types.json", "meris_range_type.json",
-        "meris_coverages_uint16.json", "meris_coverages_rgb.json",
-        "meris_coverages_reprojected_uint16.json",
-        "asar_range_type.json", "asar_coverages.json"
-    ]
+    # fixtures = [
+    #     "range_types.json", "meris_range_type.json",
+    #     "meris_coverages_uint16.json", "meris_coverages_rgb.json",
+    #     "meris_coverages_reprojected_uint16.json",
+    #     "asar_range_type.json", "asar_coverages.json"
+    # ]
+
+    fixtures = ['fixtures.json']
 
     def setUp(self):
         client = Client()
@@ -102,13 +98,13 @@ class BaseSearchMixIn(object):
         self.assertItemsEqual(self.expected_ids, self.get_ids(self.response))
 
 
-class CollectionSearchMixIn(BaseSearchMixIn):
+class CollectionSearchMixIn(BaseOpenSearchMixIn):
     def test_links(self):
         if self.format_name in ("rss", "atom"):
             pass
 
 
-class RecordSearchMixIn(BaseSearchMixIn):
+class RecordSearchMixIn(BaseOpenSearchMixIn):
     def test_links(self):
         if self.format_name in ("rss", "atom"):
             pass

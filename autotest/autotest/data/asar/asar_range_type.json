@@ -1,42 +1,46 @@
 [
 {
-    "pk": 3, 
-    "model": "coverages.nilvalueset", 
-    "fields": {
-        "name": "ASAR Nil Value Set", 
-        "data_type": 2
-    }
-},
-{
-    "pk": 4, 
-    "model": "coverages.nilvalue", 
-    "fields": {
-        "reason": "http://www.opengis.net/def/nil/OGC/0/unknown", 
-        "nil_value_set": 3, 
-        "raw_value": "0"
-    }
-},
-{
-    "pk": 24, 
-    "model": "coverages.band", 
-    "fields": {
-        "index": 1, 
-        "name": "ASAR_Amplitude", 
-        "data_type": 2, 
-        "definition": "http://www.opengis.net/def/property/OGC/0/Amplitude", 
-        "range_type": 5, 
-        "color_interpretation": 0, 
-        "identifier": "ASAR_Amplitude", 
-        "uom": "?", 
-        "description": "ASAR Amplitude Band",
-        "nil_value_set": 3
-    }
-},
-{
-    "pk": 5, 
-    "model": "coverages.rangetype", 
+    "model": "coverages.coveragetype",
+    "pk": 1,
     "fields": {
         "name": "ASAR"
+    }
+},
+{
+    "model": "coverages.fieldtype",
+    "pk": 1,
+    "fields": {
+        "coverage_type": 1,
+        "index": 0,
+        "identifier": "ASAR_Amplitude",
+        "description": "ASAR Amplitude Band",
+        "definition": "http://www.opengis.net/def/property/OGC/0/Amplitude",
+        "unit_of_measure": "?",
+        "wavelength": null,
+        "significant_figures": 5,
+        "numbits": 16,
+        "signed": false,
+        "is_float": false
+    }
+},
+{
+    "model": "coverages.allowedvaluerange",
+    "pk": 1,
+    "fields": {
+        "field_type": 1,
+        "start": 0.0,
+        "end": 65535.0
+    }
+},
+{
+    "model": "coverages.nilvalue",
+    "pk": 1,
+    "fields": {
+        "value": "0",
+        "reason": "http://www.opengis.net/def/nil/OGC/0/unknown",
+        "field_types": [
+            1
+        ]
     }
 }
 ]

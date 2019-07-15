@@ -32,6 +32,7 @@ import traceback
 from optparse import OptionValueError
 
 from django.db import transaction
+from django.core.management.base import CommandParser
 
 
 logger = logging.getLogger(__name__)
@@ -134,29 +135,19 @@ class CommandOutputMixIn(object):
             self.print_msg(traceback.format_exc())
 
 
-def nested_commit_on_success(func):
-    """Like commit_on_success, but doesn't commit existing transactions.
+class SubParserMixIn(object):
+    def add_subparser(self, parser, name, *args, **kwargs):
+        if not getattr(self, 'subparsers', None):
+            self.subparsers = parser.add_subparsers(
+                title="subcommands",
+                parser_class=lambda **kw: CommandParser(self, **kw)
+            )
+        subparser = self.subparsers.add_parser(name, *args, **kwargs)
+        subparser.set_defaults(subcommand=name)
 
-    This decorator is used to run a function within the scope of a
-    database transaction, committing the transaction on success and
-    rolling it back if an exception occurs.
+        subparser.add_argument('--traceback', action="store_true", default=False)
+        subparser.add_argument('--settings', nargs=1)
+        subparser.add_argument('--pythonpath', nargs=1)
+        subparser.add_argument('--no-color', action="store_true", default=False)
 
-    Unlike the standard transaction.commit_on_success decorator, this
-    version first checks whether a transaction is already active.  If so
-    then it doesn't perform any commits or rollbacks, leaving that up to
-    whoever is managing the active transaction.
-
-    From: https://djangosnippets.org/snippets/1343/
-    """
-
-    try:
-        return transaction.atomic(func)
-    except AttributeError:
-        commit_on_success = transaction.commit_on_success(func)
-
-        def _nested_commit_on_success(*args, **kwargs):
-            if transaction.is_managed():
-                return func(*args, **kwargs)
-            else:
-                return commit_on_success(*args, **kwargs)
-        return transaction.wraps(func)(_nested_commit_on_success)
+        return subparser

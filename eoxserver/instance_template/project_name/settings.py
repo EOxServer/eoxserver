@@ -78,7 +78,7 @@ ALLOWED_HOSTS = []
 # dates/times -- not necessarily the timezone of the server.
 # If you are using UTC (Zulu) time zone for your data (e.g. most
 # satellite imagery) it is highly recommended to use 'UTC' here. Otherwise
-# you will encounter time-shifts between your data, search request & the 
+# you will encounter time-shifts between your data, search request & the
 # returned results.
 TIME_ZONE = 'UTC'
 
@@ -136,12 +136,21 @@ STATICFILES_FINDERS = (
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = '{{ secret_key }}'
 
-# List of callables that know how to import templates from various sources.
-TEMPLATE_LOADERS = (
-    'django.template.loaders.filesystem.Loader',
-    'django.template.loaders.app_directories.Loader',
-#     'django.template.loaders.eggs.Loader',
-)
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [],
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [
+                'django.template.context_processors.debug',
+                'django.template.context_processors.request',
+                'django.contrib.auth.context_processors.auth',
+                'django.contrib.messages.context_processors.messages',
+            ],
+        },
+    },
+]
 
 MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',
@@ -160,13 +169,6 @@ ROOT_URLCONF = '{{ project_name }}.urls'
 
 # Python dotted path to the WSGI application used by Django's runserver.
 WSGI_APPLICATION = '{{ project_name }}.wsgi.application'
-
-TEMPLATE_DIRS = (
-    # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
-    # Always use forward slashes, even on Windows.
-    # Don't forget to use absolute paths, not relative paths.
-    join(PROJECT_DIR, 'templates'),
-)
 
 INSTALLED_APPS = (
     'django.contrib.auth',
@@ -198,34 +200,14 @@ INSTALLED_APPS = (
 
 
 # The configured EOxServer components. Components add specific functionality
-# to the EOxServer and must adhere to a given interface. In order to activate 
+# to the EOxServer and must adhere to a given interface. In order to activate
 # a component, its module must be included in the following list or imported at
-# some other place. To help configuring all required components, each module 
+# some other place. To help configuring all required components, each module
 # path can end with either a '*' or '**'. The single '*' means that all direct
-# modules in the package will be included. With the double '**' a recursive 
+# modules in the package will be included. With the double '**' a recursive
 # search will be done.
 COMPONENTS = (
-    # backends
-    'eoxserver.backends.storages.*',
-    'eoxserver.backends.packages.*',
-
-    # metadata readers/writers
-    'eoxserver.resources.coverages.metadata.formats.*',
-
-	# registration schemes
-    'eoxserver.resources.coverages.registration.registrators.*',
-
-    # service handlers
-    'eoxserver.services.ows.wcs.**',
-    'eoxserver.services.ows.wms.**',
-    'eoxserver.services.ows.wps.**',
-
-    # renderer components etc.
-    'eoxserver.services.native.**',
-    'eoxserver.services.gdal.**',
-    'eoxserver.services.mapserver.**',
-
-    'eoxserver.services.opensearch.**'
+    # not used anymore
 )
 
 
@@ -283,6 +265,6 @@ FIXTURE_DIRS = (
     join(PROJECT_DIR, 'data/fixtures'),
 )
 
-# Set this variable if the path to the instance cannot be resolved 
+# Set this variable if the path to the instance cannot be resolved
 # automatically, e.g. in case of redirects
 #FORCE_SCRIPT_NAME="/path/to/instance/"

@@ -1,25 +1,26 @@
 [
 {
-    "pk": 25, 
-    "model": "coverages.band", 
+    "model": "coverages.coveragetype",
+    "pk": 4,
     "fields": {
-        "index": 1, 
-        "name": "Snowtype", 
-        "data_type": 2, 
-        "definition": "", 
-        "range_type": 6, 
-        "color_interpretation": 2, 
-        "identifier": "Snowtype", 
-        "uom": "?", 
-        "description": "Snow",
-        "nil_value_set": null
+        "name": "Snow"
     }
 },
 {
-    "pk": 6, 
-    "model": "coverages.rangetype", 
+    "model": "coverages.fieldtype",
+    "pk": 20,
     "fields": {
-        "name": "Snow"
+        "coverage_type": 4,
+        "index": 0,
+        "identifier": "Snowtype",
+        "description": "Snow",
+        "definition": "",
+        "unit_of_measure": "?",
+        "wavelength": null,
+        "significant_figures": null,
+        "numbits": 8,
+        "signed": false,
+        "is_float": false
     }
 }
 ]

@@ -25,25 +25,19 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-
-from eoxserver.core import Component, implements
 from eoxserver.core.decoders import (
-    kvp, xml, upper, enum, value_range, boolean, InvalidParameterException
+    kvp, xml, enum, value_range, boolean, InvalidParameterException
 )
 from eoxserver.core.util.xmltools import NameSpace, NameSpaceMap
-from eoxserver.services.ows.wcs.interfaces import EncodingExtensionInterface
 from eoxserver.services.ows.wcs.v20.util import ns_wcs
 
 
-class WCS20GeoTIFFEncodingExtension(Component):
-    implements(EncodingExtensionInterface)
-
+class WCS20GeoTIFFEncodingExtension(object):
     def supports(self, frmt, options):
         # To allow "native" GeoTIFF formats aswell
         if not frmt:
             return True
         return frmt.lower() == "image/tiff"
-
 
     def get_decoder(self, request):
         if request.method == "GET":
@@ -73,7 +67,7 @@ class WCS20GeoTIFFEncodingExtension(Component):
                 "geotiff:jpeg_quality requires compression method 'JPEG'.",
                 "geotiff:jpeg_quality"
             )
-        
+
         if tiling and (tileheight is None or tilewidth is None):
             raise InvalidParameterException(
                 "geotiff:tiling requires geotiff:tilewidth and "

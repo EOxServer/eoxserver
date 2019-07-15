@@ -32,11 +32,12 @@
 
 import os
 from uuid import uuid4
+from functools import wraps
 
 if os.environ.get('READTHEDOCS', None) != 'True':
     from eoxserver.contrib.gdal import (
         VSIFOpenL, VSIFCloseL, VSIFReadL, VSIFWriteL, VSIFSeekL, VSIFTellL,
-        VSIStatL, Unlink, Rename, FileFromMemBuffer
+        VSIStatL, VSIFTruncateL, Unlink, Rename, FileFromMemBuffer
     )
 
     rename = Rename
@@ -59,6 +60,15 @@ def open(filename, mode="r"):
     return VSIFile(filename, mode)
 
 
+def _ensure_open(func):
+    @wraps(func)
+    def wrapper(self, *args, **kwargs):
+        if self._handle is None:
+            raise ValueError('I/O operation on closed file')
+        return func(self, *args, **kwargs)
+    return wrapper
+
+
 class VSIFile(object):
     """ File-like object interface for VSI file API.
 
@@ -66,6 +76,8 @@ class VSIFile(object):
                      path like "/vsicurl/..." or "/vsizip/...". See the `GDAL
                      documentation
                      <http://trac.osgeo.org/gdal/wiki/UserDocs/ReadInZip>`_
+                     and `manuals
+                     <http://www.gdal.org/gdal_virtual_file_systems.html>`_
                      for reference.
     :param mode: the file opening mode
     """
@@ -78,11 +90,12 @@ class VSIFile(object):
             raise IOError("Failed to open file '%s'." % self._filename)
 
     @property
-    def filename(self):
+    def name(self):
         """ Returns the filename referenced by this file
         """
         return self._filename
 
+    @_ensure_open
     def read(self, size=None):
         """ Read from the file. If no ``size`` is specified, read until the end
         of the file.
@@ -91,10 +104,17 @@ class VSIFile(object):
         :returns: the bytes read as a string
         """
 
-        if size is None:
-            size = self.size - self.tell()
-        return VSIFReadL(1, size, self._handle)
+        bytes_left = self.size - self.tell()
 
+        if size is None:
+            size = bytes_left
+        else:
+            size = min(size, bytes_left)
+
+        value = VSIFReadL(1, size, self._handle)
+        return value if value is not None else ''
+
+    @_ensure_open
     def write(self, data):
         """ Write the buffer ``data`` to the file.
 
@@ -102,6 +122,7 @@ class VSIFile(object):
         """
         VSIFWriteL(data, 1, len(data), self._handle)
 
+    @_ensure_open
     def tell(self):
         """ Return the current read/write offset of the file.
 
@@ -109,6 +130,7 @@ class VSIFile(object):
         """
         return VSIFTellL(self._handle)
 
+    @_ensure_open
     def seek(self, offset, whence=os.SEEK_SET):
         """ Set the new read/write offset in the file.
 
@@ -133,12 +155,91 @@ class VSIFile(object):
         """
         return (self._handle is None)
 
+    def __iter__(self):
+        """ Iterate over the lines within the file.
+        """
+        return self
+
+    @_ensure_open
+    def next(self):
+        """ Satisfaction of the iterator protocol. Return the next line in the
+            file or raise `StopIteration`.
+        """
+        line = self.readline()
+        if not line:
+            raise StopIteration
+        return line
+
+    @_ensure_open
+    def readline(self, length=None, windowsize=1024):
+        """ Read a single line from the file and return it.
+
+        :param length: the maximum number of bytes to read to look for a whole
+                       line.
+        :param windowsize: the windowsize to search for a newline character.
+        """
+        line = ""
+        while True:
+            # read amount and detect for EOF
+            string = self.read(length or windowsize)
+            if not string:
+                break
+
+            try:
+                position = string.index('\n')
+                line += string[:position]
+
+                # retun the cursor for the remainder of the string
+                self.seek(-(len(string) - (position + 1)), os.SEEK_CUR)
+                break
+            except ValueError:
+                line += string
+
+            # also break when a specific size was requested but no newline was
+            # found
+            if length:
+                break
+
+        return line
+
+    def readlines(self, sizehint=0):
+        """ Read the remainder of the file (or up to `sizehint` bytes) and return
+            the lines.
+
+        :param sizehint: the number of bytes to scan for lines.
+        :return: the lines
+        :rtype: list of strings
+        """
+        # TODO: take sizehint into account
+        lines = [line for line in self]
+        return lines
+
     @property
+    @_ensure_open
     def size(self):
         """ Return the size of the file in bytes
         """
-        stat = VSIStatL(self.filename)
+        stat = VSIStatL(self.name)
         return stat.size
+
+    @_ensure_open
+    def flush(self):
+        pass
+        # VSIFlushL(self._handle)  # TODO: not available?
+
+    @_ensure_open
+    def truncate(self, size=None):
+        """ Truncates the file to the given size or to the size until the current
+            position.
+
+        :param size: the new size of the file.
+        """
+        size = size or self.tell()
+        VSIFTruncateL(self._handle, size)
+
+    def isatty(self):
+        """ Never a TTY """
+        return False
 
     def __enter__(self):
         return self
@@ -165,12 +266,28 @@ class TemporaryVSIFile(VSIFile):
                          by default this is an in-memory location
         """
         if not filename:
-            filename = "/vsimem/%s" % uuid4().hex()
-        FileFromMemBuffer(filename, buf)
-        return cls(mode)
+            filename = "/vsimem/%s" % uuid4().hex
+        f = cls(filename, mode)
+        f.write(buf)
+        f.seek(0)
+        return f
 
     def close(self):
         """ Close the file. This also deletes it.
         """
         super(TemporaryVSIFile, self).close()
-        remove(self.filename)
+        remove(self.name)
+
+
+def join(first, *paths):
+    """ Joins the given VSI path specifiers. Similar to :func:`os.path.join` but
+        takes care of the VSI-specific handles such as `vsicurl`, `vsizip`, etc.
+    """
+    parts = first.split('/')
+    for path in paths:
+        new = path.split('/')
+        if path.startswith('/vsi'):
+            parts = new[0:2] + (parts if parts[0] else parts[1:]) + new[2:]
+        else:
+            parts.extend(new)
+    return '/'.join(parts)

@@ -29,20 +29,17 @@
 from django.contrib.gis.geos import GEOSGeometry, Point, Polygon
 from django.contrib.gis.measure import D
 
-from eoxserver.core import Component, implements
 from eoxserver.core.decoders import kvp, enum
 from eoxserver.core.util.xmltools import NameSpace
-from eoxserver.services.opensearch.interfaces import SearchExtensionInterface
 
 
-class GeoExtension(Component):
+class GeoExtension(object):
     """ Implementation of the OpenSearch `'Geo' extension draft
     <http://www.opensearch.org/Specifications/OpenSearch/Extensions/Geo/1.0/Draft_2>`_.
     Currently all parameters apart from the ``name`` are supported. The point
     plus radius with the relation type ``contains`` requires a PostGIS database
     backend.
     """
-    implements(SearchExtensionInterface)
 
     namespace = NameSpace(
         "http://a9.com/-/opensearch/extensions/geo/1.0/", "geo"
@@ -88,10 +85,35 @@ class GeoExtension(Component):
 
         return qs
 
-    def get_schema(self):
+    def get_schema(self, collection=None, model_class=None):
         return (
             dict(name="bbox", type="box"),
-            dict(name="geom", type="geometry"),
+            dict(name="geom", type="geometry", profiles=[
+                dict(
+                    href="http://www.opengis.net/wkt/LINESTRING",
+                    title="This service accepts WKT LineStrings"
+                ),
+                dict(
+                    href="http://www.opengis.net/wkt/POINT",
+                    title="This service accepts WKT Point"
+                ),
+                dict(
+                    href="http://www.opengis.net/wkt/POLYGON",
+                    title="This service accepts WKT Polygons"
+                ),
+                dict(
+                    href="http://www.opengis.net/wkt/MULTILINESTRING",
+                    title="This service accepts WKT Multi-LineStrings"
+                ),
+                dict(
+                    href="http://www.opengis.net/wkt/MULTIPOINT",
+                    title="This service accepts WKT Multi-Point"
+                ),
+                dict(
+                    href="http://www.opengis.net/wkt/MULTIPOLYGON",
+                    title="This service accepts WKT Multi-Polygons"
+                ),
+            ]),
             dict(name="lon", type="lon"),
             dict(name="lat", type="lat"),
             dict(name="r", type="radius"),

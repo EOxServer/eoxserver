@@ -28,15 +28,12 @@
 
 from eoxserver.core import implements
 from eoxserver.contrib import vsi
-from eoxserver.services.opensearch.interfaces import ResultFormatInterface
 from eoxserver.services.opensearch.formats import base
 
 
 class KMLResultFormat(base.BaseOGRResultFormat):
     """ KML result format.
     """
-
-    implements(ResultFormatInterface)
 
     mimetype = "application/vnd.google-earth.kml+xml"
     name = "kml"

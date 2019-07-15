@@ -28,6 +28,15 @@
 
 from eoxserver.core.decoders import config
 
+# default value for EOXS_STORAGE_HANDLERS
+DEFAULT_EOXS_STORAGE_HANDLERS = [
+    'eoxserver.backends.storages.ZIPStorageHandler',
+    'eoxserver.backends.storages.TARStorageHandler',
+    'eoxserver.backends.storages.DirectoryStorageHandler',
+    'eoxserver.backends.storages.HTTPStorageHandler',
+    'eoxserver.backends.storages.FTPStorageHandler',
+]
+
 
 class CacheConfigReader(config.Reader):
     config.section("backends")
