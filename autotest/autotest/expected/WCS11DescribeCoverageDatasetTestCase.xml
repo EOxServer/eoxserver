@@ -21,8 +21,8 @@
         <GridCRS>
           <GridBaseCRS>urn:ogc:def:crs:EPSG::4326</GridBaseCRS>
           <GridType>urn:ogc:def:method:WCS:1.1:2dSimpleGrid</GridType>
-          <GridOrigin>11.3474325 46.2529675</GridOrigin>
-          <GridOffsets>0.031355 -0.031355</GridOffsets>
+          <GridOrigin>46.2529675 11.3474325</GridOrigin>
+          <GridOffsets>-0.031355 0.031355</GridOffsets>
           <GridCS>urn:ogc:def:cs:OGC:0.0:Grid2dSquareCS</GridCS>
         </GridCRS>
       </SpatialDomain>
