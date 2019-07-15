@@ -54,5 +54,7 @@ DEFAULT_EOXS_OWS_SERVICE_HANDLERS = [
 ]
 
 DEFAULT_EOXS_OWS_EXCEPTION_HANDLERS = [
+    'eoxserver.services.ows.wcs.v10.exceptionhandler.WCS10ExceptionHandler',
+    'eoxserver.services.ows.wcs.v11.exceptionhandler.WCS11ExceptionHandler',
     'eoxserver.services.ows.wcs.v20.exceptionhandler.WCS20ExceptionHandler',
 ]
