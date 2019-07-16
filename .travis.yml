@@ -24,7 +24,7 @@ script:
 - cd autotest
 - docker-compose up -d
 - sleep 5
-- docker exec -it $(docker ps --format "{{.ID}}\t{{.Names}}" | grep autotest_autotest_1 | cut -f1) /bin/bash -c " cd /opt/instance/ && python manage.py test autotest_services -v2"
+- docker exec -it $(docker ps --format "{{.ID}}\t{{.Names}}" | grep autotest_autotest_1 | cut -f1) /bin/bash -c " cd /opt/instance/ && echo \"TEST_RUNNER = 'eoxserver.testing.core.EOxServerTestRunner'\" >> /opt/instance/autotest/autotest/settings.py python manage.py test autotest_services -v2"
 # before_deploy:
 # - docker run -it --rm --name build-eoxserver -v "${PWD}/../":/opt/instance --tmpfs /tmp:rw,exec,nosuid,nodev -h browse --add-host=browse:127.0.0.1 eoxserver /bin/bash -c "yum update && yum install -y rpmdevtools && cd /opt/instance/ && python setup.py bdist_rpm"
 
