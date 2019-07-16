@@ -23,13 +23,13 @@ script:
 - cd autotest
 - docker-compose up -d
 - sleep 5
-- docker exec -it $(docker ps --format "{{.ID}}\t{{.Names}}" | grep autotest_autotest_1 | cut -f1) /bin/bash -c "python -m eoxserver.services.ows.wps.test_data_types -v2"
-- docker exec -it $(docker ps --format "{{.ID}}\t{{.Names}}" | grep autotest_autotest_1 | cut -f1) /bin/bash -c "python -m eoxserver.services.ows.wps.test_allowed_values -v2"
-- docker exec -it $(docker ps --format "{{.ID}}\t{{.Names}}" | grep autotest_autotest_1 | cut -f1) /bin/bash -c "python manage.py test --pythonpath=../eoxserver/ core -v2"
-- docker exec -it $(docker ps --format "{{.ID}}\t{{.Names}}" | grep autotest_autotest_1 | cut -f1) /bin/bash -c "python manage.py test --pythonpath=../eoxserver/ backends -v2"
-- docker exec -it $(docker ps --format "{{.ID}}\t{{.Names}}" | grep autotest_autotest_1 | cut -f1) /bin/bash -c "python manage.py test --pythonpath=../eoxserver/ services -v2"
-- docker exec -it $(docker ps --format "{{.ID}}\t{{.Names}}" | grep autotest_autotest_1 | cut -f1) /bin/bash -c "python manage.py test --pythonpath=../eoxserver/resources coverages -v2"
-- docker exec -it $(docker ps --format "{{.ID}}\t{{.Names}}" | grep autotest_autotest_1 | cut -f1) /bin/bash -c "python manage.py test --pythonpath=../eoxserver/resources processes -v2"
+- docker exec -it $(docker ps --format "{{.ID}}\t{{.Names}}" | grep autotest_autotest_1 | cut -f1) /bin/bash -c "python -m eoxserver.services.ows.wps.test_data_types"
+- docker exec -it $(docker ps --format "{{.ID}}\t{{.Names}}" | grep autotest_autotest_1 | cut -f1) /bin/bash -c "python -m eoxserver.services.ows.wps.test_allowed_values"
+- docker exec -it $(docker ps --format "{{.ID}}\t{{.Names}}" | grep autotest_autotest_1 | cut -f1) /bin/bash -c "python manage.py test --pythonpath=../eoxserver/ eoxserver.core -v2"
+- docker exec -it $(docker ps --format "{{.ID}}\t{{.Names}}" | grep autotest_autotest_1 | cut -f1) /bin/bash -c "python manage.py test --pythonpath=../eoxserver/ eoxserver.backends -v2"
+- docker exec -it $(docker ps --format "{{.ID}}\t{{.Names}}" | grep autotest_autotest_1 | cut -f1) /bin/bash -c "python manage.py test --pythonpath=../eoxserver/ eoxserver.services -v2"
+- docker exec -it $(docker ps --format "{{.ID}}\t{{.Names}}" | grep autotest_autotest_1 | cut -f1) /bin/bash -c "python manage.py test --pythonpath=../eoxserver/ eoxserver.resources.coverages -v2"
+- docker exec -it $(docker ps --format "{{.ID}}\t{{.Names}}" | grep autotest_autotest_1 | cut -f1) /bin/bash -c "python manage.py test --pythonpath=../eoxserver/ eoxserver.resources.processes -v2"
 - docker exec -it $(docker ps --format "{{.ID}}\t{{.Names}}" | grep autotest_autotest_1 | cut -f1) /bin/bash -c "python manage.py test autotest_services --tag wcs20 -v2"
 - docker exec -it $(docker ps --format "{{.ID}}\t{{.Names}}" | grep autotest_autotest_1 | cut -f1) /bin/bash -c "python manage.py test autotest_services --tag wcs11 -v2"
 - docker exec -it $(docker ps --format "{{.ID}}\t{{.Names}}" | grep autotest_autotest_1 | cut -f1) /bin/bash -c "python manage.py test autotest_services --tag wcs10 -v2"
