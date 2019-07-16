@@ -11,7 +11,6 @@ services:
 
 before_install:
 - sudo apt-get update
-
 - sudo apt-get install -o Dpkg::Options::="--force-confold" --force-yes -y docker-ce
 - docker-compose --version
 - sudo rm /usr/local/bin/docker-compose
@@ -24,21 +23,15 @@ script:
 - cd autotest
 - docker-compose up -d
 - sleep 5
-- docker exec -it $(docker ps --format "{{.ID}}\t{{.Names}}" | grep autotest_autotest_1 | cut -f1) /bin/bash -c " cd /opt/instance/ && python manage.py test autotest_services --tag wcs20 -v2 && python manage.py test autotest_services --tag wcs11 -v2 && python manage.py test autotest_services --tag wcs10 -v2 && python manage.py test autotest_services --tag wms -v2 && python manage.py test autotest_services --tag wps -v2 - python -m eoxserver.services.ows.wps.test_data_types -v && python -m eoxserver.services.ows.wps.test_allowed_values -v && python manage.py test --pythonpath=../eoxserver/ core -v2 && python manage.py test --pythonpath=../eoxserver/ backends -v2  && python manage.py test --pythonpath=../eoxserver/ services -v2 && python manage.py test --pythonpath=../eoxserver/resources coverages -v2 && python manage.py test --pythonpath=../eoxserver/resources processes -v2"
-# before_deploy:
-# - docker run -it --rm --name build-eoxserver -v "${PWD}/../":/opt/instance --tmpfs /tmp:rw,exec,nosuid,nodev -h browse --add-host=browse:127.0.0.1 eoxserver /bin/bash -c "yum update && yum install -y rpmdevtools && cd /opt/instance/ && python setup.py bdist_rpm"
-
-deploy:
-  provider: releases
-  api_key:
-    secure: QPKKSL6Vc5iN7zt1WtnTZ2CbHX4V5RzpLS9NkR+bUp+fTP24i7twt4J6c2yRjhE3IgSLwj08ESoe3yZW5HqKVB8WhMd8+E/vfkekbllIU74i51hXSlpIS58xNtI8PkT9WE9eYIi90QEbN6es1YjhtBiPYI1WZXg3NC9TscffGfY=
-  file_glob: true
-  file: ../dist/*.rpm
-  skip_cleanup: true
-  draft: true
-  on:
-    tags: true
-
-notifications:
-  slack:
-    secure: axWg6MRTsvJByFcSG84Birbc3bNFWXnmmA45Rp/4IyBVklI3ytk0WmVx3Qqlf/vz2xfZHdRde4Je/Y+0ufioRY1e3fEl3J/IbcG1CeUcNPn5ghCmn8rJe+ptsFZQYY4uLsX9mWd74Q7xP12kxPQkRKHvpswYtmOhiYxZNEltcIk=
+- docker exec -it $(docker ps --format "{{.ID}}\t{{.Names}}" | grep autotest_autotest_1 | cut -f1) /bin/bash -c "python -m eoxserver.services.ows.wps.test_data_types -v2"
+- docker exec -it $(docker ps --format "{{.ID}}\t{{.Names}}" | grep autotest_autotest_1 | cut -f1) /bin/bash -c "python -m eoxserver.services.ows.wps.test_allowed_values -v2"
+- docker exec -it $(docker ps --format "{{.ID}}\t{{.Names}}" | grep autotest_autotest_1 | cut -f1) /bin/bash -c "python manage.py test --pythonpath=../eoxserver/ core -v2"
+- docker exec -it $(docker ps --format "{{.ID}}\t{{.Names}}" | grep autotest_autotest_1 | cut -f1) /bin/bash -c "python manage.py test --pythonpath=../eoxserver/ backends -v2"
+- docker exec -it $(docker ps --format "{{.ID}}\t{{.Names}}" | grep autotest_autotest_1 | cut -f1) /bin/bash -c "python manage.py test --pythonpath=../eoxserver/ services -v2"
+- docker exec -it $(docker ps --format "{{.ID}}\t{{.Names}}" | grep autotest_autotest_1 | cut -f1) /bin/bash -c "python manage.py test --pythonpath=../eoxserver/resources coverages -v2"
+- docker exec -it $(docker ps --format "{{.ID}}\t{{.Names}}" | grep autotest_autotest_1 | cut -f1) /bin/bash -c "python manage.py test --pythonpath=../eoxserver/resources processes -v2"
+- docker exec -it $(docker ps --format "{{.ID}}\t{{.Names}}" | grep autotest_autotest_1 | cut -f1) /bin/bash -c "python manage.py test autotest_services --tag wcs20 -v2"
+- docker exec -it $(docker ps --format "{{.ID}}\t{{.Names}}" | grep autotest_autotest_1 | cut -f1) /bin/bash -c "python manage.py test autotest_services --tag wcs11 -v2"
+- docker exec -it $(docker ps --format "{{.ID}}\t{{.Names}}" | grep autotest_autotest_1 | cut -f1) /bin/bash -c "python manage.py test autotest_services --tag wcs10 -v2"
+- docker exec -it $(docker ps --format "{{.ID}}\t{{.Names}}" | grep autotest_autotest_1 | cut -f1) /bin/bash -c "python manage.py test autotest_services --tag wms -v2"
+- docker exec -it $(docker ps --format "{{.ID}}\t{{.Names}}" | grep autotest_autotest_1 | cut -f1) /bin/bash -c "python manage.py test autotest_services --tag wps -v2"
