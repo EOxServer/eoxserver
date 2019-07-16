@@ -176,7 +176,7 @@ class RectifiedCoverageMapServerRenderer(BaseRenderer):
                     grid = objects.Grid.from_gdal_dataset(ds)
 
                     # get the output CRS definition
-                    crs = params.outputcrs or subsets.crs
+                    crs = params.outputcrs or subsets.crs or 'imageCRS'
                     if crs == 'imageCRS':
                         crs = coverage.grid.coordinate_reference_system
                     grid._coordinate_reference_system = crs
