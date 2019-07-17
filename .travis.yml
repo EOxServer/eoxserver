@@ -22,7 +22,7 @@ before_install:
 script:
 - cd autotest
 - docker-compose up -d
-- sleep 5
+- docker exec -it $(docker ps --format "{{.ID}}\t{{.Names}}" | grep autotest_autotest_1 | cut -f1) /bin/bash -c 'until PGPASSWORD=${DB_PW} psql "${DB_NAME}" -h "${DB_HOST}" -U "${DB_USER}" -c "\q"; do >&2 echo "Database is unavailable - sleeping"; sleep 5; done'
 - docker exec -it $(docker ps --format "{{.ID}}\t{{.Names}}" | grep autotest_autotest_1 | cut -f1) /bin/bash -c "python -m eoxserver.services.ows.wps.test_data_types"
 - docker exec -it $(docker ps --format "{{.ID}}\t{{.Names}}" | grep autotest_autotest_1 | cut -f1) /bin/bash -c "python -m eoxserver.services.ows.wps.test_allowed_values"
 - docker exec -it $(docker ps --format "{{.ID}}\t{{.Names}}" | grep autotest_autotest_1 | cut -f1) /bin/bash -c "python manage.py test --pythonpath=../eoxserver/ eoxserver.core -v2"
@@ -35,3 +35,7 @@ script:
 - docker exec -it $(docker ps --format "{{.ID}}\t{{.Names}}" | grep autotest_autotest_1 | cut -f1) /bin/bash -c "python manage.py test autotest_services --tag wcs10 -v2"
 - docker exec -it $(docker ps --format "{{.ID}}\t{{.Names}}" | grep autotest_autotest_1 | cut -f1) /bin/bash -c "python manage.py test autotest_services --tag wms -v2"
 - docker exec -it $(docker ps --format "{{.ID}}\t{{.Names}}" | grep autotest_autotest_1 | cut -f1) /bin/bash -c "python manage.py test autotest_services --tag wps -v2"
+
+notifications:
+  slack:
+    secure: axWg6MRTsvJByFcSG84Birbc3bNFWXnmmA45Rp/4IyBVklI3ytk0WmVx3Qqlf/vz2xfZHdRde4Je/Y+0ufioRY1e3fEl3J/IbcG1CeUcNPn5ghCmn8rJe+ptsFZQYY4uLsX9mWd74Q7xP12kxPQkRKHvpswYtmOhiYxZNEltcIk=
