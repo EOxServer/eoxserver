@@ -30,47 +30,12 @@ import logging
 
 from eoxserver.resources.coverages import models
 from eoxserver.core.decoders import InvalidParameterException
-from eoxserver.core.util.timetools import parse_iso8601
 from eoxserver.services.subset import Trim, Slice
 from eoxserver.services.ows.wms.exceptions import LayerNotDefined
+from eoxserver.services.ows.wms.parsing import (parse_bbox, parse_time, int_or_str)
 
 
 logger = logging.getLogger(__name__)
-
-
-def parse_bbox(string):
-    try:
-        bbox = map(float, string.split(","))
-    except ValueError:
-        raise InvalidParameterException("Invalid 'BBOX' parameter.", "bbox")
-
-    try:
-        minx, miny, maxx, maxy = bbox
-    except ValueError:
-        raise InvalidParameterException(
-            "Wrong number of arguments for 'BBOX' parameter.", "bbox"
-        )
-
-    return bbox
-
-
-def parse_time(string):
-    items = string.split("/")
-
-    if len(items) == 1:
-        return [parse_iso8601(items[0])]
-    elif len(items) in (2, 3):
-        # ignore resolution
-        return [parse_iso8601(items[0]), parse_iso8601(items[1])]
-
-    raise InvalidParameterException("Invalid TIME parameter.", "time")
-
-
-def int_or_str(string):
-    try:
-        return int(string)
-    except ValueError:
-        return string
 
 
 def lookup_layers(layers, subsets, suffixes=None):
