@@ -28,6 +28,8 @@
 
 import sys
 
+from django.utils.six import reraise
+
 
 ZERO_OR_ONE = "?"
 ONE_OR_MORE = "+"
@@ -162,7 +164,7 @@ class Concatenate(object):
                     continue
 
                 exc_info = sys.exc_info()
-                raise exc_info[0], exc_info[1], exc_info[2]
+                reraise(exc_info[0], exc_info[1], exc_info[2])
 
         return result
 
@@ -180,7 +182,7 @@ class typelist(object):
         self.separator = separator
 
     def __call__(self, value):
-        return map(self.typ, value.split(self.separator))
+        return [self.typ(v) for v in value.split(self.separator)]
 
 
 class fixed(object):
@@ -209,7 +211,7 @@ class enum(object):
 
     def __init__(self, values, case_sensitive=True):
         self.values = values
-        self.compare_values = values if case_sensitive else map(lower, values)
+        self.compare_values = values if case_sensitive else [lower(v) for v in values]
         self.case_sensitive = case_sensitive
 
     def __call__(self, value):

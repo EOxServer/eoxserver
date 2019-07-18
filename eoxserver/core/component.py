@@ -206,7 +206,7 @@ class ComponentManager(object):
                 )
             try:
                 component = cls(self)
-            except TypeError, e:
+            except TypeError as e:
                 raise ComponentException(
                     'Unable to instantiate component %r (%s)' % (cls, e)
                 )

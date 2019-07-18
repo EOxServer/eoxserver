@@ -85,7 +85,7 @@ class BaseParameter(property):
 
             try:
                 return map(self.type, results)
-            except Exception, e:
+            except Exception as e:
                 # let some more sophisticated exceptions pass
                 if hasattr(e, "locator") or hasattr(e, "code"):
                     raise
@@ -97,7 +97,7 @@ class BaseParameter(property):
         elif self.type:
             try:
                 return self.type(results[0])
-            except Exception, e:
+            except Exception as e:
                 # let some more sophisticated exceptions pass
                 if hasattr(e, "locator") or hasattr(e, "code"):
                     raise

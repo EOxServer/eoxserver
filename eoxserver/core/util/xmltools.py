@@ -153,11 +153,11 @@ def parse(obj):
 
 
 def add_cdata(element, cdata):
-    assert (
-        not element.text,
-        "Can't add a CDATA section. Element already has some text: %r"
-        % element.text
-    )
+    assert not element.text, \
+        "Can't add a CDATA section. Element already has some text: %r" % (
+            element.text
+        )
+
     element.text = cdata
 
 try:
