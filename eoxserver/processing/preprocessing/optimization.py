@@ -414,3 +414,43 @@ class AlphaBandOptimization(object):
 
         # rasterize the polygon, burning the opaque value into the alpha band
         gdal.RasterizeLayer(src_ds, [4], layer, burn_values=[get_limits(dt)[1]])
+
+
+#===============================================================================
+# Color To Alpha Optimization
+#===============================================================================
+
+class ColorToAlphaOptimization(DatasetOptimization):
+    """This optimization burns exactly black and near input color pixels of RGB into alpha channel of image."""
+    def __call__(self, src_ds, color_to_alpha=0, margin=8):
+        logger.info("Applying ColorToAlphaOptimization")
+        dt = src_ds.GetRasterBand(1).DataType
+        largest_value_of_datatype = get_limits(dt)[1]
+
+        if src_ds.RasterCount == 3:
+            src_ds.AddBand(dt)
+            # prefill with not-transparent
+            src_ds.GetRasterBand(4).fill(largest_value_of_datatype)
+        elif src_ds.RasterCount == 4:
+            pass  # okay
+        else:
+            raise Exception("Cannot add alpha band, as the current number of "
+                            "bands '%d' does not match" % src_ds.RasterCount)
+        lower_color = color_to_alpha - margin
+        higher_color = color_to_alpha + margin
+        try:
+            # save all bands to memory
+            raster_values_arrays = [src_ds.GetRasterBand(band).ReadAsArray() for band in range(1, 5)]
+            # set alpha pixel to transparent if all three are similar to input color
+            [cols, rows] = raster_values_arrays[0].shape
+            for row in range(rows):
+                for col in range(cols):
+                    b1 = raster_values_arrays[0][col][row]
+                    b2 = raster_values_arrays[1][col][row]
+                    b3 = raster_values_arrays[2][col][row]
+                    if higher_color >= b1 >= lower_color and higher_color >= b2 >= lower_color and higher_color >= b3 >= lower_color:
+                        raster_values_arrays[3][col][row] = 0
+            src_ds.GetRasterBand(4).WriteArray(raster_values_arrays[3])
+            return src_ds
+        except:
+            raise
