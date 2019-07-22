@@ -32,7 +32,12 @@ import sys
 from optparse import make_option
 
 import django
-#from django.utils.importlib import import_module
+try:
+    # Django versions >= 1.9
+    from django.utils.module_loading import import_module
+except ImportError:
+    # Django versions < 1.9
+    from django.utils.importlib import import_module
 from django.core.management import BaseCommand
 from django.core.management.base import CommandError
 from django.utils import termcolors
