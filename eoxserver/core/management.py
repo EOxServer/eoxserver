@@ -51,18 +51,8 @@ class CommandNotFound(Exception):
 
 
 class EOxServerAdminCommand(BaseCommand):
-    if django.VERSION < (1, 8):
-        option_list = (
-            make_option('-v', '--verbosity',
-                action='store', dest='verbosity', default='1',
-                type='choice', choices=['0', '1', '2', '3'],
-            ),
-        )
-
-    def run_from_argv(self, argv):
-        self.parser = self.create_parser(argv[0], argv[1])
-        options, args = self.parser.parse_args(argv[2:])
-        self.handle(*args, **options.__dict__)
+    def execute(self, *args, **kwargs):
+        return self.handle(*args, **kwargs)
 
 
 def get_commands():

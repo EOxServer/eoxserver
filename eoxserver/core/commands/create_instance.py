@@ -42,18 +42,25 @@ from eoxserver.core.instance import create_instance
 
 
 class Command(EOxServerAdminCommand):
-    option_list = EOxServerAdminCommand.option_list + (
-        make_option('--init_spatialite', '--init-spatialite',
+    def add_arguments(self, parser):
+        parser.add_argument('instance_id',
+            metavar='INSTANCE_ID', nargs=1,
+            help='The instance idnetifier.'
+        )
+        parser.add_argument('target',
+            metavar='DEST_DIRECTORY', nargs='?',
+            help='Optional. The destination directory.'
+        )
+        parser.add_argument('--init_spatialite', '--init-spatialite',
             action='store_true', help='Flag to initialize the sqlite database.'
-        ),
-    )
+        )
 
     args = "INSTANCE_ID [Optional destination directory] [--init-spatialite]"
     help = ("Creates a new EOxServer instance with all necessary files and "
             "folder structure. Optionally, a SQLite database is initiated")
 
-    def handle(self, instance_id=None, target=None, *args, **options):
-        if instance_id is None:
+    def handle(self, instance_id, target=None, *args, **options):
+        if not instance_id:
             raise CommandError("Instance ID not given.")
 
         init_spatialite = options["init_spatialite"]
@@ -61,5 +68,5 @@ class Command(EOxServerAdminCommand):
         traceback = options.get("traceback")
 
         create_instance(
-            instance_id, target, init_spatialite, verbosity, traceback
+            instance_id[0], target, init_spatialite, verbosity, traceback
         )
