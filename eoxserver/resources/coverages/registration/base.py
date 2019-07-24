@@ -62,7 +62,8 @@ class BaseRegistrator(object):
 
     def register(self, data_locations, metadata_locations,
                  coverage_type_name=None, footprint_from_extent=False,
-                 overrides=None, replace=False, cache=None):
+                 overrides=None, highest_resolution=False,
+                 replace=False, cache=None):
         """ Main registration method
 
             :param data_locations:
@@ -162,11 +163,13 @@ class BaseRegistrator(object):
 
         # if there is still some metadata missing, read it from the data
         for arraydata_item in arraydata_items:
-            if not self.missing_metadata_keys(retrieved_metadata):
+            if not self.missing_metadata_keys(retrieved_metadata) and \
+                    not highest_resolution:
                 break
             metadata_parsers.append(
                 self._read_metadata_from_data(
-                    arraydata_item, retrieved_metadata, cache
+                    arraydata_item, retrieved_metadata, cache,
+                    highest_resolution
                 )
             )
 
@@ -252,7 +255,7 @@ class BaseRegistrator(object):
                     return reader, values
             return None
 
-    def _read_metadata_from_data(self, data_item, retrieved_metadata, cache):
+    def _read_metadata_from_data(self, data_item, retrieved_metadata, cache, highest_resolution):
         "Interface method to be overridden in subclasses"
         raise NotImplementedError
 
