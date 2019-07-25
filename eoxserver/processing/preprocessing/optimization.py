@@ -421,12 +421,15 @@ class AlphaBandOptimization(object):
 #===============================================================================
 
 class ColorToAlphaOptimization(DatasetOptimization):
-    """This optimization burns exactly black and near input color pixels of RGB into alpha channel of image."""
-    def __call__(self, src_ds, color_to_alpha=0, margin=8):
+    """
+    Pixel-wise optimization burns color_to_alpha pixels of RGB 
+    into alpha channel as 0 (transparent) if all bands have the same value.
+    Default black is turned to transparent. Returns modified dataset.
+    """
+    def __call__(self, src_ds, color_to_alpha=0):
         logger.info("Applying ColorToAlphaOptimization")
         dt = src_ds.GetRasterBand(1).DataType
         largest_value_of_datatype = get_limits(dt)[1]
-
         if src_ds.RasterCount == 3:
             src_ds.AddBand(dt)
             # prefill with not-transparent
@@ -436,21 +439,29 @@ class ColorToAlphaOptimization(DatasetOptimization):
         else:
             raise Exception("Cannot add alpha band, as the current number of "
                             "bands '%d' does not match" % src_ds.RasterCount)
-        lower_color = color_to_alpha - margin
-        higher_color = color_to_alpha + margin
         try:
-            # save all bands to memory
-            raster_values_arrays = [src_ds.GetRasterBand(band).ReadAsArray() for band in range(1, 5)]
-            # set alpha pixel to transparent if all three are similar to input color
-            [cols, rows] = raster_values_arrays[0].shape
-            for row in range(rows):
-                for col in range(cols):
-                    b1 = raster_values_arrays[0][col][row]
-                    b2 = raster_values_arrays[1][col][row]
-                    b3 = raster_values_arrays[2][col][row]
-                    if higher_color >= b1 >= lower_color and higher_color >= b2 >= lower_color and higher_color >= b3 >= lower_color:
-                        raster_values_arrays[3][col][row] = 0
-            src_ds.GetRasterBand(4).WriteArray(raster_values_arrays[3])
+            # save all bands to memory -> np array
+            as_array_3d = src_ds.ReadAsArray()
+            # set alpha pixel to transparent if all three are that color
+            [R, G, B, A] = numpy.split(as_array_3d, 4)
+            # turn to two dimensional arrays
+            R = R[0, :, :]
+            G = G[0, :, :]
+            B = B[0, :, :]
+            A = A[0, :, :]
+            # compute masks
+            R_mask = numpy.zeros(R.shape, dtype=bool)
+            G_mask = numpy.zeros(R.shape, dtype=bool)
+            B_mask = numpy.zeros(R.shape, dtype=bool)
+            R_mask[:, :] = R[:, :] == color_to_alpha
+            G_mask[:, :] = G[:, :] == color_to_alpha
+            B_mask[:, :] = B[:, :] == color_to_alpha
+            # merge three separate masks with logical AND
+            rg_mask = numpy.logical_and(R_mask, G_mask)
+            rgb_mask = numpy.logical_and(rg_mask, B_mask)
+            # insert into alpha channel
+            A[rgb_mask] = 0
+            src_ds.GetRasterBand(4).WriteArray(A)
             return src_ds
         except:
             raise
