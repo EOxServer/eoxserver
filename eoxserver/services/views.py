@@ -39,6 +39,7 @@ try:
 except:
     class StreamingHttpResponse(object):
         pass
+from django.views.decorators.csrf import csrf_exempt
 
 from eoxserver.core import env
 from eoxserver.services.ows.component import ServiceComponent
@@ -51,6 +52,7 @@ from eoxserver.services.ows.dispatch import (
 logger = logging.getLogger(__name__)
 
 
+@csrf_exempt
 def ows(request):
     """ Main entry point for OWS requests against EOxServer. It uses the
     :class:`ServiceComponent
