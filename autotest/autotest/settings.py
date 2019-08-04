@@ -38,6 +38,8 @@ https://docs.djangoproject.com/en/1.4/ref/settings/
 
 import os
 from os.path import join, abspath, dirname
+from eoxserver.services.ows.wps.config import DEFAULT_EOXS_PROCESSES
+
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = 'tmp'
 
@@ -236,7 +238,7 @@ COMPONENTS = ()
 #
 #
 #
-EOXS_PROCESSES = [
+EOXS_PROCESSES = DEFAULT_EOXS_PROCESSES + [
     'autotest_services.processes.test00_identity_literal.TestProcess00',
     'autotest_services.processes.test01_identity_bbox.TestProcess01',
     'autotest_services.processes.test02_identity_complex.TestProcess02',
