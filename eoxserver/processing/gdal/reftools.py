@@ -733,7 +733,7 @@ def create_rectified_vrt(path_or_ds, vrt_path, srid=None,
             'BaseTransformer/GenImgProjTransformer/DstGeoTransform'
         ).text = gt_str
 
-        inv_gt = gdal.InvGeoTransform(gt)[1]
+        inv_gt = gdal.InvGeoTransform(gt)
         root.find(
             'GDALWarpOptions/Transformer/ApproxTransformer/'
             'BaseTransformer/GenImgProjTransformer/DstInvGeoTransform'
