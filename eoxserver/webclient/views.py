@@ -54,6 +54,7 @@ def configuration(request):
     # visible
     qs = models.EOObject.objects.filter(
         Q(collection__isnull=False) |
+        Q(mosaic__isnull=False) |
         Q(
             coverage__isnull=False,
             coverage__service_visibility__service="wc",
