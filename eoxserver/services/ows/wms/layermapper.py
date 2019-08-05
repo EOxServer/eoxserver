@@ -31,7 +31,8 @@ from eoxserver.core.config import get_eoxserver_config
 from eoxserver.core.decoders import config, enum
 from eoxserver.core.util.timetools import isoformat
 from eoxserver.render.map.objects import (
-    CoverageLayer, MosaicLayer, OutlinesLayer, BrowseLayer, OutlinedBrowseLayer,
+    CoverageLayer, CoveragesLayer, MosaicLayer,
+    OutlinesLayer, BrowseLayer, OutlinedBrowseLayer,
     MaskLayer, MaskedBrowseLayer,
     LayerDescription,
 )
@@ -206,14 +207,16 @@ class LayerMapper(object):
             )
 
         elif isinstance(eo_object, (models.Collection, models.Product)):
-            if suffix == '' or suffix == 'outlined':
+            if suffix == '' or suffix == 'outlined' or suffix == 'bands':
                 browses = []
                 product_browses = self.iter_products_browses(
                     eo_object, filters_expressions, sort_by, None, style,
                     limit=limit_products
                 )
 
+                has_products = False
                 for product, browse in product_browses:
+                    has_products = True
                     # When bands/wavelengths are specifically requested, make a
                     # generated browse
                     if bands or wavelengths:
@@ -239,6 +242,18 @@ class LayerMapper(object):
                             )
                             if browse:
                                 browses.append(browse)
+
+                if not has_products:
+                    coverages = self.iter_coverages(
+                        eo_object, filters_expressions, sort_by
+                    )
+                    return CoveragesLayer(
+                        full_name, style, [
+                            RenderCoverage.from_model(coverage)
+                            for coverage in coverages
+                        ],
+                        bands, wavelengths, time, elevation, range
+                    )
 
                 # detect whether we are below the zoom limit
                 if min_render_zoom is None or zoom >= min_render_zoom:
@@ -415,8 +430,8 @@ class LayerMapper(object):
     def iter_coverages(self, eo_object, filters_expressions, sort_by=None):
         if isinstance(eo_object, models.Mosaic):
             base_filter = dict(mosaics=eo_object)
-        else:
-            pass  # TODO
+        elif isinstance(eo_object, models.Collection):
+            base_filter = dict(collections=eo_object)
 
         qs = models.Coverage.objects.filter(filters_expressions, **base_filter)
         if sort_by:

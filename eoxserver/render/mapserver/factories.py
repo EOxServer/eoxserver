@@ -41,8 +41,9 @@ from eoxserver.render.browse.generate import (
     generate_browse, FilenameGenerator
 )
 from eoxserver.render.map.objects import (
-    CoverageLayer, MosaicLayer, BrowseLayer, OutlinedBrowseLayer,
-    MaskLayer, MaskedBrowseLayer, OutlinesLayer,  # CoverageSetsLayer
+    CoverageLayer, CoveragesLayer, MosaicLayer,
+    BrowseLayer, OutlinedBrowseLayer,
+    MaskLayer, MaskedBrowseLayer, OutlinesLayer
 )
 from eoxserver.render.mapserver.config import (
     DEFAULT_EOXS_MAPSERVER_LAYER_FACTORIES,
@@ -199,19 +200,31 @@ class CoverageLayerFactoryMixIn(object):
 
 
 class CoverageLayerFactory(CoverageLayerFactoryMixIn, BaseMapServerLayerFactory):
-    handled_layer_types = [CoverageLayer]
+    handled_layer_types = [CoverageLayer, CoveragesLayer]
 
     def create(self, map_obj, layer):
-        coverage = layer.coverage
-        fields = self.get_fields(
-            coverage.range_type, layer.bands, layer.wavelengths
-        )
-        return self.create_coverage_layer(
-            map_obj, coverage, fields, layer.style, layer.range
-        )
+        if isinstance(layer, CoverageLayer):
+            coverages = [layer.coverage]
+        else:
+            coverages = layer.coverages
+
+        coverage_layers = []
+
+        for coverage in coverages:
+            fields = self.get_fields(
+                coverage.range_type, layer.bands, layer.wavelengths
+            )
+            coverage_layers.append(
+                self.create_coverage_layer(
+                    map_obj, coverage, fields, layer.style, layer.range
+                )
+            )
+
+        return coverage_layers
 
     def destroy(self, map_obj, layer, data):
-        self.destroy_coverage_layer(data)
+        for coverage_layer in data:
+            self.destroy_coverage_layer(coverage_layer)
 
 
 class MosaicLayerFactory(CoverageLayerFactoryMixIn, BaseMapServerLayerFactory):

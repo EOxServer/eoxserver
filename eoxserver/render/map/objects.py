@@ -95,6 +95,43 @@ class CoverageLayer(Layer):
         return self._range
 
 
+class CoveragesLayer(Layer):
+    """ Representation of a coverages layer.
+    """
+    def __init__(self, name, style, coverages, bands, wavelengths, time,
+                 elevation, range):
+        super(CoveragesLayer, self).__init__(name, style)
+        self._coverages = coverages
+        self._bands = bands
+        self._wavelengths = wavelengths
+        self._time = time
+        self._elevation = elevation
+        self._range = range
+
+    @property
+    def coverages(self):
+        return self._coverages
+
+    @property
+    def bands(self):
+        return self._bands
+
+    @property
+    def wavelengths(self):
+        return self._wavelengths
+
+    @property
+    def time(self):
+        return self._time
+
+    @property
+    def elevation(self):
+        return self._elevation
+
+    @property
+    def range(self):
+        return self._range
+
 class MosaicLayer(Layer):
     def __init__(self, name, style, mosaic, coverages, bands, wavelengths, time,
                  elevation, range):
