@@ -167,14 +167,8 @@ class WMS13Encoder(XMLEncoder):
         )
 
         dimensions = []
-        extents = []
 
         for dimension_name, dimension in layer_description.dimensions.items():
-            dimension_elem = E("Dimension", name=dimension_name)
-            if "units" in dimension:
-                dimension_elem.attrib["units"] = dimension["units"]
-            dimensions.append(dimension_elem)
-
             if "min" in dimension and "max" in dimension and "step" in dimension:
                 extent_text = "%s/%s/%s" % (
                     dimension["min"], dimension["max"], dimension["step"]
@@ -182,13 +176,19 @@ class WMS13Encoder(XMLEncoder):
             elif "values" in dimension:
                 extent_text = ",".join(dimension["values"])
 
-            extent_elem = E("Extent", extent_text, name=dimension_name)
+            dimension_elem = E("Dimension", extent_text, name=dimension_name)
+            if "units" in dimension:
+                dimension_elem.attrib["units"] = dimension["units"]
+
             if "default" in dimension:
-                extent_elem.attrib["default"] = dimension["default"]
-            extents.append(extent_elem)
+                dimension_elem.attrib["default"] = dimension["default"]
+
+            if dimension.get("multivalue"):
+                dimension_elem.attrib["multipleValues"] = "1"
+
+            dimensions.append(dimension_elem)
 
         elems.extend(dimensions)
-        elems.extend(extents)
 
         return E("Layer",
             *elems,
