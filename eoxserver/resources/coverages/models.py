@@ -726,13 +726,13 @@ def collection_insert_eo_object(collection, eo_object):
     if isinstance(eo_object, Product):
         product_type = eo_object.product_type
         allowed = True
-        if collection_type and product_type:
-            allowed = collection_type.allowed_product_types.filter(
-                pk=product_type.pk
-            ).exists()
-
-        elif collection_type:
-            allowed = False
+        if collection_type:
+            if not product_type:
+                allowed = False
+            else:
+                allowed = collection_type.allowed_product_types.filter(
+                    pk=product_type.pk
+                ).exists()
 
         if not allowed:
             raise ManagementError(
@@ -746,9 +746,12 @@ def collection_insert_eo_object(collection, eo_object):
         coverage_type = eo_object.coverage_type
         allowed = True
         if collection_type:
-            allowed = collection_type.allowed_coverage_types.filter(
-                pk=coverage_type.pk
-            ).exists()
+            if not coverage_type:
+                allowed = False
+            else:
+                allowed = collection_type.allowed_coverage_types.filter(
+                    pk=coverage_type.pk
+                ).exists()
 
         if not allowed:
             raise ManagementError(
@@ -1079,14 +1082,17 @@ def product_add_coverage(product, coverage):
 
     allowed = True
     if product_type:
-        allowed = product_type.allowed_coverage_types.filter(
-            pk=coverage_type.pk
-        ).exists()
+        if not coverage_type:
+            allowed = False
+        else:
+            allowed = product_type.allowed_coverage_types.filter(
+                pk=coverage_type.pk
+            ).exists()
 
     if not allowed:
         raise ManagementError(
             'Cannot insert Coverage as the coverage type %r is not allowed '
-            'in this product' % coverage_type.name
+            'in this product' % (coverage_type.name if coverage_type else 'None')
         )
 
     product.coverages.add(coverage)
