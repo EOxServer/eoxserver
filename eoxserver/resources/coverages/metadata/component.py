@@ -32,19 +32,20 @@ from eoxserver.resources.coverages.metadata.product_formats import get_readers
 
 class ProductMetadataComponent(object):
     def read_product_metadata_file(self, path):
-        try:
-            f = vsi_open(path)
-        except IOError:
-            f = None
-
         for reader_cls in get_readers():
             reader = reader_cls()
 
             if hasattr(reader, 'test_path') and reader.test_path(path):
                 return reader.read_path(path)
-            elif hasattr(reader, 'test') and f and reader.test(f):
-                f.seek(0)
-                return reader.read(f)
+            elif hasattr(reader, 'test'):
+                try:
+                    f = vsi_open(path)
+                except IOError:
+                    continue
+
+                if reader.test(f):
+                    f.seek(0)
+                    return reader.read(f)
 
         if f:
             f.close()
