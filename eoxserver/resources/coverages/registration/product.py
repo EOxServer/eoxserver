@@ -34,6 +34,7 @@ from eoxserver.contrib import gdal
 from eoxserver.backends import models as backends
 from eoxserver.backends.storages import get_handler_by_test
 from eoxserver.backends.access import get_vsi_path
+from eoxserver.backends.util import resolve_storage
 from eoxserver.resources.coverages import models
 from eoxserver.resources.coverages.registration import base
 from eoxserver.resources.coverages.metadata.component import (
@@ -46,9 +47,9 @@ from eoxserver.resources.coverages.registration.exceptions import (
 
 class ProductRegistrator(base.BaseRegistrator):
     def register(self, metadata_locations, mask_locations, package_path,
-                 overrides, type_name=None, extended_metadata=True,
-                 discover_masks=True, discover_browses=True,
-                 discover_metadata=True, replace=False):
+                 overrides, identifier_template=None, type_name=None,
+                 extended_metadata=True, discover_masks=True,
+                 discover_browses=True, discover_metadata=True, replace=False):
         product_type = None
         if type_name:
             product_type = models.ProductType.objects.get(name=type_name)
@@ -100,7 +101,7 @@ class ProductRegistrator(base.BaseRegistrator):
         metadata_items = [
             models.MetaDataItem(
                 location=location[-1],
-                storage=self.resolve_storage(location[:-1])
+                storage=resolve_storage(location[:-1])
             )
             for location in metadata_locations
         ]
@@ -124,6 +125,10 @@ class ProductRegistrator(base.BaseRegistrator):
         footprint = metadata.get('footprint')
         begin_time = metadata.get('begin_time')
         end_time = metadata.get('end_time')
+
+        if identifier_template:
+            identifier = identifier_template.format(metadata)
+            metadata['identifier'] = identifier
 
         replaced = False
         if replace:
@@ -153,7 +158,7 @@ class ProductRegistrator(base.BaseRegistrator):
             if isinstance(mask_handle[1], GEOSGeometry):
                 geometry = GEOSGeometry(mask_handle[1])
             else:
-                storage = self.resolve_storage(mask_handle[1:-1])
+                storage = resolve_storage(mask_handle[1:-1])
                 location = mask_handle[-1]
 
             try:
@@ -183,7 +188,7 @@ class ProductRegistrator(base.BaseRegistrator):
             browse = models.Browse(
                 product=product,
                 location=browse_handle[-1],
-                storage=self.resolve_storage(browse_handle[1:-1])
+                storage=resolve_storage(browse_handle[1:-1])
             )
 
             # Get a VSI handle for the browse to get the size, extent and CRS

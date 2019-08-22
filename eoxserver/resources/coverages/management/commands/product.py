@@ -57,6 +57,12 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
         )
 
         register_parser.add_argument(
+            "--identifier-template",
+            dest="identifier_template", default=None,
+            help="Add a template to construct the final identifier."
+        )
+
+        register_parser.add_argument(
             '--footprint', default=None,
             help='Override the footprint of the to-be registered product.'
         )
@@ -148,6 +154,12 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
         )
 
         register_parser.add_argument(
+            "--collection", "--collection-identifier", "-c",
+            dest="collection_identifiers", action="append", default=[],
+            help="Add the product to the specified collection."
+        )
+
+        register_parser.add_argument(
             "--replace", "-r",
             dest="replace", action="store_true", default=False,
             help=(
@@ -214,6 +226,7 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
                 mask_locations=kwargs['mask_locations'],
                 package_path=kwargs['package'],
                 overrides=overrides,
+                identifier_template=kwargs['identifier_template'],
                 type_name=kwargs['type_name'],
                 extended_metadata=kwargs['extended_metadata'],
                 discover_masks=kwargs['discover_masks'],
@@ -221,6 +234,18 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
                 discover_metadata=kwargs['discover_metadata'],
                 replace=kwargs['replace']
             )
+
+            for collection_identifier in kwargs['collection_identifiers']:
+                try:
+                    collection = models.Collection.objects.get(
+                        identifier=collection_identifier
+                    )
+                except models.Collection.DoesNotExist:
+                    raise CommandError(
+                        'No such collection %r' % collection_identifier
+                    )
+                models.collection_insert_eo_object(collection, product)
+
         except RegistrationError as e:
             raise CommandError('Failed to register product. Error was %s' % e)
 

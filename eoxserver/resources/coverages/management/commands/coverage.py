@@ -115,6 +115,11 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             help="Override identifier."
         )
         register_parser.add_argument(
+            "--identifier-template",
+            dest="identifier_template", default=None,
+            help="Add a template to construct the final identifier."
+        )
+        register_parser.add_argument(
             "--begin-time", "-b",
             dest="begin_time", default=None, type=parse_iso8601,
             help="Override begin time. Format is ISO8601 datetime strings."
@@ -194,12 +199,16 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             coverage_type_name=coverage_type_name,
             footprint_from_extent=kwargs['footprint_from_extent'],
             overrides=overrides,
+            identifier_template=kwargs['identifier_template'],
             highest_resolution=kwargs['highest_resolution'],
             replace=kwargs['replace'],
         )
 
         product_identifier = kwargs['product_identifier']
         if product_identifier:
+            product_identifier = product_identifier.format(
+                identifier=report.coverage.identifier
+            )
             try:
                 product = models.Product.objects.get(
                     identifier=product_identifier

@@ -25,12 +25,15 @@
 # THE SOFTWARE.
 # ------------------------------------------------------------------------------
 
+import re
+
 from django.db.models import ForeignKey, Q
 from django.contrib.gis.geos import Polygon
 from django.contrib.gis.gdal import SpatialReference, CoordTransform
 
 from eoxserver.backends import models as backends
 from eoxserver.backends.access import vsi_open
+from eoxserver.backends.util import resolve_storage
 from eoxserver.resources.coverages import models
 from eoxserver.resources.coverages.metadata.coverage_formats import (
     get_reader_by_test
@@ -62,8 +65,8 @@ class BaseRegistrator(object):
 
     def register(self, data_locations, metadata_locations,
                  coverage_type_name=None, footprint_from_extent=False,
-                 overrides=None, highest_resolution=False,
-                 replace=False, cache=None):
+                 overrides=None, identifier_template=None,
+                 highest_resolution=False, replace=False, cache=None):
         """ Main registration method
 
             :param data_locations:
@@ -95,7 +98,7 @@ class BaseRegistrator(object):
         metadata_items = [
             models.MetaDataItem(
                 location=location[-1],
-                storage=self.resolve_storage(location[:-1])
+                storage=resolve_storage(location[:-1])
             )
             for location in metadata_locations
         ]
@@ -105,18 +108,26 @@ class BaseRegistrator(object):
         for location in data_locations:
             # handle storages and/or subdataset specifiers
             path = location[-1]
-            parts = path.split(':')
+            # parts = path.split(':')
+
+            parts = [
+                part.replace('\\:', ':')
+                for part in re.split(r'(?<!\\):', path)
+            ]
+
             subdataset_type = None
             subdataset_locator = None
             if len(parts) > 1:
                 path = parts[1]
                 subdataset_type = parts[0]
                 subdataset_locator = ":".join(parts[2:])
+            else:
+                path = path.replace('\\:', ':')
 
             arraydata_items.append(
                 models.ArrayDataItem(
                     location=path,
-                    storage=self.resolve_storage(location[:-1]),
+                    storage=resolve_storage(location[:-1]),
                     subdataset_type=subdataset_type,
                     subdataset_locator=subdataset_locator,
                 )
@@ -128,6 +139,7 @@ class BaseRegistrator(object):
         for metadata_item in metadata_items:
             if not self.missing_metadata_keys(retrieved_metadata):
                 break
+
             metadata_parsers.append(
                 self._read_metadata(
                     metadata_item, retrieved_metadata, cache
@@ -179,13 +191,18 @@ class BaseRegistrator(object):
                 % ", ".join(self.missing_metadata_keys(retrieved_metadata))
             )
 
+        identifier = retrieved_metadata["identifier"]
+        if identifier_template:
+            identifier = identifier_template.format(**retrieved_metadata)
+            retrieved_metadata["identifier"] = identifier
+
         collections = []
         product = None
         if replace:
             try:
                 # get a list of all collections the coverage was in.
                 coverage = models.Coverage.objects.get(
-                    identifier=retrieved_metadata["identifier"]
+                    identifier=identifier
                 )
                 product = coverage.parent_product
                 collections = list(models.Collection.objects.filter(
@@ -207,7 +224,7 @@ class BaseRegistrator(object):
             retrieved_metadata['footprint'] = footprint
 
         coverage = self._create_coverage(
-            identifier=retrieved_metadata['identifier'],
+            identifier=identifier,
             footprint=retrieved_metadata.get('footprint'),
             begin_time=retrieved_metadata.get('begin_time'),
             end_time=retrieved_metadata.get('end_time'),
@@ -456,21 +473,21 @@ class BaseRegistrator(object):
                 )
         return grid
 
-    def resolve_storage(self, storage_paths):
-        if not storage_paths:
-            return None
+    # def resolve_storage(self, storage_paths):
+    #     if not storage_paths:
+    #         return None
 
-        first = storage_paths[0]
-        try:
-            parent = backends.Storage.objects.get(Q(name=first) | Q(url=first))
-        except backends.Storage.DoesNotExist:
-            parent = backends.Storage.objects.create(url=first)
+    #     first = storage_paths[0]
+    #     try:
+    #         parent = backends.Storage.objects.get(Q(name=first) | Q(url=first))
+    #     except backends.Storage.DoesNotExist:
+    #         parent = backends.Storage.objects.create(url=first)
 
-        for storage_path in storage_paths[1:]:
-            parent = backends.Storage.objects.create(
-                parent=parent, url=storage_path
-            )
-        return parent
+    #     for storage_path in storage_paths[1:]:
+    #         parent = backends.Storage.objects.create(
+    #             parent=parent, url=storage_path
+    #         )
+    #     return parent
 
 
 def is_common_value(field):
