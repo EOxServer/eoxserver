@@ -30,6 +30,8 @@ import ast
 import _ast
 import operator
 
+import numpy as np
+
 from eoxserver.contrib import vrt, gdal, osr
 
 
@@ -233,7 +235,6 @@ def _generate_browse_complex(parsed_expressions, fields_and_coverages,
 
     field_names = set()
     for parsed_expression in parsed_expressions:
-        print extract_fields(parsed_expression), parse_expression
         field_names |= set(extract_fields(parsed_expression))
 
     fields_and_datasets = {}
@@ -288,13 +289,32 @@ def _generate_browse_complex(parsed_expressions, fields_and_coverages,
         warped_out_field_dataset.SetProjection(osr.SpatialReference(crs).wkt)
         gdal.ReprojectImage(out_field_dataset, warped_out_field_dataset)
 
-        fields_and_datasets[field_name] = warped_out_field_dataset
+        fields_and_datasets[field_name] = warped_out_field_dataset.GetRasterBand(1).ReadAsArray()
 
     out_band_filenames = []
     for parsed_expression in parsed_expressions:
-        out_ds = _evaluate_expression(
+        out_data = _evaluate_expression(
             parsed_expression, fields_and_datasets, generator
         )
+
+        if isinstance(out_data, (int, float)):
+            out_data = np.full((height, width), out_data)
+
+        tiff_driver = gdal.GetDriverByName('GTiff')
+        out_ds = tiff_driver.Create(
+            generator.generate('tif'),
+            width, height, 1,
+            gdal.GDT_Float32,
+            options=[
+                "TILED=YES",
+                "COMPRESS=PACKBITS"
+            ]
+        )
+        out_ds.SetGeoTransform([o_x, res_x, 0, o_y, 0, res_y])
+        out_ds.SetProjection(osr.SpatialReference(crs).wkt)
+        out_band = out_ds.GetRasterBand(1)
+        out_band.WriteArray(out_data)
+
         out_band_filenames.append(
             out_ds.GetFileList()[0]
         )
@@ -314,44 +334,26 @@ operator_map = {
     _ast.Add: operator.add,
     _ast.Sub: operator.sub,
     _ast.Div: operator.div,
+    _ast.Mult: operator.mul,
 }
 
 
 def _evaluate_expression(expr, fields_and_datasets, generator):
     if isinstance(expr, _ast.Name):
-        return fields_and_datasets[expr.id]
+        return fields_and_datasets[expr.id] # .GetRasterBand(1).ReadAsArray()
 
     elif isinstance(expr, _ast.BinOp):
-        left_ds = _evaluate_expression(
+        left_data = _evaluate_expression(
             expr.left, fields_and_datasets, generator
         )
-        left_data = left_ds.GetRasterBand(1).ReadAsArray()
-        right_ds = _evaluate_expression(
+
+        right_data = _evaluate_expression(
             expr.right, fields_and_datasets, generator
-        )
-        right_data = right_ds.GetRasterBand(1).ReadAsArray()
-        tiff_driver = gdal.GetDriverByName('GTiff')
-        out_ds = tiff_driver.Create(
-            generator.generate('tif'),
-            left_ds.RasterXSize, left_ds.RasterYSize, 1,
-            # left_ds.GetRasterBand(1).DataType,
-            gdal.GDT_Float32,
-            options=[
-                "TILED=YES",
-                "COMPRESS=PACKBITS"
-            ]
         )
 
         op = operator_map[type(expr.op)]
+        return op(left_data, right_data)
 
-        out_data = op(left_data, right_data)
-        out_band = out_ds.GetRasterBand(1)
-        out_band.WriteArray(out_data)
+    elif isinstance(expr, _ast.Num):
+        return expr.n
 
-        out_ds.SetProjection(left_ds.GetProjection())
-        out_ds.SetGeoTransform(left_ds.GetGeoTransform())
-        return out_ds
-
-    else:
-        pass
-        # TODO: implement other expression types
