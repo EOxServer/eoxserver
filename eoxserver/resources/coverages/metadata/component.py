@@ -25,6 +25,7 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
+from eoxserver.contrib.vsi import open as vsi_open
 
 from eoxserver.resources.coverages.metadata.product_formats import get_readers
 
@@ -32,7 +33,7 @@ from eoxserver.resources.coverages.metadata.product_formats import get_readers
 class ProductMetadataComponent(object):
     def read_product_metadata_file(self, path):
         try:
-            f = open(path)
+            f = vsi_open(path)
         except IOError:
             f = None
 
