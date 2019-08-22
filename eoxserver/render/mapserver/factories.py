@@ -301,7 +301,16 @@ class BrowseLayerFactory(CoverageLayerFactoryMixIn, BaseMapServerLayerFactory):
                     )
 
                 else:
-                    for i, field in enumerate(browse.field_list, start=1):
+                    print browse.band_expressions
+                    print browse.ranges
+                    from eoxserver.contrib.vsi import open as vsi_open
+
+                    # print vsi_open(layer_obj.data).read()
+                    from eoxserver.contrib import gdal
+
+                    gdal.GetDriverByName('GTiff').CreateCopy('/data/test.tif', gdal.OpenShared(layer_obj.data))
+
+                    for i, (field, range_) in enumerate(zip(browse.field_list, browse.ranges), start=1):
                         layer_obj.setProcessingKey("SCALE_%d" % i,
                             "%s,%s" % _get_range(field, range_)
                         )

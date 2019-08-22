@@ -127,10 +127,11 @@ class Browse(object):
 
 
 class GeneratedBrowse(Browse):
-    def __init__(self, name, band_expressions, fields_and_coverages, field_list,
-                 footprint):
+    def __init__(self, name, band_expressions, ranges, fields_and_coverages,
+                 field_list, footprint):
         self._name = name
         self._band_expressions = band_expressions
+        self._ranges = ranges
         self._fields_and_coverages = fields_and_coverages
         self._field_list = field_list
         self._footprint = footprint
@@ -174,6 +175,10 @@ class GeneratedBrowse(Browse):
         return self._band_expressions
 
     @property
+    def ranges(self):
+        return self._ranges
+
+    @property
     def fields_and_coverages(self):
         return self._fields_and_coverages
 
@@ -182,8 +187,10 @@ class GeneratedBrowse(Browse):
         return self._field_list
 
     @classmethod
-    def from_coverage_models(cls, band_expressions, fields_and_coverage_models,
+    def from_coverage_models(cls, band_expressions_and_ranges, fields_and_coverage_models,
                              field_names, product_model):
+
+        band_expressions, ranges = zip(*band_expressions_and_ranges)
 
         fields_and_coverages = {
             field_name: [
@@ -196,6 +203,7 @@ class GeneratedBrowse(Browse):
         return cls(
             product_model.identifier,
             band_expressions,
+            ranges,
             fields_and_coverages, [
                 fields_and_coverages[field_name][0].range_type.get_field(
                     field_name

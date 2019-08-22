@@ -531,20 +531,40 @@ def _generate_browse_from_browse_type(product, browse_type):
     band_expressions = []
     field_names = []
     red_bands = extract_fields(browse_type.red_or_grey_expression)
-    band_expressions.append(browse_type.red_or_grey_expression)
+    band_expressions.append((
+        browse_type.red_or_grey_expression, (
+            browse_type.red_or_grey_range_min,
+            browse_type.red_or_grey_range_max,
+        )
+    ))
     field_names.extend(red_bands)
 
     if browse_type.green_expression and browse_type.blue_expression:
         green_bands = extract_fields(browse_type.green_expression)
         blue_bands = extract_fields(browse_type.blue_expression)
-        band_expressions.append(browse_type.green_expression)
-        band_expressions.append(browse_type.blue_expression)
+        band_expressions.append((
+            browse_type.green_expression, (
+                browse_type.green_range_min,
+                browse_type.green_range_max,
+            )
+        ))
+        band_expressions.append((
+            browse_type.blue_expression, (
+                browse_type.blue_range_min,
+                browse_type.blue_range_max,
+            )
+        ))
         field_names.extend(green_bands)
         field_names.extend(blue_bands)
 
         if browse_type.alpha_expression:
             alpha_bands = extract_fields(browse_type.alpha_expression)
-            band_expressions.append(browse_type.alpha_expression)
+            band_expressions.append((
+                browse_type.alpha_expression, (
+                    browse_type.alpha_range_min,
+                    browse_type.alpha_range_max,
+                )
+            ))
             field_names.extend(alpha_bands)
 
     coverages, fields_and_coverages = _lookup_coverages(product, field_names)
