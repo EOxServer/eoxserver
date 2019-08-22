@@ -291,7 +291,9 @@ class BrowseLayerFactory(CoverageLayerFactoryMixIn, BaseMapServerLayerFactory):
 
                 if browse.mode == BROWSE_MODE_GRAYSCALE:
                     field = browse.field_list[0]
-                    browse_range = _get_range(field, range_)
+                    browse_range = browse.ranges[0]
+                    if browse_range == (None, None):
+                        browse_range = _get_range(field, range_)
 
                     _create_raster_style(
                         style or "blackwhite", layer_obj,
@@ -301,15 +303,6 @@ class BrowseLayerFactory(CoverageLayerFactoryMixIn, BaseMapServerLayerFactory):
                     )
 
                 else:
-                    print browse.band_expressions
-                    print browse.ranges
-                    from eoxserver.contrib.vsi import open as vsi_open
-
-                    # print vsi_open(layer_obj.data).read()
-                    from eoxserver.contrib import gdal
-
-                    gdal.GetDriverByName('GTiff').CreateCopy('/data/test.tif', gdal.OpenShared(layer_obj.data))
-
                     for i, (field, range_) in enumerate(zip(browse.field_list, browse.ranges), start=1):
                         layer_obj.setProcessingKey("SCALE_%d" % i,
                             "%s,%s" % _get_range(field, range_)
