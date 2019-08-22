@@ -27,6 +27,7 @@
 
 
 DEFAULT_EOXS_COVERAGE_METADATA_FORMAT_READERS = [
+    'eoxserver.resources.coverages.metadata.coverage_formats.gsc.GSCFormatReader',
     'eoxserver.resources.coverages.metadata.coverage_formats.dimap_general.DimapGeneralFormatReader',
     'eoxserver.resources.coverages.metadata.coverage_formats.eoom.EOOMFormatReader',
     'eoxserver.resources.coverages.metadata.coverage_formats.gdal_dataset.GDALDatasetMetadataReader',
@@ -45,4 +46,5 @@ DEFAULT_EOXS_PRODUCT_METADATA_FORMAT_READERS = [
     'eoxserver.resources.coverages.metadata.product_formats.sentinel2.S2ProductFormatReader',
     'eoxserver.resources.coverages.metadata.product_formats.landsat8_l1.Landsat8L1ProductMetadataReader',
     'eoxserver.resources.coverages.metadata.coverage_formats.eoom.EOOMFormatReader',
+    'eoxserver.resources.coverages.metadata.product_formats.gsc.GSCProductMetadataReader',
 ]
