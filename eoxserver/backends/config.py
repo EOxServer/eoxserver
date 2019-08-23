@@ -35,6 +35,12 @@ DEFAULT_EOXS_STORAGE_HANDLERS = [
     'eoxserver.backends.storages.DirectoryStorageHandler',
     'eoxserver.backends.storages.HTTPStorageHandler',
     'eoxserver.backends.storages.FTPStorageHandler',
+    'eoxserver.backends.storages.SwiftStorageHandler',
+]
+
+
+DEFAULT_EOXS_STORAGE_AUTH_HANDLERS = [
+    'eoxserver.backends.storage_auths.KeystoneStorageAuthHandler',
 ]
 
 

@@ -44,6 +44,22 @@ mandatory = dict(null=False, blank=False)
 
 
 @python_2_unicode_compatible
+class StorageAuth(models.Model):
+    """ Model to symbolize authorization for storages.
+    """
+    url = models.CharField(max_length=1024, **mandatory)
+    storage_auth_type = models.CharField(max_length=32, **mandatory)
+    name = models.CharField(max_length=1024, null=True, blank=False, unique=True)
+    auth_parameters = models.TextField()
+
+    def __str__(self):
+        return "%s: %s" % (self.storage_auth_type, self.url)
+
+    def clean(self):
+        validate_storage_auth(self)
+
+
+@python_2_unicode_compatible
 class Storage(models.Model):
     """ Model to symbolize storages that provide file or other types of access
         to data items.
@@ -51,6 +67,7 @@ class Storage(models.Model):
     url = models.CharField(max_length=1024, **mandatory)
     storage_type = models.CharField(max_length=32, **mandatory)
     name = models.CharField(max_length=1024, null=True, blank=False, unique=True)
+    storage_auth = models.ForeignKey(StorageAuth, **optional)
 
     parent = models.ForeignKey("self", **optional)
 
@@ -110,3 +127,7 @@ def validate_storage(storage):
         if parent == storage:
             raise ValidationError('Circular reference detected')
         parent = parent.parent
+
+
+def validate_storage_auth(storage_auth):
+    pass

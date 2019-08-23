@@ -25,7 +25,7 @@
 # THE SOFTWARE.
 # ------------------------------------------------------------------------------
 
-
+import os
 import hashlib
 import logging
 
@@ -33,6 +33,7 @@ from eoxserver.core.util.iteratortools import pairwise_iterative
 from eoxserver.contrib import vsi
 from eoxserver.backends.cache import get_cache_context
 from eoxserver.backends.storages import get_handler_class_for_model
+from eoxserver.backends import storages_auths
 
 
 logger = logging.getLogger(__name__)
@@ -138,21 +139,52 @@ def get_vsi_path(data_item):
         :returns: the VSI file path which is can be used with GDAL-related APIs
         :rtype: str
     """
+    location = data_item.location
     storage = data_item.storage
-    if storage:
-        if storage.parent:
-            raise NotImplementedError(
-                'VSI paths for nested storages is not supported'
-            )
+    while storage:
         handler_cls = get_handler_class_for_model(storage)
         if handler_cls:
             handler = handler_cls(storage.url)
-            return handler.get_vsi_path(data_item.location)
+            location = vsi.join(
+                handler.get_vsi_path(data_item.location), location
+            )
         else:
             raise AccessError(
                 'Unsupported storage type %r' % storage.storage_type
             )
-    return data_item.location
+    return location
+
+
+def get_vsi_env(data_item):
+    """
+    """
+    env = {}
+    storage = data_item.storage
+    while storage:
+        handler_cls = get_handler_class_for_model(storage)
+        if handler_cls:
+            handler = handler_cls(storage.url)
+            env.update(handler.get_vsi_env(data_item.location))
+        else:
+            raise AccessError(
+                'Unsupported storage type %r' % storage.storage_type
+            )
+
+        if storage.storage_auth:
+            handler = storages_auths.get_handler_for_model(
+                storage.storage_auth
+            )
+            if handler:
+                env.update(handler.get_vsi_env())
+            else:
+                raise AccessError(
+                    'Unsupported storage auth type %r'
+                    % storage.storage_auth.storage_auth_type
+                )
+
+        storage = storage.parent
+
+    return env
 
 
 def vsi_open(data_item):
@@ -164,4 +196,6 @@ def vsi_open(data_item):
         :type data_item: :class:`eoxserver.backends.models.DataItem`
         :rtype: :class:`eoxserver.contrib.vsi.VSIFile`
     """
+    print get_vsi_env(data_item)
+    os.environ.update(get_vsi_env(data_item))
     return vsi.open(get_vsi_path(data_item))

@@ -4,7 +4,7 @@
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
 #
 # ------------------------------------------------------------------------------
-# Copyright (C) 2017 EOX IT Services GmbH
+# Copyright (C) 2019 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -25,11 +25,13 @@
 # THE SOFTWARE.
 # ------------------------------------------------------------------------------
 
+import json
+
 from django.core.management.base import CommandError, BaseCommand
 from django.db import transaction
 
 from eoxserver.backends import models as backends
-from eoxserver.backends.storages import (
+from eoxserver.backends.storage_auths import ( get_handler_for_model,
     get_handler_by_test, get_handler_class_by_name
 )
 from eoxserver.resources.coverages.management.commands import (
@@ -38,7 +40,8 @@ from eoxserver.resources.coverages.management.commands import (
 
 
 class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
-    """ Command to manage storages. This command uses sub-commands for the
+    """ Command to manage storages authorizations.
+        This command uses sub-commands for the
         specific tasks: create, delete
     """
     def add_arguments(self, parser):
@@ -48,25 +51,26 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
         # name is a common argument
         for parser in [create_parser, delete_parser]:
             parser.add_argument(
-                'name', nargs=1, help='The storage name'
+                'name', nargs=1, help='The storage auth name'
             )
 
         create_parser.add_argument(
             'url', nargs=1,
-            help='The storage location in a URL format. Mandatory.'
+            help='The storage auth location in a URL format. Mandatory.'
         )
         create_parser.add_argument(
             '--type', '-t', dest='type_name', default=None,
-            help='The storage type. Optional. Default is auto-detect the type.'
+            help='The storage auth type. Optional. Default is auto-detect the type.'
         )
         create_parser.add_argument(
-            '--parent', '-p', dest='parent_name', default=None,
-            help='The name of the parent storage. Optional.'
+            '--parameter', '-p', dest='parameters', default=None, nargs='+',
+            action='append',
+            help='Pass arguments for that specific storage auth item.',
         )
+
         create_parser.add_argument(
-            '--storage-auth', '--storage-auth-name', '--auth', '-a',
-            dest='storage_auth_name', default=None,
-            help='The name of the storage auth to use. Optional',
+            '--check', dest='check', default=False, action='store_true',
+            help='Check access to the storage auth.',
         )
 
     @transaction.atomic
@@ -79,48 +83,43 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
         elif subcommand == "delete":
             self.handle_delete(name, *args, **kwargs)
 
-    def handle_create(self, name, url, type_name, parent_name, storage_auth_name,
-                      **kwargs):
+    def handle_create(self, name, url, type_name, parameters, check, **kwargs):
         """ Handle the creation of a new storage.
         """
         url = url[0]
-        parent = None
 
-        if type_name:
-            if get_handler_class_by_name(type_name):
-                raise CommandError(
-                    'Storage type %r is not supported' % type_name
-                )
-        else:
-            handler = get_handler_by_test(url)
-            if handler:
-                type_name = handler.name
-            else:
-                raise CommandError(
-                    'Could not determine type for storage location %r' % url
-                )
+        def parse_parameter(key, value=None, *extra):
+            if extra:
+                raise CommandError('Extra arguments for parameter found')
 
-        if parent_name:
-            try:
-                parent = backends.Storage.objects.get(name=parent_name)
-            except backends.Storage.DoesNotExist:
-                raise CommandError('No such storage with name %r' % parent_name)
+            if value is None:
+                key, _, value = key.partition('=')
+            
+            return key.replace('-', '_'), value
 
-        if storage_auth_name:
-            storage_auth = backends.StorageAuth.objects.get(name=storage_auth_name)
-        else:
-            storage_auth = None
-
-        backends.Storage.objects.create(
-            name=name, url=url, storage_type=type_name, parent=parent,
-            storage_auth=storage_auth,
+        parameters = dict(
+            parse_parameter(*param)
+            for param in parameters
         )
+
+        storage_auth = backends.StorageAuth(
+            name=name,
+            url=url,
+            storage_auth_type=type_name,
+            auth_parameters=json.dumps(parameters),
+        )
+        storage_auth.full_clean()
+        storage_auth.save()
+        
+        if check:
+            handler = get_handler_for_model(storage_auth)
+            # TODO perform check
 
     def handle_delete(self, name, **kwargs):
         """ Handle the deletion of a storage
         """
         try:
-            storage = backends.Storage.objects.get(name=name)
-        except backends.Storage.DoesNotExist:
+            storage_auth = backends.StorageAuth.objects.get(name=name)
+        except backends.StorageAuth.DoesNotExist:
             raise CommandError('No such storage with name %r' % name)
-        storage.delete()
+        storage_auth.delete()

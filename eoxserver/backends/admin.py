@@ -76,3 +76,4 @@ class StorageAdmin(admin.ModelAdmin):
         super(StorageAdmin, self).save_model(request, obj, form, change)
 
 admin.site.register(models.Storage, StorageAdmin)
+admin.site.register(models.StorageAuth)

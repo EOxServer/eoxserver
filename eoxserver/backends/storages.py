@@ -85,6 +85,9 @@ class BaseStorageHandler(object):
         """
         raise NotImplementedError
 
+    def get_vsi_env(self):
+        return {}
+
     @classmethod
     def test(cls, locator):
         """ Check if a locator refers to a storage that can be handled by this
@@ -287,6 +290,41 @@ class FTPStorageHandler(BaseStorageHandler):
             return urlparse(locator).scheme.lower() == 'ftp'
         except:
             return False
+
+
+class SwiftStorageHandler(BaseStorageHandler):
+    name = 'swift'
+
+    allows_parent_storage = False
+
+    def __init__(self, url):
+        parsed = urlparse(url)
+        self.storage_url = '%s://%s' % (parsed.scheme, parsed.netloc)
+        self.container = parsed.path
+
+    def retrieve(self, location, path):
+        # TODO
+        pass
+
+    def list_files(self, location, glob_pattern=None):
+        # TODO:
+        return  []
+
+    def get_vsi_env(self):
+        return {
+            'SWIFT_STORAGE_URL': self.storage_url
+        }
+
+    def get_vsi_path(self, location):
+        # TODO: use vsi.join here?
+        return '/vsiswift/%s/%s' % (self.container, location)
+
+    @classmethod
+    def test(cls, locator):
+        # TODO
+        return False
+
+
 
 # API to setup and retrieve the configured storage handlers
 
