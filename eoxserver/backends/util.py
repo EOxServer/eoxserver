@@ -47,7 +47,7 @@ def resolve_storage(storage_paths):
                     parent=parent,
                 )
             else:
-                name, _, locator = locator.rpartition(':')
+                name, _, locator = locator.partition(':')
                 handler_cls = get_handler_class_by_name(name)
                 if handler_cls:
                     parent = models.Storage.objects.create(
