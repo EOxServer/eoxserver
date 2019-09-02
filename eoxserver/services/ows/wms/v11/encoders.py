@@ -168,8 +168,13 @@ class WMS11Encoder(XMLEncoder):
                 extent_text = ",".join(dimension["values"])
 
             extent_elem = E("Extent", extent_text, name=dimension_name)
+
             if "default" in dimension:
                 extent_elem.attrib["default"] = dimension["default"]
+
+            if dimension.get("multivalue"):
+                extent_elem.attrib["multipleValues"] = "1"
+
             extents.append(extent_elem)
 
         elems.extend(dimensions)
