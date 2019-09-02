@@ -182,7 +182,10 @@ class typelist(object):
         self.separator = separator
 
     def __call__(self, value):
-        return [self.typ(v) for v in value.split(self.separator)]
+        split = value.split(self.separator)
+        if self.typ:
+            return [self.typ(v) for v in split]
+        return split
 
 
 class fixed(object):
