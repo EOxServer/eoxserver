@@ -115,6 +115,10 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             handler = get_handler_for_model(storage_auth)
             # TODO perform check
 
+        self.print_msg(
+            'Successfully created storage auth %s (%s)' % (name, type_name)
+        )
+
     def handle_delete(self, name, **kwargs):
         """ Handle the deletion of a storage
         """
@@ -122,4 +126,9 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             storage_auth = backends.StorageAuth.objects.get(name=name)
         except backends.StorageAuth.DoesNotExist:
             raise CommandError('No such storage with name %r' % name)
+        type_name = storage_auth.storage_auth_type
         storage_auth.delete()
+
+        self.print_msg(
+            'Successfully deleted storage auth %s (%s)' % (name, type_name)
+        )
