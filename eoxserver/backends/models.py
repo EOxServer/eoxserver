@@ -49,7 +49,7 @@ class StorageAuth(models.Model):
     """
     url = models.CharField(max_length=1024, **mandatory)
     storage_auth_type = models.CharField(max_length=32, **mandatory)
-    name = models.CharField(max_length=1024, null=True, blank=False, unique=True)
+    name = models.CharField(max_length=1024, null=True, blank=True, unique=True)
     auth_parameters = models.TextField()
 
     def __str__(self):
@@ -66,7 +66,7 @@ class Storage(models.Model):
     """
     url = models.CharField(max_length=1024, **mandatory)
     storage_type = models.CharField(max_length=32, **mandatory)
-    name = models.CharField(max_length=1024, null=True, blank=False, unique=True)
+    name = models.CharField(max_length=1024, null=True, blank=True, unique=True)
     storage_auth = models.ForeignKey(StorageAuth, **optional)
 
     parent = models.ForeignKey("self", **optional)
