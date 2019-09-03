@@ -1151,7 +1151,7 @@ def validate_browse_type(browse_type):
 
     all_fields = set(
         FieldType.objects.filter(
-            coverage_type__allowed_product_types__browse_types=browse_type,
+            coverage_type__allowed_product_types=browse_type.product_type,
         ).values_list('identifier', flat=True)
     )
 
