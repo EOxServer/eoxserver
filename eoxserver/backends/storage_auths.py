@@ -25,6 +25,7 @@
 # THE SOFTWARE.
 # ------------------------------------------------------------------------------
 
+import json
 
 from django.conf import settings
 from django.utils.module_loading import import_string
@@ -56,10 +57,9 @@ class BaseStorageAuthHandler(object):
 class KeystoneStorageAuthHandler(BaseStorageAuthHandler):
     name = 'keystone'
 
-    def _get_token(self):
+    def _get_url_and_token(self):
         url, token = self.get_auth()
-        print url, token
-        return token
+        return url, token
 
     def get_auth(self):
         os_options = {
@@ -77,6 +77,13 @@ class KeystoneStorageAuthHandler(BaseStorageAuthHandler):
             key=self.parameters.get('password'),
             os_options=os_options,
         )
+
+    def get_vsi_env(self):
+        url, token = self._get_url_and_token()
+        return {
+            'SWIFT_STORAGE_URL': url,
+            'SWIFT_AUTH_TOKEN': token,
+        }
 
 
 
@@ -134,4 +141,4 @@ def get_handler_class_for_model(storage_auth_model):
 def get_handler_for_model(storage_auth_model):
     return get_handler_class_for_model(
         storage_auth_model
-    )(storage_auth_model.url, storage_auth_model.auth_parameters)
+    )(storage_auth_model.url, json.loads(storage_auth_model.auth_parameters))
