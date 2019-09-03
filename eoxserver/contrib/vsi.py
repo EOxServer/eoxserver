@@ -31,6 +31,7 @@
 
 
 import os
+import sys
 from uuid import uuid4
 from functools import wraps
 
@@ -96,20 +97,13 @@ class VSIFile(object):
         return self._filename
 
     @_ensure_open
-    def read(self, size=None):
+    def read(self, size=sys.maxsize):
         """ Read from the file. If no ``size`` is specified, read until the end
         of the file.
 
         :param size: the number of bytes to be read
         :returns: the bytes read as a string
         """
-
-        bytes_left = self.size - self.tell()
-
-        if size is None:
-            size = bytes_left
-        else:
-            size = min(size, bytes_left)
 
         value = VSIFReadL(1, size, self._handle)
         return value if value is not None else ''
