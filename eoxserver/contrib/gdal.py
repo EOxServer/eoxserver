@@ -34,6 +34,7 @@ all available drivers.
 """
 
 import os
+import contextlib
 
 
 if os.environ.get('READTHEDOCS', None) != 'True':
@@ -150,3 +151,39 @@ def get_extent(ds):
     y_b = gt[3] + gt[5] * ds.RasterYSize
 
     return (min(x_a, x_b), min(y_a, y_b), max(x_a, x_b), max(y_a, y_b))
+
+
+import os
+
+def set_env(env, fail_on_override=False, return_old=False):
+    old_values = {} if return_old else None
+    for key, value in env.items():
+        if fail_on_override or return_old:
+            # old_value = GetConfigOption(str(key))
+            old_value = os.environ.get(key)
+            if fail_on_override and old_value != value:
+                raise Exception(
+                    'Would override previous value of %s: %s with %s'
+                    % (key, old_value, value)
+                )
+            elif old_value != value:
+                old_values[key] = old_value
+
+        # SetConfigOption(str(key), str(value))
+        if value is not None:
+            os.environ[key] = value
+
+    return old_values
+
+
+@contextlib.contextmanager
+def config_env(env, fail_on_override=False, reset_old=True):
+    old_env = set_env(env, fail_on_override, reset_old)
+    yield
+    if reset_old:
+        set_env(old_env, False, False)
+
+
+def open_with_env(path, env, shared=True):
+    with config_env(env, False):
+        return OpenShared(path) if shared else Open(path)

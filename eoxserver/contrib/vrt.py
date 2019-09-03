@@ -419,30 +419,31 @@ def mosaic(filenames, save=None):
     return out_ds
 
 
-def select_bands(filename, band_indices, save=None):
-    ds = gdal.OpenShared(filename)
+def select_bands(filename, env, band_indices, save=None):
+    with gdal.config_env(env):
+        ds = gdal.OpenShared(filename)
 
-    out_ds = get_vrt_driver().Create(save, ds.RasterXSize, ds.RasterYSize, 0)
-    out_ds.SetProjection(ds.GetProjection())
-    out_ds.SetGeoTransform(ds.GetGeoTransform())
+        out_ds = get_vrt_driver().Create(save, ds.RasterXSize, ds.RasterYSize, 0)
+        out_ds.SetProjection(ds.GetProjection())
+        out_ds.SetGeoTransform(ds.GetGeoTransform())
 
-    for i, index in enumerate(band_indices, start=1):
-        band = ds.GetRasterBand(index)
-        out_ds.AddBand(band.DataType)
-        out_band = out_ds.GetRasterBand(i)
+        for i, index in enumerate(band_indices, start=1):
+            band = ds.GetRasterBand(index)
+            out_ds.AddBand(band.DataType)
+            out_band = out_ds.GetRasterBand(i)
 
-        nodata_value = band.GetNoDataValue()
-        if nodata_value is not None:
-            out_band.SetNoDataValue(nodata_value)
+            nodata_value = band.GetNoDataValue()
+            if nodata_value is not None:
+                out_band.SetNoDataValue(nodata_value)
 
-        out_band.SetMetadataItem("source_0", """
-            <SimpleSource>
-                <SourceFilename relativeToVRT="1">{filename}</SourceFilename>
-                <SourceBand>{band}</SourceBand>
-            </SimpleSource>
-        """.format(
-            band=index, filename=filename
-        ), "new_vrt_sources")
+            out_band.SetMetadataItem("source_0", """
+                <SimpleSource>
+                    <SourceFilename relativeToVRT="1">{filename}</SourceFilename>
+                    <SourceBand>{band}</SourceBand>
+                </SimpleSource>
+            """.format(
+                band=index, filename=filename
+            ), "new_vrt_sources")
 
     return out_ds
 

@@ -25,6 +25,7 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
+import contextlib
 import time
 import logging
 from cgi import escape
@@ -274,3 +275,29 @@ def setMetaData(obj, key_or_params, value=None, namespace=None):
 
 # alias
 set_metadata = setMetaData
+
+
+def set_env(map_obj, env, fail_on_override=False, return_old=False):
+    old_values = {} if return_old else None
+    for key, value in env.items():
+        if fail_on_override or return_old:
+            old_value = map_obj.getConfigOption(str(key))
+            if fail_on_override and old_value != value:
+                raise Exception(
+                    'Would override previous value of %s: %s with %s'
+                    % (key, old_value, value)
+                )
+            elif old_value != value:
+                old_values[key] = old_value
+
+        map_obj.setConfigOption(str(key), str(value))
+
+    return old_values
+
+@contextlib.contextmanager
+def config_env(map_obj, env, fail_on_override=False, reset_old=True):
+    old_env = set_env(env, fail_on_override, reset_old)
+    yield
+    if reset_old:
+        set_env(old_env, False, False)
+
