@@ -197,7 +197,8 @@ def generate_browse(band_expressions, fields_and_coverages,
                 else:
                     selected_filename = generator.generate()
                     vrt.select_bands(
-                        orig_filename, [orig_band_index], selected_filename
+                        orig_filename, location.env,
+                        [orig_band_index], selected_filename
                     )
 
                 selected_filenames.append(selected_filename)
@@ -257,7 +258,8 @@ def _generate_browse_complex(parsed_expressions, fields_and_coverages,
             else:
                 selected_filename = generator.generate()
                 vrt.select_bands(
-                    orig_filename, [orig_band_index], selected_filename
+                    orig_filename, location.env,
+                    [orig_band_index], selected_filename
                 )
 
             selected_filenames.append(selected_filename)
