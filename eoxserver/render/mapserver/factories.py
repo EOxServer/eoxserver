@@ -128,7 +128,9 @@ class CoverageLayerFactoryMixIn(object):
         num_locations = len(set(field_locations))
         if num_locations == 1:
             if not coverage.grid.is_referenceable:
-                layer_obj.data = field_locations[0][1].path
+                location = field_locations[0][1]
+                layer_obj.data = location.path
+                ms.set_env(map_obj, location.env, True)
             else:
                 vrt_path = join("/vsimem", uuid4().hex)
 
@@ -141,6 +143,7 @@ class CoverageLayerFactoryMixIn(object):
 
                 srid = osr.SpatialReference(map_obj.getProjection()).srid
 
+                # TODO: env?
                 reftools.create_rectified_vrt(
                     field_locations[0][1].path, vrt_path, order=1, max_error=10,
                     resolution=(resx, -resy), srid=srid
@@ -156,12 +159,15 @@ class CoverageLayerFactoryMixIn(object):
 
         elif num_locations > 1:
             if len(set(field_location[1].path for field_location in field_locations)) == 1:
-                layer_obj.data = field_locations[0][1].path
+                location = field_locations[0][1]
+                layer_obj.data = location.path
+                ms.set_env(map_obj, location.env, True)
                 if len(field_locations) == 3:
                     layer_obj.setProcessingKey("BANDS", "1,2,3")
                 else:
                     layer_obj.setProcessingKey("BANDS", "1")
             else:
+                # TODO
                 _build_vrt(coverage.size, field_locations)
 
         # make a color-scaled layer
@@ -310,6 +316,7 @@ class BrowseLayerFactory(CoverageLayerFactoryMixIn, BaseMapServerLayerFactory):
 
             elif isinstance(browse, Browse):
                 layer_obj.data = browse.filename
+                ms.set_env(map_obj, browse.env, True)
 
         return filename_generator
 
@@ -367,6 +374,7 @@ class OutlinedBrowseLayerFactory(BaseMapServerLayerFactory):
 
             elif isinstance(browse, Browse):
                 browse_layer_obj.data = browse.filename
+                ms.set_env(map_obj, browse.env, True)
 
             # create the outlines layer
             outlines_layer_obj = _create_polygon_layer(map_obj)
@@ -450,6 +458,7 @@ class MaskedBrowseLayerFactory(BaseMapServerLayerFactory):
                 raise NotImplementedError
 
             browse_layer_obj.data = browse.filename
+            ms.set_env(map_obj, browse.env, True)
             browse_layer_obj.mask = mask_name
 
 
