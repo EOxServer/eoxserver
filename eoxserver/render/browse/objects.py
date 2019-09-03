@@ -29,7 +29,7 @@ from django.contrib.gis.geos import Polygon
 from django.contrib.gis.gdal import SpatialReference, CoordTransform, DataSource
 
 from eoxserver.contrib import gdal
-from eoxserver.backends.access import get_vsi_path
+from eoxserver.backends.access import get_vsi_path, get_vsi_env
 from eoxserver.render.coverage.objects import Coverage
 
 
@@ -39,9 +39,10 @@ BROWSE_MODE_GRAYSCALE = "grayscale"
 
 
 class Browse(object):
-    def __init__(self, name, filename, size, extent, crs, mode, footprint):
+    def __init__(self, name, filename, env, size, extent, crs, mode, footprint):
         self._name = name
         self._filename = filename
+        self._env = env
         self._size = size
         self._extent = extent
         self._crs = crs
@@ -55,6 +56,10 @@ class Browse(object):
     @property
     def filename(self):
         return self._filename
+
+    @property
+    def env(self):
+        return self._env
 
     @property
     def size(self):
@@ -91,6 +96,7 @@ class Browse(object):
     @classmethod
     def from_model(cls, product_model, browse_model):
         filename = get_vsi_path(browse_model)
+        env = get_vsi_env(browse_model)
         size = (browse_model.width, browse_model.height)
         extent = (
             browse_model.min_x, browse_model.min_y,
@@ -109,20 +115,22 @@ class Browse(object):
             name = product_model.identifier
 
         return cls(
-            name, filename, size, extent,
+            name, filename, env, size, extent,
             browse_model.coordinate_reference_system, mode,
             product_model.footprint
         )
 
     @classmethod
-    def from_file(cls, filename):
+    def from_file(cls, filename, env=None):
+        env = env or {}
         ds = gdal.Open(filename)
         size = (ds.RasterXSize, ds.RasterYSize)
         extent = gdal.get_extent(ds)
         mode = _get_ds_mode(ds)
 
         return cls(
-            filename, filename, size, extent, ds.GetProjection(), mode, None
+            filename, env, filename, size, extent,
+            ds.GetProjection(), mode, None
         )
 
 

@@ -32,7 +32,7 @@ from django.utils import six
 from eoxserver.core.util.timetools import parse_iso8601, parse_duration
 from eoxserver.contrib import gdal, osr
 from eoxserver.contrib.osr import SpatialReference
-from eoxserver.backends.access import get_vsi_path
+from eoxserver.backends.access import get_vsi_path, get_vsi_env
 from eoxserver.resources.coverages import models
 
 GRID_TYPE_ELEVATION = 1
@@ -396,8 +396,9 @@ class EOMetadata(object):
 
 
 class Location(object):
-    def __init__(self, path, format):
+    def __init__(self, path, env, format):
         self._path = path
+        self._env = env
         self._format = format
 
     @property
@@ -405,13 +406,17 @@ class Location(object):
         return self._path
 
     @property
+    def env(self):
+        return self._env
+
+    @property
     def format(self):
         return self._format
 
 
 class ArraydataLocation(Location):
-    def __init__(self, path, format, start_field, end_field):
-        super(ArraydataLocation, self).__init__(path, format)
+    def __init__(self, path, env, format, start_field, end_field):
+        super(ArraydataLocation, self).__init__(path, env, format)
         self._start_field = start_field
         self._end_field = end_field
 
@@ -582,14 +587,14 @@ class Coverage(object):
 
         arraydata_locations = [
             ArraydataLocation(
-                get_vsi_path(item), item.format,
+                get_vsi_path(item), get_vsi_env(item.storage), item.format,
                 item.field_index, item.field_index + (item.band_count - 1)
             )
             for item in coverage_model.arraydata_items.all()
         ]
 
         metadata_locations = [
-            Location(get_vsi_path(item), item.format)
+            Location(get_vsi_path(item), get_vsi_env(item.storage), item.format)
             for item in coverage_model.metadata_items.all()
         ]
 
