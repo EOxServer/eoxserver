@@ -31,7 +31,7 @@ from eoxserver.backends.storages import (
 )
 
 
-def resolve_storage(storage_paths):
+def resolve_storage(storage_paths, save=True):
     parent = None
     for locator in storage_paths:
         # try to get a storage by name, if it exists:
@@ -42,17 +42,26 @@ def resolve_storage(storage_paths):
         except models.Storage.DoesNotExist:
             handler = get_handler_by_test(locator)
             if handler:
-                parent = models.Storage.objects.create(
+                parent = models.Storage(
+                    name=None,
                     url=locator, storage_type=handler.name,
                     parent=parent,
                 )
             else:
-                name, _, locator = locator.partition(':')
+                name, _, url = locator.partition(':')
                 handler_cls = get_handler_class_by_name(name)
                 if handler_cls:
-                    parent = models.Storage.objects.create(
-                        url=locator, storage_type=name,
+                    parent = models.Storage(
+                        name=None,
+                        url=url, storage_type=name,
                         parent=parent,
                     )
+                else:
+                    raise Exception(
+                        'No storage handler found for locator %r' % locator
+                    )
+            if save:
+                parent.full_clean()
+                parent.save()
 
     return parent
