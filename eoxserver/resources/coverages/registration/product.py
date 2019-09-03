@@ -33,7 +33,7 @@ from django.contrib.gis.geos import GEOSGeometry
 from eoxserver.contrib import gdal
 from eoxserver.backends import models as backends
 from eoxserver.backends.storages import get_handler_by_test
-from eoxserver.backends.access import get_vsi_path
+from eoxserver.backends.access import get_vsi_path, get_vsi_env
 from eoxserver.backends.util import resolve_storage
 from eoxserver.resources.coverages import models
 from eoxserver.resources.coverages.registration import base
@@ -213,7 +213,8 @@ class ProductRegistrator(base.BaseRegistrator):
 
     def _read_product_metadata(self, component, metadata_item):
         path = get_vsi_path(metadata_item)
-        return component.read_product_metadata_file(path)
+        with gdal.config_env(get_vsi_env(metadata_item.storage)):
+            return component.read_product_metadata_file(path)
 
     def _create_metadata(self, product, metadata_values):
         value_items = [

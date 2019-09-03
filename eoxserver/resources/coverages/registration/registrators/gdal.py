@@ -25,8 +25,7 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-from eoxserver.contrib import gdal
-from eoxserver.backends.access import get_vsi_path
+from eoxserver.backends.access import gdal_open
 from eoxserver.resources.coverages.metadata.coverage_formats import (
     get_reader_by_test
 )
@@ -37,7 +36,7 @@ class GDALRegistrator(BaseRegistrator):
     scheme = "GDAL"
 
     def _read_metadata_from_data(self, data_item, retrieved_metadata, cache, highest_resolution):
-        ds = gdal.Open(get_vsi_path(data_item))
+        ds = gdal_open(data_item)
         reader = get_reader_by_test(ds)
         if reader:
             values = reader.read(ds)
