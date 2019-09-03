@@ -28,12 +28,13 @@
 import os
 import hashlib
 import logging
+from fnmatch import fnmatch
 
 from eoxserver.core.util.iteratortools import pairwise_iterative
-from eoxserver.contrib import vsi
+from eoxserver.contrib import vsi, gdal
 from eoxserver.backends.cache import get_cache_context
 from eoxserver.backends.storages import get_handler_class_for_model
-from eoxserver.backends import storages_auths
+from eoxserver.backends import storage_auths
 
 
 logger = logging.getLogger(__name__)
@@ -141,37 +142,42 @@ def get_vsi_path(data_item):
     """
     location = data_item.location
     storage = data_item.storage
+
+    return get_vsi_storage_path(storage, data_item.location)
+
+
+def get_vsi_storage_path(storage, location=''):
     while storage:
         handler_cls = get_handler_class_for_model(storage)
         if handler_cls:
             handler = handler_cls(storage.url)
-            location = vsi.join(
-                handler.get_vsi_path(data_item.location), location
-            )
+            location = handler.get_vsi_path(location)
         else:
             raise AccessError(
                 'Unsupported storage type %r' % storage.storage_type
             )
+        storage = storage.parent
+
     return location
 
 
-def get_vsi_env(data_item):
+
+def get_vsi_env(storage):
     """
     """
     env = {}
-    storage = data_item.storage
     while storage:
         handler_cls = get_handler_class_for_model(storage)
         if handler_cls:
             handler = handler_cls(storage.url)
-            env.update(handler.get_vsi_env(data_item.location))
+            env.update(handler.get_vsi_env())
         else:
             raise AccessError(
                 'Unsupported storage type %r' % storage.storage_type
             )
 
         if storage.storage_auth:
-            handler = storages_auths.get_handler_for_model(
+            handler = storage_auths.get_handler_for_model(
                 storage.storage_auth
             )
             if handler:
@@ -196,6 +202,41 @@ def vsi_open(data_item):
         :type data_item: :class:`eoxserver.backends.models.DataItem`
         :rtype: :class:`eoxserver.contrib.vsi.VSIFile`
     """
-    print get_vsi_env(data_item)
-    os.environ.update(get_vsi_env(data_item))
-    return vsi.open(get_vsi_path(data_item))
+    with gdal.config_env(get_vsi_env(data_item.storage)):
+        return vsi.open(get_vsi_path(data_item))
+
+
+def gdal_open(data_item, shared=True):
+    """ Opens a :class:`eoxserver.backends.models.DataItem` as a
+        :class:`eoxserver.contrib.gdal.Dataset`. Uses :func:`get_vsi_path`
+        internally to get the path.
+
+        :param data_item: the data item to open as a dataset.
+        :type data_item: :class:`eoxserver.backends.models.DataItem`
+        :rtype: :class:`eoxserver.contrib.gdal.Dataset`
+    """
+    return gdal.open_with_env(
+        get_vsi_path(data_item),
+        get_vsi_env(data_item.storage),
+        shared
+    )
+
+
+def vsi_list_storage(storage, pattern=None):
+    """
+    """
+    with gdal.config_env(get_vsi_env(storage)):
+        path = get_vsi_storage_path(storage)
+        files = gdal.ReadDir(path)
+
+        if files is None:
+            raise Exception('No such path "%s"' % path)
+
+        if pattern:
+            files = [
+                filename
+                for filename in files
+                if fnmatch(filename, pattern)
+            ]
+
+        return files

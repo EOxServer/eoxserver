@@ -32,6 +32,8 @@ from eoxserver.backends import models as backends
 from eoxserver.backends.storages import (
     get_handler_by_test, get_handler_class_by_name
 )
+from eoxserver.backends.util import resolve_storage
+from eoxserver.backends.access import vsi_list_storage, get_vsi_env
 from eoxserver.resources.coverages.management.commands import (
     CommandOutputMixIn, SubParserMixIn
 )
@@ -44,9 +46,11 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
     def add_arguments(self, parser):
         create_parser = self.add_subparser(parser, 'create')
         delete_parser = self.add_subparser(parser, 'delete')
+        list_parser = self.add_subparser(parser, 'list')
+        env_parser = self.add_subparser(parser, 'env')
 
         # name is a common argument
-        for parser in [create_parser, delete_parser]:
+        for parser in [create_parser, delete_parser, list_parser, env_parser]:
             parser.add_argument(
                 'name', nargs=1, help='The storage name'
             )
@@ -69,6 +73,21 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             help='The name of the storage auth to use. Optional',
         )
 
+        for parser in [list_parser, env_parser]:
+            parser.add_argument(
+                'paths', nargs='*', default=None,
+                help=(
+                    'Possible sub-path on that storage. This may include '
+                    'specifiers for sub-storages'
+                )
+            )
+
+        list_parser.add_argument(
+            '--pattern', '--glob', '-p', '-g',
+            dest='pattern', default=None,
+            help='A glob pattern to filter the listing of files. Optional.'
+        )
+
     @transaction.atomic
     def handle(self, subcommand, name, *args, **kwargs):
         """ Dispatch sub-commands: create, delete, insert, exclude, purge.
@@ -78,6 +97,11 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             self.handle_create(name, *args, **kwargs)
         elif subcommand == "delete":
             self.handle_delete(name, *args, **kwargs)
+        elif subcommand == "list":
+            self.handle_list(name, *args, **kwargs)
+        elif subcommand == "env":
+            self.handle_env(name, *args, **kwargs)
+
 
     def handle_create(self, name, url, type_name, parent_name, storage_auth_name,
                       **kwargs):
@@ -87,7 +111,8 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
         parent = None
 
         if type_name:
-            if get_handler_class_by_name(type_name):
+            handler = get_handler_class_by_name(type_name)
+            if not handler:
                 raise CommandError(
                     'Storage type %r is not supported' % type_name
                 )
@@ -116,6 +141,12 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             storage_auth=storage_auth,
         )
 
+        self.print_msg(
+            'Successfully created storage %s (%s)' % (
+                name or url, type_name
+            )
+        )
+
     def handle_delete(self, name, **kwargs):
         """ Handle the deletion of a storage
         """
@@ -123,4 +154,21 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             storage = backends.Storage.objects.get(name=name)
         except backends.Storage.DoesNotExist:
             raise CommandError('No such storage with name %r' % name)
+
+        type_name = storage.storage_type
         storage.delete()
+
+        self.print_msg(
+            'Successfully deleted storage %s (%s)' % (name, type_name)
+        )
+
+    def handle_list(self, name, paths=None, pattern=None, **kwargs):
+        storage = resolve_storage([name] + paths or [], save=False)
+        files = vsi_list_storage(storage, pattern)
+        for filename in files:
+            print(filename)
+
+    def handle_env(self, name, paths, **kwargs):
+        storage = resolve_storage([name] + paths or [], save=False)
+        for key, value in get_vsi_env(storage).items():
+            print('%s="%s"' % (key, value))

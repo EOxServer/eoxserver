@@ -38,6 +38,7 @@ import glob
 from django.conf import settings
 from django.utils.module_loading import import_string
 
+from eoxserver.contrib import vsi
 from eoxserver.backends.config import DEFAULT_EOXS_STORAGE_HANDLERS
 
 
@@ -86,6 +87,8 @@ class BaseStorageHandler(object):
         raise NotImplementedError
 
     def get_vsi_env(self):
+        """
+        """
         return {}
 
     @classmethod
@@ -296,32 +299,22 @@ class SwiftStorageHandler(BaseStorageHandler):
     name = 'swift'
 
     allows_parent_storage = False
+    allows_child_storages = True
 
     def __init__(self, url):
-        parsed = urlparse(url)
-        self.storage_url = '%s://%s' % (parsed.scheme, parsed.netloc)
-        self.container = parsed.path
+        self.container = url
 
     def retrieve(self, location, path):
-        # TODO
         pass
 
     def list_files(self, location, glob_pattern=None):
-        # TODO:
-        return  []
-
-    def get_vsi_env(self):
-        return {
-            'SWIFT_STORAGE_URL': self.storage_url
-        }
+        return []
 
     def get_vsi_path(self, location):
-        # TODO: use vsi.join here?
-        return '/vsiswift/%s/%s' % (self.container, location)
+        return vsi.join('/vsiswift/%s' % self.container, location)
 
     @classmethod
     def test(cls, locator):
-        # TODO
         return False
 
 
