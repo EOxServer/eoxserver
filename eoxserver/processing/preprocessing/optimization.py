@@ -423,12 +423,14 @@ class AlphaBandOptimization(object):
 class ColorToAlphaOptimization(DatasetOptimization):
     """
     Pixel-wise optimization burns color_to_alpha pixels of RGB 
-    into alpha channel as 0 (transparent) if all bands have the same value.
+    into alpha channel as 0 (transparent) if all bands have pixel value = [color_to_alpha +- margin].
     Default black is turned to transparent. Returns modified dataset.
     """
-    def __call__(self, src_ds, color_to_alpha=0):
+    def __call__(self, src_ds, color_to_alpha=0, margin=15):
         logger.info("Applying ColorToAlphaOptimization")
         dt = src_ds.GetRasterBand(1).DataType
+        higher_cut = color_to_alpha + margin
+        lower_cut = color_to_alpha - margin
         largest_value_of_datatype = get_limits(dt)[1]
         if src_ds.RasterCount == 3:
             src_ds.AddBand(dt)
@@ -453,9 +455,9 @@ class ColorToAlphaOptimization(DatasetOptimization):
             R_mask = numpy.zeros(R.shape, dtype=bool)
             G_mask = numpy.zeros(R.shape, dtype=bool)
             B_mask = numpy.zeros(R.shape, dtype=bool)
-            R_mask[:, :] = R[:, :] == color_to_alpha
-            G_mask[:, :] = G[:, :] == color_to_alpha
-            B_mask[:, :] = B[:, :] == color_to_alpha
+            R_mask = (R < higher_cut) & (R > lower_cut)
+            G_mask = (G < higher_cut) & (G > lower_cut)
+            B_mask = (B < higher_cut) & (B > lower_cut)
             # merge three separate masks with logical AND
             rg_mask = numpy.logical_and(R_mask, G_mask)
             rgb_mask = numpy.logical_and(rg_mask, B_mask)
