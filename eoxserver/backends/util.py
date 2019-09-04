@@ -65,3 +65,13 @@ def resolve_storage(storage_paths, save=True):
                 parent.save()
 
     return parent
+
+
+def resolve_storage_and_path(storage_paths, save=True):
+    last = storage_paths[-1]
+    name, _, _ = last.partition(':')
+    handler_cls = get_handler_class_by_name(name)
+    if handler_cls:
+        return resolve_storage(storage_paths, save), None
+    else:
+        return resolve_storage(storage_paths[:-1], save), last

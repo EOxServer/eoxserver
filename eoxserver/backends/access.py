@@ -146,12 +146,12 @@ def get_vsi_path(data_item):
     return get_vsi_storage_path(storage, data_item.location)
 
 
-def get_vsi_storage_path(storage, location=''):
+def get_vsi_storage_path(storage, location=None):
     while storage:
         handler_cls = get_handler_class_for_model(storage)
         if handler_cls:
             handler = handler_cls(storage.url)
-            location = handler.get_vsi_path(location)
+            location = handler.get_vsi_path(location or '')
         else:
             raise AccessError(
                 'Unsupported storage type %r' % storage.storage_type
@@ -222,11 +222,11 @@ def gdal_open(data_item, shared=True):
     )
 
 
-def vsi_list_storage(storage, pattern=None):
+def vsi_list_storage(storage, location=None, pattern=None):
     """
     """
     with gdal.config_env(get_vsi_env(storage)):
-        path = get_vsi_storage_path(storage)
+        path = get_vsi_storage_path(storage, location)
         files = gdal.ReadDir(path)
 
         if files is None:
