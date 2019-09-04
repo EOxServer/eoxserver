@@ -36,10 +36,14 @@ from uuid import uuid4
 from functools import wraps
 
 if os.environ.get('READTHEDOCS', None) != 'True':
+    import numpy
+
     from eoxserver.contrib.gdal import (
         VSIFOpenL, VSIFCloseL, VSIFReadL, VSIFWriteL, VSIFSeekL, VSIFTellL,
         VSIStatL, VSIFTruncateL, Unlink, Rename, FileFromMemBuffer
     )
+
+    UINT32_MAX = numpy.iinfo('uint32').max
 
     rename = Rename
 
@@ -97,7 +101,7 @@ class VSIFile(object):
         return self._filename
 
     @_ensure_open
-    def read(self, size=sys.maxsize):
+    def read(self, size=UINT32_MAX):
         """ Read from the file. If no ``size`` is specified, read until the end
         of the file.
 
