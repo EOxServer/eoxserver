@@ -426,11 +426,11 @@ class ColorToAlphaOptimization(DatasetOptimization):
     into alpha channel as 0 (transparent) if all bands have pixel value = [color_to_alpha +- margin].
     Default black is turned to transparent. Returns modified dataset.
     """
-    def __call__(self, src_ds, color_to_alpha=0, margin=15):
+    def __call__(self, src_ds, color_to_alpha=0, color_to_alpha_margin=15):
         logger.info("Applying ColorToAlphaOptimization")
         dt = src_ds.GetRasterBand(1).DataType
-        higher_cut = color_to_alpha + margin
-        lower_cut = color_to_alpha - margin
+        higher_cut = color_to_alpha + color_to_alpha_margin
+        lower_cut = color_to_alpha - color_to_alpha_margin
         largest_value_of_datatype = get_limits(dt)[1]
         if src_ds.RasterCount == 3:
             src_ds.AddBand(dt)
