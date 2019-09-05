@@ -25,7 +25,7 @@
 # THE SOFTWARE.
 # ------------------------------------------------------------------------------
 
-from django.db.models import Case, Value, When, IntegerField
+from django.db.models import Case, Value, When, IntegerField, BooleanField
 
 from eoxserver.core.config import get_eoxserver_config
 from eoxserver.core.decoders import config, enum
@@ -73,18 +73,29 @@ class LayerMapper(object):
             return LayerDescription.from_mosaic(coverage, raster_styles)
         elif isinstance(eo_object, (models.Product, models.Collection)):
             if getattr(eo_object, "product_type", None):
-                browse_types = eo_object.product_type.browse_types.all()
-                mask_types = eo_object.product_type.mask_types.all()
+                browse_type_qs = eo_object.product_type.browse_types.all()
+                mask_type_qs = eo_object.product_type.mask_types.all()
             elif getattr(eo_object, "collection_type", None):
-                browse_types = models.BrowseType.objects.filter(
+                browse_type_qs = models.BrowseType.objects.filter(
                     product_type__allowed_collection_types__collections=eo_object
                 )
-                mask_types = models.MaskType.objects.filter(
+                mask_type_qs = models.MaskType.objects.filter(
                     product_type__allowed_collection_types__collections=eo_object
                 )
             else:
-                mask_types = []
-                browse_types = []
+                browse_type_qs = models.BrowseType.objects.empty()
+                mask_type_qs = models.MaskType.objects.empty()
+
+            browse_types_name_and_is_gray = browse_type_qs.annotate(
+                is_gray=Case(
+                    When(green_expression__isnull=True, then=Value(True)),
+                    default=Value(False),
+                    output_field=BooleanField()
+                )
+            ).distinct('name').values_list('name', 'is_gray')
+            mask_type_names = mask_type_qs.distinct('name').values_list(
+                'name', flat=True
+            )
 
             sub_layers = [
                 LayerDescription(
@@ -102,23 +113,23 @@ class LayerMapper(object):
                     queryable=True
                 )
             ]
-            for browse_type in browse_types:
+            for name, is_gray in browse_types_name_and_is_gray:
                 sub_layers.append(
                     LayerDescription(
                         "%s%s%s" % (
                             eo_object.identifier, self.suffix_separator,
-                            browse_type.name
+                            name
                         ),
-                        styles=geometry_styles
+                        styles=raster_styles if is_gray else []
                     )
                 )
 
-            for mask_type in mask_types:
+            for mask_type_name in mask_type_names:
                 sub_layers.append(
                     LayerDescription(
                         "%s%s%s" % (
                             eo_object.identifier, self.suffix_separator,
-                            mask_type.name
+                            mask_type_name
                         ),
                         styles=geometry_styles
                     )
@@ -127,7 +138,7 @@ class LayerMapper(object):
                     LayerDescription(
                         "%s%smasked_%s" % (
                             eo_object.identifier, self.suffix_separator,
-                            mask_type.name
+                            mask_type_name
                         ),
                         styles=geometry_styles
                     )
