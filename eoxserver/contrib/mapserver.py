@@ -282,12 +282,12 @@ def set_env(map_obj, env, fail_on_override=False, return_old=False):
     for key, value in env.items():
         if fail_on_override or return_old:
             old_value = map_obj.getConfigOption(str(key))
-            if fail_on_override and old_value != value:
+            if fail_on_override and old_value is not None and old_value != value:
                 raise Exception(
                     'Would override previous value of %s: %s with %s'
                     % (key, old_value, value)
                 )
-            elif old_value != value:
+            elif old_value != value and return_old:
                 old_values[key] = old_value
 
         map_obj.setConfigOption(str(key), str(value))
