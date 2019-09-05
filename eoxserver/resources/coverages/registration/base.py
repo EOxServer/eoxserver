@@ -66,7 +66,8 @@ class BaseRegistrator(object):
     def register(self, data_locations, metadata_locations,
                  coverage_type_name=None, footprint_from_extent=False,
                  overrides=None, identifier_template=None,
-                 highest_resolution=False, replace=False, cache=None):
+                 highest_resolution=False, replace=False, cache=None,
+                 use_subdatasets=False):
         """ Main registration method
 
             :param data_locations:
@@ -117,7 +118,7 @@ class BaseRegistrator(object):
 
             subdataset_type = None
             subdataset_locator = None
-            if len(parts) > 1:
+            if use_subdatasets and len(parts) > 1:
                 path = parts[1]
                 subdataset_type = parts[0]
                 subdataset_locator = ":".join(parts[2:])
