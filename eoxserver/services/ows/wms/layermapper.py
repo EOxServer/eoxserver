@@ -226,7 +226,7 @@ class LayerMapper(object):
                 )
 
                 has_products = False
-                for product, browse in product_browses:
+                for product, browse, _ in product_browses:
                     has_products = True
                     # When bands/wavelengths are specifically requested, make a
                     # generated browse
@@ -375,7 +375,7 @@ class LayerMapper(object):
                         style, limit=limit_products
                     )
 
-                    for product, browse in product_browses:
+                    for product, browse, browse_type in product_browses:
                         # check if a browse is already available for that
                         # browse type.
                         if browse:
@@ -482,15 +482,23 @@ class LayerMapper(object):
             browses = product.browses
             if name:
                 browses = browses.filter(browse_type__name=name)
+                browse = browses.first()
+                if browse:
+                    browse_type = browse.browse_type
+                else:
+                    browse_type = models.BrowseType.objects.get(
+                        name=name, product_type=product.product_type
+                    )
             else:
                 browses = browses.filter(browse_type__isnull=True)
+                browse_type = None
 
             # if style:
             #     browses = browses.filter(style=style)
             # else:
             #     browses = browses.filter(style__isnull=True)
 
-            yield (product, browses.first())
+            yield (product, browses.first(), browse_type)
 
     def iter_products_masks(self, eo_object, filters_expressions, sort_by,
                             name=None, limit=None):
