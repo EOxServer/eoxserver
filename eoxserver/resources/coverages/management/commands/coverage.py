@@ -149,6 +149,14 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             )
         )
         register_parser.add_argument(
+            "--use-subdatasets", "--subdatasets",
+            dest="use_subdatasets", action="store_true", default=False,
+            help=(
+                "Optional. Tell the registrator to interpret colons in the "
+                "filename as subdataset specifiers. Default is False."
+            )
+        )
+        register_parser.add_argument(
             '--print-identifier', dest='print_identifier',
             default=False, action='store_true',
             help=(
@@ -202,6 +210,7 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             identifier_template=kwargs['identifier_template'],
             highest_resolution=kwargs['highest_resolution'],
             replace=kwargs['replace'],
+            use_subdatasets=kwargs['use_subdatasets'],
         )
 
         product_identifier = kwargs['product_identifier']
