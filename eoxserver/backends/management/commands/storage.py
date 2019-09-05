@@ -32,7 +32,7 @@ from eoxserver.backends import models as backends
 from eoxserver.backends.storages import (
     get_handler_by_test, get_handler_class_by_name
 )
-from eoxserver.backends.util import resolve_storage_and_path
+from eoxserver.backends.util import resolve_storage_and_path, resolve_storage
 from eoxserver.backends.access import vsi_list_storage, get_vsi_env
 from eoxserver.resources.coverages.management.commands import (
     CommandOutputMixIn, SubParserMixIn
@@ -169,6 +169,6 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             print(filename)
 
     def handle_env(self, name, paths, **kwargs):
-        storage, _ = resolve_storage_and_path([name] + paths or [], save=False)
+        storage = resolve_storage([name] + paths or [], save=False)
         for key, value in get_vsi_env(storage).items():
             print('%s="%s"' % (key, value))
