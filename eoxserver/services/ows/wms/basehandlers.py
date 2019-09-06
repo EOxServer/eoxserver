@@ -61,25 +61,41 @@ class WMSBaseGetCapabilitiesHandler(object):
 
     methods = ["GET"]
 
+    def get_decoder(self, request):
+        return WMSBaseGetCapbilitiesDecoder(request.GET)
+
     def handle(self, request):
-        # lookup Collections, Products and Coverages
-        qs = models.EOObject.objects.filter(
-            Q(  # include "WMS-visible" Products
-                product__isnull=False,
+        decoder = self.get_decoder(request)
+        qs = models.EOObject.objects.all()
+
+        cql_text = decoder.cql
+        if cql_text:
+            mapping, mapping_choices = filters.get_field_mapping_for_model(qs.model)
+            ast = parse(cql_text)
+            filter_expressions = to_filter(ast, mapping, mapping_choices)
+            qs = qs.filter(filter_expressions)
+
+        else:
+            # lookup Collections, Products and Coverages
+            qs = models.EOObject.objects.filter(
+                Q(  # include "WMS-visible" Products
+                    product__isnull=False,
+                    service_visibility__service='wms',
+                    service_visibility__visibility=True
+                ) | Q(  # include "WMS-visible" Coverages
+                    coverage__isnull=False,
+                    service_visibility__service='wms',
+                    service_visibility__visibility=True
+                ) | Q(  # include all Collections, exclude "WMS-invisible" later
+                    collection__isnull=False
+                )
+            ).exclude(
+                collection__isnull=False,
                 service_visibility__service='wms',
-                service_visibility__visibility=True
-            ) | Q(  # include "WMS-visible" Coverages
-                coverage__isnull=False,
-                service_visibility__service='wms',
-                service_visibility__visibility=True
-            ) | Q(  # include all Collections, exclude "WMS-invisible" later
-                collection__isnull=False
+                service_visibility__visibility=False
             )
-        ).exclude(
-            collection__isnull=False,
-            service_visibility__service='wms',
-            service_visibility__visibility=False
-        ).select_subclasses()
+
+        qs = qs.select_subclasses()
 
         #
         map_renderer = get_map_renderer()
@@ -200,6 +216,10 @@ class WMSBaseGetMapHandler(object):
 
         # TODO: translate to Response
         return map_renderer.render_map(map_)
+
+
+class WMSBaseGetCapbilitiesDecoder(kvp.Decoder):
+    cql = kvp.Parameter(num="?")
 
 
 def parse_transparent(value):
