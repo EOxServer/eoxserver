@@ -153,8 +153,6 @@ def get_extent(ds):
     return (min(x_a, x_b), min(y_a, y_b), max(x_a, x_b), max(y_a, y_b))
 
 
-import os
-
 def set_env(env, fail_on_override=False, return_old=False):
     old_values = {} if return_old else None
     for key, value in env.items():
