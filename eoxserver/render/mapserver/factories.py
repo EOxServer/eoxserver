@@ -274,7 +274,7 @@ class BrowseLayerFactory(CoverageLayerFactoryMixIn, BaseMapServerLayerFactory):
             layer_obj.group = group_name
 
             if isinstance(browse, GeneratedBrowse):
-                layer_obj.data, filename_generator, reset_info = generate_browse(
+                creation_info, filename_generator, reset_info = generate_browse(
                     browse.band_expressions,
                     browse.fields_and_coverages,
                     layer.map.width, layer.map.height,
@@ -282,6 +282,15 @@ class BrowseLayerFactory(CoverageLayerFactoryMixIn, BaseMapServerLayerFactory):
                     layer.map.crs,
                     filename_generator
                 )
+
+                layer_obj.data = creation_info.filename
+                if creation_info.env:
+                    ms.set_env(map_obj, creation_info.env, True)
+
+                if creation_info.bands:
+                    layer_obj.setProcessingKey('BANDS', ','.join(
+                        str(band) for band in creation_info.bands
+                    ))
 
                 if reset_info:
                     sr = osr.SpatialReference(layer.map.crs)

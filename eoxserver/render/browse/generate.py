@@ -139,6 +139,46 @@ def extract_fields(band_expression):
     ]
 
 
+class BrowseCreationInfo(object):
+    def __init__(self, filename, env, bands=None):
+        self.filename = filename
+        self.env = env
+        self.bands = bands
+
+
+# make shortcut: if all relevant bands are in one dataset, we
+# will only return that and give the band numbers
+def single_file_and_indices(band_expressions, fields_and_coverages):
+    band_indices = []
+    filenames = set()
+    env = None
+    for band_expression in band_expressions:
+        fields = extract_fields(band_expression)
+        if len(fields) != 1:
+            return None, None, None
+
+        field = fields[0]
+
+        coverages = fields_and_coverages[field]
+        # break early if we are dealing with more than one coverage
+        if len(coverages) != 1:
+            return None, None, None
+
+        coverage = coverages[0]
+        location = coverage.get_location_for_field(field)
+
+        filenames.add(location.path)
+        band_indices.append(
+            coverage.get_band_index_for_field(field)
+        )
+        env = location.env
+
+    if len(filenames) == 1:
+        return filenames.pop(), env, band_indices
+
+    return None, None, None
+
+
 def generate_browse(band_expressions, fields_and_coverages,
                     width, height, bbox, crs, generator=None):
     """ Produce a temporary VRT file describing how transformation of the
@@ -172,6 +212,18 @@ def generate_browse(band_expressions, fields_and_coverages,
             parsed_expressions, fields_and_coverages,
             width, height, bbox, crs, generator
         ), generator, True
+
+    single_filename, env, bands = single_file_and_indices(
+        band_expressions, fields_and_coverages
+    )
+
+    # for single files, we make a shortcut and just return it and the used
+    # bands
+    if single_filename:
+        return (
+            BrowseCreationInfo(single_filename, env, bands),
+            generator, False
+        )
 
     # iterate over the input band expressions
     for band_expression in band_expressions:
@@ -217,13 +269,17 @@ def generate_browse(band_expressions, fields_and_coverages,
 
     # make shortcut here, when we only have one band, just return it
     if len(out_band_filenames) == 1:
-        return out_band_filenames[0], generator, False
+        return (
+            BrowseCreationInfo(out_band_filenames[0], None), generator, False
+        )
 
     # return the stacked bands as a VRT
     else:
         stacked_filename = generator.generate()
         vrt.stack_bands(out_band_filenames, stacked_filename)
-        return stacked_filename, generator, False
+        return (
+            BrowseCreationInfo(stacked_filename, None), generator, False
+        )
 
 
 def _generate_browse_complex(parsed_expressions, fields_and_coverages,
@@ -293,8 +349,21 @@ def _generate_browse_complex(parsed_expressions, fields_and_coverages,
 
         fields_and_datasets[field_name] = warped_out_field_dataset.GetRasterBand(1).ReadAsArray()
 
-    out_band_filenames = []
-    for parsed_expression in parsed_expressions:
+    out_filename = generator.generate('tif')
+    tiff_driver = gdal.GetDriverByName('GTiff')
+    out_ds = tiff_driver.Create(
+        out_filename,
+        width, height, len(parsed_expressions),
+        gdal.GDT_Float32,
+        options=[
+            "TILED=YES",
+            "COMPRESS=PACKBITS"
+        ]
+    )
+    out_ds.SetGeoTransform([o_x, res_x, 0, o_y, 0, res_y])
+    out_ds.SetProjection(osr.SpatialReference(crs).wkt)
+
+    for band_index, parsed_expression in enumerate(parsed_expressions, start=1):
         out_data = _evaluate_expression(
             parsed_expression, fields_and_datasets, generator
         )
@@ -302,35 +371,10 @@ def _generate_browse_complex(parsed_expressions, fields_and_coverages,
         if isinstance(out_data, (int, float)):
             out_data = np.full((height, width), out_data)
 
-        tiff_driver = gdal.GetDriverByName('GTiff')
-        out_ds = tiff_driver.Create(
-            generator.generate('tif'),
-            width, height, 1,
-            gdal.GDT_Float32,
-            options=[
-                "TILED=YES",
-                "COMPRESS=PACKBITS"
-            ]
-        )
-        out_ds.SetGeoTransform([o_x, res_x, 0, o_y, 0, res_y])
-        out_ds.SetProjection(osr.SpatialReference(crs).wkt)
-        out_band = out_ds.GetRasterBand(1)
+        out_band = out_ds.GetRasterBand(band_index)
         out_band.WriteArray(out_data)
 
-        out_band_filenames.append(
-            out_ds.GetFileList()[0]
-        )
-        del out_ds
-
-    # make shortcut here, when we only have one band, just return it
-    if len(out_band_filenames) == 1:
-        return out_band_filenames[0]
-
-    # return the stacked bands as a VRT
-    else:
-        stacked_filename = generator.generate()
-        vrt.stack_bands(out_band_filenames, stacked_filename)
-        return stacked_filename
+    return BrowseCreationInfo(out_filename, None)
 
 operator_map = {
     _ast.Add: operator.add,
@@ -358,4 +402,3 @@ def _evaluate_expression(expr, fields_and_datasets, generator):
 
     elif isinstance(expr, _ast.Num):
         return expr.n
-
