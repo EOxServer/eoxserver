@@ -414,3 +414,56 @@ class AlphaBandOptimization(object):
 
         # rasterize the polygon, burning the opaque value into the alpha band
         gdal.RasterizeLayer(src_ds, [4], layer, burn_values=[get_limits(dt)[1]])
+
+
+#===============================================================================
+# Color To Alpha Optimization
+#===============================================================================
+
+class ColorToAlphaOptimization(DatasetOptimization):
+    """
+    Pixel-wise optimization burns color_to_alpha pixels of RGB 
+    into alpha channel as 0 (transparent) if all bands have pixel value = [color_to_alpha +- margin].
+    Default black is turned to transparent. Returns modified dataset.
+    """
+    def __call__(self, src_ds, color_to_alpha=0, color_to_alpha_margin=15):
+        logger.info("Applying ColorToAlphaOptimization")
+        dt = src_ds.GetRasterBand(1).DataType
+        higher_cut = color_to_alpha + color_to_alpha_margin
+        lower_cut = color_to_alpha - color_to_alpha_margin
+        largest_value_of_datatype = get_limits(dt)[1]
+        if src_ds.RasterCount == 3:
+            src_ds.AddBand(dt)
+            # prefill with not-transparent
+            src_ds.GetRasterBand(4).fill(largest_value_of_datatype)
+        elif src_ds.RasterCount == 4:
+            pass  # okay
+        else:
+            raise Exception("Cannot add alpha band, as the current number of "
+                            "bands '%d' does not match" % src_ds.RasterCount)
+        try:
+            # save all bands to memory -> np array
+            as_array_3d = src_ds.ReadAsArray()
+            # set alpha pixel to transparent if all three are that color
+            [R, G, B, A] = numpy.split(as_array_3d, 4)
+            # turn to two dimensional arrays
+            R = R[0, :, :]
+            G = G[0, :, :]
+            B = B[0, :, :]
+            A = A[0, :, :]
+            # compute masks
+            R_mask = numpy.zeros(R.shape, dtype=bool)
+            G_mask = numpy.zeros(R.shape, dtype=bool)
+            B_mask = numpy.zeros(R.shape, dtype=bool)
+            R_mask = (R < higher_cut) & (R > lower_cut)
+            G_mask = (G < higher_cut) & (G > lower_cut)
+            B_mask = (B < higher_cut) & (B > lower_cut)
+            # merge three separate masks with logical AND
+            rg_mask = numpy.logical_and(R_mask, G_mask)
+            rgb_mask = numpy.logical_and(rg_mask, B_mask)
+            # insert into alpha channel
+            A[rgb_mask] = 0
+            src_ds.GetRasterBand(4).WriteArray(A)
+            return src_ds
+        except:
+            raise
