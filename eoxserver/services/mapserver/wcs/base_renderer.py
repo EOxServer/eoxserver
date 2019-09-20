@@ -83,7 +83,6 @@ class BaseRenderer(Component):
         try:
             models.identifier_validators[0](coverage_identifier)
         except:
-            print('%s is not a valid ncname' % coverage_identifier)
             coverage_identifier = 'not-ncname'
 
 

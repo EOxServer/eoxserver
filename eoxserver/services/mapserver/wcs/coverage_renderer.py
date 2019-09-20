@@ -225,9 +225,19 @@ class RectifiedCoverageMapServerRenderer(BaseRenderer):
     def translate_params(self, params, range_type):
         """ "Translate" parameters to be understandable by mapserver.
         """
+
+
+
         if params.version.startswith("2.0"):
             for key, value in params:
-                if key == "interpolation":
+                if key == 'coverageid':
+                    try:
+                        models.identifier_validators[0](value)
+                    except:
+                        value = 'not-ncname'
+                    yield key, value
+
+                elif key == "interpolation":
                     interpolation = INTERPOLATION_TRANS.get(value)
                     if not interpolation:
                         raise InterpolationMethodNotSupportedException(
