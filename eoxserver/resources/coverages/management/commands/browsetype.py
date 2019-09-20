@@ -50,7 +50,7 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             )
 
             parser.add_argument(
-                'browse_type_name', nargs='?', default=None,
+                'browse_type_name', nargs='?', default='',
                 help='The browse type name. Optional.'
             )
 
