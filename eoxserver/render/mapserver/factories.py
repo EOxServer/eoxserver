@@ -355,7 +355,7 @@ class OutlinedBrowseLayerFactory(BaseMapServerLayerFactory):
             browse_layer_obj.group = group_name
 
             if isinstance(browse, GeneratedBrowse):
-                browse_layer_obj.data, filename_generator = generate_browse(
+                creation_info, filename_generator, reset_info = generate_browse(
                     browse.band_expressions,
                     browse.fields_and_coverages,
                     layer.map.width, layer.map.height,
@@ -364,19 +364,42 @@ class OutlinedBrowseLayerFactory(BaseMapServerLayerFactory):
                     filename_generator
                 )
 
+                browse_layer_obj.data = creation_info.filename
+                if creation_info.env:
+                    ms.set_env(map_obj, creation_info.env, True)
+
+                if creation_info.bands:
+                    browse_layer_obj.setProcessingKey('BANDS', ','.join(
+                        str(band) for band in creation_info.bands
+                    ))
+
+                if reset_info:
+                    sr = osr.SpatialReference(layer.map.crs)
+                    extent = layer.map.bbox
+                    browse_layer_obj.setMetaData("wms_extent", "%f %f %f %f" % extent)
+                    browse_layer_obj.setExtent(*extent)
+
+                    if sr.srid is not None:
+                        short_epsg = "EPSG:%d" % sr.srid
+                        browse_layer_obj.setMetaData("ows_srs", short_epsg)
+                        browse_layer_obj.setMetaData("wms_srs", short_epsg)
+                    browse_layer_obj.setProjection(sr.proj)
+
                 if browse.mode == BROWSE_MODE_GRAYSCALE:
                     field = browse.field_list[0]
-                    browse_range = _get_range(field, range_)
+                    browse_range = browse.ranges[0]
+                    if browse_range == (None, None):
+                        browse_range = _get_range(field, range_)
 
                     _create_raster_style(
-                        raster_style, browse_layer_obj,
+                        raster_style or "blackwhite", browse_layer_obj,
                         browse_range[0], browse_range[1], [
                             nil_value[0] for nil_value in field.nil_values
                         ]
                     )
 
                 else:
-                    for i, field in enumerate(browse.field_list, start=1):
+                    for i, (field, range_) in enumerate(zip(browse.field_list, browse.ranges), start=1):
                         browse_layer_obj.setProcessingKey("SCALE_%d" % i,
                             "%s,%s" % _get_range(field, range_)
                         )
