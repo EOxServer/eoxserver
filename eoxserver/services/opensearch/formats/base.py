@@ -252,9 +252,8 @@ class BaseFeedResultFormat(object):
                     )
                 )
 
-                wms_get_capabilities = request.build_absolute_uri(
-                    "%s?service=WMS&version=1.3.0&request=GetCapabilities"
-                    % reverse("ows")
+                wms_get_capabilities = self._create_wms_capabilities_link(
+                    request, item
                 )
 
                 thumbnail_link = self._create_thumbail_link(request, item)
@@ -416,6 +415,12 @@ class BaseFeedResultFormat(object):
             )
 
         return entries
+
+    def _create_wms_capabilities_link(self, request, item):
+        return request.build_absolute_uri(
+            "%s?service=WMS&request=GetCapabilities"
+            "&cql=identifier='%s'" % (reverse("ows"), item.identifier)
+        )
 
     def _create_map_link(self, request, item, size):
         footprint = item.footprint

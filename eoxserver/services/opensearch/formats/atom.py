@@ -136,8 +136,10 @@ class AtomResultFormat(BaseFeedResultFormat):
             eo_om_link = None
 
         template_params = {
-            'item': item, 'metadata': metadata,
+            'item': item,
+            'metadata': metadata,
             'atom': self._create_self_link(request, collection_id, item),
+            'wms_capabilities': self._create_wms_capabilities_link(request, item),
             'map_small': self._create_map_link(request, item, 100),
             'map_large': self._create_map_link(request, item, 500),
             'eocoveragesetdescription': self._create_eo_coverage_set_description(
