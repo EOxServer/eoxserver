@@ -119,7 +119,7 @@ class LayerMapper(object):
                         "%s%s%s" % (
                             eo_object.identifier, self.suffix_separator,
                             name
-                        ),
+                        ) if name else eo_object.identifier,
                         styles=raster_styles if is_gray else []
                     )
                 )
