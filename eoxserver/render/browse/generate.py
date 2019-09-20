@@ -364,9 +364,10 @@ def _generate_browse_complex(parsed_expressions, fields_and_coverages,
     out_ds.SetProjection(osr.SpatialReference(crs).wkt)
 
     for band_index, parsed_expression in enumerate(parsed_expressions, start=1):
-        out_data = _evaluate_expression(
-            parsed_expression, fields_and_datasets, generator
-        )
+        with np.errstate(divide='ignore',invalid='ignore'):
+            out_data = _evaluate_expression(
+                parsed_expression, fields_and_datasets, generator
+            )
 
         if isinstance(out_data, (int, float)):
             out_data = np.full((height, width), out_data)
@@ -379,7 +380,7 @@ def _generate_browse_complex(parsed_expressions, fields_and_coverages,
 operator_map = {
     _ast.Add: operator.add,
     _ast.Sub: operator.sub,
-    _ast.Div: operator.div,
+    _ast.Div: operator.truediv,
     _ast.Mult: operator.mul,
 }
 
