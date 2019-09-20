@@ -1190,5 +1190,5 @@ def product_get_metadata(product):
         (field.name, get_value(product_metadata, field))
         for field in ProductMetadata._meta.fields
         if field.name not in ('id', 'product') and
-        getattr(product_metadata, field.name)
+        getattr(product_metadata, field.name, None) is not None
     ]
