@@ -62,11 +62,19 @@
     <b>WCS</b>
     <ul>
       <li>
-        <a href="{{ eocoveragesetdescription }}" target="_blank">DescribeEOCoverageSet for '{{ item.identifier }}'</a>
+        <a href="{{ eocoveragesetdescription }}" target="_blank">DescribeEOCoverageSet</a>
       </li>
       {% for coverage in coverages %}
       <li>
-        <a href="{{ coverage.coverage }}" target="_blank">GetCoverage for '{{ coverage.identifier }}'</a>
+        <b>{{ coverage.identifier }}</b>
+        <ul>
+          <li>
+            <a href="{{ coverage.description }}" target="_blank">DescribeCoverage</a>
+          </li>
+          <li>
+            <a href="{{ coverage.coverage }}" target="_blank">GetCoverage</a>
+          </li>
+        </ul>
       </li>
       {% endfor %}
     </ul>
