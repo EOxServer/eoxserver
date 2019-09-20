@@ -34,7 +34,7 @@ from eoxserver.core.decoders import config, typelist
 from eoxserver.contrib import mapserver as ms
 from eoxserver.contrib import gdal
 from eoxserver.render.coverage.objects import Coverage
-from eoxserver.resources.coverages import crss
+from eoxserver.resources.coverages import crss, models
 # from eoxserver.resources.coverages.models import RectifiedStitchedMosaic
 from eoxserver.resources.coverages.formats import getFormatRegistry
 
@@ -79,9 +79,17 @@ class BaseRenderer(Component):
         range_type = coverage.range_type
         bands = list(range_type)
 
+        coverage_identifier = coverage.identifier
+        try:
+            models.identifier_validators[0](coverage_identifier)
+        except:
+            print('%s is not a valid ncname' % coverage_identifier)
+            coverage_identifier = 'not-ncname'
+
+
         # create and configure layer
         layer = ms.layerObj()
-        layer.name = coverage.identifier
+        layer.name = coverage_identifier
         layer.type = ms.MS_LAYER_RASTER
 
         sr = coverage.grid.spatial_reference
@@ -96,7 +104,7 @@ class BaseRenderer(Component):
         layer.setExtent(*extent)
 
         ms.setMetaData(layer, {
-            "title": coverage.identifier,
+            "title": coverage_identifier,
             "enable_request": "*"
         }, namespace="ows")
 
@@ -113,7 +121,7 @@ class BaseRenderer(Component):
             significant_figures = gdal.GDT_SIGNIFICANT_FIGURES[data_type]
 
         ms.setMetaData(layer, {
-            "label": coverage.identifier,
+            "label": coverage_identifier,
             "extent": "%.10g %.10g %.10g %.10g" % extent,
             "resolution": "%.10g %.10g" % resolution,
             "size": "%d %d" % size,
