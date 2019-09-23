@@ -235,7 +235,7 @@ def parse_transparent(value):
 def parse_range(value):
     return [
         float(v)
-        for v in re.split(r'\s+', value)
+        for v in re.split(r'\s+', value.strip())
     ]
 
 
@@ -243,6 +243,7 @@ def parse_sort_by(value):
     items = value.strip().split()
     assert items[1] in ['A', 'D']
     return (items[0], 'ASC' if items[1] == 'A' else 'DESC')
+
 
 class WMSBaseGetMapDecoder(kvp.Decoder):
     layers = kvp.Parameter(type=typelist(str, ","), num=1)
