@@ -61,14 +61,14 @@ class CoverageLayer(Layer):
     """ Representation of a coverage layer.
     """
     def __init__(self, name, style, coverage, bands, wavelengths, time,
-                 elevation, range):
+                 elevation, ranges):
         super(CoverageLayer, self).__init__(name, style)
         self._coverage = coverage
         self._bands = bands
         self._wavelengths = wavelengths
         self._time = time
         self._elevation = elevation
-        self._range = range
+        self._ranges = ranges
 
     @property
     def coverage(self):
@@ -91,22 +91,22 @@ class CoverageLayer(Layer):
         return self._elevation
 
     @property
-    def range(self):
-        return self._range
+    def ranges(self):
+        return self._ranges
 
 
 class CoveragesLayer(Layer):
     """ Representation of a coverages layer.
     """
     def __init__(self, name, style, coverages, bands, wavelengths, time,
-                 elevation, range):
+                 elevation, ranges):
         super(CoveragesLayer, self).__init__(name, style)
         self._coverages = coverages
         self._bands = bands
         self._wavelengths = wavelengths
         self._time = time
         self._elevation = elevation
-        self._range = range
+        self._ranges = ranges
 
     @property
     def coverages(self):
@@ -129,12 +129,12 @@ class CoveragesLayer(Layer):
         return self._elevation
 
     @property
-    def range(self):
-        return self._range
+    def ranges(self):
+        return self._ranges
 
 class MosaicLayer(Layer):
     def __init__(self, name, style, mosaic, coverages, bands, wavelengths, time,
-                 elevation, range):
+                 elevation, ranges):
         super(MosaicLayer, self).__init__(name, style)
         self._mosaic = mosaic
         self._coverages = coverages
@@ -142,7 +142,7 @@ class MosaicLayer(Layer):
         self._wavelengths = wavelengths
         self._time = time
         self._elevation = elevation
-        self._range = range
+        self._ranges = ranges
 
     @property
     def mosaic(self):
@@ -169,42 +169,42 @@ class MosaicLayer(Layer):
         return self._elevation
 
     @property
-    def range(self):
-        return self._range
+    def ranges(self):
+        return self._ranges
 
 
 class BrowseLayer(Layer):
     """ Representation of a browse layer.
     """
-    def __init__(self, name, style, browses, range=None):
+    def __init__(self, name, style, browses, ranges=None):
         super(BrowseLayer, self).__init__(name, style)
         self._browses = browses
-        self._range = range
+        self._ranges = ranges
 
     @property
     def browses(self):
         return self._browses
 
     @property
-    def range(self):
-        return self._range
+    def ranges(self):
+        return self._ranges
 
 
 class OutlinedBrowseLayer(Layer):
     """ Representation of a browse layer.
     """
-    def __init__(self, name, style, browses, range=None):
+    def __init__(self, name, style, browses, ranges=None):
         super(OutlinedBrowseLayer, self).__init__(name, style)
         self._browses = browses
-        self._range = range
+        self._ranges = ranges
 
     @property
     def browses(self):
         return self._browses
 
     @property
-    def range(self):
-        return self._range
+    def ranges(self):
+        return self._ranges
 
 
 class MaskLayer(Layer):

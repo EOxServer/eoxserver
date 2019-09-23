@@ -32,6 +32,7 @@ a specific handler. Interface methods need to be overridden in order to work,
 default methods can be overidden.
 """
 import math
+import re
 
 from django.conf import settings
 from django.db.models import Q
@@ -187,7 +188,7 @@ class WMSBaseGetMapHandler(object):
         dimensions = {
             "time": time,
             "elevation": decoder.elevation,
-            "range": decoder.dim_range,
+            "ranges": decoder.dim_range,
             "bands": decoder.dim_bands,
             "wavelengths": decoder.dim_wavelengths,
         }
@@ -232,14 +233,16 @@ def parse_transparent(value):
 
 
 def parse_range(value):
-    return map(float, value.split(','))
+    return [
+        float(v)
+        for v in re.split(r'\s+', value)
+    ]
 
 
 def parse_sort_by(value):
     items = value.strip().split()
     assert items[1] in ['A', 'D']
     return (items[0], 'ASC' if items[1] == 'A' else 'DESC')
-
 
 class WMSBaseGetMapDecoder(kvp.Decoder):
     layers = kvp.Parameter(type=typelist(str, ","), num=1)
@@ -257,7 +260,7 @@ class WMSBaseGetMapDecoder(kvp.Decoder):
     elevation = kvp.Parameter(type=float, num="?")
     dim_bands = kvp.Parameter(type=typelist(int_or_str, ","), num="?")
     dim_wavelengths = kvp.Parameter(type=typelist(float, ","), num="?")
-    dim_range = kvp.Parameter(type=parse_range, num="?")
+    dim_range = kvp.Parameter(type=typelist(parse_range, ','), num="?")
 
     cql = kvp.Parameter(num="?")
 

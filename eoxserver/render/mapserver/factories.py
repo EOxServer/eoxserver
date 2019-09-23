@@ -103,7 +103,7 @@ class CoverageLayerFactoryMixIn(object):
         return fields
 
     def create_coverage_layer(self, map_obj, coverage, fields,
-                              style=None, range_=None):
+                              style=None, ranges=None):
         """ Creates a mapserver layer object for the given coverage
         """
 
@@ -173,7 +173,10 @@ class CoverageLayerFactoryMixIn(object):
         # make a color-scaled layer
         if len(fields) == 1:
             field = fields[0]
-            range_ = _get_range(field, range_)
+            if ranges:
+                range_ = ranges[0]
+            else:
+                range_ = _get_range(field)
 
             _create_raster_style(
                 style or "blackwhite", layer_obj, range_[0], range_[1], [
@@ -182,7 +185,14 @@ class CoverageLayerFactoryMixIn(object):
             )
         elif len(fields) in (3, 4):
             for i, field in enumerate(fields, start=1):
-                range_ = _get_range(field, range_)
+                if ranges:
+                    if len(ranges) == 1:
+                        range_ = ranges[0]
+                    else:
+                        range_ = ranges[i - 1]
+                else:
+                    range_ = _get_range(field)
+
                 layer_obj.setProcessingKey("SCALE_%d" % i, "%s,%s" % range_)
 
                 layer_obj.offsite = ms.colorObj(0, 0, 0)
@@ -222,7 +232,7 @@ class CoverageLayerFactory(CoverageLayerFactoryMixIn, BaseMapServerLayerFactory)
             )
             coverage_layers.append(
                 self.create_coverage_layer(
-                    map_obj, coverage, fields, layer.style, layer.range
+                    map_obj, coverage, fields, layer.style, layer.ranges
                 )
             )
 
@@ -255,7 +265,6 @@ class MosaicLayerFactory(CoverageLayerFactoryMixIn, BaseMapServerLayerFactory):
 # TODO: combine BrowseLayerFactory with OutlinedBrowseLayerFactory, as they are
 # very similar
 
-
 class BrowseLayerFactory(CoverageLayerFactoryMixIn, BaseMapServerLayerFactory):
     handled_layer_types = [BrowseLayer]
 
@@ -264,7 +273,7 @@ class BrowseLayerFactory(CoverageLayerFactoryMixIn, BaseMapServerLayerFactory):
             '/vsimem/{uuid}.{extension}', 'vrt'
         )
         group_name = layer.name
-        range_ = layer.range
+        ranges = layer.ranges
         style = layer.style
 
         for browse in layer.browses:
@@ -306,9 +315,12 @@ class BrowseLayerFactory(CoverageLayerFactoryMixIn, BaseMapServerLayerFactory):
 
                 if browse.mode == BROWSE_MODE_GRAYSCALE:
                     field = browse.field_list[0]
-                    browse_range = browse.ranges[0]
-                    if browse_range == (None, None):
-                        browse_range = _get_range(field, range_)
+                    if ranges:
+                        browse_range = ranges[0]
+                    elif browse.ranges[0] != (None, None):
+                        browse_range = browse.ranges[0]
+                    else:
+                        browse_range = _get_range(field)
 
                     _create_raster_style(
                         style or "blackwhite", layer_obj,
@@ -318,9 +330,19 @@ class BrowseLayerFactory(CoverageLayerFactoryMixIn, BaseMapServerLayerFactory):
                     )
 
                 else:
-                    for i, (field, range_) in enumerate(zip(browse.field_list, browse.ranges), start=1):
+                    for i, (field, field_range) in enumerate(zip(browse.field_list, browse.ranges), start=1):
+                        if ranges:
+                            if len(ranges) == 1:
+                                range_ = ranges[0]
+                            else:
+                                range_ = ranges[i - 1]
+                        elif field_range != (None, None):
+                            range_ = field_range
+                        else:
+                            range_ = _get_range(field)
+
                         layer_obj.setProcessingKey("SCALE_%d" % i,
-                            "%s,%s" % _get_range(field, range_)
+                            "%s,%s" % tuple(range_)
                         )
 
             elif isinstance(browse, Browse):
@@ -387,9 +409,12 @@ class OutlinedBrowseLayerFactory(BaseMapServerLayerFactory):
 
                 if browse.mode == BROWSE_MODE_GRAYSCALE:
                     field = browse.field_list[0]
-                    browse_range = browse.ranges[0]
-                    if browse_range == (None, None):
-                        browse_range = _get_range(field, range_)
+                    if ranges:
+                        browse_range = ranges[0]
+                    elif browse.ranges[0] != (None, None):
+                        browse_range = browse.ranges[0]
+                    else:
+                        browse_range = _get_range(field)
 
                     _create_raster_style(
                         raster_style or "blackwhite", browse_layer_obj,
@@ -400,8 +425,18 @@ class OutlinedBrowseLayerFactory(BaseMapServerLayerFactory):
 
                 else:
                     for i, (field, range_) in enumerate(zip(browse.field_list, browse.ranges), start=1):
+                        if ranges:
+                            if len(ranges) == 1:
+                                range_ = ranges[0]
+                            else:
+                                range_ = ranges[i - 1]
+                        elif field_range != (None, None):
+                            range_ = field_range
+                        else:
+                            range_ = _get_range(field)
+
                         browse_layer_obj.setProcessingKey("SCALE_%d" % i,
-                            "%s,%s" % _get_range(field, range_)
+                            "%s,%s" % range_
                         )
 
             elif isinstance(browse, Browse):

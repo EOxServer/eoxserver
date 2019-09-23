@@ -166,7 +166,7 @@ class LayerMapper(object):
         )
 
     def lookup_layer(self, layer_name, suffix, style, filters_expressions,
-                     sort_by, time, range, bands, wavelengths, elevation, zoom):
+                     sort_by, time, ranges, bands, wavelengths, elevation, zoom):
         """ Lookup the layer from the registered objects.
         """
         reader = LayerMapperConfigReader(get_eoxserver_config())
@@ -191,7 +191,7 @@ class LayerMapper(object):
                 return CoverageLayer(
                     full_name, style,
                     RenderCoverage.from_model(eo_object),
-                    bands, wavelengths, time, elevation, range
+                    bands, wavelengths, time, elevation, ranges
                 )
 
             elif suffix == 'outlines':
@@ -214,7 +214,7 @@ class LayerMapper(object):
                     for coverage in self.iter_coverages(
                         eo_object, filters_expressions, sort_by
                     )
-                ], bands, wavelengths, time, elevation, range
+                ], bands, wavelengths, time, elevation, ranges
             )
 
         elif isinstance(eo_object, (models.Collection, models.Product)):
@@ -263,7 +263,7 @@ class LayerMapper(object):
                             RenderCoverage.from_model(coverage)
                             for coverage in coverages
                         ],
-                        bands, wavelengths, time, elevation, range
+                        bands, wavelengths, time, elevation, ranges
                     )
 
                 # detect whether we are below the zoom limit
@@ -272,12 +272,12 @@ class LayerMapper(object):
                     if suffix == '':
                         return BrowseLayer(
                             name=full_name, style=style,
-                            browses=browses, range=range
+                            browses=browses, ranges=ranges
                         )
                     else:
                         return OutlinedBrowseLayer(
                             name=full_name, style=style,
-                            browses=browses, range=range
+                            browses=browses, ranges=ranges
                         )
 
                 # render outlines when we are below the zoom limit
@@ -392,7 +392,7 @@ class LayerMapper(object):
                                 browses.append(browse)
 
                     return BrowseLayer(
-                        name=full_name, style=style, range=range,
+                        name=full_name, style=style, ranges=ranges,
                         browses=browses
                     )
 
