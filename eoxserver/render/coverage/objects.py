@@ -25,7 +25,11 @@
 # THE SOFTWARE.
 # ------------------------------------------------------------------------------
 
-from itertools import izip_longest
+try:
+    from itertools import izip_longest
+except ImportError:
+    from itertools import zip_longest as izip_longest
+
 from copy import deepcopy
 
 from django.utils import six
@@ -33,7 +37,6 @@ from eoxserver.core.util.timetools import parse_iso8601, parse_duration
 from eoxserver.contrib import gdal, osr
 from eoxserver.contrib.osr import SpatialReference
 from eoxserver.backends.access import get_vsi_path, get_vsi_env
-from eoxserver.resources.coverages import models
 
 GRID_TYPE_ELEVATION = 1
 GRID_TYPE_TEMPORAL = 2
@@ -771,6 +774,8 @@ class DatasetSeries(object):
 
 
 def from_model(eo_object_model):
+    from eoxserver.resources.coverages import models
+
     if isinstance(eo_object_model, models.Coverage):
         return Coverage.from_model(eo_object_model)
     elif isinstance(eo_object_model, models.Mosaic):
