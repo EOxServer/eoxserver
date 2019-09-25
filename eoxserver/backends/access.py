@@ -143,7 +143,7 @@ def get_vsi_path(data_item):
     location = data_item.location
     storage = data_item.storage
 
-    return get_vsi_storage_path(storage, data_item.location)
+    return get_vsi_storage_path(storage, location)
 
 
 def get_vsi_storage_path(storage, location=None):

@@ -30,8 +30,16 @@ import shutil
 import tarfile
 import zipfile
 import fnmatch
-from urllib import urlretrieve
-from urlparse import urljoin, urlparse
+try:
+    from urllib import urlretrieve
+except ImportError:
+    from urllib.request import urlretrieve
+
+try:
+    from urlparse import urlparse, urljoin
+except ImportError:
+    from urllib.parse import urlparse, urljoin
+
 import ftplib
 import glob
 

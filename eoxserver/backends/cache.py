@@ -147,7 +147,7 @@ class CacheContext(object):
         try:
             # create all necessary subdirectories
             os.makedirs(os.path.dirname(relative_path))
-        except OSError, e:
+        except OSError as e:
             # it's only ok if the dir already existed
             if e.errno != errno.EEXIST:
                 raise
