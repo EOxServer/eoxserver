@@ -35,9 +35,14 @@ import imp
 from os.path import join, getmtime
 from sys import prefix
 import threading
-from ConfigParser import RawConfigParser
 import logging
 from time import time
+
+try:
+    from ConfigParser import RawConfigParser
+except ImportError:
+    from configparser import RawConfigParser
+
 
 from django.conf import settings
 
