@@ -30,7 +30,11 @@ It relies on the :mod:`ConfigParser` module for actually reading the file.
 """
 
 import sys
-from ConfigParser import NoOptionError, NoSectionError
+
+try:
+    from ConfigParser import NoOptionError, NoSectionError
+except ImportError:
+    from configparser import NoOptionError, NoSectionError
 
 
 def section(name):
@@ -86,7 +90,7 @@ class Option(property):
                 raw_value = reader._config.getboolean(section, self.key)
             else:
                 raw_value = reader._config.get(section, self.key)
-        except (NoOptionError, NoSectionError), e:
+        except (NoOptionError, NoSectionError) as e:
             if not self.required:
                 return self.default
             raise e
