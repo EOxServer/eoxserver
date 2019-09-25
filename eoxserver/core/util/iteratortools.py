@@ -29,7 +29,12 @@
 additional helpers.
 """
 
-from itertools import izip, tee
+try:
+    from itertools import izip
+except ImportError:
+    izip = zip
+
+from itertools import tee
 
 
 def pairwise(iterable):
