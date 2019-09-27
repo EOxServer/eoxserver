@@ -187,7 +187,7 @@ def parse_subset_kvp(string):
             return Slice(axis, parser(match.group(2)))
     except InvalidAxisLabelException:
         raise
-    except Exception, e:
+    except Exception as e:
         raise InvalidSubsettingException(str(e))
 
 
@@ -285,7 +285,7 @@ def parse_subset_xml(elem):
                 dimension,
                 parser(elem.findtext(ns_wcs("SlicePoint")))
             )
-    except Exception, e:
+    except Exception as e:
         raise InvalidSubsettingException(str(e))
 
 
