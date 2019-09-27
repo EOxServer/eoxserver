@@ -78,7 +78,7 @@ class WCS20GetCapabilitiesHandler(WCSGetCapabilitiesHandlerBase, Component):
             coverages = models.Coverage.objects.none()
 
         if inc_dataset_series:
-            dataset_series = models.EOObject.objects.filter(
+            dataset_series_qs = models.EOObject.objects.filter(
                 Q(
                     product__isnull=False,
                     service_visibility__service='wcs',
@@ -92,10 +92,15 @@ class WCS20GetCapabilitiesHandler(WCSGetCapabilitiesHandlerBase, Component):
                 service_visibility__visibility=False
             )
 
-        else:
-            dataset_series = models.EOObject.objects.none()
+            # reduce data transfer by only selecting required elements
+            dataset_series_qs = dataset_series_qs.only(
+                "identifier", "begin_time", "end_time", "footprint"
+            )
 
-        return coverages, dataset_series
+        else:
+            dataset_series_qs = models.EOObject.objects.none()
+
+        return coverages, dataset_series_qs
 
     def get_params(self, models, decoder):
         coverages, dataset_series = models
