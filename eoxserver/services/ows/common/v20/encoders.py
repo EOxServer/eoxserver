@@ -34,7 +34,6 @@ from lxml.builder import ElementMaker
 
 from eoxserver.core.util.xmltools import XMLEncoder, NameSpace, NameSpaceMap
 from eoxserver.services.ows.dispatch import filter_handlers
-from eoxserver.services.urls import get_http_service_url
 
 
 ns_xlink = NameSpace("http://www.w3.org/1999/xlink", "xlink")
@@ -46,6 +45,10 @@ OWS = ElementMaker(namespace=ns_ows.uri, nsmap=nsmap)
 
 
 class OWS20Encoder(XMLEncoder):
+    def get_http_service_url(self, request):
+        from eoxserver.services.urls import get_http_service_url
+        return get_http_service_url(request)
+
     def encode_reference(self, node_name, href, reftype="simple"):
 
         attributes = {ns_xlink("href"): href}
@@ -134,7 +137,7 @@ class OWS20Encoder(XMLEncoder):
             key=lambda h: (getattr(h, "index", 10000), h.request)
         )
 
-        http_service_url = get_http_service_url(request)
+        http_service_url = self.get_http_service_url(request)
 
         operations = []
         for handler in all_handlers:

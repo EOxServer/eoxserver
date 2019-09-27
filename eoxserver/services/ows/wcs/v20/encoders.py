@@ -25,6 +25,7 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
+from __future__ import division
 
 from itertools import chain
 from lxml import etree
@@ -33,14 +34,9 @@ from django.contrib.gis.geos import Polygon
 from django.utils.timezone import now
 
 from eoxserver.contrib import gdal, vsi
-from eoxserver.backends.access import get_vsi_path
-from eoxserver.core.config import get_eoxserver_config
 from eoxserver.core.util.timetools import isoformat
 from eoxserver.backends.access import retrieve
 from eoxserver.contrib.osr import SpatialReference
-# from eoxserver.resources.coverages.models import (
-#     RectifiedStitchedMosaic, ReferenceableDataset
-# )
 from eoxserver.render.coverage import objects
 from eoxserver.resources.coverages.formats import getFormatRegistry
 from eoxserver.resources.coverages import crss
@@ -52,7 +48,6 @@ from eoxserver.services.ows.wcs.v20.util import (
     nsmap, ns_xlink, ns_gml, ns_wcs, ns_eowcs,
     OWS, GML, GMLCOV, WCS, CRS, EOWCS, SWE, INT, SUPPORTED_INTERPOLATIONS
 )
-from eoxserver.services.urls import get_http_service_url
 
 PROFILES = [
     "spec/WCS_application-profile_earth-observation/1.0/conf/eowcs",
@@ -87,6 +82,10 @@ class WCS20BaseXMLEncoder(object):
 
 
 class WCS20CapabilitiesXMLEncoder(WCS20BaseXMLEncoder, OWS20Encoder):
+    def get_conf(self):
+        from eoxserver.core.config import get_eoxserver_config
+        return CapabilitiesConfigReader(get_eoxserver_config())
+
     def encode_service_metadata(self):
         service_metadata = WCS("ServiceMetadata")
 
@@ -121,16 +120,10 @@ class WCS20CapabilitiesXMLEncoder(WCS20BaseXMLEncoder, OWS20Encoder):
         )
         return service_metadata
 
-    def encode_contents(self, coverages_qs, dataset_series_qs):
+    def encode_contents(self, coverages, dataset_series_set):
         contents = []
 
-        if coverages_qs is not None:
-            # reduce data transfer by only selecting required elements
-            # coverages_qs = coverages_qs.select_related('grid')
-            coverages = [
-                objects.from_model(coverage_model)
-                for coverage_model in coverages_qs
-            ]
+        if coverages is not None:
             contents.extend([
                 WCS("CoverageSummary",
                     WCS("CoverageId", coverage.identifier),
@@ -140,13 +133,9 @@ class WCS20CapabilitiesXMLEncoder(WCS20BaseXMLEncoder, OWS20Encoder):
                 ) for coverage in coverages
             ])
 
-        if dataset_series_qs is not None:
-            # reduce data transfer by only selecting required elements
-            dataset_series_qs = dataset_series_qs.only(
-            "identifier", "begin_time", "end_time", "footprint"
-            )
+        if dataset_series_set is not None:
             dataset_series_elements = []
-            for dataset_series in dataset_series_qs:
+            for dataset_series in dataset_series_set:
                 footprint = dataset_series.footprint
                 dataset_series_summary = EOWCS("DatasetSeriesSummary")
 
@@ -192,9 +181,10 @@ class WCS20CapabilitiesXMLEncoder(WCS20BaseXMLEncoder, OWS20Encoder):
 
         return WCS("Contents", *contents)
 
-    def encode_capabilities(self, sections, coverages_qs=None,
-                            dataset_series_qs=None, request=None):
-        conf = CapabilitiesConfigReader(get_eoxserver_config())
+    def encode_capabilities(self, sections, conf, coverages=None,
+                            dataset_series=None, request=None,):
+
+        conf = self.get_conf()
 
         all_sections = "all" in sections
         caps = []
@@ -223,8 +213,8 @@ class WCS20CapabilitiesXMLEncoder(WCS20BaseXMLEncoder, OWS20Encoder):
         if inc_contents or inc_coverage_summary or inc_dataset_series_summary:
             caps.append(
                 self.encode_contents(
-                    coverages_qs if inc_coverage_summary else None,
-                    dataset_series_qs if inc_dataset_series_summary else None,
+                    coverages if inc_coverage_summary else None,
+                    dataset_series if inc_dataset_series_summary else None,
                 )
             )
 
@@ -357,8 +347,8 @@ class GMLCOV10Encoder(WCS20BaseXMLEncoder, GML32Encoder):
             )
             extent = list(subset_extent) if subset_extent else list(coverage.extent)
 
-            lc = extent[:len(extent) / 2]
-            uc = extent[len(extent) / 2:]
+            lc = extent[:len(extent) // 2]
+            uc = extent[len(extent) // 2:]
 
             if crss.hasSwappedAxes(sr.srid):
                 labels[0:2] = labels[1], labels[0]
