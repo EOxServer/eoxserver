@@ -51,8 +51,8 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
         )
 
         list_parser.add_argument(
-            'identifiers', nargs='+',
-            help='The identifiers of the objects to check for existence.'
+            'identifiers', nargs='*',
+            help='Optional. The identifiers of the objects to check for existence.'
         )
         list_parser.add_argument(
             '-t', '--type', dest="type_name", default="EOObject",
@@ -61,7 +61,7 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
         list_parser.add_argument(
             '-r', '--recursive',
             dest="recursive", action="store_true", default=False,
-            help=("Optional. Recursive listing for collections.")
+            help=("Optional. Recursive listing for collections/products.")
         ),
         list_parser.add_argument(
             '-s', '--suppress-type',
@@ -103,7 +103,9 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             sys.exit(1)
 
     def handle_list(self, identifiers, type_name, suppress_type, **kwargs):
-        eo_objects = self.get_queryset(type_name).select_subclasses()
+        eo_objects = self.get_queryset(type_name)
+        if type_name == 'EOObject':
+            eo_objects = eo_objects.select_subclasses()
 
         if identifiers:
             eo_objects = eo_objects.filter(identifier__in=identifiers)
