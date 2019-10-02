@@ -194,8 +194,11 @@ class OWS20ExceptionXMLEncoder(XMLEncoder):
             version=version, **{ns_xml("lang"): "en"}
         )
 
-        if getattr(settings, 'DEBUG', False):
-            report.append(etree.Comment(traceback.format_exc()))
+        try:
+            if getattr(settings, 'DEBUG', False):
+                report.append(etree.Comment(traceback.format_exc()))
+        except:
+            pass
 
         return report
 
