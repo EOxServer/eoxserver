@@ -1152,7 +1152,7 @@ class WPS10XMLComparison(XMLTestCase):
             with file( src ) as fid : 
                 return fid.read() 
         except Exception as e : 
-            raise XMLParseError , "Failed to parse the \"%s\" file! %s" % ( src , str(e) ) 
+            raise XMLParseError ("Failed to parse the \"%s\" file! %s" % ( src , str(e) ))
 
     def parse( self, src) :
         return  self.parseFileName(src) 
@@ -1165,16 +1165,19 @@ class WPS10XMLComparison(XMLTestCase):
         )
 
         expectedString= self.parse(expected_path)
-        doc = etree.fromstring(expectedString)
-        encodedText= ' '.join(e.text for e in doc.xpath('//wps:ComplexData', namespaces= {'wps': 'http://www.opengis.net/wps/1.0.0'}))
-       
+        expected_doc = etree.fromstring(expectedString)
         # replace the encoded data so it compare other nodes in the xml files
-        tree = etree.fromstring(self.prepareXMLData(self.getXMLData()))
-        for node in tree.xpath('//wps:ComplexData', namespaces= {'wps': 'http://www.opengis.net/wps/1.0.0'}):
-            node.text = encodedText
+        response_doc = etree.fromstring(self.prepareXMLData(self.getXMLData()))
             
+        expected_elems = expected_doc.xpath('//wps:ComplexData', namespaces={'wps': 'http://www.opengis.net/wps/1.0.0'})
+        response_elems = response_doc.xpath('//wps:ComplexData', namespaces= {'wps': 'http://www.opengis.net/wps/1.0.0'})
+
+        for expected_elem, response_elem in zip(expected_elems, response_elems):
+            parent = response_elem.getparent()
+            # override the response elem with the expected elem
+            parent[parent.index(response_elem)] = expected_elem
             
-        self.response.content = etree.tostring(tree, encoding="ISO-8859-1")
+        self.response.content = etree.tostring(response_doc, encoding="ISO-8859-1")
 
         super(WPS10XMLComparison, self).testXMLComparison()
         
@@ -1191,9 +1194,8 @@ class WPS10XMLComparison(XMLTestCase):
         doc = etree.fromstring( self.prepareXMLData(self.getXMLData()))
         encodedText= ' '.join(e.text for e in doc.xpath('//wps:ComplexData', namespaces= {'wps': 'http://www.opengis.net/wps/1.0.0'}))
         _, self.tmppath = tempfile.mkstemp("." + self.getFileExtension("raster"))
-        f = open(self.tmppath, "w")
-        f.write(encodedText.decode('base64'))
-        f.close()
+        with open(self.tmppath, 'w') as f:
+            f.write(encodedText.decode('base64'))
         gdal.AllRegister()
 
         exp_path = os.path.join(
@@ -1228,3 +1230,13 @@ class WPS10BinaryComparison(GDALDatasetTestCase):
     @tag('band-count')
     def testBandCount(self):
         self.assertEqual(self.res_ds.RasterCount, self.exp_ds.RasterCount)
+    
+        def tearDown(self):
+            super(WPS10BinaryComparison, self).tearDown()
+            try:
+                del self.res_ds
+                del self.exp_ds
+                os.remove(self.tmppath)
+            except AttributeError:
+                pass
+
