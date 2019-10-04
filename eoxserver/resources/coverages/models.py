@@ -810,7 +810,8 @@ def collection_exclude_eo_object(collection, eo_object):
         eo_object.end_time and eo_object.end_time == collection.end_time,
         False
     )
-
+    collection.full_clean()
+    collection.save()
 
 def collection_collect_metadata(collection, collect_footprint=True,
                                 collect_begin_time=True, collect_end_time=True,
