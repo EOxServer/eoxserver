@@ -34,11 +34,15 @@ import traceback
 import pkgutil
 
 try:
-    # Django versions >= 1.9
-    from django.utils.module_loading import import_module
-except ImportError:
-    # Django versions < 1.9
-    from django.utils.importlib import import_module
+    # Python >= 3.1
+    from importlib import import_module
+except:
+    try:
+        # Django versions >= 1.9
+        from django.utils.module_loading import import_module
+    except ImportError:
+        # Django versions < 1.9
+        from django.utils.importlib import import_module
 
 
 logger = logging.getLogger(__name__)
