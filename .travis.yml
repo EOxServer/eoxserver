@@ -29,7 +29,6 @@ script:
 - docker exec -it $(docker ps --format "{{.ID}}\t{{.Names}}" | grep autotest_autotest_1 | cut -f1) /bin/bash -c "python manage.py test --pythonpath=../eoxserver/ eoxserver.backends -v2"
 - docker exec -it $(docker ps --format "{{.ID}}\t{{.Names}}" | grep autotest_autotest_1 | cut -f1) /bin/bash -c "python manage.py test --pythonpath=../eoxserver/ eoxserver.services -v2"
 - docker exec -it $(docker ps --format "{{.ID}}\t{{.Names}}" | grep autotest_autotest_1 | cut -f1) /bin/bash -c "python manage.py test --pythonpath=../eoxserver/ eoxserver.resources.coverages -v2"
-- docker exec -it $(docker ps --format "{{.ID}}\t{{.Names}}" | grep autotest_autotest_1 | cut -f1) /bin/bash -c "python manage.py test --pythonpath=../eoxserver/ eoxserver.resources.processes -v2"
 - docker exec -it $(docker ps --format "{{.ID}}\t{{.Names}}" | grep autotest_autotest_1 | cut -f1) /bin/bash -c "python manage.py test autotest_services --tag wcs20 -v2"
 - docker exec -it $(docker ps --format "{{.ID}}\t{{.Names}}" | grep autotest_autotest_1 | cut -f1) /bin/bash -c "python manage.py test autotest_services --tag wcs11 -v2"
 - docker exec -it $(docker ps --format "{{.ID}}\t{{.Names}}" | grep autotest_autotest_1 | cut -f1) /bin/bash -c "python manage.py test autotest_services --tag wcs10 -v2"
