@@ -207,15 +207,24 @@ class LayerMapper(object):
 
         # TODO: deprecated
         elif isinstance(eo_object, models.Mosaic):
-            return MosaicLayer(
-                full_name, style,
-                RenderMosaic.from_model(eo_object), [
-                    RenderCoverage.from_model(coverage)
-                    for coverage in self.iter_coverages(
-                        eo_object, filters_expressions, sort_by
-                    )
-                ], bands, wavelengths, time, elevation, ranges
-            )
+            if suffix == 'outlines':
+                return OutlinesLayer(
+                    name=full_name, style=style, fill=None,
+                    footprints=[
+                            coverage.footprint for coverage in self.iter_coverages(
+                                eo_object, filters_expressions, sort_by
+                            )]
+                )
+            else :
+                return MosaicLayer(
+                    full_name, style,
+                    RenderMosaic.from_model(eo_object), [
+                        RenderCoverage.from_model(coverage)
+                        for coverage in self.iter_coverages(
+                            eo_object, filters_expressions, sort_by
+                        )
+                    ], bands, wavelengths, time, elevation, range
+                )
 
         elif isinstance(eo_object, (models.Collection, models.Product)):
             if suffix == '' or suffix == 'outlined' or suffix == 'bands':
