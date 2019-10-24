@@ -271,10 +271,13 @@ class RangeType(list):
 
 
 class Axis(object):
-    def __init__(self, name, type, offset):
+    regular = True
+
+    def __init__(self, name, type, offset, uom=None):
         self._name = name
         self._type = type
         self._offset = offset
+        self._uom = uom
 
     @property
     def name(self):
@@ -287,6 +290,36 @@ class Axis(object):
     @property
     def offset(self):
         return self._offset
+
+    @property
+    def uom(self):
+        return self._uom
+
+class IrregularAxis(object):
+    regular = False
+
+    def __init__(self, name, type, positions, uom=None):
+        self._name = name
+        self._type = type
+        self._positions = positions
+        self._uom = uom
+
+    @property
+    def name(self):
+        return self._name
+
+    @property
+    def type(self):
+        return self._type
+
+    @property
+    def positions(self):
+        return self._positions
+
+    @property
+    def uom(self):
+        return self._uom
+
 
 
 class Grid(list):
@@ -443,7 +476,7 @@ class Coverage(object):
     """ Representation of a coverage for internal processing.
     """
     def __init__(self, identifier, eo_metadata, range_type, grid, origin, size,
-                 arraydata_locations, metadata_locations):
+                 arraydata_locations, metadata_locations, native_format=None):
         self._identifier = identifier
         self._eo_metadata = eo_metadata
         self._range_type = range_type
@@ -452,6 +485,7 @@ class Coverage(object):
         self._size = size
         self._arraydata_locations = arraydata_locations
         self._metadata_locations = metadata_locations
+        self._native_format = native_format
 
     @property
     def identifier(self):
@@ -488,6 +522,12 @@ class Coverage(object):
     @property
     def size(self):
         return tuple(self._size)
+
+    @property
+    def native_format(self):
+        return self._native_format or (
+            self.arraydata_locations[0].format if self.arraydata_locations else None
+        )
 
     @property
     def arraydata_locations(self):
