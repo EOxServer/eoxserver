@@ -116,6 +116,9 @@ class OpenSearch11SearchHandler(object):
             namespaces.add(search_extension.namespace)
             all_parameters[search_extension.namespace.prefix] = params
 
+        if not qs.ordered:
+            qs = qs.order_by('begin_time')
+
         # use [:] here, otherwise the queryset would be evaluated and return
         # lists upon slicing
         total_count = len(qs[:])
