@@ -45,7 +45,13 @@ OWS = ElementMaker(namespace=ns_ows.uri, nsmap=nsmap)
 
 
 class OWS20Encoder(XMLEncoder):
+    def get_conf(self):
+        raise NotImplementedError
+
     def get_http_service_url(self, request):
+        conf = self.get_conf()
+        if conf.http_service_url:
+            return conf.http_service_url
         from eoxserver.services.urls import get_http_service_url
         return get_http_service_url(request)
 
