@@ -30,6 +30,7 @@ from django.db.models import Q
 from eoxserver.core import Component, implements
 from eoxserver.core.decoders import xml, kvp, typelist, lower
 from eoxserver.resources.coverages import models
+from eoxserver.render.coverage.objects import from_model
 from eoxserver.services.ows.interfaces import (
     ServiceHandlerInterface, GetServiceHandlerInterface,
     PostServiceHandlerInterface, VersionNegotiationInterface
@@ -70,12 +71,17 @@ class WCS20GetCapabilitiesHandler(WCSGetCapabilitiesHandlerBase, Component):
         )
 
         if inc_coverages:
-            coverages = models.EOObject.objects.filter(
+            qs = models.EOObject.objects.filter(
                 service_visibility__service='wcs',
                 service_visibility__visibility=True
             ).order_by('id').select_subclasses(models.Coverage, models.Mosaic)
+
+            coverages = [
+                from_model(coverage)
+                for coverage in qs
+            ]
         else:
-            coverages = models.Coverage.objects.none()
+            coverages = []
 
         if inc_dataset_series:
             dataset_series_qs = models.EOObject.objects.filter(
