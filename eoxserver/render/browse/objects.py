@@ -96,7 +96,7 @@ class Browse(object):
     @classmethod
     def from_model(cls, product_model, browse_model):
         filename = get_vsi_path(browse_model)
-        env = get_vsi_env(browse_model)
+        env = get_vsi_env(browse_model.storage)
         size = (browse_model.width, browse_model.height)
         extent = (
             browse_model.min_x, browse_model.min_y,
