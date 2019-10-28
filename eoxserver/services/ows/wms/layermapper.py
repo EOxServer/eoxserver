@@ -223,7 +223,7 @@ class LayerMapper(object):
                         for coverage in self.iter_coverages(
                             eo_object, filters_expressions, sort_by
                         )
-                    ], bands, wavelengths, time, elevation, range
+                    ], bands, wavelengths, time, elevation, ranges
                 )
 
         elif isinstance(eo_object, (models.Collection, models.Product)):

@@ -256,7 +256,7 @@ class MosaicLayerFactory(CoverageLayerFactoryMixIn, BaseMapServerLayerFactory):
         )
         return [
             self.create_coverage_layer(
-                map_obj, coverage, fields, layer.style, layer.range
+                map_obj, coverage, fields, layer.style, layer.ranges
             )
             for coverage in layer.coverages
         ]
