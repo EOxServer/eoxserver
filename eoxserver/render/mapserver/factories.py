@@ -83,7 +83,7 @@ class CoverageLayerFactoryMixIn(object):
             except StopIteration:
                 raise Exception('Invalid bands specified.')
         elif wavelengths:
-            assert len(bands) in (1, 3, 4)
+            assert len(wavelengths) in (1, 3, 4)
             try:
                 fields = [
                     next(
@@ -117,6 +117,10 @@ class CoverageLayerFactoryMixIn(object):
             (field, coverage.get_location_for_field(field))
             for field in fields
         ]
+        locations = [
+            location
+            for _, location in field_locations
+        ]
 
         layer_obj.name = coverage.identifier
 
@@ -124,8 +128,7 @@ class CoverageLayerFactoryMixIn(object):
         layer_obj.setProcessingKey("CLOSE_CONNECTION", "CLOSE")
 
         # TODO: apply subsets in time/elevation dims
-
-        num_locations = len(set(field_locations))
+        num_locations = len(set(locations))
         if num_locations == 1:
             if not coverage.grid.is_referenceable:
                 location = field_locations[0][1]
