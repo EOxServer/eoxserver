@@ -15,7 +15,7 @@
             "uom": "?",
             "significant_figures": 5,
             "allowed_value_ranges": [
-                [0, 65535]
+                [0, 10000]
             ]
         }
     ],
