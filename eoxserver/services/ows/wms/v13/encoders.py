@@ -26,87 +26,89 @@
 # ------------------------------------------------------------------------------
 
 
-from lxml.builder import E, ElementMaker
+from lxml.builder import ElementMaker
 
 from eoxserver.core.util.xmltools import XMLEncoder, NameSpace, NameSpaceMap
 
+ns_wms = NameSpace("http://www.opengis.net/wms")
 ns_xlink = NameSpace("http://www.w3.org/1999/xlink", "xlink")
-nsmap = NameSpaceMap(ns_xlink)
-E_WITH_XLINK = ElementMaker(nsmap=nsmap)
+nsmap = NameSpaceMap(ns_wms, ns_xlink)
+
+WMS = ElementMaker(namespace=ns_wms.uri, nsmap=nsmap)
 
 
 class WMS13Encoder(XMLEncoder):
     def encode_capabilities(self, config, ows_url, srss, formats, info_formats,
                             layer_descriptions):
-        return E("WMT_MS_Capabilities",
-            E("Service",
-                E("Name", config.name),
-                E("Title", config.title),
-                E("Abstract", config.abstract),
-                E("KeywordList", *[
-                    E("Keyword", keyword)
+        return WMS("WMS_Capabilities",
+            WMS("Service",
+                WMS("Name", config.name),
+                WMS("Title", config.title),
+                WMS("Abstract", config.abstract),
+                WMS("KeywordList", *[
+                    WMS("Keyword", keyword)
                     for keyword in config.keywords
                 ]),
-                E("OnlineResource", config.onlineresource),
+                WMS("OnlineResource", config.onlineresource),
 
-                E("ContactInformation",
-                    E("ContactPersonPrimary",
-                        E("ContactPerson", config.individual_name),
-                        E("ContactOrganization",  config.provider_name),
+                WMS("ContactInformation",
+                    WMS("ContactPersonPrimary",
+                        WMS("ContactPerson", config.individual_name),
+                        WMS("ContactOrganization",  config.provider_name),
                     ),
-                    E("ContactPosition", config.position_name),
-                    E("ContactAddress",
-                        E("AddressType", "postal"),
-                        E("Address", config.delivery_point),
-                        E("City", config.city),
-                        E("StateOrProvince", config.administrative_area),
-                        E("PostCode", config.postal_code),
-                        E("Country", config.country),
+                    WMS("ContactPosition", config.position_name),
+                    WMS("ContactAddress",
+                        WMS("AddressType", "postal"),
+                        WMS("Address", config.delivery_point),
+                        WMS("City", config.city),
+                        WMS("StateOrProvince", config.administrative_area),
+                        WMS("PostCode", config.postal_code),
+                        WMS("Country", config.country),
                     ),
-                    E("ContactVoiceTelephone", config.phone_voice),
-                    E("ContactFacsimileTelephone", config.phone_facsimile),
-                    E("ContactElectronicMailAddress",
+                    WMS("ContactVoiceTelephone", config.phone_voice),
+                    WMS("ContactFacsimileTelephone", config.phone_facsimile),
+                    WMS("ContactElectronicMailAddress",
                         config.electronic_mail_address
                     ),
                 ),
-                E("Fees", config.fees),
-                E("AccessConstraints", config.access_constraints),
+                WMS("Fees", config.fees),
+                WMS("AccessConstraints", config.access_constraints),
 
                 # TODO:
                 # <LayerLimit>16</LayerLimit>
                 # <MaxWidth>2048</MaxWidth>
                 # <MaxHeight>2048</MaxHeight>
             ),
-            E("Capability",
-                E("Request",
-                    E("GetCapabilities",
-                        E("Format", "text/xml"),
+            WMS("Capability",
+                WMS("Request",
+                    WMS("GetCapabilities",
+                        WMS("Format", "text/xml"),
                         self.encode_dcptype(ows_url)
                     ),
-                    E("GetMap", *[
-                            E("Format", frmt.mimeType)
+                    WMS("GetMap", *[
+                            WMS("Format", frmt.mimeType)
                             for frmt in formats
                         ] + [
                             self.encode_dcptype(ows_url)
                         ]
                     ),
-                    E("GetFeatureInfo",
-                        E("Format",
+                    WMS("GetFeatureInfo",
+                        WMS("Format",
                             # TODO
                         ),
                         self.encode_dcptype(ows_url)
                     ),
                     # TODO: describe layer?
                 ),
-                E("Exception",
-                    E("Format", "XML"),
-                    E("Format", "INIMAGE"),
-                    E("Format", "BLANK"),
+                WMS("Exception",
+                    WMS("Format", "XML"),
+                    WMS("Format", "INIMAGE"),
+                    WMS("Format", "BLANK"),
                 ),
-                E("Layer",
-                    E("Title", config.title),
+                WMS("Layer",
+                    WMS("Title", config.title),
                     *([
-                        E("CRS", srs)
+                        WMS("CRS", srs)
                         for srs in srss
                     ] + [
                         self.encode_bbox(
@@ -122,10 +124,10 @@ class WMS13Encoder(XMLEncoder):
         )
 
     def encode_dcptype(self, ows_url):
-        return E("DCPType",
-            E("HTTP",
-                E("Get",
-                    E_WITH_XLINK("OnlineResource", **{
+        return WMS("DCPType",
+            WMS("HTTP",
+                WMS("Get",
+                    WMS("OnlineResource", **{
                         ns_xlink("href"): ows_url,
                         ns_xlink("type"): "simple"
                     })
@@ -134,16 +136,16 @@ class WMS13Encoder(XMLEncoder):
         )
 
     def encode_bbox(self, minx, miny, maxx, maxy):
-        return E("EX_GeographicBoundingBox",
-            E("westBoundLongitude", minx),
-            E("eastBoundLongitude", maxx),
-            E("southBoundLatitude", miny),
-            E("northBoundLatitude", maxy),
+        return WMS("EX_GeographicBoundingBox",
+            WMS("westBoundLongitude", minx),
+            WMS("eastBoundLongitude", maxx),
+            WMS("southBoundLatitude", miny),
+            WMS("northBoundLatitude", maxy),
         )
 
     def encode_layer(self, layer_description):
         elems = [
-            E("Name", layer_description.name)
+            WMS("Name", layer_description.name)
         ]
 
         if layer_description.bbox:
@@ -155,9 +157,9 @@ class WMS13Encoder(XMLEncoder):
             )
 
         elems.extend(
-            E("Style",
-                E("Name", style),
-                E("Abstract", style),
+            WMS("Style",
+                WMS("Name", style),
+                WMS("Abstract", style),
             ) for style in layer_description.styles
         )
 
@@ -176,7 +178,7 @@ class WMS13Encoder(XMLEncoder):
             elif "values" in dimension:
                 extent_text = ",".join(dimension["values"])
 
-            dimension_elem = E("Dimension", extent_text, name=dimension_name)
+            dimension_elem = WMS("Dimension", extent_text, name=dimension_name)
             if "units" in dimension:
                 dimension_elem.attrib["units"] = dimension["units"]
 
@@ -190,7 +192,7 @@ class WMS13Encoder(XMLEncoder):
 
         elems.extend(dimensions)
 
-        return E("Layer",
+        return WMS("Layer",
             *elems,
             queryable="1" if layer_description.queryable else "0"
         )

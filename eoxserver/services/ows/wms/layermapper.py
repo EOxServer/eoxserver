@@ -83,8 +83,8 @@ class LayerMapper(object):
                     product_type__allowed_collection_types__collections=eo_object
                 )
             else:
-                browse_type_qs = models.BrowseType.objects.empty()
-                mask_type_qs = models.MaskType.objects.empty()
+                browse_type_qs = models.BrowseType.objects.none()
+                mask_type_qs = models.MaskType.objects.none()
 
             browse_types_name_and_is_gray = browse_type_qs.annotate(
                 is_gray=Case(
