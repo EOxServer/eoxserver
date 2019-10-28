@@ -27,8 +27,10 @@
 
 import logging
 import tempfile
+from uuid import uuid4
 
 from eoxserver.contrib import mapserver as ms
+from eoxserver.contrib import vsi
 from eoxserver.render.colors import BASE_COLORS, COLOR_SCALES
 from eoxserver.render.mapserver.factories import get_layer_factories
 from eoxserver.resources.coverages.formats import getFormatRegistry
@@ -107,7 +109,17 @@ class MapserverMapRenderer(object):
         try:
             # actually render the map
             image_obj = map_obj.draw()
-            return image_obj.getBytes(), outputformat_obj.mimetype
+
+            try:
+                image_bytes = image_obj.getBytes()
+            except:
+                tmp_name = '/vsimem/%s' % uuid4().hex
+                image_obj.save(tmp_name, map_obj)
+                with vsi.open(tmp_name) as f:
+                    image_bytes = f.read()
+                vsi.unlink(tmp_name)
+
+            return image_bytes, outputformat_obj.mimetype
 
         finally:
             # disconnect
