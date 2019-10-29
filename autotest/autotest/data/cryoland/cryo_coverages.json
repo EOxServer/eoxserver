@@ -1,7 +1,7 @@
 [
 {
     "model": "coverages.eoobject",
-    "pk": 15,
+    "pk": 16,
     "fields": {
         "identifier": "FSC_0.0025deg_201303030930_201303031110_MOD_Alps_ENVEOV2.1.00",
         "begin_time": "2013-09-13T00:00:00Z",
@@ -13,7 +13,7 @@
 },
 {
     "model": "coverages.coverage",
-    "pk": 15,
+    "pk": 16,
     "fields": {
         "grid": 9,
         "axis_1_origin": "5.69482421875",
@@ -37,7 +37,7 @@
         "storage": null,
         "location": "autotest/data/cryoland/FSC_0.0025deg_201303030930_201303031110_MOD_Alps_ENVEOV2.1.00.tif_20130913121829.tif",
         "format": "image/tiff",
-        "coverage": 15,
+        "coverage": 16,
         "field_index": 0,
         "band_count": 1,
         "subdataset_type": null,
@@ -52,7 +52,7 @@
         "storage": null,
         "location": "autotest/data/cryoland/FSC_0.0025deg_201303030930_201303031110_MOD_Alps_ENVEOV2.1.00.tif_20130913121829.xml",
         "format": "native",
-        "eo_object": 15,
+        "eo_object": 16,
         "semantic": null
     }
 },
@@ -63,7 +63,7 @@
         "storage": null,
         "location": "autotest/data/cryoland/FSC_Alps_default.sld",
         "format": null,
-        "eo_object": 15,
+        "eo_object": 16,
         "semantic": null
     }
 },

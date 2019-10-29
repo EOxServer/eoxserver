@@ -327,6 +327,25 @@ class LayerMapper(object):
                     ]
                 )
 
+            elif suffix.startswith('outlines_masked_'):
+                post_suffix = suffix[len('outlines_masked_'):]
+
+                product_browses_mask = self.iter_products_browses_masks(
+                    eo_object, filters_expressions, sort_by, post_suffix,
+                    limit=limit_products
+                )
+                footprints = []
+                masks = []
+                for product, browse, mask in product_browses_mask:
+                    footprints.append(product.footprint)
+                    masks.append(Mask.from_model(mask))
+
+                return OutlinesLayer(
+                    name=full_name, style=style, fill=None,
+                    footprints=footprints,
+                    masks=masks,
+                )
+
             elif suffix.startswith('masked_'):
                 post_suffix = suffix[len('masked_'):]
                 mask_type = self.get_mask_type(eo_object, post_suffix)

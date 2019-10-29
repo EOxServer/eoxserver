@@ -13,7 +13,7 @@ function dumpdata_coverages() {
 }
 
 function dumpdata_products() {
-  python manage.py dumpdata --indent=4 coverages.EOObject coverages.Product coverages.ProductType coverages.Collection coverages.BrowseType coverages.Browse coverages.MaskType coverages.Mask services.ServiceVisibility \
+  python manage.py dumpdata --indent=4 coverages.EOObject coverages.Product coverages.ProductType coverages.Collection coverages.CollectionType coverages.BrowseType coverages.Browse coverages.MaskType coverages.Mask services.ServiceVisibility \
   | sed 's/        "inserted":.*/        "inserted": "2019-01-01T00:00:00.000Z",/g' \
   | sed 's/        "updated":.*/        "updated": "2019-01-01T00:00:00.000Z"/g'
 }
@@ -211,10 +211,18 @@ python manage.py product register -i product_mosaic_MER_FRS_1PNPDE20060816_09092
 
 python manage.py browse register product_mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced /opt/instance/autotest/data/meris/mosaic_MER_FRS_1P_reduced_RGB/mosaic_ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced.tif
 
+python manage.py collectiontype create MER_FRS_1P_reduced_products_RGB_type -p Meris_RGB
+python manage.py collection create MER_FRS_1P_reduced_products_RGB -t MER_FRS_1P_reduced_products_RGB_type
+python manage.py collection insert MER_FRS_1P_reduced_products_RGB product_mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced
+
 dumpdata_products > autotest/data/meris/meris_products_rgb.json
 
+# cleanup
 python manage.py product deregister product_mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced
+
+python manage.py collection delete MER_FRS_1P_reduced_products_RGB
 python manage.py producttype delete Meris_RGB
+python manage.py collectiontype delete MER_FRS_1P_reduced_products_RGB_type
 
 #
 # Cryoland

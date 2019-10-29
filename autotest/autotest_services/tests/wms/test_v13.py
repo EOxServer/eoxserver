@@ -270,7 +270,9 @@ class WMS13GetMapCrossesDatelineDatasetTestCase(wmsbase.WMS13GetMapTestCase):
 # Masked
 #===============================================================================
 
-MASK_FIXTURES = wmsbase.WMS13GetMapTestCase.fixtures + ["meris_products_rgb.json"]
+MASK_FIXTURES = [
+    "range_types.json", "meris_range_type.json", "meris_products_rgb.json"
+]
 
 class WMS13GetMapProductMaskedTestCase(wmsbase.WMS13GetMapTestCase):
     """ Test a GetMap request with the masked layer for a dataset. """
@@ -283,7 +285,7 @@ class WMS13GetMapCollectionMaskedTestCase(wmsbase.WMS13GetMapTestCase):
     """ Test a GetMap request with the masked layer for a dataset series. """
     fixtures = MASK_FIXTURES
 
-    layers = ("MER_FRS_1P_reduced_RGB__masked_clouds",)
+    layers = ("MER_FRS_1P_reduced_products_RGB__masked_clouds",)
     bbox = (11, 32, 28, 46)
 
 #===============================================================================
@@ -302,7 +304,7 @@ class WMS13GetMapCollectionCloudMaskTestCase(wmsbase.WMS13GetMapTestCase):
     """ Test a GetMap request for cloudmask of a dataset series. """
     fixtures = MASK_FIXTURES
 
-    layers = ("MER_FRS_1P_reduced_RGB__clouds",)
+    layers = ("MER_FRS_1P_reduced_products_RGB__clouds",)
     styles = ("magenta",)
     bbox = (11, 32, 28, 46) 
 
@@ -317,11 +319,11 @@ class WMS13GetMapProductMaskedOutlinesTestCase(wmsbase.WMS13GetMapTestCase):
     layers = ("product_mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced__outlines_masked_clouds",)
     bbox = (11, 32, 28, 46)
 
-class WMS13GetMapCollectionMaskedTestCase(wmsbase.WMS13GetMapTestCase):
+class WMS13GetMapCollectionMaskedOutlinesTestCase(wmsbase.WMS13GetMapTestCase):
     """ Test a GetMap request with the masked layer for a dataset series. """
     fixtures = MASK_FIXTURES
 
-    layers = ("MER_FRS_1P_reduced_RGB__masked_clouds",)
+    layers = ("MER_FRS_1P_reduced_products_RGB__outlines_masked_clouds",)
     bbox = (11, 32, 28, 46)
 
 #===============================================================================

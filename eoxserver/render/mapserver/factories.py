@@ -27,6 +27,7 @@
 
 from os.path import join
 from uuid import uuid4
+from itertools import izip_longest
 
 from django.conf import settings
 from django.utils.module_loading import import_string
@@ -575,7 +576,14 @@ class OutlinesLayerFactory(BaseMapServerLayerFactory):
 
     def create(self, map_obj, layer):
         layer_obj = _create_polygon_layer(map_obj)
-        for footprint in layer.footprints:
+        for footprint, mask in izip_longest(layer.footprints, layer.masks or []):
+            if mask:
+                if mask.geometry:
+                    mask_geom = mask.geometry
+                elif mask.filename:
+                    mask_geom = mask.load_geometry()
+                footprint = footprint.difference(mask_geom)
+
             shape_obj = ms.shapeObj.fromWKT(footprint.wkt)
             layer_obj.addFeature(shape_obj)
 

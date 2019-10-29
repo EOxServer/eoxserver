@@ -27,6 +27,7 @@
 
 from eoxserver.contrib import gdal
 from eoxserver.backends.access import get_vsi_path
+from eoxserver.backends.util import resolve_storage
 from eoxserver.resources.coverages import models
 from eoxserver.resources.coverages.registration import base
 from eoxserver.resources.coverages.registration.exceptions import (
@@ -51,7 +52,7 @@ class BrowseRegistrator(base.BaseRegistrator):
         browse = models.Browse(
             product=product,
             location=location[-1],
-            storage=self.resolve_storage(location[:-1]),
+            storage=resolve_storage(location[:-1]),
             browse_type=browse_type
         )
 

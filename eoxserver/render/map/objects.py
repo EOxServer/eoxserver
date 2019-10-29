@@ -273,14 +273,19 @@ class MaskedBrowseLayer(Layer):
 class OutlinesLayer(Layer):
     """ Representation of a layer.
     """
-    def __init__(self, name, style, fill, footprints):
+    def __init__(self, name, style, fill, footprints, masks=None):
         super(OutlinesLayer, self).__init__(name, style)
         self._footprints = footprints
+        self._masks = masks
         self._fill = fill
 
     @property
     def footprints(self):
         return self._footprints
+
+    @property
+    def masks(self):
+        return self._masks
 
     @property
     def fill(self):
