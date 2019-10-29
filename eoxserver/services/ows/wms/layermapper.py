@@ -31,7 +31,7 @@ from eoxserver.core.config import get_eoxserver_config
 from eoxserver.core.decoders import config, enum
 from eoxserver.core.util.timetools import isoformat
 from eoxserver.render.map.objects import (
-    CoverageLayer, CoveragesLayer, MosaicLayer,
+    CoverageLayer, CoveragesLayer, OutlinedCoveragesLayer, MosaicLayer,
     OutlinesLayer, BrowseLayer, OutlinedBrowseLayer,
     MaskLayer, MaskedBrowseLayer,
     LayerDescription,
@@ -211,9 +211,11 @@ class LayerMapper(object):
                 return OutlinesLayer(
                     name=full_name, style=style, fill=None,
                     footprints=[
-                            coverage.footprint for coverage in self.iter_coverages(
-                                eo_object, filters_expressions, sort_by
-                            )]
+                        coverage.footprint
+                        for coverage in self.iter_coverages(
+                            eo_object, filters_expressions, sort_by
+                        )
+                    ]
                 )
             else :
                 return MosaicLayer(
@@ -236,7 +238,6 @@ class LayerMapper(object):
 
                 has_products = False
                 for product, browse, _ in product_browses:
-                    has_products = True
                     # When bands/wavelengths are specifically requested, make a
                     # generated browse
                     if bands or wavelengths:
@@ -245,10 +246,12 @@ class LayerMapper(object):
                         )
                         if browse:
                             browses.append(browse)
+                            has_products = True
 
                     # When available use the default browse
                     elif browse:
                         browses.append(Browse.from_model(product, browse))
+                        has_products = True
 
                     # As fallback use the default browse type (with empty name)
                     # to generate a browse from the specified bands
@@ -262,18 +265,29 @@ class LayerMapper(object):
                             )
                             if browse:
                                 browses.append(browse)
+                                has_products = True
 
                 if not has_products:
                     coverages = self.iter_coverages(
                         eo_object, filters_expressions, sort_by
                     )
-                    return CoveragesLayer(
-                        full_name, style, [
-                            RenderCoverage.from_model(coverage)
-                            for coverage in coverages
-                        ],
-                        bands, wavelengths, time, elevation, ranges
-                    )
+
+                    if suffix == '':
+                        return CoveragesLayer(
+                            full_name, style, [
+                                RenderCoverage.from_model(coverage)
+                                for coverage in coverages
+                            ],
+                            bands, wavelengths, time, elevation, ranges
+                        )
+                    else:
+                        return OutlinedCoveragesLayer(
+                            full_name, style, [
+                                RenderCoverage.from_model(coverage)
+                                for coverage in coverages
+                            ],
+                            bands, wavelengths, time, elevation, ranges
+                        )
 
                 # detect whether we are below the zoom limit
                 if min_render_zoom is None or zoom >= min_render_zoom:
@@ -452,6 +466,8 @@ class LayerMapper(object):
             base_filter = dict(mosaics=eo_object)
         elif isinstance(eo_object, models.Collection):
             base_filter = dict(collections=eo_object)
+        elif isinstance(eo_object, models.Product):
+            base_filter = dict(parent_product=eo_object)
 
         qs = models.Coverage.objects.filter(filters_expressions, **base_filter)
         if sort_by:

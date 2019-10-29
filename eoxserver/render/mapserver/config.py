@@ -27,6 +27,7 @@
 
 DEFAULT_EOXS_MAPSERVER_LAYER_FACTORIES = [
     'eoxserver.render.mapserver.factories.CoverageLayerFactory',
+    'eoxserver.render.mapserver.factories.OutlinedCoverageLayerFactory',
     'eoxserver.render.mapserver.factories.MosaicLayerFactory',
     'eoxserver.render.mapserver.factories.BrowseLayerFactory',
     'eoxserver.render.mapserver.factories.OutlinedBrowseLayerFactory',

@@ -41,7 +41,7 @@ from eoxserver.render.browse.generate import (
     generate_browse, FilenameGenerator
 )
 from eoxserver.render.map.objects import (
-    CoverageLayer, CoveragesLayer, MosaicLayer,
+    CoverageLayer, CoveragesLayer, MosaicLayer, OutlinedCoveragesLayer,
     BrowseLayer, OutlinedBrowseLayer,
     MaskLayer, MaskedBrowseLayer, OutlinesLayer
 )
@@ -238,6 +238,43 @@ class CoverageLayerFactory(CoverageLayerFactoryMixIn, BaseMapServerLayerFactory)
                     map_obj, coverage, fields, layer.style, layer.ranges
                 )
             )
+
+        return coverage_layers
+
+    def destroy(self, map_obj, layer, data):
+        for coverage_layer in data:
+            self.destroy_coverage_layer(coverage_layer)
+
+
+class OutlinedCoverageLayerFactory(CoverageLayerFactoryMixIn, BaseMapServerLayerFactory):
+    handled_layer_types = [OutlinedCoveragesLayer]
+
+    def create(self, map_obj, layer):
+        coverages = layer.coverages
+        style = layer.style
+
+        raster_style = style if style and style in COLOR_SCALES else "blackwhite"
+        vector_style = style if style and style in BASE_COLORS else "red"
+
+        coverage_layers = []
+
+        for coverage in coverages:
+            fields = self.get_fields(
+                coverage.range_type, layer.bands, layer.wavelengths
+            )
+            coverage_layers.append(
+                self.create_coverage_layer(
+                    map_obj, coverage, fields, raster_style, layer.ranges
+                )
+            )
+
+            # create the outlines layer
+            outlines_layer_obj = _create_polygon_layer(map_obj)
+            shape_obj = ms.shapeObj.fromWKT(coverage.footprint.wkt)
+            outlines_layer_obj.addFeature(shape_obj)
+
+            class_obj = _create_geometry_class(vector_style)
+            outlines_layer_obj.insertClass(class_obj)
 
         return coverage_layers
 

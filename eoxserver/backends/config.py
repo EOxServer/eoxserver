@@ -40,7 +40,7 @@ DEFAULT_EOXS_STORAGE_HANDLERS = [
 
 
 DEFAULT_EOXS_STORAGE_AUTH_HANDLERS = [
-    'eoxserver.backends.storage_auths.KeystoneStorageAuthHandler',
+    'eoxserver.backends.keystone.storage_auth.KeystoneStorageAuthHandler',
 ]
 
 
