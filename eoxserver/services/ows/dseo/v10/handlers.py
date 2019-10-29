@@ -32,6 +32,7 @@ from itertools import chain
 from django.http.response import StreamingHttpResponse, FileResponse
 import zipstream
 
+from eoxserver.backends.access import vsi_open
 from eoxserver.backends.storages import get_handler_for_model
 from eoxserver.core.decoders import kvp, typelist, lower
 from eoxserver.resources.coverages import models
@@ -79,7 +80,6 @@ class GetProductHandler(object):
             if handler.name in ('ZIP', 'TAR'):
                 response = FileResponse(
                     open(package.url), content_type='application/octet-stream',
-
                 )
                 response['Content-Disposition'] = 'attachment; filename="%s"' % (
                     basename(package.url)
@@ -127,15 +127,24 @@ class GetProductHandler(object):
                     coverage.metadata_items.all()
                 )
 
-                for arraydata_item in items:
-                    # TODO: Ensure files are local
-                    zip_stream.write(
-                        arraydata_item.location,
-                        join(
-                            product.identifier, coverage.identifier,
-                            basename(arraydata_item.location)
+                for data_item in items:
+                    # faster encoding when local files. Fallback on VSI API otherwise
+                    if not data_item.storage:
+                        zip_stream.write(
+                            data_item.location,
+                            join(
+                                product.identifier, coverage.identifier,
+                                basename(data_item.location)
+                            )
                         )
-                    )
+                    else:
+                        zip_stream.write_iter(
+                            join(
+                                product.identifier, coverage.identifier,
+                                basename(data_item.location)
+                            ),
+                            _iter_data_item(data_item)
+                        )
 
             response = StreamingHttpResponse(
                 zip_stream, content_type='application/octet-stream'
@@ -144,6 +153,17 @@ class GetProductHandler(object):
                 product.identifier
             )
             return response
+
+
+# helper function to iterate over a data item in chunks
+def _iter_data_item(data_item, chunk_size=65535):
+    with vsi_open(data_item) as vsi_file:
+        while True:
+            data = vsi_file.read(chunk_size)
+            if data:
+                yield data
+            else:
+                break
 
 
 class GetCapabilitiesKVPDecoder(kvp.Decoder):
