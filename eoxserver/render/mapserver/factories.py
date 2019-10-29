@@ -366,7 +366,7 @@ class OutlinedBrowseLayerFactory(BaseMapServerLayerFactory):
     def create(self, map_obj, layer):
         filename_generator = FilenameGenerator('/vsimem/{uuid}.vrt')
         group_name = layer.name
-        range_ = layer.range
+        ranges = layer.ranges
         style = layer.style
 
         raster_style = style if style and style in COLOR_SCALES else "blackwhite"
@@ -427,7 +427,8 @@ class OutlinedBrowseLayerFactory(BaseMapServerLayerFactory):
                     )
 
                 else:
-                    for i, (field, range_) in enumerate(zip(browse.field_list, browse.ranges), start=1):
+                    field_ranges = enumerate(zip(browse.field_list, browse.ranges), start=1)
+                    for i, (field, field_range) in field_ranges:
                         if ranges:
                             if len(ranges) == 1:
                                 range_ = ranges[0]
