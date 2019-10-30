@@ -28,6 +28,8 @@
 from django.conf import settings
 from django.utils.module_loading import import_string
 
+from eoxserver.core.decoders import config
+
 
 # default for EOXS_OPENSEARCH_FORMATS
 DEFAULT_EOXS_OPENSEARCH_FORMATS = [
@@ -59,3 +61,9 @@ def get_opensearch_record_model():
         settings, 'EOXS_OPENSEARCH_RECORD_MODEL', DEFAULT_EOXS_OPENSEARCH_RECORD_MODEL
     )
     return import_string(class_name)
+
+
+class OpenSearchConfigReader(config.Reader):
+    section = "services.opensearch"
+    default_count = config.Option(type=int, default=100)
+    max_count = config.Option(type=int, default=200)

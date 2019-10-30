@@ -32,12 +32,14 @@ from lxml.builder import ElementMaker
 from django.core.urlresolvers import reverse
 from django.shortcuts import get_object_or_404
 
+from eoxserver.core.config import get_eoxserver_config
 from eoxserver.core.util.xmltools import (
     XMLEncoder, NameSpace, NameSpaceMap
 )
 from eoxserver.resources.coverages import models
 from eoxserver.services.opensearch.formats import get_formats
 from eoxserver.services.opensearch.extensions import get_extensions
+from eoxserver.services.opensearch.config import OpenSearchConfigReader
 
 
 class OpenSearch11DescriptionEncoder(XMLEncoder):
@@ -107,12 +109,13 @@ class OpenSearch11DescriptionEncoder(XMLEncoder):
                 }
             )
 
+        conf = OpenSearchConfigReader(get_eoxserver_config())
         search_url = request.build_absolute_uri(search_url)
 
         default_parameters = (
             dict(name="q", type="searchTerms", profiles=[
             ]),
-            dict(name="count", type="count", min=0),
+            dict(name="count", type="count", min=0, max=conf.max_count),
             dict(name="startIndex", type="startIndex", min=0),
         )
 

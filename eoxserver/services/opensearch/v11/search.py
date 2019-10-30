@@ -31,10 +31,12 @@ from django.http import Http404
 from django.db.models import Q
 
 from eoxserver.core.config import get_eoxserver_config
-from eoxserver.core.decoders import kvp, config
+from eoxserver.core.decoders import kvp
 from eoxserver.core.util.xmltools import NameSpaceMap
 from eoxserver.resources.coverages import models
-from eoxserver.services.opensearch.config import get_opensearch_record_model
+from eoxserver.services.opensearch.config import (
+    get_opensearch_record_model, OpenSearchConfigReader
+)
 from eoxserver.services.opensearch.formats import get_formats
 from eoxserver.services.opensearch.extensions import get_extensions
 
@@ -180,9 +182,3 @@ class OpenSearch11BaseDecoder(kvp.Decoder):
     start_index = kvp.Parameter("startIndex", pos_int_zero, num="?", default=0)
     count = kvp.Parameter("count", pos_int_zero, num="?", default=None)
     output_encoding = kvp.Parameter("outputEncoding", num="?", default="UTF-8")
-
-
-class OpenSearchConfigReader(config.Reader):
-    section = "services.opensearch"
-    default_count = config.Option(type=int, default=100)
-    max_count = config.Option(type=int, default=200)
