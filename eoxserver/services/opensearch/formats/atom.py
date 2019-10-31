@@ -128,7 +128,8 @@ class AtomResultFormat(BaseFeedResultFormat):
             ]
 
         eo_om_item = item.metadata_items.filter(
-            format__in=['eogml', 'eoom', 'text/xml']
+            format__in=['eogml', 'eoom', 'text/xml'],
+            semantic__isnull=False
         ).first()
         if eo_om_item is not None:
             eo_om_link = self._make_metadata_href(request, item, eo_om_item)
