@@ -30,6 +30,9 @@ import logging
 import math
 from itertools import product
 import numpy
+from uuid import uuid4
+import tempfile
+from os.path import join
 
 from eoxserver.contrib import gdal, gdal_array, osr, ogr
 from eoxserver.processing.preprocessing.util import (
@@ -332,7 +335,7 @@ class DatasetPostOptimization(object):
         raise NotImplementedError
 
 
-class OverviewOptimization(DatasetPostOptimization):
+class OverviewOptimization(DatasetOptimization):
     """ Dataset optimization step to add overviews to the dataset. This step may
         have to be applied after the dataset has been reprojected.
     """
@@ -342,14 +345,14 @@ class OverviewOptimization(DatasetPostOptimization):
         self.levels = levels
         self.minsize = minsize
 
-    def __call__(self, ds):
+    def __call__(self, src_ds):
         logger.info("Applying OverviewOptimization")
         levels = self.levels
 
         # calculate the overviews automatically.
         if not levels:
             desired_size = abs(self.minsize or 256)
-            size = max(ds.RasterXSize, ds.RasterYSize)
+            size = max(src_ds.RasterXSize, src_ds.RasterYSize)
             level = 1
             levels = []
 
@@ -361,20 +364,32 @@ class OverviewOptimization(DatasetPostOptimization):
         logger.info("Building overview levels %s with resampling method '%s'."
                     % (", ".join(map(str, levels)), self.resampling))
 
-        # drop previous overviews
-        ds.BuildOverviews(self.resampling, [])
+        src_ds.FlushCache()
+        filename = src_ds.GetFileList()[0]
+        filename_1 = filename
+        driver = src_ds.GetDriver()
+        src_ds = None
 
         # re-build overviews
         # workaround for libtiff 3.X systems, which generated wrong overviews
         # on some levels. Skip with warning if workaround is not working.
+        # use .ovr trick to accommodate very large images (>65536 pixels)
         for level in levels:
             try:
-                ds.BuildOverviews(self.resampling, [level])
+                input_ds = gdal.Open(filename, gdal.GA_ReadOnly)
+                input_ds.BuildOverviews(self.resampling, [2])
+                filename = '%s.ovr' % filename
             except RuntimeError:
                 logger.warning("Overview building failed for level '%s'." %
                                level)
 
-        return ds
+        dst_ds = driver.CreateCopy(
+            join(tempfile.gettempdir(), '%s.tif' % uuid4().hex),
+            gdal.Open(filename_1, gdal.GA_ReadOnly),
+            options=["COPY_SRC_OVERVIEWS=YES", ]
+        )
+
+        return dst_ds
 
 
 #===============================================================================
