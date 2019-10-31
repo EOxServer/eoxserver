@@ -27,9 +27,8 @@
 
 from django.conf.urls import url
 
-from eoxserver.webclient.views import index, configuration
+from eoxserver.webclient.views import index
 
 urlpatterns = ([
-    url(r'^$', index, name='index'),
-    url(r'^configuration/$', configuration, name='configuration')
-], 'webclient', 'webclient')
+    url(r'^$', index, name='index')
+], 'webclient')

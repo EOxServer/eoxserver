@@ -37,3 +37,8 @@ class Extra(models.Model):
     info = models.TextField(blank=True, null=True)
     color = models.CharField(max_length=64, blank=True, null=True)
     default_visible = models.BooleanField(default=False)
+    max_zoom = models.IntegerField(default=15)
+    histogram_bin_count = models.IntegerField(default=28)
+    histogram_threshold = models.IntegerField(default=600)
+    search_limit = models.IntegerField(default=600)
+    load_more = models.IntegerField(default=600)

@@ -33,6 +33,7 @@ from datetime import timedelta
 from django.shortcuts import render
 from django.utils.timezone import now
 from django.db.models import Q, Max, Min
+from django.contrib.gis.db.models import Extent
 
 from eoxserver.core.util.timetools import isoformat
 from eoxserver.resources.coverages import models
@@ -41,33 +42,38 @@ from eoxserver.resources.coverages import models
 logger = logging.getLogger(__name__)
 
 
+
+
+
 def index(request):
-    return render(
-        request, 'webclient/index.html', {
-            "path": request.path,
-        }
-    )
-
-
-def configuration(request):
     # select collections or coverages not contained in collections that are
     # visible
-    qs = models.EOObject.objects.filter(
-        Q(collection__isnull=False) |
-        Q(mosaic__isnull=False) |
-        Q(
-            coverage__isnull=False,
-            coverage__service_visibility__service="wc",
-            coverage__service_visibility__visibility=True,
-        )
-    )
+    # qs = models.EOObject.objects.filter(
+    #     Q(collection__isnull=False) |
+    #     Q(mosaic__isnull=False) |
+    #     Q(
+    #         coverage__isnull=False,
+    #         coverage__service_visibility__service="wc",
+    #         coverage__service_visibility__visibility=True,
+    #     )
+    # )
+
+    qs = models.Collection.objects.all().exclude(Q(
+        service_visibility__visibility=False,
+        service_visibility__service="wc"
+    ))
 
     # get the min/max values for begin and end time
-    values = qs.aggregate(Min("begin_time"), Max("end_time"))
+    values = qs.aggregate(
+        Min("begin_time"), Max("end_time"),
+        Extent('footprint')
+    )
     start_time = values["begin_time__min"] or now() - timedelta(days=5)
     end_time = values["end_time__max"] or now()
     start_time_full = start_time - timedelta(days=5)
     end_time_full = end_time + timedelta(days=5)
+
+    bbox = ",".join(str(v) for v in values["footprint__extent"])
 
     # try:
     #     # get only coverages that are in a collection or are visible
@@ -81,13 +87,15 @@ def configuration(request):
     #     start_time = first.begin_time
     # except (models.EOObject.DoesNotExist, IndexError):
     #     pass
-
+    baseUrl = request.get_host() + '/'
     return render(
-        request, 'webclient/config.json', {
+        request, 'webclient/index.html', {
+            "path":  baseUrl,
             "layers": qs,
             "start_time_full": isoformat(start_time_full),
             "end_time_full": isoformat(end_time_full),
             "start_time": isoformat(start_time),
-            "end_time": isoformat(end_time)
+            "end_time": isoformat(end_time),
+            "bbox": bbox
         }
     )

@@ -238,3 +238,74 @@ dumpdata_coverages > autotest/data/cryoland/cryo_coverages.json
 
 python manage.py coverage deregister FSC_0.0025deg_201303030930_201303031110_MOD_Alps_ENVEOV2.1.00
 python manage.py coveragetype delete Snow
+
+
+
+#
+# Full Products example
+#
+
+
+
+
+# Load MERIS coveragetypes
+
+python manage.py coveragetype import autotest/data/meris/meris_range_type_definition.json
+
+TODO create a product type with the allowed coverage type from above
+
+TODO add browse type with nice visualizations (find examples for MERIS)
+
+TODO create a collection type with the allowed product type above
+
+
+
+# save MERIS coveragetype fixtures
+dumpdata_coveragetype > autotest/data/meris/meris_range_type.json
+
+# create a collection for the coverages
+
+TODO use collection type above
+python manage.py collection create MER_FRS_1P_reduced
+
+
+TODO create 3 products using the metadata from the .xmls and set metadata like cloud coverage and so on
+
+
+
+TODO register the RGB TIFFs as browses
+
+
+
+# register MERIS Uint16 data
+
+TODO for each coverage registered set the associated product from above
+
+python manage.py coverage register \
+    -t MERIS_uint16 \
+    -d autotest/data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed.tif \
+    -m autotest/data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed.xml
+
+python manage.py coverage register \
+    -t MERIS_uint16 \
+    -d autotest/data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed.tif \
+    -m autotest/data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed.xml
+
+python manage.py coverage register \
+    -t MERIS_uint16 \
+    -d autotest/data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_uint16_reduced_compressed.tif \
+    -m autotest/data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_uint16_reduced_compressed.xml
+
+
+TODO dont register the coverages but the products
+python manage.py collection insert MER_FRS_1P_reduced MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed
+python manage.py collection insert MER_FRS_1P_reduced MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed
+python manage.py collection insert MER_FRS_1P_reduced MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_uint16_reduced_compressed
+
+
+
+
+
+
+
+

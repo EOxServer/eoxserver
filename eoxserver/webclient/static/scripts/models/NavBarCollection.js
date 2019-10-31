@@ -1,1 +1,0 @@
-(function(){"use strict";var a=this;a.define(["backbone","communicator","models/NavBarItemModel"],function(a,b,c){var d=a.Collection.extend({model:c});return{NavBarCollection:d}})}).call(this);

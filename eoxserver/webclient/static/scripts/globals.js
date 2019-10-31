@@ -1,1 +1,0 @@
-define(["backbone","objectStore"],function(a,b){return{objects:new b,selections:new b,baseLayers:new a.Collection,products:new a.Collection,overlays:new a.Collection}});
