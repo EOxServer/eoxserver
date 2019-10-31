@@ -323,12 +323,12 @@ class BaseFeedResultFormat(object):
             links.extend([
                 ATOM("link", rel="enclosure",
                     href=self._create_coverage_link(
-                        request, coverage
+                        request, item
                     )
                 ),
                 ATOM("link", rel="via",
                     href=self._create_coverage_description_link(
-                        request, coverage
+                        request, item
                     )
                 ),
                 # "Browse" image
