@@ -155,12 +155,16 @@ class CoverageLayerFactoryMixIn(object):
                 # TODO
                 _build_vrt(coverage.size, field_locations)
 
+        if not coverage.grid.is_referenceable:
+            extent = coverage.extent
+            sr = coverage.grid.spatial_reference
+        else:
+            map_extent = map_obj.extent
+            extent = (map_extent.minx, map_extent.miny, map_extent.maxx, map_extent.maxy)
+            sr = osr.SpatialReference(map_obj.getProjection())
+
         layer_objs = _create_raster_layer_objs(
-            map_obj,
-            coverage.extent if not coverage.grid.is_referenceable else None,
-            coverage.grid.spatial_reference,
-            data,
-            filename_generator
+            map_obj,extent, sr, data, filename_generator
         )
 
         for i, layer_obj in enumerate(layer_objs):
@@ -229,6 +233,7 @@ class CoverageLayerFactory(CoverageLayerFactoryMixIn, BaseMapServerLayerFactory)
 
         coverage_layers = []
 
+        print "HERE"
         for coverage in coverages:
             fields = self.get_fields(
                 coverage.range_type, layer.bands, layer.wavelengths
