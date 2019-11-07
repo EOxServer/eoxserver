@@ -38,7 +38,7 @@
           <swe:uom code="?"/>
           <swe:constraint>
             <swe:AllowedValues>
-              <swe:interval>0 65535</swe:interval>
+              <swe:interval>0 10000</swe:interval>
               <swe:significantFigures>5</swe:significantFigures>
             </swe:AllowedValues>
           </swe:constraint>
