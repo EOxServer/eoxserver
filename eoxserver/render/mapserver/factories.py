@@ -232,8 +232,6 @@ class CoverageLayerFactory(CoverageLayerFactoryMixIn, BaseMapServerLayerFactory)
             coverages = layer.coverages
 
         coverage_layers = []
-
-        print "HERE"
         for coverage in coverages:
             fields = self.get_fields(
                 coverage.range_type, layer.bands, layer.wavelengths
