@@ -497,3 +497,26 @@ def stack_bands(filenames, save=None):
             out_index += 1
 
     return out_ds
+
+def with_extent(filename, extent, save=None):
+    """ Create a VRT and override the underlying files geolocation
+    """
+    src_ds = gdal.OpenShared(filename)
+    width, height = src_ds.RasterXSize, src_ds.RasterYSize
+    driver = gdal.GetDriverByName('VRT')
+    out_ds = driver.CreateCopy(save, src_ds)
+
+    x = extent[0]
+    y = extent[3]
+
+    resx = abs(extent[2] - extent[0]) / width
+    resy = abs(extent[3] - extent[1]) / height
+    out_ds.SetGeoTransform([
+        x,
+        resx,
+        0,
+        y,
+        0,
+        resy,
+    ])
+    return out_ds
