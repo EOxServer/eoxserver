@@ -49,11 +49,13 @@ class UnsupportedObject(Exception):
 
 
 class NoSuchLayer(Exception):
-    pass
+    code = 'LayerNotDefined'
+    locator = 'layer'
 
 
 class NoSuchPrefix(NoSuchLayer):
-    pass
+    code = 'LayerNotDefined'
+    locator = 'layer'
 
 
 class LayerMapper(object):
