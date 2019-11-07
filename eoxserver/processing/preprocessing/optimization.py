@@ -389,6 +389,7 @@ class OverviewOptimization(DatasetOptimization):
             options=["COPY_SRC_OVERVIEWS=YES", ]
         )
 
+        dst_ds.FlushCache()
         return dst_ds
 
 
