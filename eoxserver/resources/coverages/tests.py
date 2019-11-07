@@ -30,7 +30,6 @@
 from datetime import datetime
 from StringIO import StringIO
 from textwrap import dedent
-from dateutil.tz import tzlocal
 
 from django.test import TestCase
 from django.core.exceptions import ValidationError
@@ -474,8 +473,8 @@ class MetadataFormatTests(GeometryMixIn, TestCase):
         values = reader.read(xml)
         expected = {
             "identifier": "MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed",
-            "begin_time": datetime(2006, 8, 16, 9, 9, 29, tzinfo=tzlocal()),
-            "end_time": datetime(2006, 8, 16, 9, 12, 46, tzinfo=tzlocal()),
+            "begin_time": datetime(2006, 8, 16, 9, 9, 29, tzinfo=utc),
+            "end_time": datetime(2006, 8, 16, 9, 12, 46, tzinfo=utc),
             "footprint": MultiPolygon(
                 Polygon.from_bbox((10, 20, 30, 40)),
                 Polygon.from_bbox((50, 60, 70, 80))
@@ -485,7 +484,7 @@ class MetadataFormatTests(GeometryMixIn, TestCase):
               'acquisition_station': 'PDHS-E',
               'acquisition_sub_type': None,
               'antenna_look_direction': None,
-              'availability_time': datetime(2006, 8, 16, 11, 3, 8, tzinfo=tzlocal()),
+              'availability_time': datetime(2006, 8, 16, 11, 3, 8, tzinfo=utc),
               'cloud_cover': None,
               'completion_time_from_ascending_node': None,
               'doppler_frequency': None,
