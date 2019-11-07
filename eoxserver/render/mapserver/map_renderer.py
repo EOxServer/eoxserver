@@ -41,7 +41,10 @@ logger = logging.getLogger(__name__)
 
 # TODO: move this to render.map.exceptions
 class MapRenderError(Exception):
-    pass
+    def __init__(self, message, code=None, locator=None):
+        super(MapRenderError, self).__init__(message)
+        self.code = code
+        self.locator = locator
 
 
 class MapserverMapRenderer(object):
@@ -77,7 +80,11 @@ class MapserverMapRenderer(object):
         frmt = getFormatRegistry().getFormatByMIME(render_map.format)
 
         if not frmt:
-            raise MapRenderError('No such format %r' % render_map.format)
+            raise MapRenderError(
+                'No such format %r' % render_map.format,
+                code='InvalidFormat',
+                locator='format'
+            )
 
         outputformat_obj = ms.outputFormatObj(frmt.driver)
 
