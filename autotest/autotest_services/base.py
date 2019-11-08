@@ -360,10 +360,9 @@ class RasterTestCase(OWSTestCase):
         content_disposition = self.response.get("Content-Disposition")
         if content_disposition is not None:
             _, params = cgi.parse_header(content_disposition)
-            self.assertEqual(
-                self.getFileExtension("raster"),
-                os.path.splitext(params["filename"])[1][1:]
-            )
+            expected_extension = self.getFileExtension("raster")
+            result_extension = os.path.splitext(params["filename"])[1][1:]
+            self.assertEqual(expected_extension, result_extension)
         else:
             self.skipTest("No 'Content-Disposition' header detected.")
 
@@ -380,7 +379,7 @@ class GDALDatasetTestCase(RasterTestCase):
         _, self.tmppath = tempfile.mkstemp("." + self.getFileExtension("raster"))
         with open(self.tmppath, 'w') as f:
             f.write(self.getResponseData())
-      
+
         gdal.AllRegister()
 
         exp_path = os.path.join(
@@ -1144,22 +1143,22 @@ class WPS10XMLComparison(XMLTestCase):
         if part == "xml":
             return "xml"
         elif part == "raster":
-            return "tif"    
+            return "tif"
 
     @staticmethod
-    def parseFileName(src) : 
-        try : 
-            with file( src ) as fid : 
-                return fid.read() 
-        except Exception as e : 
+    def parseFileName(src) :
+        try :
+            with file( src ) as fid :
+                return fid.read()
+        except Exception as e :
             raise XMLParseError ("Failed to parse the \"%s\" file! %s" % ( src , str(e) ))
 
     def parse( self, src) :
-        return  self.parseFileName(src) 
+        return  self.parseFileName(src)
 
 
     def testXMLComparison(self):
-        
+
         expected_path= os.path.join(
             self.getExpectedFileDir(), self.getExpectedFileName('xml')
         )
@@ -1168,7 +1167,7 @@ class WPS10XMLComparison(XMLTestCase):
         expected_doc = etree.fromstring(expectedString)
         # replace the encoded data so it compare other nodes in the xml files
         response_doc = etree.fromstring(self.prepareXMLData(self.getXMLData()))
-            
+
         expected_elems = expected_doc.xpath('//wps:ComplexData', namespaces={'wps': 'http://www.opengis.net/wps/1.0.0'})
         response_elems = response_doc.xpath('//wps:ComplexData', namespaces= {'wps': 'http://www.opengis.net/wps/1.0.0'})
 
@@ -1176,11 +1175,11 @@ class WPS10XMLComparison(XMLTestCase):
             parent = response_elem.getparent()
             # override the response elem with the expected elem
             parent[parent.index(response_elem)] = expected_elem
-            
+
         self.response.content = etree.tostring(response_doc, encoding="ISO-8859-1")
 
         super(WPS10XMLComparison, self).testXMLComparison()
-        
+
 
     def testBinaryComparisonRaster(self):
 
@@ -1190,7 +1189,7 @@ class WPS10XMLComparison(XMLTestCase):
         expected_path= os.path.join(
             self.getExpectedFileDir(), self.getExpectedFileName("raster")
         )
-        # creates a response image that contains the encoded text of the response xml file 
+        # creates a response image that contains the encoded text of the response xml file
         doc = etree.fromstring( self.prepareXMLData(self.getXMLData()))
         encodedText= ' '.join(e.text for e in doc.xpath('//wps:ComplexData', namespaces= {'wps': 'http://www.opengis.net/wps/1.0.0'}))
         _, self.tmppath = tempfile.mkstemp("." + self.getFileExtension("raster"))
@@ -1230,7 +1229,7 @@ class WPS10BinaryComparison(GDALDatasetTestCase):
     @tag('band-count')
     def testBandCount(self):
         self.assertEqual(self.res_ds.RasterCount, self.exp_ds.RasterCount)
-    
+
         def tearDown(self):
             super(WPS10BinaryComparison, self).tearDown()
             try:
