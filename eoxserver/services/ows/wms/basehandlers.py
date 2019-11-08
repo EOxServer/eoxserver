@@ -37,6 +37,7 @@ import re
 from django.conf import settings
 from django.db.models import Q
 from django.urls import reverse
+from django.http import HttpResponse
 
 from eoxserver.core.decoders import kvp, typelist, InvalidParameterException
 from eoxserver.core.config import get_eoxserver_config
@@ -215,8 +216,13 @@ class WMSBaseGetMapHandler(object):
             layers=layers
         )
 
-        # TODO: translate to Response
-        return map_renderer.render_map(map_)
+        result_bytes, content_type, filename = map_renderer.render_map(map_)
+
+        response = HttpResponse(result_bytes, content_type=content_type)
+        if filename:
+            response['Content-Disposition'] = 'inline; filename="%s"' % filename
+
+        return response
 
 
 class WMSBaseGetCapbilitiesDecoder(kvp.Decoder):

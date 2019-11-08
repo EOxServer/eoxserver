@@ -92,6 +92,15 @@ class MapserverMapRenderer(object):
             ms.MS_ON if render_map.transparent else ms.MS_OFF
         )
         outputformat_obj.mimetype = frmt.mimeType
+
+        if frmt.defaultExt:
+            if frmt.defaultExt.startswith('.'):
+                extension = frmt.defaultExt[1:]
+            else:
+                extension = frmt.defaultExt
+
+            outputformat_obj.extension = extension
+
         map_obj.setOutputFormat(outputformat_obj)
 
         #
@@ -126,7 +135,18 @@ class MapserverMapRenderer(object):
                     image_bytes = f.read()
                 vsi.unlink(tmp_name)
 
-            return image_bytes, outputformat_obj.mimetype
+            extension = outputformat_obj.extension
+            if extension:
+                if len(render_map.layers) == 1:
+                    filename = '%s.%s' % (
+                        render_map.layers[0].name, extension
+                    )
+                else:
+                    filename = 'map.%s' % extension
+            else:
+                filename = None
+
+            return image_bytes, outputformat_obj.mimetype, filename
 
         finally:
             # disconnect
