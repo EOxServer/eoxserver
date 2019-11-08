@@ -36,9 +36,9 @@ from eoxserver.core.util.timetools import isoformat
 from eoxserver.core.util.iteratortools import pairwise
 from eoxserver.core.util.timetools import parse_iso8601
 from eoxserver.core.decoders import xml
+from eoxserver.core import Component
 
-
-class NativeFormat(object):
+class NativeFormat(Component):
     formats = ("native", )
 
     def test(self, obj):
