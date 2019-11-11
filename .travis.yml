@@ -22,7 +22,7 @@ before_install:
 script:
 - cd autotest
 - docker-compose up -d
-- docker-compose exec autotest apt-get install -y postgresql-client; until PGPASSWORD=${DB_PW} psql "${DB_NAME}" -h "${DB_HOST}" -U "${DB_USER}" -c "\q"; do >&2 echo "Database is unavailable - sleeping"; sleep 5; done
+- docker-compose exec autotest bash -c 'apt-get install -y postgresql-client; until PGPASSWORD=${DB_PW} psql "${DB_NAME}" -h "${DB_HOST}" -U "${DB_USER}" -c "\q"; do >&2 echo "Database is unavailable - sleeping"; sleep 5; done'
 - docker-compose exec autotest python -m eoxserver.services.ows.wps.test_data_types
 - docker-compose exec autotest python -m eoxserver.services.ows.wps.test_allowed_values
 - docker-compose exec autotest python manage.py test --pythonpath=../eoxserver/ eoxserver.core -v2
