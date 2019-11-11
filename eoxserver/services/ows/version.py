@@ -32,6 +32,8 @@ try:
 except ImportError:
     from eoxserver.core.util.functools import total_ordering
 
+from django.utils.six import string_types
+
 
 __all__ = ["parse_version_string", "Version"]
 
@@ -50,7 +52,7 @@ def convert_to_version(f):
     def wrapper(self, other):
         if isinstance(other, Version):
             return f(self, other)
-        elif isinstance(other, basestring):
+        elif isinstance(other, string_types):
             return f(self, parse_version_string(other))
         try:
             return f(self, Version(*other))

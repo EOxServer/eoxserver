@@ -25,18 +25,13 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-
-from eoxserver.core import Component, implements
-from eoxserver.services.ows.interfaces import ExceptionHandlerInterface
 from eoxserver.services.ows.common.v20.encoders import OWS20ExceptionXMLEncoder
 from eoxserver.core.decoders import (
     DecodingException, MissingParameterException
 )
 
 
-class WCS10ExceptionHandler(Component):
-    implements(ExceptionHandlerInterface)
-
+class WCS10ExceptionHandler(object):
     service = "WCS"
     versions = ("1.0.0",)
     request = None

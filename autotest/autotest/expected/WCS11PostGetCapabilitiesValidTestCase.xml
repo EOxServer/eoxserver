@@ -18,7 +18,9 @@ Copyright (C) European Space Agency - ESA</ows:Abstract>
       <ows:Keyword>Envisat</ows:Keyword>
     </ows:Keywords>
     <ows:ServiceType codeSpace="OGC">OGC WCS</ows:ServiceType>
-    <ows:ServiceTypeVersion>1.1.2</ows:ServiceTypeVersion>
+    <ows:ServiceTypeVersion>2.0.1</ows:ServiceTypeVersion>
+    <ows:ServiceTypeVersion>1.1.1</ows:ServiceTypeVersion>
+    <ows:ServiceTypeVersion>1.0.0</ows:ServiceTypeVersion>
     <ows:Fees>None</ows:Fees>
     <ows:AccessConstraints>None</ows:AccessConstraints>
   </ows:ServiceIdentification>
@@ -150,8 +152,8 @@ Copyright (C) European Space Agency - ESA</ows:Abstract>
       <ows:Title>ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775</ows:Title>
       <ows:Abstract/>
       <ows:WGS84BoundingBox dimensions="2">
-        <ows:LowerCorner>16.727605 -36.259107</ows:LowerCorner>
-        <ows:UpperCorner>22.301754 -31.984922</ows:UpperCorner>
+        <ows:LowerCorner>16.726531 -36.259394</ows:LowerCorner>
+        <ows:UpperCorner>22.302402 -31.984137</ows:UpperCorner>
       </ows:WGS84BoundingBox>
       <SupportedCRS>urn:ogc:def:crs:EPSG::4326</SupportedCRS>
       <SupportedCRS>urn:ogc:def:crs:EPSG::3857</SupportedCRS>
@@ -201,8 +203,8 @@ Copyright (C) European Space Agency - ESA</ows:Abstract>
       <ows:Title>mosaic_MER_FRS_1P_reduced_RGB</ows:Title>
       <ows:Abstract/>
       <ows:WGS84BoundingBox dimensions="2">
-        <ows:LowerCorner>-3.75 32.158895</ows:LowerCorner>
-        <ows:UpperCorner>28.326165 46.3</ows:UpperCorner>
+        <ows:LowerCorner>-3.75 32.19025</ows:LowerCorner>
+        <ows:UpperCorner>28.263455 46.268645</ows:UpperCorner>
       </ows:WGS84BoundingBox>
       <SupportedCRS>urn:ogc:def:crs:EPSG::4326</SupportedCRS>
       <SupportedCRS>urn:ogc:def:crs:EPSG::3857</SupportedCRS>

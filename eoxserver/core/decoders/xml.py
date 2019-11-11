@@ -120,7 +120,7 @@ class Decoder(object):
         if isinstance(tree, basestring):
             try:
                 tree = etree.fromstring(tree)
-            except etree.XMLSyntaxError, exc:
+            except etree.XMLSyntaxError as exc:
                 # NOTE: lxml.etree.XMLSyntaxError is incorretly identified as
                 #       an OWS exception by the exception handler leading
                 #       to a wrong OWS error response.  This exception thus

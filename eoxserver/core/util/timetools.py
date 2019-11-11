@@ -74,7 +74,7 @@ def parse_iso8601(value, tzinfo=None):
     for parser in parsers:
         try:
             temporal = parser(value)
-        except Exception, e:
+        except Exception as e:
             raise ValueError(
                 "Could not parse '%s' to a temporal value. "
                 "Error was: %s" % (value, e)

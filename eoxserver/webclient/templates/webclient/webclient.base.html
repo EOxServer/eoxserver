@@ -32,27 +32,27 @@
   <head>
     <title>{% block title %}EOxServer Webclient{% endblock %}</title>
     <meta http-equiv="content-type" content="text/html; charset=UTF-8"></meta>
-    <link rel="icon" href="{{STATIC_URL}}favicon.ico" type="image/x-icon">
-    <link rel="shortcut icon" href="{{STATIC_URL}}favicon.ico" type="image/x-icon">
-    <link href="{{STATIC_URL}}jquery/jquery-ui-1.8.17.custom.css" rel="stylesheet" type="text/css"/>
-    <link href="{{STATIC_URL}}d3.timeslider/d3.timeslider.min.css" rel="stylesheet" type="text/css"/>
-    <link href="{{STATIC_URL}}style.css" rel="stylesheet" type="text/css"></link>
-    <script src="{{STATIC_URL}}OpenLayers/OpenLayers.js"></script>
-    <script src="{{STATIC_URL}}jquery/jquery.min.js"></script>
-    <script src="{{STATIC_URL}}jquery/jquery.xmlns.js"></script>
-    <script src="{{STATIC_URL}}jquery/jquery-ui.min.js"></script>
-    <script src="{{STATIC_URL}}jquery/jquery.maskedinput.min.js"></script>
-    <script src="{{STATIC_URL}}d3.min.js"></script>
-    <script src="{{STATIC_URL}}d3.timeslider/d3.timeslider.min.js"></script>
-    <script src="{{STATIC_URL}}d3.timeslider/d3.timeslider.plugins.min.js"></script>
-    <script src="{{STATIC_URL}}underscore/underscore.min.js"></script>
-    <script src="{{STATIC_URL}}backbone/backbone.min.js"></script>
-    <script src="{{STATIC_URL}}libcoverage.js/libcoverage.min.js" type="text/javascript"></script>
-    <script src="{{STATIC_URL}}libcoverage.js/libcoverage.backbone.min.js" type="text/javascript"></script>
-    <script src="{{STATIC_URL}}WebClient/templates.js" type="text/javascript"></script>
-    <script src="{{STATIC_URL}}WebClient/models.js" type="text/javascript"></script>
-    <script src="{{STATIC_URL}}WebClient/views.js" type="text/javascript"></script>
-    <script src="{{STATIC_URL}}WebClient/application.js" type="text/javascript"></script>
+    <link rel="icon" href="{% static 'favicon.ico' %}" type="image/x-icon">
+    <link rel="shortcut icon" href="{% static 'favicon.ico' %}" type="image/x-icon">
+    <link href="{% static 'jquery/jquery-ui-1.8.17.custom.css' %}" rel="stylesheet" type="text/css"/>
+    <link href="{% static 'd3.timeslider/d3.timeslider.min.css' %}" rel="stylesheet" type="text/css"/>
+    <link href="{% static 'style.css' %}" rel="stylesheet" type="text/css"></link>
+    <script src="{% static 'OpenLayers/OpenLayers.js' %}"></script>
+    <script src="{% static 'jquery/jquery.min.js' %}"></script>
+    <script src="{% static 'jquery/jquery.xmlns.js' %}"></script>
+    <script src="{% static 'jquery/jquery-ui.min.js' %}"></script>
+    <script src="{% static 'jquery/jquery.maskedinput.min.js' %}"></script>
+    <script src="{% static 'd3.min.js' %}"></script>
+    <script src="{% static 'd3.timeslider/d3.timeslider.min.js' %}"></script>
+    <script src="{% static 'd3.timeslider/d3.timeslider.plugins.min.js' %}"></script>
+    <script src="{% static 'underscore/underscore.min.js' %}"></script>
+    <script src="{% static 'backbone/backbone.min.js' %}"></script>
+    <script src="{% static 'libcoverage.js/libcoverage.min.js' %}" type="text/javascript"></script>
+    <script src="{% static 'libcoverage.js/libcoverage.backbone.min.js' %}" type="text/javascript"></script>
+    <script src="{% static 'WebClient/templates.js' %}" type="text/javascript"></script>
+    <script src="{% static 'WebClient/models.js' %}" type="text/javascript"></script>
+    <script src="{% static 'WebClient/views.js' %}" type="text/javascript"></script>
+    <script src="{% static 'WebClient/application.js' %}" type="text/javascript"></script>
   </head>
 
   <body style="margin:0px;padding:0px;height:100%;width:100%">
@@ -63,13 +63,13 @@
     <div id="slider"></div>
     <div id="div-tooltip" class="ui-widget tooltip"><a></a></div>
     <div id="div-busy-indicator" class="ui-widget ui-widget-content ui-corner-all">
-        <img src="{{STATIC_URL}}ajax-loader.gif"></img>
+        <img src="{% static 'ajax-loader.gif' %}"></img>
     </div>
 
     {% block extra %}{% endblock %}
 
     <script type="text/javascript">
-    namespace("WebClient.Templates").logo = '<img src="{{STATIC_URL}}EOxServer_logo_small.png" style="align: center;"/>';
+    namespace("WebClient.Templates").logo = '<img src="{% static 'EOxServer_logo_small.png' %}" style="align: center;"/>';
     </script>
 
     {% block javascript_templates %}{% endblock %}

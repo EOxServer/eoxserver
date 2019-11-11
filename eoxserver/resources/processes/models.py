@@ -163,7 +163,7 @@ class Response( models.Model ):
             response   - process XML response (if not in plain text GZIP+BASE64 is applied).
 
     """
-    instance  = models.ForeignKey( Instance , blank=False , null=False , editable = False , unique = True )
+    instance  = models.OneToOneField( Instance , blank=False , null=False , editable = False )
     response  = models.TextField( editable = False )
     mimeType  = models.TextField( editable = True )
 
@@ -183,7 +183,7 @@ class Input( models.Model ):
             input      - task inputs.
 
     """
-    instance    = models.ForeignKey( Instance , blank=False , null=False , editable = False , unique = True )
+    instance    = models.OneToOneField( Instance , blank=False , null=False , editable = False )
     input       = models.TextField( editable = False ) # store the data as Base64 encoded pickle object
 
     def __unicode__( self ) : return unicode( self.instance )  

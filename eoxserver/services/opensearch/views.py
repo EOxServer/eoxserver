@@ -27,8 +27,8 @@
 
 
 from django.http import HttpResponse
+from django.views.decorators.csrf import csrf_exempt
 
-from eoxserver.core import env
 from eoxserver.services.opensearch.v11.description import (
     OpenSearch11DescriptionHandler
 )
@@ -37,10 +37,11 @@ from eoxserver.services.opensearch.v11.search import (
 )
 
 
+@csrf_exempt
 def description(request, collection_id=None):
     """ View function for OpenSearch Description requests.
     """
-    content, content_type = OpenSearch11DescriptionHandler(env).handle(
+    content, content_type = OpenSearch11DescriptionHandler().handle(
         request, collection_id
     )
     return HttpResponse(
@@ -48,8 +49,9 @@ def description(request, collection_id=None):
     )
 
 
+@csrf_exempt
 def search(request, collection_id=None, format_name=None):
-    content, content_type = OpenSearch11SearchHandler(env).handle(
+    content, content_type = OpenSearch11SearchHandler().handle(
         request, collection_id, format_name
     )
     return HttpResponse(

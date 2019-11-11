@@ -32,7 +32,12 @@ import sys
 from optparse import make_option
 
 import django
-from django.utils.importlib import import_module
+try:
+    # Django versions >= 1.9
+    from django.utils.module_loading import import_module
+except ImportError:
+    # Django versions < 1.9
+    from django.utils.importlib import import_module
 from django.core.management import BaseCommand
 from django.core.management.base import CommandError
 from django.utils import termcolors
@@ -46,18 +51,8 @@ class CommandNotFound(Exception):
 
 
 class EOxServerAdminCommand(BaseCommand):
-    if django.VERSION < (1, 8):
-        option_list = (
-            make_option('-v', '--verbosity',
-                action='store', dest='verbosity', default='1',
-                type='choice', choices=['0', '1', '2', '3'],
-            ),
-        )
-
-    def run_from_argv(self, argv):
-        self.parser = self.create_parser(argv[0], argv[1])
-        options, args = self.parser.parse_args(argv[2:])
-        self.handle(*args, **options.__dict__)
+    def execute(self, *args, **kwargs):
+        return self.handle(*args, **kwargs)
 
 
 def get_commands():

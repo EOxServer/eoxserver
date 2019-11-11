@@ -25,30 +25,46 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-from eoxserver.core import env, Component, ExtensionPoint
-from eoxserver.resources.coverages.metadata.interfaces import *
+from eoxserver.contrib.vsi import open as vsi_open
 
-class MetadataComponent(Component):
-    metadata_readers = ExtensionPoint(MetadataReaderInterface)
-    metadata_writers = ExtensionPoint(MetadataWriterInterface)
+from eoxserver.resources.coverages.metadata.product_formats import get_readers
 
 
-    def get_reader_by_test(self, obj):
-        for reader in self.metadata_readers:
-            if reader.test(obj):
-                return reader
-        return None
+class ProductMetadataComponent(object):
+    def read_product_metadata_file(self, path):
+        for reader_cls in get_readers():
+            reader = reader_cls()
 
+            if hasattr(reader, 'test_path') and reader.test_path(path):
+                return reader.read_path(path)
+            elif hasattr(reader, 'test'):
+                try:
+                    f = vsi_open(path)
+                except IOError:
+                    continue
 
-    def get_reader_by_format(self, format):
-        for reader in self.metadata_readers:
-            if format in reader.formats:
-                return reader
-        return None
+                if reader.test(f):
+                    f.seek(0)
+                    return reader.read(f)
 
+        if f:
+            f.close()
 
-    def get_writer_by_format(self, format):
-        for writer in self.metadata_writers:
-            if format in writer.formats:
-                return writer
-        return None
+        return {}
+
+    def collect_package_metadata(self, storage, handler, cache=None):
+        path = handler.get_vsi_path(storage.url)
+        for reader_cls in get_readers():
+            reader = reader_cls()
+            if hasattr(reader, 'test_path'):
+                if reader.test_path(path):
+                    return reader.read_path(path)
+            else:
+                try:
+                    with open(path) as f:
+                        if hasattr(reader, 'test') and f and reader.test(f):
+                            return reader.read(f)
+                except IOError:
+                    pass
+
+        raise Exception('No suitable metadata reader found.')

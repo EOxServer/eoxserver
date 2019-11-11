@@ -25,20 +25,23 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
+from eoxserver.testing.utils import tag
+
 from autotest_services import base as testbase
 import base as wcsbase
-import mapscript
 
 
 #===============================================================================
 # WCS 1.1
 #===============================================================================
 
+@tag('wcs', 'wcs11')
 class WCS11GetCapabilitiesValidTestCase(testbase.XMLTestCase):
     def getRequest(self):
         params = "service=WCS&version=1.1.2&request=GetCapabilities"
         return (params, "kvp")
 
+@tag('wcs', 'wcs11')
 class WCS11GetCapabilitiesEmptyTestCase(testbase.XMLTestCase):
     """This test shall retrieve a valid but empty WCS 1.1 GetCapabilities response (see #41)"""
     fixtures = testbase.BASE_FIXTURES
@@ -47,41 +50,49 @@ class WCS11GetCapabilitiesEmptyTestCase(testbase.XMLTestCase):
         params = "service=WCS&version=1.1.2&request=GetCapabilities"
         return (params, "kvp")
 
+@tag('wcs', 'wcs11')
 class WCS11DescribeCoverageDatasetTestCase(testbase.XMLTestCase):
     def getRequest(self):
         params = "service=WCS&version=1.1.2&request=DescribeCoverage&identifier=mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced"
         return (params, "kvp")
 
+@tag('wcs', 'wcs11')
 class WCS11DescribeCoverageMosaicTestCase(testbase.XMLTestCase):
     def getRequest(self):
         params = "service=WCS&version=1.1.2&request=DescribeCoverage&identifier=mosaic_MER_FRS_1P_reduced_RGB"
         return (params, "kvp")
 
+@tag('wcs', 'wcs11')
 class WCS11GetCoverageDatasetTestCase(wcsbase.WCS11GetCoverageMixIn, testbase.RectifiedGridCoverageMultipartTestCase):
     def getRequest(self):
         params = "service=WCS&version=1.1.2&request=GetCoverage&identifier=mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced&boundingbox=32,12,46.5,28,urn:ogc:def:crs:EPSG::4326&format=image/tiff"
         return (params, "kvp")
 
+@tag('wcs', 'wcs11')
 class WCS11GetCoverageMosaicTestCase(wcsbase.WCS11GetCoverageMixIn, testbase.RectifiedGridCoverageMultipartTestCase):
     def getRequest(self):
         params = "service=WCS&version=1.1.2&request=GetCoverage&identifier=mosaic_MER_FRS_1P_reduced_RGB&boundingbox=32,-4,46.5,28,urn:ogc:def:crs:EPSG::4326&format=image/tiff"
         return (params, "kvp")
 
+@tag('wcs', 'wcs11')
 class WCS11GetCoverageDatasetSubsetTestCase(wcsbase.WCS11GetCoverageMixIn, testbase.RectifiedGridCoverageMultipartTestCase):
     def getRequest(self):
         params = "service=WCS&version=1.1.2&request=GetCoverage&identifier=mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced&boundingbox=0,0,550,440,urn:ogc:def:crs:OGC::imageCRS&format=image/tiff&GridCS=urn:ogc:def:crs:OGC::imageCRS&GridBaseCRS=urn:ogc:def:crs:OGC::imageCRS&GridType=urn:ogc:def:method:WCS:1.1:2dGridIn2dCrs&GridOrigin=0,0&GridOffsets=2,2"
         return (params, "kvp")
 
+@tag('wcs', 'wcs11')
 class WCS11GetCoverageDatasetSubsetEPSG4326TestCase(wcsbase.WCS11GetCoverageMixIn, testbase.RectifiedGridCoverageMultipartTestCase):
     def getRequest(self):
         params = "service=WCS&version=1.1.2&request=GetCoverage&identifier=mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced&boundingbox=32,12,46.5,28,urn:ogc:def:crs:EPSG::4326&format=image/tiff&GridCS=urn:ogc:def:crs:OGC::imageCRS&GridBaseCRS=urn:ogc:def:crs:OGC::imageCRS&GridType=urn:ogc:def:method:WCS:1.1:2dGridIn2dCrs&GridOrigin=46.5,12&GridOffsets=0.06,0.06"
         return (params, "kvp")
 
+@tag('wcs', 'wcs11')
 class WCS11GetCoverageMosaicSubsetTestCase(wcsbase.WCS11GetCoverageMixIn, testbase.RectifiedGridCoverageMultipartTestCase):
     def getRequest(self):
         params = "service=WCS&version=1.1.2&request=GetCoverage&identifier=mosaic_MER_FRS_1P_reduced_RGB&boundingbox=300,200,700,350,urn:ogc:def:crs:OGC::imageCRS&format=image/tiff&GridCS=urn:ogc:def:crs:OGC::imageCRS&GridBaseCRS=urn:ogc:def:crs:OGC::imageCRS&GridType=urn:ogc:def:method:WCS:1.1:2dGridIn2dCrs&GridOrigin=0,0&GridOffsets=2,2"
         return (params, "kvp")
 
+@tag('wcs', 'wcs11')
 class WCS11GetCoverageMosaicSubsetEPSG4326TestCase(wcsbase.WCS11GetCoverageMixIn, testbase.RectifiedGridCoverageMultipartTestCase):
     def getRequest(self):
         params = "service=WCS&version=1.1.2&request=GetCoverage&identifier=mosaic_MER_FRS_1P_reduced_RGB&boundingbox=35,10,42,20,urn:ogc:def:crs:EPSG::4326&format=image/tiff&GridCS=urn:ogc:def:crs:OGC::imageCRS&GridBaseCRS=urn:ogc:def:crs:OGC::imageCRS&GridType=urn:ogc:def:method:WCS:1.1:2dGridIn2dCrs&GridOrigin=40,10&GridOffsets=-0.06,0.06"
@@ -91,6 +102,7 @@ class WCS11GetCoverageMosaicSubsetEPSG4326TestCase(wcsbase.WCS11GetCoverageMixIn
 # WCS 1.1: Exceptions
 #===============================================================================
 
+@tag('wcs', 'wcs11')
 class WCS11DescribeCoverageNoSuchCoverageFaultTestCase(testbase.ExceptionTestCase):
     def getRequest(self):
         params = "service=wcs&version=1.1.2&request=DescribeCoverage&identifier=INVALID&boundingbox=35,10,42,20,urn:ogc:def:crs:EPSG::4326&format=image/tiff&GridCS=urn:ogc:def:crs:OGC::imageCRS&GridBaseCRS=urn:ogc:def:crs:OGC::imageCRS&GridType=urn:ogc:def:method:WCS:1.1:2dGridIn2dCrs&GridOrigin=40,10&GridOffsets=-0.06,0.06"
@@ -100,6 +112,7 @@ class WCS11DescribeCoverageNoSuchCoverageFaultTestCase(testbase.ExceptionTestCas
         return "NoSuchCoverage"
 
 
+@tag('wcs', 'wcs11')
 class WCS11GetCoverageNoSuchCoverageFaultTestCase(testbase.ExceptionTestCase):
     def getRequest(self):
         params = "service=wcs&version=1.1.2&request=GetCoverage&identifier=INVALID&boundingbox=35,10,42,20,urn:ogc:def:crs:EPSG::4326&format=image/tiff&GridCS=urn:ogc:def:crs:OGC::imageCRS&GridBaseCRS=urn:ogc:def:crs:OGC::imageCRS&GridType=urn:ogc:def:method:WCS:1.1:2dGridIn2dCrs&GridOrigin=40,10&GridOffsets=-0.06,0.06"
@@ -111,22 +124,25 @@ class WCS11GetCoverageNoSuchCoverageFaultTestCase(testbase.ExceptionTestCase):
 #NOTE: Support for Referenceable Datasets in WCS < 2.0.0 not avaiable.
 #      Any attempt to access Ref.DS via WCS 1.x should be treated as
 #      non-existing coverage.
+@tag('wcs', 'wcs11')
 class WCS11DescribeCoverageReferenceableFaultTestCase(testbase.ExceptionTestCase):
     def getRequest(self):
         params = "service=wcs&version=1.1.2&request=DescribeCoverage&identifier=ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775"
         return (params, "kvp")
 
     def getExpectedExceptionCode(self):
-        return "NoSuchCoverage"
+        return "OperationNotSupported"
 
+@tag('wcs', 'wcs11')
 class WCS11GetCoverageReferenceableFaultTestCase(testbase.ExceptionTestCase):
     def getRequest(self):
         params = "service=wcs&version=1.1.2&request=GetCoverage&identifier=ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775&boundingbox=80,80,90,90,urn:ogc:def:crs:EPSG::4326&format=image/tiff&GridCS=urn:ogc:def:crs:OGC::imageCRS&GridBaseCRS=urn:ogc:def:crs:OGC::imageCRS&GridType=urn:ogc:def:method:WCS:1.1:2dGridIn2dCrs&GridOrigin=46.5,12&GridOffsets=0.06,0.06"
         return (params, "kvp")
 
     def getExpectedExceptionCode(self):
-        return "NoSuchCoverage"
+        return "OperationNotSupported"
 
+@tag('wcs', 'wcs11')
 class WCS11GetCoverageBBoxFaultTestCase(testbase.ExceptionTestCase):
     def getRequest(self):
         params = "service=wcs&version=1.1.2&request=GetCoverage&identifier=mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced&boundingbox=80,80,90,90,urn:ogc:def:crs:EPSG::4326&format=image/tiff&GridCS=urn:ogc:def:crs:OGC::imageCRS&GridBaseCRS=urn:ogc:def:crs:OGC::imageCRS&GridType=urn:ogc:def:method:WCS:1.1:2dGridIn2dCrs&GridOrigin=46.5,12&GridOffsets=0.06,0.06"
@@ -135,6 +151,7 @@ class WCS11GetCoverageBBoxFaultTestCase(testbase.ExceptionTestCase):
     def getExpectedExceptionCode(self):
         return "NoApplicableCode"
 
+@tag('wcs', 'wcs11')
 class WCS11GetCoverageFormatUnsupportedFaultTestCase(testbase.ExceptionTestCase):
     def getRequest(self):
         params = "service=wcs&version=1.1.2&request=GetCoverage&identifier=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/jpeg&boundingbox=35,10,42,20,urn:ogc:def:crs:EPSG::4326&GridCS=urn:ogc:def:crs:OGC::imageCRS&GridBaseCRS=urn:ogc:def:crs:OGC::imageCRS&GridType=urn:ogc:def:method:WCS:1.1:2dGridIn2dCrs&GridOrigin=40,10&GridOffsets=-0.06,0.06"
@@ -143,6 +160,7 @@ class WCS11GetCoverageFormatUnsupportedFaultTestCase(testbase.ExceptionTestCase)
     def getExpectedExceptionCode(self):
         return "InvalidParameterValue"
 
+@tag('wcs', 'wcs11')
 class WCS11GetCoverageFormatUnknownFaultTestCase(testbase.ExceptionTestCase):
     def getRequest(self):
         params = "service=wcs&version=1.1.2&request=GetCoverage&identifier=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=unknown&boundingbox=35,10,42,20,urn:ogc:def:crs:EPSG::4326&GridCS=urn:ogc:def:crs:OGC::imageCRS&GridBaseCRS=urn:ogc:def:crs:OGC::imageCRS&GridType=urn:ogc:def:method:WCS:1.1:2dGridIn2dCrs&GridOrigin=40,10&GridOffsets=-0.06,0.06"
@@ -190,6 +208,7 @@ class WCS11TransactionReferenceableDatasetTestCase(testbase.WCSTransactionRefere
 # WCS 1.1 - POST
 #===============================================================================
 
+@tag('wcs', 'wcs11')
 class WCS11PostGetCapabilitiesValidTestCase(testbase.XMLTestCase):
     """This test shall retrieve a valid WCS 1.1 GetCapabilities response via POST.
     """
@@ -200,6 +219,7 @@ class WCS11PostGetCapabilitiesValidTestCase(testbase.XMLTestCase):
           service="WCS" version="1.1.2"/>"""
         return (params, "xml")
 
+@tag('wcs', 'wcs11')
 class WCS11PostDescribeCoverageDatasetTestCase(testbase.XMLTestCase):
     """This test shall retrieve a valid WCS 1.1 DescribeCoverage response for a
        wcseo:RectifiedDataset via POST.
@@ -213,6 +233,7 @@ class WCS11PostDescribeCoverageDatasetTestCase(testbase.XMLTestCase):
           </DescribeCoverage>"""
         return (params, "xml")
 
+@tag('wcs', 'wcs11')
 class WCS11PostDescribeCoverageMosaicTestCase(testbase.XMLTestCase):
     """This test shall retrieve a valid WCS 1.1 DescribeCoverage response for a
        wcseo:RectifiedStitchedMosaic via POST.
@@ -226,6 +247,7 @@ class WCS11PostDescribeCoverageMosaicTestCase(testbase.XMLTestCase):
           </DescribeCoverage>"""
         return (params, "xml")
 
+@tag('wcs', 'wcs11')
 class WCS11PostGetCoverageDatasetTestCase(wcsbase.WCS11GetCoverageMixIn, testbase.RectifiedGridCoverageMultipartTestCase):
     def getRequest(self):
         params = """<GetCoverage xmlns="http://www.opengis.net/wcs/1.1"
@@ -244,6 +266,7 @@ class WCS11PostGetCoverageDatasetTestCase(wcsbase.WCS11GetCoverageMixIn, testbas
           </GetCoverage>"""
         return (params, "xml")
 
+@tag('wcs', 'wcs11')
 class WCS11PostGetCoverageMosaicTestCase(wcsbase.WCS11GetCoverageMixIn, testbase.RectifiedGridCoverageMultipartTestCase):
     def getRequest(self):
         params = """<GetCoverage xmlns="http://www.opengis.net/wcs/1.1"

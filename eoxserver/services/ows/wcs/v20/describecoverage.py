@@ -26,12 +26,7 @@
 #-------------------------------------------------------------------------------
 
 
-from eoxserver.core import Component, implements
-from eoxserver.core.decoders import xml, kvp, typelist, upper
-from eoxserver.services.ows.interfaces import (
-    ServiceHandlerInterface, GetServiceHandlerInterface, 
-    PostServiceHandlerInterface
-)
+from eoxserver.core.decoders import xml, kvp, typelist
 from eoxserver.services.ows.wcs.basehandlers import (
     WCSDescribeCoverageHandlerBase
 )
@@ -41,12 +36,9 @@ from eoxserver.services.ows.wcs.v20.parameters import (
 from eoxserver.services.ows.wcs.v20.util import nsmap
 
 
-class WCS20DescribeCoverageHandler(WCSDescribeCoverageHandlerBase, Component):
-    implements(ServiceHandlerInterface)
-    implements(GetServiceHandlerInterface)
-    implements(PostServiceHandlerInterface)
-
+class WCS20DescribeCoverageHandler(WCSDescribeCoverageHandlerBase):
     versions = ("2.0.0", "2.0.1")
+    methods = ['GET', 'POST']
 
     index = 5
 

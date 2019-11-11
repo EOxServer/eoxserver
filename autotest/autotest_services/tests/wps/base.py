@@ -30,6 +30,8 @@
 from lxml import etree
 from django.utils.dateparse import parse_datetime
 
+from eoxserver.testing.utils import tag
+
 XML_OPTS = {"pretty_print": True, "encoding": 'UTF-8', "xml_declaration": True}
 
 WPS10_ExecuteResponse = "{http://www.opengis.net/wps/1.0.0}ExecuteResponse"
@@ -39,6 +41,8 @@ WPS10_ProcessOfferings = "{http://www.opengis.net/wps/1.0.0}ProcessOfferings"
 WPS10_Process = "{http://www.opengis.net/wps/1.0.0}Process"
 OWS11_Identifier = "{http://www.opengis.net/ows/1.1}Identifier"
 
+
+@tag('wps', 'wps10')
 class WPS10ExecuteMixIn(object):
     """ Mix-in class setting WPS 1.0 ExecuteResponse status time stamp
     to "2000-01-01T00:00:00.000000Z" in order to allow XML file comparison.
@@ -64,6 +68,7 @@ class WPS10ExecuteMixIn(object):
         return etree.tostring(xml, **XML_OPTS)
 
 
+@tag('wps', 'wps10')
 class WPS10CapabilitiesMixIn(object):
     """ Mix-in class filtering the WPS 1.0 Capabilities and optionally removing
     process offerings which should not be included in XML file comparison.
@@ -102,6 +107,7 @@ class WPS10CapabilitiesMixIn(object):
         return etree.tostring(xml, **XML_OPTS)
 
 
+@tag('wps', 'wps10')
 class ContentTypeCheckMixIn(object):
     """ Mix-in class adding test of the response Content-Type header. """
 
@@ -111,6 +117,7 @@ class ContentTypeCheckMixIn(object):
             self.assertEqual(self.expectedContentType, content_type)
 
 
+@tag('wps', 'wps10')
 class ContentDispositionCheckMixIn(object):
     """ Mix-in class adding test of the response Content-Disposition header. """
 

@@ -1,76 +1,91 @@
 [
 {
-    "pk": 11, 
-    "model": "backends.dataset", 
-    "fields": {}
-},
-{
-    "pk": 16, 
-    "model": "backends.dataitem", 
+    "model": "coverages.eoobject",
+    "pk": 16,
     "fields": {
-        "semantic": "metadata", 
-        "package": null, 
-        "format": "native", 
-        "storage": null, 
-        "dataset": 11, 
-        "location": "autotest/data/cryoland/FSC_0.0025deg_201303030930_201303031110_MOD_Alps_ENVEOV2.1.00.tif_20130913121829.xml"
+        "identifier": "FSC_0.0025deg_201303030930_201303031110_MOD_Alps_ENVEOV2.1.00",
+        "begin_time": "2013-09-13T00:00:00Z",
+        "end_time": "2013-09-13T23:59:59Z",
+        "footprint": "SRID=4326;MULTIPOLYGON (((5.6948242 44.3212891, 5.6948242 48.5839844, 16.7250977 48.5839844, 16.7250977 44.3212891, 5.6948242 44.3212891)))",
+        "inserted": "2019-01-01T00:00:00.000Z",
+        "updated": "2019-01-01T00:00:00.000Z"
     }
 },
 {
-    "pk": 17, 
-    "model": "backends.dataitem", 
+    "model": "coverages.coverage",
+    "pk": 16,
     "fields": {
-        "semantic": "bands[1]", 
-        "package": null, 
-        "format": "image/tiff", 
-        "storage": null, 
-        "dataset": 11, 
-        "location": "autotest/data/cryoland/FSC_0.0025deg_201303030930_201303031110_MOD_Alps_ENVEOV2.1.00.tif_20130913121829.tif"
+        "grid": 9,
+        "axis_1_origin": "5.69482421875",
+        "axis_2_origin": "48.583984375",
+        "axis_3_origin": null,
+        "axis_4_origin": null,
+        "axis_1_size": 3655,
+        "axis_2_size": 1413,
+        "axis_3_size": null,
+        "axis_4_size": null,
+        "coverage_type": 4,
+        "parent_product": null,
+        "collections": [],
+        "mosaics": []
     }
 },
 {
-    "pk": 18, 
-    "model": "backends.dataitem", 
+    "model": "coverages.arraydataitem",
+    "pk": 11,
     "fields": {
-        "semantic": "style", 
-        "package": null, 
-        "format": "SLD", 
-        "storage": null, 
-        "dataset": 11, 
-        "location": "autotest/data/cryoland/FSC_Alps_default.sld"
+        "storage": null,
+        "location": "autotest/data/cryoland/FSC_0.0025deg_201303030930_201303031110_MOD_Alps_ENVEOV2.1.00.tif_20130913121829.tif",
+        "format": "image/tiff",
+        "coverage": 16,
+        "field_index": 0,
+        "band_count": 1,
+        "subdataset_type": null,
+        "subdataset_locator": null,
+        "bands_interpretation": 0
     }
 },
 {
-    "pk": 11, 
-    "model": "coverages.eoobject", 
+    "model": "coverages.metadataitem",
+    "pk": 10,
     "fields": {
-        "footprint": "MULTIPOLYGON (((5.6948239999999997 44.3212890000000002, 5.6948239999999997 48.5839840000000009, 16.7250979999999991 48.5839840000000009, 16.7250979999999991 44.3212890000000002, 5.6948239999999997 44.3212890000000002)))", 
-        "real_content_type": 10, 
-        "identifier": "FSC_0.0025deg_201303030930_201303031110_MOD_Alps_ENVEOV2.1.00", 
-        "end_time": "2013-09-13T23:59:59Z", 
-        "begin_time": "2013-09-13T00:00:00Z"
+        "storage": null,
+        "location": "autotest/data/cryoland/FSC_0.0025deg_201303030930_201303031110_MOD_Alps_ENVEOV2.1.00.tif_20130913121829.xml",
+        "format": "native",
+        "eo_object": 16,
+        "semantic": null
     }
 },
 {
-    "pk": 11, 
-    "model": "coverages.coverage", 
+    "model": "coverages.metadataitem",
+    "pk": 11,
     "fields": {
-        "min_x": 5.69482421875, 
-        "min_y": 44.3212890625, 
-        "dataset_ptr": 11, 
-        "size_y": 1413, 
-        "range_type": 6, 
-        "size_x": 3655, 
-        "projection": null, 
-        "srid": 4326, 
-        "max_x": 16.7250976562, 
-        "max_y": 48.583984375, 
-        "visible": false
+        "storage": null,
+        "location": "autotest/data/cryoland/FSC_Alps_default.sld",
+        "format": null,
+        "eo_object": 16,
+        "semantic": null
     }
 },
 {
-    "pk": 11, 
-    "model": "coverages.rectifieddataset", 
-    "fields": {}
+    "model": "coverages.grid",
+    "pk": 9,
+    "fields": {
+        "name": null,
+        "coordinate_reference_system": "EPSG:4326",
+        "axis_1_name": "long",
+        "axis_2_name": "lat",
+        "axis_3_name": null,
+        "axis_4_name": null,
+        "axis_1_type": 0,
+        "axis_2_type": 0,
+        "axis_3_type": null,
+        "axis_4_type": null,
+        "axis_1_offset": "0.00301785866963",
+        "axis_2_offset": "-0.00301676950637",
+        "axis_3_offset": null,
+        "axis_4_offset": null,
+        "resolution": null
+    }
 }
 ]

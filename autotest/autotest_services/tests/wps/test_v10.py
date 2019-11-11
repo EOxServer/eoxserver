@@ -601,7 +601,7 @@ class WPS10ExecuteComplexDataPNGBase64FileTestCase(ContentTypeCheckMixIn, WPS10E
         """
         return (params, "xml")
 
-class WPS10ExecuteComplexDataTIFBase64InMemTestCase(ContentTypeCheckMixIn, WPS10ExecuteMixIn, testbase.XMLTestCase):
+class WPS10ExecuteComplexDataTIFBase64InMemTestCase(ContentTypeCheckMixIn, WPS10ExecuteMixIn, testbase.WPS10XMLComparison):
     expectedContentType = XML_CONTENT_TYPE
     def getRequest(self):
         params = """<wps:Execute version="1.0.0" service="WPS"
@@ -639,7 +639,7 @@ class WPS10ExecuteComplexDataPNGBase64InMemKVPTestCase(ContentTypeCheckMixIn, WP
         params = "service=WPS&version=1.0.0&request=Execute&identifier=TC03:image_generator:complex&DataInputs=TC03:method=in-memory-buffer;TC03:seed=0&ResponseDocument=TC03:output00@mimeType=image%2Fpng@encoding=base64&lineage=true"
         return (params, "kvp")
 
-class WPS10ExecuteComplexDataJPGBase64KVPTestCase(ContentTypeCheckMixIn, WPS10ExecuteMixIn, testbase.XMLTestCase):
+class WPS10ExecuteComplexDataJPGBase64KVPTestCase(ContentTypeCheckMixIn, WPS10ExecuteMixIn, testbase.WPS10XMLComparison):
     expectedContentType = XML_CONTENT_TYPE
     def getRequest(self):
         params = "service=WPS&version=1.0.0&request=Execute&identifier=TC03:image_generator:complex&DataInputs=TC03:seed=0&ResponseDocument=TC03:output00@mimeType=image%2Fjpeg@encoding=base64&lineage=true"
@@ -654,7 +654,7 @@ class WPS10ExecuteComplexDataPNGRawOutputKVPTestCase(ContentTypeCheckMixIn, Cont
         params = "service=WPS&version=1.0.0&request=Execute&identifier=TC03:image_generator:complex&DataInputs=TC03:seed=0&RawDataOutput=TC03:output00"
         return (params, "kvp")
 
-class WPS10ExecuteComplexDataTIFRawOutputKVPTestCase(ContentTypeCheckMixIn, ContentDispositionCheckMixIn, testbase.GDALDatasetTestCase):
+class WPS10ExecuteComplexDataTIFRawOutputKVPTestCase(ContentTypeCheckMixIn, ContentDispositionCheckMixIn, testbase.WPS10BinaryComparison):
     expectedContentType = "image/tiff"
     expectedContentDisposition = 'attachment; filename="test03_binary_complex.tif"'
     def getFileExtension(self, file_type):
@@ -663,7 +663,7 @@ class WPS10ExecuteComplexDataTIFRawOutputKVPTestCase(ContentTypeCheckMixIn, Cont
         params = "service=WPS&version=1.0.0&request=Execute&identifier=TC03:image_generator:complex&DataInputs=TC03:seed=0&RawDataOutput=TC03:output00@mimeType=image%2Ftiff"
         return (params, "kvp")
 
-class WPS10ExecuteComplexDataJPGRawOutputTestCase(ContentTypeCheckMixIn, ContentDispositionCheckMixIn, testbase.GDALDatasetTestCase):
+class WPS10ExecuteComplexDataJPGRawOutputTestCase(ContentTypeCheckMixIn, ContentDispositionCheckMixIn, testbase.WPS10BinaryComparison):
     expectedContentType = "image/jpeg"
     expectedContentDisposition = 'attachment; filename="test03_binary_complex.jpg"'
     def getFileExtension(self, file_type):

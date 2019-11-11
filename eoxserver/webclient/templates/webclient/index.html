@@ -1,3 +1,4 @@
+{% load static %}
 <!doctype html>
 
 <!--
@@ -25,7 +26,6 @@
  THE SOFTWARE.
 -->
 
-
 <!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
 <!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
 <!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
@@ -37,10 +37,10 @@
     <meta name="description" content="">
     <meta name="viewport" content="width=device-width">
 
-    <link rel="icon" href="{{STATIC_URL}}favicon.ico" type="image/x-icon">
-    <link rel="shortcut icon" href="{{STATIC_URL}}favicon.ico" type="image/x-icon">
-    <link rel="stylesheet" href="{{STATIC_URL}}styles/main.css">
-    <script src="{{STATIC_URL}}scripts/vendor/modernizr.js"></script>
+    <link rel="icon" href="{% static 'favicon.ico' %}" type="image/x-icon">
+    <link rel="shortcut icon" href="% static '}favicon.ico' %}" type="image/x-icon">
+    <link rel="stylesheet" href="{% static 'styles/main.css' %}">
+    <script src="{% static 'scripts/vendor/modernizr.js' %}"></script>
 </head>
 <body>
 
@@ -48,7 +48,7 @@
         <p class="chromeframe">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> or <a href="http://www.google.com/chromeframe/?redirect=true">activate Google Chrome Frame</a> to improve your experience.</p>
     <![endif]-->
 
-    <script data-main="{{STATIC_URL}}scripts/init" src="{{STATIC_URL}}bower_components/requirejs/require.js"></script>
+    <script data-main="{% static 'scripts/init' %}" src="{% static 'bower_components/requirejs/require.js' %}"></script>
 
     <div id="content">
         <div id="map" class="not-selectable"></div>
@@ -68,7 +68,7 @@
 
 
     <div id="preload">
-       <img src="{{STATIC_URL}}images/glyphicons.png" width="1" height="1" alt="Preload image">
+       <img src="{% static 'images/glyphicons.png' %}" width="1" height="1" alt="Preload image">
     </div>
 
     <div id="error-messages"></div>

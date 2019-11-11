@@ -32,18 +32,15 @@ import logging
 
 from lxml import etree
 
-from eoxserver.core import implements, ExtensionPoint
 from eoxserver.contrib import mapserver as ms
+from eoxserver.contrib import gdal, vsi
+from eoxserver.render.coverage import objects
 from eoxserver.resources.coverages import models, crss
 from eoxserver.resources.coverages.formats import getFormatRegistry
 from eoxserver.services.exceptions import NoSuchCoverageException
-from eoxserver.services.ows.wcs.interfaces import WCSCoverageRendererInterface
 from eoxserver.services.ows.wcs.v20.encoders import WCS20EOXMLEncoder
 from eoxserver.services.ows.wcs.v20.util import (
     ScaleSize, ScaleExtent, ScaleAxis
-)
-from eoxserver.services.mapserver.interfaces import (
-    ConnectorInterface, LayerFactoryInterface
 )
 from eoxserver.services.mapserver.wcs.base_renderer import (
     BaseRenderer, is_format_supported
@@ -54,6 +51,7 @@ from eoxserver.services.exceptions import (
     RenderException, OperationNotSupportedException,
     InterpolationMethodNotSupportedException, InvalidOutputCrsException
 )
+from eoxserver.services.mapserver.connectors import get_connector_by_test
 
 
 logger = logging.getLogger(__name__)
@@ -72,43 +70,43 @@ class RectifiedCoverageMapServerRenderer(BaseRenderer):
         the request.
     """
 
-    implements(WCSCoverageRendererInterface)
-
     # ReferenceableDatasets are not handled in WCS >= 2.0
     versions_full = (Version(1, 1), Version(1, 0))
     versions_partly = (Version(2, 0),)
     versions = versions_full + versions_partly
 
-    handles_full = (
-        models.RectifiedDataset,
-        models.RectifiedStitchedMosaic,
-        models.ReferenceableDataset
-    )
+    # handles_full = (
+    #     models.RectifiedDataset,
+    #     models.RectifiedStitchedMosaic,
+    #     models.ReferenceableDataset
+    # )
 
-    handles_partly = (models.RectifiedDataset, models.RectifiedStitchedMosaic)
-    handles = handles_full + handles_partly
+    # handles_partly = (models.RectifiedDataset, models.RectifiedStitchedMosaic)
+    # handles = handles_full + handles_partly
 
-    connectors = ExtensionPoint(ConnectorInterface)
-    layer_factories = ExtensionPoint(LayerFactoryInterface)
+    # connectors = ExtensionPoint(ConnectorInterface)
+    # layer_factories = ExtensionPoint(LayerFactoryInterface)
 
     def supports(self, params):
-        return (
-            (params.version in self.versions_full
-            and issubclass(params.coverage.real_type, self.handles_full))
-            or
-            (params.version in self.versions_partly
-            and issubclass(params.coverage.real_type, self.handles_partly))
-        )
+        # return (
+        #     (
+        #         params.version in self.versions_full and
+        #     and issubclass(params.coverage.real_type, self.handles_full))
+        #     or
+        #     (params.version in self.versions_partly
+        #     and issubclass(params.coverage.real_type, self.handles_partly))
+        # )
+        return params.version in self.versions and not params.coverage.grid.is_referenceable
 
     def render(self, params):
         # get coverage related stuff
         coverage = params.coverage
 
         # ReferenceableDataset are not supported in WCS < 2.0
-        if issubclass(coverage.real_type, models.ReferenceableDataset):
+        if params.coverage.grid.is_referenceable and params.version:
             raise NoSuchCoverageException((coverage.identifier,))
 
-        data_items = self.data_items_for_coverage(coverage)
+        data_locations = self.arraydata_locations_for_coverage(coverage)
 
         range_type = coverage.range_type
         bands = list(range_type)
@@ -122,8 +120,8 @@ class RectifiedCoverageMapServerRenderer(BaseRenderer):
         map_ = self.create_map()
 
         # configure outputformat
-        native_format = self.get_native_format(coverage, data_items)
-        if get_format_by_mime(native_format) is None:
+        native_format = self.get_native_format(coverage, data_locations)
+        if native_format and get_format_by_mime(native_format) is None:
             native_format = "image/tiff"
 
         frmt = params.format or native_format
@@ -148,17 +146,15 @@ class RectifiedCoverageMapServerRenderer(BaseRenderer):
         layer = self.layer_for_coverage(coverage, native_format, params.version)
 
         map_.insertLayer(layer)
+        connector = get_connector_by_test(coverage, data_locations)
 
-        for connector in self.connectors:
-            if connector.supports(data_items):
-                break
-        else:
+        if not connector:
             raise OperationNotSupportedException(
                 "Could not find applicable layer connector.", "coverage"
             )
 
         try:
-            connector.connect(coverage, data_items, layer, {})
+            connector.connect(coverage, data_locations, layer, {})
             # create request object and dispatch it against the map
             request = ms.create_request(
                 self.translate_params(params, range_type)
@@ -168,27 +164,53 @@ class RectifiedCoverageMapServerRenderer(BaseRenderer):
 
         finally:
             # perform any required layer related cleanup
-            connector.disconnect(coverage, data_items, layer, {})
+            connector.disconnect(coverage, data_locations, layer, {})
 
         result_set = result_set_from_raw_data(raw_result)
 
         if params.version == Version(2, 0):
-            if getattr(params, "mediatype", None) in ("multipart/mixed", "multipart/related"):
-                encoder = WCS20EOXMLEncoder()
-                is_mosaic = issubclass(
-                    coverage.real_type, models.RectifiedStitchedMosaic
-                )
+            mediatype = getattr(params, "mediatype", None)
+            if mediatype in ("multipart/mixed", "multipart/related"):
+                with vsi.TemporaryVSIFile.from_buffer(str(result_set[1].data)) as f:
+                    ds = gdal.Open(f.name)
+                    grid = objects.Grid.from_gdal_dataset(ds)
 
-                if not is_mosaic:
-                    tree = encoder.alter_rectified_dataset(
-                        coverage, getattr(params, "http_request", None),
-                        etree.parse(result_set[0].data_file).getroot(),
+                    # get the output CRS definition
+                    crs = params.outputcrs or subsets.crs or 'imageCRS'
+                    if crs == 'imageCRS':
+                        crs = coverage.grid.coordinate_reference_system
+                    grid._coordinate_reference_system = crs
+
+                    origin = objects.Origin.from_gdal_dataset(ds)
+                    size = [ds.RasterXSize, ds.RasterYSize]
+
+                range_type = coverage.range_type
+                if params.rangesubset:
+                    range_type = range_type.subset(params.rangesubset)
+
+                coverage._grid = grid
+                coverage._origin = origin
+                coverage._size = size
+                coverage._range_type = range_type
+
+                reference = 'cid:coverage/%s' % result_set[1].filename
+
+                encoder = WCS20EOXMLEncoder()
+
+                if not isinstance(coverage, objects.Mosaic):
+                    tree = encoder.encode_rectified_dataset(
+                        coverage,
+                        getattr(params, "http_request", None),
+                        reference,
+                        mime_type,
                         subsets.bounding_polygon(coverage) if subsets else None
                     )
                 else:
-                    tree = encoder.alter_rectified_stitched_mosaic(
-                        coverage.cast(), getattr(params, "http_request", None),
-                        etree.parse(result_set[0].data_file).getroot(),
+                    tree = encoder.encode_rectified_stitched_mosaic(
+                        coverage,
+                        getattr(params, "http_request", None),
+                        reference,
+                        mime_type,
                         subsets.bounding_polygon(coverage) if subsets else None
                     )
 
@@ -203,9 +225,19 @@ class RectifiedCoverageMapServerRenderer(BaseRenderer):
     def translate_params(self, params, range_type):
         """ "Translate" parameters to be understandable by mapserver.
         """
+
+
+
         if params.version.startswith("2.0"):
             for key, value in params:
-                if key == "interpolation":
+                if key == 'coverageid':
+                    try:
+                        models.identifier_validators[0](value)
+                    except:
+                        value = 'not-ncname'
+                    yield key, value
+
+                elif key == "interpolation":
                     interpolation = INTERPOLATION_TRANS.get(value)
                     if not interpolation:
                         raise InterpolationMethodNotSupportedException(
@@ -300,12 +332,11 @@ def create_outputformat(mime_type, options, imagemode, basename, parameters):
     outputformat.extension = reg_format.defaultExt
     outputformat.imagemode = imagemode
 
-    #for key, value in options:
+    # for key, value in options:
     #    outputformat.setOption(str(key), str(value))
 
     if mime_type == "image/tiff":
         _apply_gtiff(outputformat, **parameters)
-
 
     filename = basename + reg_format.defaultExt
     outputformat.setOption("FILENAME", str(filename))

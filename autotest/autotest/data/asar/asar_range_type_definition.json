@@ -12,7 +12,11 @@
                     "value": 0
                 }
             ],
-            "uom": "?"
+            "uom": "?",
+            "significant_figures": 5,
+            "allowed_value_ranges": [
+                [0, 10000]
+            ]
         }
     ],
     "data_type": "UInt16",

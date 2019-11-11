@@ -28,6 +28,8 @@
 import csv
 from datetime import datetime
 
+from django.contrib.gis.db.models.functions import Envelope
+
 from eoxserver.core import Component, implements
 from eoxserver.core.util.timetools import isoformat
 
@@ -81,35 +83,25 @@ class GetTimeDataProcess(Component):
 
         # get the dataset series matching the requested ID
         try:
-            model = models.EOObject.objects.get(identifier=collection)
+            model = models.EOObject.objects.filter(
+                identifier=collection
+            ).select_subclasses().get()
         except models.EOObject.DoesNotExist:
             raise InvalidInputValueError(
                 "collection", "Invalid collection name '%s'!" % collection
             )
 
-        if models.iscollection(model):
-            model = model.cast()
-
-            # recursive dataset series lookup
-            def _get_children_ids(ds):
-                ds_rct = ds.real_content_type
-                id_list = [ds.id]
-                for child in model.eo_objects.filter(real_content_type=ds_rct):
-                    id_list.extend(_get_children_ids(child))
-                return id_list
-
-            collection_ids = _get_children_ids(model)
+        if isinstance(model, (models.Collection, models.Mosaic)):
+            # if isinstance(model, models.Collection):
+            coverages_qs = model.coverages
 
             # prepare coverage query set
-            coverages_qs = models.Coverage.objects.filter(
-                collections__id__in=collection_ids
-            )
             if end_time is not None:
                 coverages_qs = coverages_qs.filter(begin_time__lte=end_time)
             if begin_time is not None:
                 coverages_qs = coverages_qs.filter(end_time__gte=begin_time)
             coverages_qs = coverages_qs.order_by('begin_time', 'end_time')
-            coverages_qs = coverages_qs.envelope()
+            coverages_qs = coverages_qs.annotate(envelope=Envelope('footprint'))
             coverages_qs = coverages_qs.values_list("begin_time", "end_time", "identifier", "envelope")
 
         else:

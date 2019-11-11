@@ -1,62 +1,44 @@
 language: python
+
 env:
-- DJANGO=">=1.4,<1.5" GDAL=1.10 DB=spatialite
-- DJANGO=">=1.5,<1.6" GDAL=1.10 DB=spatialite
-- DJANGO=">=1.6,<1.7" GDAL=1.10 DB=spatialite
-- DJANGO=">=1.7,<1.8" GDAL=1.10 DB=spatialite
-- DJANGO=">=1.8,<1.9" GDAL=1.10 DB=spatialite
+- DOCKER_COMPOSE_VERSION=1.24.0
+
 python:
 - '2.7'
+
 services:
-- postgres
-virtualenv:
-  system_site_packages: true
+- docker
+
 before_install:
-- sudo add-apt-repository -y ppa:ubuntugis/ubuntugis-unstable
-- sudo apt-get install aptitude
-- sudo aptitude install -y gdal-bin libxml2 python-lxml python-libxml2
-  libproj0 cgi-mapserver python-mapscript python-psycopg2 python-gdal
-- if [ "$DB" == "spatialite" ]; then wget https://pypi.python.org/packages/source/p/pysqlite/pysqlite-2.6.3.tar.gz;
-  fi
-- if [ "$DB" == "spatialite" ]; then tar xzf pysqlite-2.6.3.tar.gz; fi
-- if [ "$DB" == "spatialite" ]; then cd pysqlite-2.6.3; fi
-- if [ "$DB" == "spatialite" ]; then sed -i "/define=SQLITE_OMIT_LOAD_EXTENSION/c\#define=SQLITE_OMIT_LOAD_EXTENSION"
-  setup.cfg; fi
-- if [ "$DB" == "spatialite" ]; then sudo python setup.py install; fi
-- if [ "$DB" == "spatialite" ]; then cd -; fi
-- if [ "$DB" == "postgis" ]; then sudo psql postgres -tAc "CREATE USER eoxserver NOSUPERUSER
-  CREATEDB NOCREATEROLE ENCRYPTED PASSWORD 'eoxserver';"; fi
-- if [ "$DB" == "postgis" ]; then sudo -u postgres createdb eoxserver_testing; fi
-- if [ "$DB" == "postgis" ]; then sudo -u postgres psql eoxserver_testing -c 'create
-  extension postgis;'; fi
-install:
-- pip install "django${DJANGO}"
-- django-admin.py --version
-- pip install .
-- export XML_CATALOG_FILES="`pwd`/schemas/catalog.xml"
-- cd autotest
-- sed -e 's/#binary_raster_comparison_enabled=false/binary_raster_comparison_enabled=false/'
-  -i autotest/conf/eoxserver.conf
-- echo "disabled_tests=WCS20GetCoverageSubsetEPSG4326ResolutionInvalidAxisDatasetFaultTestCase,WCS20GetCoverageReferenceableDatasetGeogCRSSubsetTestCase,WCS20GetCoverageReferenceableDatasetGeogCRSSubsetExceedsExtentTestCase,WCS20GetCoverageOutputCRSotherUoMDatasetTestCase,WCS20GetCoverageJPEG2000TestCase,WCS20DescribeEOCoverageSetIncorrectSpatialSubsetFaultTestCase,WCS10DescribeCoverageMosaicTestCase,WCS10DescribeCoverageDatasetTestCase,WPS10ExecuteComplexDataTIFBase64InMemTestCase,WCS11GetCoverageBBoxFaultTestCase"
-  >> autotest/conf/eoxserver.conf
+- sudo apt-get update
+- sudo apt-get install -o Dpkg::Options::="--force-confold" --force-yes -y docker-ce
+- docker-compose --version
+- sudo rm /usr/local/bin/docker-compose
+- curl -L https://github.com/docker/compose/releases/download/$DOCKER_COMPOSE_VERSION/docker-compose-`uname -s`-`uname -m` > docker-compose
+- chmod +x docker-compose
+- sudo mv docker-compose /usr/local/bin
+- docker build . -t eoxserver --add-host=browse:127.0.0.1
+
 script:
-- python -m eoxserver.services.ows.wps.test_data_types -v
-- python -m eoxserver.services.ows.wps.test_allowed_values -v
-- python manage.py test --pythonpath=../eoxserver/ core -v2
-- python manage.py test --pythonpath=../eoxserver/ backends -v2
-- python manage.py test --pythonpath=../eoxserver/ services -v2
-- python manage.py test --pythonpath=../eoxserver/resources coverages -v2
-- python manage.py test --pythonpath=../eoxserver/resources processes -v2
-- python manage.py test autotest_services -v2
-- python manage.py test autotest_coverages -v2
+- cd autotest
+- docker-compose up -d
+- docker-compose exec autotest bash -c 'apt-get install -y postgresql-client; until PGPASSWORD=${DB_PW} psql "${DB_NAME}" -h "${DB_HOST}" -U "${DB_USER}" -c "\q"; do >&2 echo "Database is unavailable - sleeping"; sleep 5; done'
+- docker-compose exec autotest python -m eoxserver.services.ows.wps.test_data_types
+- docker-compose exec autotest python -m eoxserver.services.ows.wps.test_allowed_values
+- docker-compose exec autotest python manage.py test --pythonpath=../eoxserver/ eoxserver.core -v2
+- docker-compose exec autotest python manage.py test --pythonpath=../eoxserver/ eoxserver.backends -v2
+- docker-compose exec autotest python manage.py test --pythonpath=../eoxserver/ eoxserver.services -v2
+- docker-compose exec autotest python manage.py test --pythonpath=../eoxserver/ eoxserver.resources.coverages -v2
+- docker-compose exec autotest python manage.py test autotest_services --tag wcs20 -v2
+- docker-compose exec autotest python manage.py test autotest_services --tag wcs11 -v2
+- docker-compose exec autotest python manage.py test autotest_services --tag wcs10 -v2
+- docker-compose exec autotest python manage.py test autotest_services --tag wms -v2
+- docker-compose exec autotest python manage.py test autotest_services --tag wps -v2
+
 after_failure:
-- for file in `ls autotest/responses/*` ; do  diff autotest/expected/`basename $file`
-  $file ; done
+- diff autotest/expected autotest/responses
+
 notifications:
-  irc:
-    channels:
-    - irc.freenode.net#eoxserver
-    on_success: always
-    on_failure: always
   slack:
     secure: GPclHjLrLU2BsOS0OOHHm5vQp/GWk2sjCrHpqOVutakGbYMMRao45MHqajim+SypZcva8npIKGAHKTwny3vkvbHUJ7vpjtvRFEISLpvKKQxnq7FXJSc6hkvj+JTAaB+UpOZYyQXtchcLMizD2mST862r8gEKMo7UkbS1VOSjEm0=
+

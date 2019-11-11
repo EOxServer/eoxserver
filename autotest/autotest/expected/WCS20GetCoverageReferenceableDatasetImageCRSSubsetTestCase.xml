@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<wcseo:ReferenceableDataset xmlns:crs="http://www.opengis.net/wcs/crs/1.0" xmlns:wcs="http://www.opengis.net/wcs/2.0" xmlns:scal="http://www.opengis.net/wcs/scaling/1.0" xmlns:gml="http://www.opengis.net/gml/3.2" xmlns:rsub="http://www.opengis.net/wcs/range-subsetting/1.0" xmlns:swe="http://www.opengis.net/swe/2.0" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:int="http://www.opengis.net/wcs/interpolation/1.0" xmlns:eop="http://www.opengis.net/eop/2.0" xmlns:ows="http://www.opengis.net/ows/2.0" xmlns:gmlcov="http://www.opengis.net/gmlcov/1.0" xmlns:wcseo="http://www.opengis.net/wcs/wcseo/1.0" xmlns:om="http://www.opengis.net/om/2.0" xmlns:ogc="http://www.opengis.net/ogc" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" gml:id="ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775" xsi:schemaLocation="http://www.opengis.net/wcs/wcseo/1.0 http://schemas.opengis.net/wcs/wcseo/1.0/wcsEOAll.xsd">
+<wcseo:ReferenceableDataset xmlns:crs="http://www.opengis.net/wcs/crs/1.0" xmlns:eop="http://www.opengis.net/eop/2.0" xmlns:gml="http://www.opengis.net/gml/3.2" xmlns:gmlcov="http://www.opengis.net/gmlcov/1.0" xmlns:int="http://www.opengis.net/wcs/interpolation/1.0" xmlns:ogc="http://www.opengis.net/ogc" xmlns:om="http://www.opengis.net/om/2.0" xmlns:ows="http://www.opengis.net/ows/2.0" xmlns:rsub="http://www.opengis.net/wcs/range-subsetting/1.0" xmlns:scal="http://www.opengis.net/wcs/scaling/1.0" xmlns:swe="http://www.opengis.net/swe/2.0" xmlns:wcs="http://www.opengis.net/wcs/2.0" xmlns:wcseo="http://www.opengis.net/wcs/wcseo/1.0" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" gml:id="ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775" xsi:schemaLocation="http://www.opengis.net/wcs/wcseo/1.0 http://schemas.opengis.net/wcs/wcseo/1.0/wcsEOAll.xsd">
   <gml:boundedBy>
     <gml:Envelope axisLabels="lat long" srsName="http://www.opengis.net/def/crs/EPSG/0/4326" uomLabels="deg deg" srsDimension="2">
       <gml:lowerCorner>-33.70152200 21.30934399</gml:lowerCorner>
@@ -11,7 +11,7 @@
       <gml:limits>
         <gml:GridEnvelope>
           <gml:low>0 0</gml:low>
-          <gml:high>99 99</gml:high>
+          <gml:high>98 98</gml:high>
         </gml:GridEnvelope>
       </gml:limits>
       <gml:axisLabels>lat long</gml:axisLabels>
@@ -19,7 +19,7 @@
   </gml:domainSet>
   <gml:rangeSet>
     <gml:File>
-      <gml:rangeParameters xlink:href="cid:coverage/ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775.tif" xlink:arcrole="fileReference" xlink:role="image/tiff"/>
+      <gml:rangeParameters xlink:href="cid:coverage/ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775.tif" xlink:arcrole="fileReference" xlink:role="http://www.opengis.net/spec/GMLCOV_geotiff-coverages/1.0/conf/geotiff-coverage"/>
       <gml:fileReference>cid:coverage/ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775.tif</gml:fileReference>
       <gml:fileStructure/>
       <gml:mimeType>image/tiff</gml:mimeType>
@@ -38,7 +38,7 @@
           <swe:uom code="?"/>
           <swe:constraint>
             <swe:AllowedValues>
-              <swe:interval>0 65535</swe:interval>
+              <swe:interval>0 10000</swe:interval>
               <swe:significantFigures>5</swe:significantFigures>
             </swe:AllowedValues>
           </swe:constraint>
@@ -52,13 +52,13 @@
         <eop:EarthObservation gml:id="eop_ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775">
           <om:phenomenonTime>
             <gml:TimePeriod gml:id="phen_time_ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775">
-              <gml:beginPosition>2005-03-31T07:59:36.409059Z</gml:beginPosition>
-              <gml:endPosition>2005-03-31T08:00:36.342970Z</gml:endPosition>
+              <gml:beginPosition>2005-03-31T07:59:36.409000Z</gml:beginPosition>
+              <gml:endPosition>2005-03-31T08:00:36.342000Z</gml:endPosition>
             </gml:TimePeriod>
           </om:phenomenonTime>
           <om:resultTime>
             <gml:TimeInstant gml:id="res_time_ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775">
-              <gml:timePosition>2005-03-31T08:00:36.342970Z</gml:timePosition>
+              <gml:timePosition>2005-03-31T08:00:36.342000Z</gml:timePosition>
             </gml:TimeInstant>
           </om:resultTime>
           <om:procedure/>
@@ -71,7 +71,7 @@
                     <gml:Polygon gml:id="polygon_ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775">
                       <gml:exterior>
                         <gml:LinearRing>
-                          <gml:posList>-33.00414053 22.15065604 -33.03902600 22.30175400 -33.70047141 22.08820063 -33.52635100 21.30934400 -32.86423900 21.52450000 -33.00414053 22.15065604</gml:posList>
+                          <gml:posList>-33.03804500 22.30240200 -33.70133035 22.09204271 -33.52635100 21.30934400 -32.86423900 21.52450000 -33.03804500 22.30240200</gml:posList>
                         </gml:LinearRing>
                       </gml:exterior>
                     </gml:Polygon>

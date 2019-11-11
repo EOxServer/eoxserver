@@ -1,11 +1,11 @@
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
 #          Stephan Meissl <stephan.meissl@eox.at>
 #          Stephan Krause <stephan.krause@eox.at>
 #
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Copyright (C) 2011 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -25,64 +25,109 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
-from django.core.exceptions import ValidationError
 from django.db import models
+from django.core.exceptions import ValidationError
+from django.utils.encoding import python_2_unicode_compatible
+
+from eoxserver.backends.storages import get_handler_class_by_name
 
 
-class Storage(models.Model):
-    """ Model to symbolize storages that provide file or other types of access
-        to data items and packages.
+optional = dict(null=True, blank=True)
+mandatory = dict(null=False, blank=False)
+
+
+# ==============================================================================
+# Models
+# ==============================================================================
+
+
+@python_2_unicode_compatible
+class StorageAuth(models.Model):
+    """ Model to symbolize authorization for storages.
     """
-    url = models.CharField(max_length=1024)
-    storage_type = models.CharField(max_length=32)
+    url = models.CharField(max_length=1024, **mandatory)
+    storage_auth_type = models.CharField(max_length=32, **mandatory)
+    name = models.CharField(max_length=1024, null=True, blank=True, unique=True)
+    auth_parameters = models.TextField()
 
-    def __unicode__(self):
-        return "%s: %s" % (self.storage_type, self.url)
-
-
-class BaseLocation(models.Model):
-    """ Abstract base type for everything that describes a locateable object.
-    """
-    location = models.CharField(max_length=1024)
-    format = models.CharField(max_length=64, null=True, blank=True)
-
-    storage = models.ForeignKey(Storage, null=True, blank=True)
-    package = None  # placeholder
+    def __str__(self):
+        return "%s: %s" % (self.storage_auth_type, self.url)
 
     def clean(self):
-        if self.storage is not None and self.package is not None:
-            raise ValidationError(
-                "Only one of 'package' and 'storage' can be set."
-            )
+        validate_storage_auth(self)
+
+
+@python_2_unicode_compatible
+class Storage(models.Model):
+    """ Model to symbolize storages that provide file or other types of access
+        to data items.
+    """
+    url = models.CharField(max_length=1024, **mandatory)
+    storage_type = models.CharField(max_length=32, **mandatory)
+    name = models.CharField(max_length=1024, null=True, blank=True, unique=True)
+    storage_auth = models.ForeignKey(StorageAuth, **optional)
+
+    parent = models.ForeignKey("self", **optional)
+
+    def __str__(self):
+        return "%s: %s" % (self.storage_type, self.url)
+
+    def clean(self):
+        validate_storage(self)
+
+
+@python_2_unicode_compatible
+class DataItem(models.Model):
+    """ Abstract model for locateable data items contributing to a dataset.
+    """
+
+    storage = models.ForeignKey(Storage, **optional)
+    location = models.CharField(max_length=1024, **mandatory)
+    format = models.CharField(max_length=64, **optional)
 
     class Meta:
         abstract = True
 
-    def __unicode__(self):
+    def __str__(self):
         if self.format:
             return "%s (%s)" % (self.location, self.format)
         return self.location
 
 
-class Package(BaseLocation):
-    """ Model for Packages. Packages are files that contain multiple files or
-        provide access to multiple data items.
-    """
-    package = models.ForeignKey("self", related_name="packages", null=True, blank=True)
+# ==============================================================================
+# Validators
+# ==============================================================================
 
 
-class Dataset(models.Model):
-    """ Model for a set of associated data and metadata items.
-    """
+def validate_storage(storage):
+    parent = storage.parent
+
+    handler = get_handler_class_by_name(storage.storage_type)
+    if not handler:
+        raise ValidationError(
+            'Storage type %r is not supported.' % storage.storage_type
+        )
+
+    if parent:
+        parent_handler = get_handler_class_by_name(parent.storage_type)
+        if not handler.allows_parent_storage:
+            raise ValidationError(
+                'Storage type %r does not allow parent storages'
+                % storage.storage_type
+            )
+        elif not parent_handler.allows_child_storages:
+            raise ValidationError(
+                'Parent storage type %r does not allow child storages'
+                % parent.storage_type
+            )
+
+    while parent:
+        if parent == storage:
+            raise ValidationError('Circular reference detected')
+        parent = parent.parent
 
 
-class DataItem(BaseLocation):
-    """ Model for locateable data items contributing to a dataset. Data items
-        can be linked to either a storage or a package or none of both.
-    """
-
-    dataset = models.ForeignKey(Dataset, related_name="data_items", null=True, blank=True)
-    package = models.ForeignKey(Package, related_name="data_items", null=True, blank=True)
-    semantic = models.CharField(max_length=64)
+def validate_storage_auth(storage_auth):
+    pass

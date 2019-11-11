@@ -1,0 +1,45 @@
+version: "3.6"
+services:
+  database:
+    image: mdillon/postgis:10
+    volumes:
+      - database-data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: "user"
+      POSTGRES_PASSWORD: "pw"
+      POSTGRES_DB: "dbms"
+    # networks:
+    #   - minerva-webnet
+  autotest:
+    image: eoxserver 
+    environment:
+      DB_USER: "user"
+      DB_PW: "pw"
+      DB_HOST: database
+      DB_PORT: 5432
+      DB_NAME: "dbms"
+      XML_CATALOG_FILES: /opt/schemas/catalog.xml
+    volumes:
+      - type: bind
+        source: ./../eoxserver
+        target: /usr/local/lib/python2.7/dist-packages/eoxserver/
+      - type: bind
+        source: ./../eoxserver
+        target: /opt/eoxserver/eoxserver/
+      - type: bind
+        source: ./
+        target: /opt/instance
+      - type: bind
+        source: ./../schemas
+        target: /opt/schemas
+    command:
+      ["gunicorn", "--reload", "--bind=0.0.0.0:8000", "--chdir=/opt/instance", "autotest.wsgi:application"]
+    ports:
+     - "8800:8000"
+
+volumes:
+  database-data:
+    # external: true
+# networks:
+  # minerva-webnet:
+  #   external: true

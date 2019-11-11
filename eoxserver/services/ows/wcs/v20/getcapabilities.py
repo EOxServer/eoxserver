@@ -25,10 +25,12 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
+from django.db.models import Q
 
 from eoxserver.core import Component, implements
 from eoxserver.core.decoders import xml, kvp, typelist, lower
 from eoxserver.resources.coverages import models
+from eoxserver.render.coverage.objects import from_model
 from eoxserver.services.ows.interfaces import (
     ServiceHandlerInterface, GetServiceHandlerInterface,
     PostServiceHandlerInterface, VersionNegotiationInterface
@@ -49,6 +51,7 @@ class WCS20GetCapabilitiesHandler(WCSGetCapabilitiesHandlerBase, Component):
     implements(VersionNegotiationInterface)
 
     versions = ("2.0.0", "2.0.1")
+    methods = ['GET', 'POST']
 
     def get_decoder(self, request):
         if request.method == "GET":
@@ -59,32 +62,51 @@ class WCS20GetCapabilitiesHandler(WCSGetCapabilitiesHandlerBase, Component):
     def lookup_coverages(self, decoder):
         sections = decoder.sections
         inc_coverages = (
-            "all" in sections or "contents" in sections
-            or "coveragesummary" in sections
+            "all" in sections or "contents" in sections or
+            "coveragesummary" in sections
         )
         inc_dataset_series = (
-            "all" in sections or "contents" in sections
-            or "datasetseriessummary" in sections
+            "all" in sections or "contents" in sections or
+            "datasetseriessummary" in sections
         )
 
         if inc_coverages:
-            coverages = models.Coverage.objects \
-                .order_by("identifier") \
-                .filter(visible=True)
+            qs = models.EOObject.objects.filter(
+                service_visibility__service='wcs',
+                service_visibility__visibility=True
+            ).order_by('id').select_subclasses(models.Coverage, models.Mosaic)
+
+            coverages = [
+                from_model(coverage)
+                for coverage in qs
+            ]
         else:
-            coverages = ()
+            coverages = []
 
         if inc_dataset_series:
-            dataset_series = models.DatasetSeries.objects \
-                .order_by("identifier") \
-                .exclude(
-                    footprint__isnull=True, begin_time__isnull=True,
-                    end_time__isnull=True
+            dataset_series_qs = models.EOObject.objects.filter(
+                Q(
+                    product__isnull=False,
+                    service_visibility__service='wcs',
+                    service_visibility__visibility=True
+                ) | Q(
+                    collection__isnull=False
                 )
-        else:
-            dataset_series = ()
+            ).exclude(
+                collection__isnull=False,
+                service_visibility__service='wcs',
+                service_visibility__visibility=False
+            )
 
-        return coverages, dataset_series
+            # reduce data transfer by only selecting required elements
+            dataset_series_qs = dataset_series_qs.only(
+                "identifier", "begin_time", "end_time", "footprint"
+            )
+
+        else:
+            dataset_series_qs = models.EOObject.objects.none()
+
+        return coverages, dataset_series_qs
 
     def get_params(self, models, decoder):
         coverages, dataset_series = models

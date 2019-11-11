@@ -1,0 +1,92 @@
+<table>
+  <tr>
+    <td valign="top" width="10%">
+      {% if map_large and map_small %}
+      <a href="{{ map_large }}" target="_blank" title="View quicklook image">
+        <img align="left" border="0" hspace="8" src="{{ map_small }}"  />
+      </a>
+      {% endif %}
+    </td>
+    <td valign="top" width="90%">
+      <table>
+        <tr valign="top">
+          <td>
+            <b>Date </b>
+          </td>
+          <td>{{ item.begin_time|date:"c" }} / {{ item.end_time|date:"c" }}</td>
+        </tr>
+        <tr valign="top">
+          <td>
+            <b>Metadata</b>
+          </td>
+          <td>
+            {% if eo_om_link %}
+              <a href="{{ eo_om_link }}" title="EO-O&amp;M format" target="_blank">EO-O&amp;M</a>
+            {% endif %}
+            <a href="{{ atom }}" title="Atom format" target="_blank">ATOM</a>
+          </td>
+        </tr>
+        {% if download_link %}
+        <tr valign="top">
+          <td>
+            <b>Download</b>
+          </td>
+          <td>
+            <a href="{{ download_link }}" title="Download" target="_blank">Package</a>
+          </td>
+        </tr>
+        {% endif %}
+      </table>
+    </td>
+  </tr>
+</table>
+
+<h3>OGC cross links</h3>
+<ul>
+  <li>
+    <b>WMS</b>
+    <ul>
+      <li>
+        <a href="{{ wms_capabilities }}" target="_blank">GetCapabilities</a>
+      </li>
+    </ul>
+    {% if map_large %}
+    <ul>
+      <li>
+        <a href="{{ map_large }}" target="_blank">GetMap</a>
+      </li>
+    </ul>
+    {% endif %}
+  </li>
+  <li>
+    <b>WCS</b>
+    <ul>
+      <li>
+        <a href="{{ eocoveragesetdescription }}" target="_blank">DescribeEOCoverageSet</a>
+      </li>
+      {% for coverage in coverages %}
+      <li>
+        <b>{{ coverage.identifier }}</b>
+        <ul>
+          <li>
+            <a href="{{ coverage.description }}" target="_blank">DescribeCoverage</a>
+          </li>
+          <li>
+            <a href="{{ coverage.coverage }}" target="_blank">GetCoverage</a>
+          </li>
+        </ul>
+      </li>
+      {% endfor %}
+    </ul>
+  </li>
+</ul>
+
+<h3>Metadata</h3>
+<table>
+{% for name, value in metadata %}
+  <tr>
+    <td>{{ name }}</td>
+    <td>{{ value }}</td>
+  </tr>
+{% endfor %}
+</table>

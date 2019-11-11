@@ -47,6 +47,7 @@ class WCS11DescribeCoverageHandler(WCSDescribeCoverageHandlerBase, Component):
     implements(PostServiceHandlerInterface)
 
     versions = ("1.1.0", "1.1.1", "1.1.2",)
+    methods = ['GET', 'POST']
 
 
     def get_decoder(self, request):

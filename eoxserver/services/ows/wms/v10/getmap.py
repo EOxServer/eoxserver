@@ -38,14 +38,10 @@ from eoxserver.services.ows.wms.util import (
 from eoxserver.services.ows.wms.interfaces import WMSMapRendererInterface
 from eoxserver.services.result import to_http_response
 from eoxserver.services.ows.wms.exceptions import InvalidCRS
+from eoxserver.services.ows.wms.v10.decoders import WMS10GetMapDecoder
 
 
-class WMS10GetMapHandler(Component):
-    implements(ServiceHandlerInterface)
-    implements(GetServiceHandlerInterface)
-
-    renderer = UniqueExtensionPoint(WMSMapRendererInterface)
-
+class WMS10GetMapHandler(object):
     service = ("WMS", None)
     versions = ("1.0", "1.0.0")
     request = "GetMap"
@@ -81,13 +77,3 @@ class WMS10GetMapHandler(Component):
             width=int(decoder.width), height=int(decoder.height)
         )
         return to_http_response(result)
-
-
-class WMS10GetMapDecoder(kvp.Decoder):
-    layers = kvp.Parameter(type=typelist(str, ","), num=1)
-    styles = kvp.Parameter(num="?")
-    bbox   = kvp.Parameter(type=parse_bbox, num=1)
-    srs    = kvp.Parameter(num=1)
-    width  = kvp.Parameter(num=1)
-    height = kvp.Parameter(num=1)
-    format = kvp.Parameter(num=1)

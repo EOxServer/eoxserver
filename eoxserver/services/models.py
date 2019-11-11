@@ -30,23 +30,20 @@ from django.contrib.gis.db import models
 from eoxserver.resources.coverages import models as coverage_models
 
 
-class WMSRenderOptions(models.Model):
-    """ Additional options for rendering coverages via WMS.
-    """
+mandatory = dict(null=False, blank=False)
 
-    coverage = models.OneToOneField(coverage_models.Coverage)
 
-    default_red = models.PositiveIntegerField(null=True, blank=True, default=None)
-    default_green = models.PositiveIntegerField(null=True, blank=True, default=None)
-    default_blue = models.PositiveIntegerField(null=True, blank=True, default=None)
-    default_alpha = models.PositiveIntegerField(null=True, blank=True, default=None)
+class ServiceVisibility(models.Model):
+    SERVICE_CHOICES = [
+        ("wms", "WMS"),
+        ("wcs", "WCS"),
+        ("os", "OpenSearch"),
+        ("wc", "WebClient")
+    ]
 
-    resampling = models.CharField(null=True, blank=True, max_length=16)
+    eo_object = models.ForeignKey(coverage_models.EOObject, related_name="service_visibility")
+    service = models.CharField(max_length=4, choices=SERVICE_CHOICES)
+    visibility = models.BooleanField(default=True)
 
-    scale_auto = models.BooleanField(default=False)
-    scale_min = models.PositiveIntegerField(null=True, blank=True)
-    scale_max = models.PositiveIntegerField(null=True, blank=True)
-
-    # following fields store comma-separated scaling for the individual bands
-    bands_scale_min = models.CharField(null=True, blank=True, max_length=256)
-    bands_scale_max = models.CharField(null=True, blank=True, max_length=256)
+    class Meta:
+        unique_together = ['eo_object', 'service']

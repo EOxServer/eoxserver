@@ -18,7 +18,9 @@ Copyright (C) European Space Agency - ESA</ows:Abstract>
       <ows:Keyword>Envisat</ows:Keyword>
     </ows:Keywords>
     <ows:ServiceType codeSpace="OGC">OGC WCS</ows:ServiceType>
-    <ows:ServiceTypeVersion>1.1.2</ows:ServiceTypeVersion>
+    <ows:ServiceTypeVersion>2.0.1</ows:ServiceTypeVersion>
+    <ows:ServiceTypeVersion>1.1.1</ows:ServiceTypeVersion>
+    <ows:ServiceTypeVersion>1.0.0</ows:ServiceTypeVersion>
     <ows:Fees>None</ows:Fees>
     <ows:AccessConstraints>None</ows:AccessConstraints>
   </ows:ServiceIdentification>
@@ -86,7 +88,10 @@ Copyright (C) European Space Agency - ESA</ows:Abstract>
       </ows:Parameter>
       <ows:Parameter name="identifiers">
         <ows:AllowedValues>
-          <ows:Value/>
+          <ows:Value>ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775</ows:Value>
+          <ows:Value>MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed</ows:Value>
+          <ows:Value>mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced</ows:Value>
+          <ows:Value>mosaic_MER_FRS_1P_reduced_RGB</ows:Value>
         </ows:AllowedValues>
       </ows:Parameter>
     </ows:Operation>
@@ -109,7 +114,10 @@ Copyright (C) European Space Agency - ESA</ows:Abstract>
       </ows:Parameter>
       <ows:Parameter name="Identifier">
         <ows:AllowedValues>
-          <ows:Value/>
+          <ows:Value>ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775</ows:Value>
+          <ows:Value>MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed</ows:Value>
+          <ows:Value>mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced</ows:Value>
+          <ows:Value>mosaic_MER_FRS_1P_reduced_RGB</ows:Value>
         </ows:AllowedValues>
       </ows:Parameter>
       <ows:Parameter name="InterpolationType">
@@ -140,6 +148,73 @@ Copyright (C) European Space Agency - ESA</ows:Abstract>
     </ows:Operation>
   </ows:OperationsMetadata>
   <Contents>
-    <!--WARNING: No WCS layers are enabled. Check wcs/ows_enable_request settings.-->
+    <CoverageSummary>
+      <ows:Title>ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775</ows:Title>
+      <ows:Abstract/>
+      <ows:WGS84BoundingBox dimensions="2">
+        <ows:LowerCorner>16.726531 -36.259394</ows:LowerCorner>
+        <ows:UpperCorner>22.302402 -31.984137</ows:UpperCorner>
+      </ows:WGS84BoundingBox>
+      <SupportedCRS>urn:ogc:def:crs:EPSG::4326</SupportedCRS>
+      <SupportedCRS>urn:ogc:def:crs:EPSG::3857</SupportedCRS>
+      <SupportedCRS>urn:ogc:def:crs:EPSG::3035</SupportedCRS>
+      <SupportedFormat>image/tiff</SupportedFormat>
+      <SupportedFormat>image/jp2</SupportedFormat>
+      <SupportedFormat>application/x-netcdf</SupportedFormat>
+      <SupportedFormat>application/x-hdf</SupportedFormat>
+      <SupportedFormat>image/png</SupportedFormat>
+      <Identifier>ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775</Identifier>
+    </CoverageSummary>
+    <CoverageSummary>
+      <ows:Title>MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed</ows:Title>
+      <ows:Abstract/>
+      <ows:WGS84BoundingBox dimensions="2">
+        <ows:LowerCorner>11.36106586 32.2014463</ows:LowerCorner>
+        <ows:UpperCorner>28.28384572 46.2520256</ows:UpperCorner>
+      </ows:WGS84BoundingBox>
+      <SupportedCRS>urn:ogc:def:crs:EPSG::4326</SupportedCRS>
+      <SupportedCRS>urn:ogc:def:crs:EPSG::3857</SupportedCRS>
+      <SupportedCRS>urn:ogc:def:crs:EPSG::3035</SupportedCRS>
+      <SupportedFormat>image/tiff</SupportedFormat>
+      <SupportedFormat>image/jp2</SupportedFormat>
+      <SupportedFormat>application/x-netcdf</SupportedFormat>
+      <SupportedFormat>application/x-hdf</SupportedFormat>
+      <SupportedFormat>image/png</SupportedFormat>
+      <Identifier>MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed</Identifier>
+    </CoverageSummary>
+    <CoverageSummary>
+      <ows:Title>mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced</ows:Title>
+      <ows:Abstract/>
+      <ows:WGS84BoundingBox dimensions="2">
+        <ows:LowerCorner>11.331755 32.19025</ows:LowerCorner>
+        <ows:UpperCorner>28.29481 46.268645</ows:UpperCorner>
+      </ows:WGS84BoundingBox>
+      <SupportedCRS>urn:ogc:def:crs:EPSG::4326</SupportedCRS>
+      <SupportedCRS>urn:ogc:def:crs:EPSG::3857</SupportedCRS>
+      <SupportedCRS>urn:ogc:def:crs:EPSG::3035</SupportedCRS>
+      <SupportedFormat>image/tiff</SupportedFormat>
+      <SupportedFormat>image/jp2</SupportedFormat>
+      <SupportedFormat>application/x-netcdf</SupportedFormat>
+      <SupportedFormat>application/x-hdf</SupportedFormat>
+      <SupportedFormat>image/png</SupportedFormat>
+      <Identifier>mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced</Identifier>
+    </CoverageSummary>
+    <CoverageSummary>
+      <ows:Title>mosaic_MER_FRS_1P_reduced_RGB</ows:Title>
+      <ows:Abstract/>
+      <ows:WGS84BoundingBox dimensions="2">
+        <ows:LowerCorner>-3.75 32.19025</ows:LowerCorner>
+        <ows:UpperCorner>28.263455 46.268645</ows:UpperCorner>
+      </ows:WGS84BoundingBox>
+      <SupportedCRS>urn:ogc:def:crs:EPSG::4326</SupportedCRS>
+      <SupportedCRS>urn:ogc:def:crs:EPSG::3857</SupportedCRS>
+      <SupportedCRS>urn:ogc:def:crs:EPSG::3035</SupportedCRS>
+      <SupportedFormat>image/tiff</SupportedFormat>
+      <SupportedFormat>image/jp2</SupportedFormat>
+      <SupportedFormat>application/x-netcdf</SupportedFormat>
+      <SupportedFormat>application/x-hdf</SupportedFormat>
+      <SupportedFormat>image/png</SupportedFormat>
+      <Identifier>mosaic_MER_FRS_1P_reduced_RGB</Identifier>
+    </CoverageSummary>
   </Contents>
 </Capabilities>

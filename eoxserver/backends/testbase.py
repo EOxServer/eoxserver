@@ -27,7 +27,7 @@
 #-------------------------------------------------------------------------------
 
 import logging
-from django.utils.unittest import SkipTest
+from unittest import SkipTest
 
 try:
     from twisted.protocols.ftp import FTPFactory, FTPRealm
@@ -53,5 +53,3 @@ def withFTPServer(port=2121, directory=None):
             return ret
         return wrapped
     return wrap
-
-

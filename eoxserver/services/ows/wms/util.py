@@ -30,58 +30,23 @@ import logging
 
 from eoxserver.resources.coverages import models
 from eoxserver.core.decoders import InvalidParameterException
-from eoxserver.core.util.timetools import parse_iso8601
 from eoxserver.services.subset import Trim, Slice
 from eoxserver.services.ows.wms.exceptions import LayerNotDefined
+from eoxserver.services.ows.wms.parsing import (parse_bbox, parse_time, int_or_str)
 
 
 logger = logging.getLogger(__name__)
 
-def parse_bbox(string):
-    try:
-        bbox = map(float, string.split(","))
-    except ValueError:
-        raise InvalidParameterException("Invalid 'BBOX' parameter.", "bbox")
-
-    try:
-        minx, miny, maxx, maxy = bbox
-    except ValueError:
-        raise InvalidParameterException(
-            "Wrong number of arguments for 'BBOX' parameter.", "bbox"
-        )
-
-    return bbox
-
-
-def parse_time(string):
-    items = string.split("/")
-
-    if len(items) == 1:
-        return Slice("t", parse_iso8601(items[0]))
-    elif len(items) in (2, 3):
-        # ignore resolution
-        return Trim("t", parse_iso8601(items[0]), parse_iso8601(items[1]))
-
-    raise InvalidParameterException("Invalid TIME parameter.", "time")
-
-
-def int_or_str(string):
-    try:
-        return int(string)
-    except ValueError:
-        return string
-
 
 def lookup_layers(layers, subsets, suffixes=None):
-    """ Performs a layer lookup for the given layer names. Applies the given 
-        subsets and looks up all layers with the given suffixes. Returns a 
+    """ Performs a layer lookup for the given layer names. Applies the given
+        subsets and looks up all layers with the given suffixes. Returns a
         hierarchy of ``LayerSelection`` objects.
     """
     suffix_related_ids = {}
     root_group = LayerSelection(None)
     suffixes = suffixes or (None,)
     logger.debug(str(suffixes))
-
 
     for layer_name in layers:
         for suffix in suffixes:
@@ -91,7 +56,7 @@ def lookup_layers(layers, subsets, suffixes=None):
                 identifier = layer_name[:-len(suffix)]
             else:
                 continue
-            
+
             # TODO: nasty, nasty bug... dunno where
             eo_objects = models.EOObject.objects.filter(
                 identifier=identifier
@@ -109,7 +74,7 @@ def lookup_layers(layers, subsets, suffixes=None):
             used_ids = suffix_related_ids.setdefault(suffix, set())
 
             def recursive_lookup(collection, suffix, used_ids, subsets):
-                # get all EO objects related to this collection, excluding 
+                # get all EO objects related to this collection, excluding
                 # those already searched
                 eo_objects = models.EOObject.objects.filter(
                     collections__in=[collection.pk]
@@ -121,7 +86,7 @@ def lookup_layers(layers, subsets, suffixes=None):
 
                 selection = LayerSelection()
 
-                # append all retrived EO objects, either as a coverage of 
+                # append all retrived EO objects, either as a coverage of
                 # the real type, or as a subgroup.
                 for eo_object in eo_objects:
                     used_ids.add(eo_object.pk)
@@ -132,7 +97,7 @@ def lookup_layers(layers, subsets, suffixes=None):
                         selection.extend(recursive_lookup(
                             eo_object, suffix, used_ids, subsets
                         ))
-                    else: 
+                    else:
                         pass
 
                 return selection
@@ -166,7 +131,6 @@ class LayerSelection(list):
         if iterable:
             super(LayerSelection, self).__init__(iterable)
 
-
     def __contains__(self, eo_object):
         for item in self:
             try:
@@ -180,21 +144,19 @@ class LayerSelection(list):
                     return True
             except IndexError:
                 pass
-            
-        return False
 
+        return False
 
     def append(self, eo_object_or_selection, name=None):
         if isinstance(eo_object_or_selection, LayerSelection):
             super(LayerSelection, self).append(eo_object_or_selection)
         else:
             super(LayerSelection, self).append((eo_object_or_selection, name))
-        
 
     def walk(self, depth_first=True):
         """ Yields four-tuples (collections, coverage, name, suffix).
         """
-        
+
         collection = (self.collection,) if self.collection else ()
 
         for item in self:

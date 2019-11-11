@@ -78,6 +78,8 @@ class GML32Encoder(object):
             ]
         elif geom.geom_typeid == 3:     # Polygon
             polygons = [self.encode_polygon(geom, base_id)]
+        else:
+            polygons = []
 
         return GML("MultiSurface",
             *[GML("surfaceMember", polygon) for polygon in polygons],
@@ -119,32 +121,48 @@ class EOP20Encoder(GML32Encoder):
             )
         )
 
-    def encode_earth_observation(self, eo_metadata, contributing_datasets=None,
+    def encode_earth_observation(self, identifier, begin_time, end_time,
+                                 footprint, contributing_datasets=None,
                                  subset_polygon=None):
-        identifier = eo_metadata.identifier
-        begin_time = eo_metadata.begin_time
-        end_time = eo_metadata.end_time
-        result_time = eo_metadata.end_time
-        footprint = eo_metadata.footprint
 
         if subset_polygon is not None:
             footprint = footprint.intersection(subset_polygon)
 
-        return EOP("EarthObservation",
-            OM("phenomenonTime",
-                self.encode_time_period(
-                    begin_time, end_time, "phen_time_%s" % identifier
+        elements = []
+        if begin_time and end_time:
+            elements.append(
+                OM("phenomenonTime",
+                    self.encode_time_period(
+                        begin_time, end_time, "phen_time_%s" % identifier
+                    )
                 )
-            ),
-            OM("resultTime",
-                self.encode_time_instant(result_time, "res_time_%s" % identifier)
-            ),
+            )
+        if end_time:
+            elements.append(
+                OM("resultTime",
+                    self.encode_time_instant(
+                        end_time, "res_time_%s" % identifier
+                    )
+                )
+            )
+
+        elements.extend([
             OM("procedure"),
             OM("observedProperty"),
-            OM("featureOfInterest",
-                self.encode_footprint(footprint, identifier)
-            ),
+        ])
+
+        if footprint:
+            elements.append(
+                OM("featureOfInterest",
+                    self.encode_footprint(footprint, identifier)
+                )
+            )
+        elements.extend([
             OM("result"),
-            self.encode_metadata_property(identifier, contributing_datasets),
+            self.encode_metadata_property(identifier, contributing_datasets)
+        ])
+
+        return EOP("EarthObservation",
+            *elements,
             **{ns_gml("id"): "eop_%s" % identifier}
         )
