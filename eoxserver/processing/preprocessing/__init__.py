@@ -431,14 +431,11 @@ class WMSPreProcessor(PreProcessor):
                 self.palette_file, self.temporary_directory
             )
 
+    def get_post_optimizations(self, ds):
         if self.overviews:
             yield OverviewOptimization(self.overview_resampling,
                                        self.overview_levels,
                                        self.overview_minsize)
-
-    def get_post_optimizations(self, ds):
-        return
-        yield
 
 
 #===============================================================================
