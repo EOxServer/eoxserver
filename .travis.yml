@@ -35,6 +35,9 @@ script:
 - docker exec -it $(docker ps --format "{{.ID}}\t{{.Names}}" | grep autotest_autotest_1 | cut -f1) /bin/bash -c "python manage.py test autotest_services --tag wms -v2"
 - docker exec -it $(docker ps --format "{{.ID}}\t{{.Names}}" | grep autotest_autotest_1 | cut -f1) /bin/bash -c "python manage.py test autotest_services --tag wps -v2"
 
+after_failure:
+- diff autotest/expected autotest/responses
+
 notifications:
   slack:
     secure: GPclHjLrLU2BsOS0OOHHm5vQp/GWk2sjCrHpqOVutakGbYMMRao45MHqajim+SypZcva8npIKGAHKTwny3vkvbHUJ7vpjtvRFEISLpvKKQxnq7FXJSc6hkvj+JTAaB+UpOZYyQXtchcLMizD2mST862r8gEKMo7UkbS1VOSjEm0=
