@@ -33,7 +33,8 @@ from autotest_services import base as testbase
 format_to_extension = {
     "image/jpeg": "jpg",
     "image/png": "png",
-    "image/gif": "gif"
+    "image/gif": "gif",
+    "image/tiff": "tif"
 }
 
 @tag('wms', 'wms11', 'getmap')
