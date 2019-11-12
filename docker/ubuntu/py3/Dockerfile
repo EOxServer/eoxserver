@@ -26,7 +26,7 @@ ADD setup.cfg setup.py MANIFEST.in README.rst requirements.txt /opt/eoxserver/
 WORKDIR /opt/eoxserver
 
 RUN pip3 install -r requirements.txt \
-  && pip3 install mapscript "django=$DJANGO" \
+  && pip3 install mapscript "django==$DJANGO" \
   && pip3 install .
 
 # Create an EOxServer instance
