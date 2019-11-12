@@ -1,4 +1,4 @@
-FROM ubuntu:18.04
+FROM ubuntu:19.10
 
 ARG DJANGO=2.2
 
@@ -8,8 +8,8 @@ RUN apt-get update \
     python3 \
     python3-pip \
     libpq-dev \
-    libmapserver-dev \
     python3-gdal \
+    python3-mapscript \
     gdal-bin \
   && apt-get autoremove -y \
   && apt-get clean \
@@ -26,7 +26,7 @@ ADD setup.cfg setup.py MANIFEST.in README.rst requirements.txt /opt/eoxserver/
 WORKDIR /opt/eoxserver
 
 RUN pip3 install -r requirements.txt \
-  && pip3 install mapscript "django==$DJANGO" \
+  && pip3 install "django==$DJANGO" \
   && pip3 install .
 
 # Create an EOxServer instance
