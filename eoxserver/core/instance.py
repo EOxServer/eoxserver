@@ -73,7 +73,7 @@ def _init_spatialite(instance_id, target):
     # initialize the spatialite database file
     if target is None:
         dst_data_dir = join(instance_id, instance_id, "data")
-        print dst_data_dir
+        print(dst_data_dir)
     else:
         dst_data_dir = join(abspath(target), instance_id, "data")
 
@@ -103,7 +103,7 @@ def _init_spatialite(instance_id, target):
         try:
             print("Trying to load extension module '%s'." % spatialite_lib)
             conn.execute("SELECT load_extension('%s')" % (spatialite_lib,))
-        except Exception, msg:
+        except Exception as msg:
             raise Exception(
                 'Unable to load the SpatiaLite library extension '
                 '"%s" because: %s' % (spatialite_lib, msg)
