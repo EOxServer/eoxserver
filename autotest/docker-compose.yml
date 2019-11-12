@@ -8,10 +8,8 @@ services:
       POSTGRES_USER: "user"
       POSTGRES_PASSWORD: "pw"
       POSTGRES_DB: "dbms"
-    # networks:
-    #   - minerva-webnet
   autotest:
-    image: eoxserver 
+    image: eoxserver
     environment:
       DB_USER: "user"
       DB_PW: "pw"
@@ -39,7 +37,3 @@ services:
 
 volumes:
   database-data:
-    # external: true
-# networks:
-  # minerva-webnet:
-  #   external: true
