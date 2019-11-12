@@ -1,13 +1,13 @@
 FROM ubuntu:18.04
 
-ARG DJANGO=1.11
+ARG DJANGO=1.11.26
 
 # install OS dependency packages
 RUN apt-get update \
   && apt-get install -y \
     python \
     python-pip \
-    libpq-dev \
+    python-psycopg2 \
     python-mapscript \
     python-gdal \
     gdal-bin \

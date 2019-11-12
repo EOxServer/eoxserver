@@ -33,11 +33,12 @@ WORKDIR /opt/eoxserver
 
 RUN pip install -r requirements.txt \
   && pip install -U "django==$DJANGO" \
+  && pip install -U "gunicorn<19" \
   && pip install .
 
 # Create an EOxServer instance
-RUN mkdir /opt/instance && \
-  eoxserver-instance.py instance /opt/instance
+RUN mkdir /opt/instance \
+  && eoxserver-instance.py instance /opt/instance
 
 WORKDIR /opt/instance
 

@@ -1,14 +1,14 @@
 language: python
 
 env:
-# - OS=centos PY=py2 DB=postgis DJANGO="1.11"
-# - OS=centos PY=py2 DB=spatialite DJANGO="1.11"
-- OS=ubuntu PY=py2 DB=postgis DJANGO="1.11"
-- OS=ubuntu PY=py2 DB=spatialite DJANGO="1.11"
-- OS=ubuntu PY=py3 DB=postgis DJANGO="1.11"
-- OS=ubuntu PY=py3 DB=spatialite DJANGO="1.11"
-- OS=ubuntu PY=py3 DB=postgis DJANGO="2.2"
-- OS=ubuntu PY=py3 DB=spatialite DJANGO="2.2"
+# - OS=centos PY=py2 DB=postgis DJANGO="1.11.26"
+# - OS=centos PY=py2 DB=spatialite DJANGO="1.11.26"
+- OS=ubuntu PY=py2 DB=postgis DJANGO="1.11.26"
+- OS=ubuntu PY=py2 DB=spatialite DJANGO="1.11.26"
+- OS=ubuntu PY=py3 DB=postgis DJANGO="1.11.26"
+- OS=ubuntu PY=py3 DB=spatialite DJANGO="1.11.26"
+- OS=ubuntu PY=py3 DB=postgis DJANGO="2.2.7"
+- OS=ubuntu PY=py3 DB=spatialite DJANGO="2.2.7"
 
 services:
 - docker

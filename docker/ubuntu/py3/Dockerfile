@@ -1,6 +1,6 @@
 FROM ubuntu:19.10
 
-ARG DJANGO=2.2
+ARG DJANGO=2.2.7
 
 # install OS dependency packages
 RUN apt-get update \
