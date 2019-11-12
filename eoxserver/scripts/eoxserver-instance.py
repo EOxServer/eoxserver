@@ -80,7 +80,9 @@ def main():
         target = None
 
     try:
-        create_instance(name, target, **options.__dict__)
+        options = options.__dict__
+        options['verbosity'] = int(options['verbosity'])
+        create_instance(name, target, **options)
     except Exception as e:
         if options.traceback:
             raise
