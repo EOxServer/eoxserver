@@ -1,2 +1,6 @@
 .git
 autotest
+build
+dist
+documentation
+schemas
