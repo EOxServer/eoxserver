@@ -1,8 +1,8 @@
 language: python
 
 env:
-- OS=centos PY=py2 DB=postgis DJANGO="1.11"
-- OS=centos PY=py2 DB=spatialite DJANGO="1.11"
+# - OS=centos PY=py2 DB=postgis DJANGO="1.11"
+# - OS=centos PY=py2 DB=spatialite DJANGO="1.11"
 - OS=ubuntu PY=py2 DB=postgis DJANGO="1.11"
 - OS=ubuntu PY=py2 DB=spatialite DJANGO="1.11"
 - OS=ubuntu PY=py3 DB=postgis DJANGO="1.11"
