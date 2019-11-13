@@ -29,6 +29,7 @@ import re
 
 from django.core.management.base import CommandError, BaseCommand
 from django.db import transaction
+from django.contrib.gis.geos import GEOSGeometry
 
 from eoxserver.core.util.timetools import parse_iso8601
 from eoxserver.backends.storages import get_handler_class_for_model
@@ -110,6 +111,16 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
                 'Add a mask to associate with the product. List of items, '
                 'first one is the mask name, the rest is the location '
                 'definition. Can be specified multiple times.'
+            )
+        )
+
+        register_parser.add_argument(
+            '--mask-geometry', '-g', dest='mask_geometries', default=[], action='append',
+            nargs=2,
+            help=(
+                'Add a mask to associate with the product. List of items, '
+                'first one is the mask name, second is the mask geometry in WKT. '
+                'Can be specified multiple times.'
             )
         )
 
@@ -221,9 +232,14 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             for name, value in kwargs['set_overrides']:
                 overrides[convert_name(name)] = value
 
+            mask_locations = kwargs['mask_locations'] + [
+                (name, GEOSGeometry(geom))
+                for name, geom in kwargs['mask_geometries']
+            ]
+
             product, replaced = ProductRegistrator().register(
                 metadata_locations=kwargs['metadata_locations'],
-                mask_locations=kwargs['mask_locations'],
+                mask_locations=mask_locations,
                 package_path=kwargs['package'],
                 overrides=overrides,
                 identifier_template=kwargs['identifier_template'],
