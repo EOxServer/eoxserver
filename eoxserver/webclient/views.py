@@ -73,7 +73,11 @@ def index(request):
     start_time_full = start_time - timedelta(days=5)
     end_time_full = end_time + timedelta(days=5)
 
-    bbox = ",".join(str(v) for v in values["footprint__extent"])
+    extent = values["footprint__extent"]
+    if extent is not None:
+        bbox = ",".join(str(v) for v in extent)
+    else:
+        bbox = "-180,-90,180,90"
 
     # try:
     #     # get only coverages that are in a collection or are visible

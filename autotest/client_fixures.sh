@@ -20,8 +20,8 @@ python manage.py producttype create MERIS_range_type -c MERIS_uint16
 
 ######### add browse type with nice visualizations (find examples for MERIS)
 
-python manage.py browsetype create MERIS_range_type "OLCI" --traceback \
-        --grey "(MERIS_radiance_10_uint16-MERIS_radiance_09_uint16)/(MERIS_radiance_09_uint16-MERIS_radiance_08_uint16)" --grey-range 0 65535 
+python manage.py browsetype create MERIS_range_type "NDVI" --traceback \
+        --grey "(MERIS_radiance_13_uint16-MERIS_radiance_07_uint16)/(MERIS_radiance_13_uint16+MERIS_radiance_07_uint16)" --grey-range -0.597591 0.998323
 
 
 # create a collection type with the allowed product type above
@@ -47,9 +47,9 @@ product_C_ID=$(python manage.py product register -t MERIS_range_type -r --print-
 
 # register the RGB TIFFs as browses
 
-python manage.py browse register $product_A_ID /opt/instance/autotest/data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed.tif
-python manage.py browse register $product_B_ID /opt/instance/autotest/data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed.tif
-python manage.py browse register $product_C_ID /opt/instance/autotest/data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_uint16_reduced_compressed.tif
+python manage.py browse register $product_A_ID /opt/instance/autotest/data/meris/mosaic_MER_FRS_1P_reduced_RGB/mosaic_ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced.tif
+python manage.py browse register $product_B_ID /opt/instance/autotest/data/meris/mosaic_MER_FRS_1P_reduced_RGB/mosaic_ENVISAT-MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_RGB_reduced.tif
+python manage.py browse register $product_C_ID /opt/instance/autotest/data/meris/mosaic_MER_FRS_1P_reduced_RGB/mosaic_ENVISAT-MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced.tif
 
 # register MERIS Uint16 data
 
