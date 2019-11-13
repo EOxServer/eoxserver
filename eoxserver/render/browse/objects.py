@@ -223,9 +223,10 @@ class GeneratedBrowse(Browse):
 
 
 class Mask(object):
-    def __init__(self, filename=None, geometry=None):
+    def __init__(self, filename=None, geometry=None, validity=False):
         self._filename = filename
         self._geometry = geometry
+        self._validity = validity
 
     @property
     def filename(self):
@@ -245,11 +246,16 @@ class Mask(object):
             first = first.union(other)
         return first.geos
 
+    @property
+    def validity(self):
+        return self._validity
+
     @classmethod
-    def from_model(cls, mask_model):
+    def from_model(cls, mask_model, mask_type=None):
         return cls(
             get_vsi_path(mask_model) if mask_model.location else None,
-            mask_model.geometry
+            mask_model.geometry,
+            (mask_type or mask_model).mask_type.validity
         )
 
 

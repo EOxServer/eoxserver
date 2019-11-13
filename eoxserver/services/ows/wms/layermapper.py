@@ -398,14 +398,7 @@ class LayerMapper(object):
 
                 return MaskedBrowseLayer(
                     name=full_name, style=style,
-                    masked_browses=[
-                        MaskedBrowse.from_models(product, browse, mask)
-                        for product, browse, mask in
-                        self.iter_products_browses_masks(
-                            eo_object, filters_expressions, sort_by, post_suffix,
-                            limit=limit_products
-                        )
-                    ]
+                    masked_browses=masked_browses
                 )
 
             else:
