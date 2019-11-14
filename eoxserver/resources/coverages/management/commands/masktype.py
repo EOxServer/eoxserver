@@ -43,12 +43,13 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
         delete_parser = self.add_subparser(parser, 'delete')
         list_parser = self.add_subparser(parser, 'list')
 
-        for parser in [create_parser, delete_parser]:
+        for parser in [create_parser, delete_parser, list_parser]:
             parser.add_argument(
                 'product_type_name', nargs=1,
                 help='The product type name. Mandatory.'
             )
 
+        for parser in [create_parser, delete_parser]:
             parser.add_argument(
                 'mask_type_name', nargs=1,
                 help='The mask type name. Mandatory.'
@@ -59,11 +60,6 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             dest='validity', action='store_true', default=False,
             help='Whether this mask is a validity mask or an invalidity mask. '
                  'Defaults to invalidity.'
-        )
-
-        list_parser.add_argument(
-            'product_type_name', nargs=1,
-            help='The product type name. Mandatory.'
         )
 
     @transaction.atomic
