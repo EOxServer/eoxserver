@@ -173,6 +173,26 @@
                       "style": '',
                       "useMilliseconds": true,
                       "maxZoom": {% if layer.webclient_extra.max_zoom %}{{layer.webclient_extra.max_zoom}}{% else %}15{% endif %},
+                      "options": [{
+                        "name": "Style",
+                        "target": "detailsDisplay.extraParameters.LAYERS",
+                        "values": [
+                            {
+                                "label": "Default",
+                                "value": "{{ layer.identifier }}",
+                            },
+                            {% for product_type in layer.collection_type.allowed_product_types.all %}
+                            
+                                {% for browse_type in product_type.browse_types.all %}
+                                {
+                                    "label": "{{ browse_type.name }}",
+                                    "value": "{{ layer.identifier }}__{{ browse_type.name }}",
+                                },
+                                {% endfor %}
+                            {% endfor %}
+                           
+                        ]
+                    }],
                   },
                   "search": {
                       "protocol": "OpenSearch",
