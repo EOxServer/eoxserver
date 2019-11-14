@@ -390,6 +390,9 @@ class BrowseLayerMixIn(object):
                 for layer_obj in layer_objs:
                     layer_obj.data = browse.filename
                 ms.set_env(map_obj, browse.env, True)
+            elif browse is None:
+                # TODO: figure out why and deal with it?
+                continue
             else:
                 raise TypeError('Type %s is not supported', type(browse).__name__)
 
