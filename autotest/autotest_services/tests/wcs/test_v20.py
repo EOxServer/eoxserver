@@ -1518,3 +1518,94 @@ class WCS20GetCoverageDatasetGeoTIFFPostTestCase(wcsbase.GeoTIFFMixIn, testbase.
           </wcs:Extension>
         </wcs:GetCoverage>"""
         return (params, "xml")
+
+@tag('wcs', 'wcs20')
+class WCS20GetCoverageDatasetGeoTIFFCompressionNotSupportedTestCase(testbase.ExceptionTestCase):
+
+    def getRequest(self):
+        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced&format=image/tiff&geotiff:compression=PackBits&geotiff:jpeg_quality=90"
+        return (params, "kvp")
+
+    def getExpectedHTTPStatus(self):
+        return 404
+
+    def getExpectedExceptionCode(self):
+        return "CompressionNotSupported"
+
+@tag('wcs', 'wcs20')
+class WCS20GetCoverageDatasetGeoTIFFCompressionInvalidTestCase(testbase.ExceptionTestCase):
+
+    def getRequest(self):
+        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced&format=image/tiff&geotiff:compression=notValid"
+        return (params, "kvp")
+
+    def getExpectedHTTPStatus(self):
+        return 404
+
+    def getExpectedExceptionCode(self):
+        return "CompressionInvalid"
+
+@tag('wcs', 'wcs20')
+class WCS20GetCoverageDatasetGeoTIFFJpegQualityInvalidTestCase(testbase.ExceptionTestCase):
+
+    def getRequest(self):
+        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced&format=image/tiff&geotiff:compression=JPEG&geotiff:jpeg_quality=900"
+        return (params, "kvp")
+
+    def getExpectedHTTPStatus(self):
+        return 404
+
+    def getExpectedExceptionCode(self):
+        return "JpegQualityInvalid"
+
+@tag('wcs', 'wcs20')
+class WCS20GetCoverageDatasetGeoTIFFPredictorInvalidTestCase(testbase.ExceptionTestCase):
+
+    def getRequest(self):
+        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced&format=image/tiff&geotiff:compression=Deflate&geotiff:predictor=invalid"
+        return (params, "kvp")
+
+    def getExpectedHTTPStatus(self):
+        return 404
+
+    def getExpectedExceptionCode(self):
+        return "PredictorInvalid"
+
+@tag('wcs', 'wcs20')
+class WCS20GetCoverageDatasetGeoTIFFPredictorNotSupportedTestCase(testbase.ExceptionTestCase):
+
+    def getRequest(self):
+        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced&format=image/tiff&geotiff:compression=JPEG&geotiff:predictor=FloatingPoint"
+        return (params, "kvp")
+
+    def getExpectedHTTPStatus(self):
+        return 404
+
+    def getExpectedExceptionCode(self):
+        return "PredictorNotSupported"
+
+@tag('wcs', 'wcs20')
+class WCS20GetCoverageDatasetGeoTIFFInterleavingInvalidTestCase(testbase.ExceptionTestCase):
+
+    def getRequest(self):
+        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced&format=image/tiff&geotiff:Interleave=invalid"
+        return (params, "kvp")
+
+    def getExpectedHTTPStatus(self):
+        return 404
+
+    def getExpectedExceptionCode(self):
+        return "InterleavingInvalid"
+
+@tag('wcs', 'wcs20')
+class WCS20GetCoverageDatasetGeoTIFFTilingInvalidTestCase(testbase.ExceptionTestCase):
+    """this test send a request where tiling is set to true, tile width is 16 but tile height is missing"""
+    def getRequest(self):
+        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced&format=image/tiff&geotiff:tiling=true&geotiff:tilewidth=16"
+        return (params, "kvp")
+
+    def getExpectedHTTPStatus(self):
+        return 404
+
+    def getExpectedExceptionCode(self):
+        return "TilingInvalid"
