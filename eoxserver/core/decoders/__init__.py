@@ -212,7 +212,7 @@ class enum(object):
         A ValueError is raised if not.
     """
 
-    def __init__(self, values, case_sensitive=True, error_class= ValueError):
+    def __init__(self, values, case_sensitive=True, error_class=ValueError):
         self.values = values
         self.compare_values = values if case_sensitive else [lower(v) for v in values]
         self.case_sensitive = case_sensitive
