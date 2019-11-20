@@ -319,6 +319,13 @@ class WMS13GetMapProductMaskedOutlinesTestCase(wmsbase.WMS13GetMapTestCase):
     layers = ("product_mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced__outlines_masked_clouds",)
     bbox = (11, 32, 28, 46)
 
+class WMS13GetMapProductMaskedOutlinesOutOFBoundsTestCase(wmsbase.WMS13GetMapTestCase):
+    """ Test a GetMap request with the masked outlines of an out-of-bound bounding box layer for a dataset. """
+    fixtures = MASK_FIXTURES
+
+    layers = ("product_mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced__outlines_masked_clouds",)
+    bbox = (2, 3, 4, 5)
+
 class WMS13GetMapCollectionMaskedOutlinesTestCase(wmsbase.WMS13GetMapTestCase):
     """ Test a GetMap request with the masked layer for a dataset series. """
     fixtures = MASK_FIXTURES
