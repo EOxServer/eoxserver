@@ -141,6 +141,7 @@ class NilValue(models.Model):
 class MaskType(models.Model):
     name = models.CharField(max_length=512, validators=name_validators, **mandatory)
     product_type = models.ForeignKey('ProductType', related_name='mask_types', **mandatory)
+    validity = models.BooleanField(default=False)
 
     def __str__(self):
         return self.name
