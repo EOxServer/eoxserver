@@ -212,15 +212,16 @@ class enum(object):
         A ValueError is raised if not.
     """
 
-    def __init__(self, values, case_sensitive=True):
+    def __init__(self, values, case_sensitive=True, error_class= ValueError):
         self.values = values
         self.compare_values = values if case_sensitive else [lower(v) for v in values]
         self.case_sensitive = case_sensitive
+        self.error_class = error_class
 
     def __call__(self, value):
         compare = value if self.case_sensitive else value.lower()
         if compare not in self.compare_values:
-            raise ValueError("Unexpected value '%s'. Expected one of: %s." %
+            raise self.error_class("Unexpected value '%s'. Expected one of: %s." %
                 (value, ", ".join(map(lambda s: "'%s'" % s, self.values)))
             )
 

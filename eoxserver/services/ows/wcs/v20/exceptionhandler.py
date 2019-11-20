@@ -38,7 +38,11 @@ CODES_404 = frozenset((
     "NoSuchCoverage", "NoSuchDatasetSeriesOrCoverage", "InvalidAxisLabel",
     "InvalidSubsetting", "InterpolationMethodNotSupported", "NoSuchField",
     "InvalidFieldSequence", "InvalidScaleFactor", "InvalidExtent",
-    "ScaleAxisUndefined", "SubsettingCrs-NotSupported", "OutputCrs-NotSupported"
+    "ScaleAxisUndefined", "SubsettingCrs-NotSupported", "OutputCrs-NotSupported",
+    "CompressionNotSupported", "CompressionInvalid", "JpegQualityInvalid",
+    "PredictorInvalid", "PredictorNotSupported", "InterleavingInvalid",
+    "TilingInvalid"
+
 ))
 
 
