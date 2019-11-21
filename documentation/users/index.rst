@@ -27,7 +27,7 @@
   # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
   # IN THE SOFTWARE.
   #-----------------------------------------------------------------------------
-
+  
 .. _EOxServer Users' Guide:
 
 Users' Guide
@@ -48,6 +48,7 @@ and APIs please refer to the :ref:`EOxServer Developers' Guide`.
    :maxdepth: 3
 
    basics
+   concept
    global_use_case
    install
    centos_installation
@@ -55,6 +56,7 @@ and APIs please refer to the :ref:`EOxServer Developers' Guide`.
    operational_install
    migration
    mailing_lists
+   services
    demonstration
    EO-WCS_request_parameters
    opensearch
