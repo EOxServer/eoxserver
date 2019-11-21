@@ -125,9 +125,9 @@ be installed. We suggest you use one of the following:
    <http://www.postgresql.org/>`_.
 
 For more and detailed information about database backends please refer to
-`Django database notes <https://docs.djangoproject.com/en/1.4/ref/databases/>`_
+`Django database notes <https://docs.djangoproject.com/en/1.11/ref/databases/>`_
 and `GeoDjango installation
-<https://docs.djangoproject.com/en/1.4/ref/contrib/gis/install/>`_.
+<https://docs.djangoproject.com/en/1.11/ref/contrib/gis/install/>`_.
 
 .. _table_eoxserver_db_dependencies:
 .. table:: Database Dependencies

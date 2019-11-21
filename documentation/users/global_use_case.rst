@@ -208,7 +208,7 @@ is WCS 1.0.0 enabled) as well as the coverage metadata ingested during
 registration (see section `Data Registration`_).
 
 EOxServer can be operated with any web server that supports the `Python WSGI 
-standards <https://docs.djangoproject.com/en/1.4/howto/deployment/>`_. For 
+standards <https://docs.djangoproject.com/en/1.11/howto/deployment/>`_. For 
 testing and implementation purposes the Django framework directly provides a 
 simple web server. However, in operational environments the recommended 
 deployment of EOxServer is to use the well-known `Apache web server 
