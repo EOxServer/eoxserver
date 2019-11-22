@@ -337,9 +337,9 @@ class LayerMapper(object):
                 )
                 footprints = []
                 masks = []
-                for product, browse, mask in product_browses_mask:
+                for product, browse, mask, mask_type in product_browses_mask:
                     footprints.append(product.footprint)
-                    masks.append(Mask.from_model(mask))
+                    masks.append(Mask.from_model(mask, mask_type))
 
                 return OutlinesLayer(
                     name=full_name, style=style, fill=None,
@@ -360,7 +360,7 @@ class LayerMapper(object):
                     eo_object, filters_expressions, sort_by, post_suffix,
                     limit=limit_products
                 )
-                for product, browse, mask in product_browses_mask:
+                for product, browse, mask, mask_type in product_browses_mask:
                     # When bands/wavelengths are specifically requested, make a
                     # generated browse
                     if bands or wavelengths:
@@ -369,14 +369,16 @@ class LayerMapper(object):
                                 browse=_generate_browse_from_bands(
                                     product, bands, wavelengths
                                 ),
-                                mask=Mask.from_model(mask)
+                                mask=Mask.from_model(mask, mask_type)
                             )
                         )
 
                     # When available use the default browse
                     elif browse:
                         masked_browses.append(
-                            MaskedBrowse.from_models(product, browse, mask)
+                            MaskedBrowse.from_models(
+                                product, browse, mask, mask_type
+                            )
                         )
 
                     # As fallback use the default browse type (with empty name)
@@ -391,7 +393,7 @@ class LayerMapper(object):
                                     browse=_generate_browse_from_browse_type(
                                         product, browse_type
                                     ),
-                                    mask=Mask.from_model(mask)
+                                    mask=Mask.from_model(mask, mask_type)
                                 )
                             )
 
@@ -562,12 +564,16 @@ class LayerMapper(object):
         for product in products:
             if name:
                 mask = product.masks.filter(mask_type__name=name).first()
+                mask_type = models.MaskType(
+                    product_type=product.product_type, name=name
+                )
             else:
                 mask = product.masks.filter(mask_type__isnull=True).first()
+                mask_type = None
 
             browse = product.browses.filter(browse_type__isnull=True).first()
 
-            yield (product, browse, mask)
+            yield (product, browse, mask, mask_type)
 
 
 class LayerMapperConfigReader(config.Reader):

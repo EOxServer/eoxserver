@@ -520,15 +520,29 @@ class MaskedBrowseLayerFactory(BrowseLayerMixIn, BaseMapServerLayerFactory):
             else:
                 mask_geom = None
 
+            # the current logic:
+            # when dealing with validity masks:
+            #  - when geometry is available, use it as a mask
+            #  - when not, the browse shall be hidden
+            # when dealing with 'normal' masks:
+            #  - use footprint/image bounds and cutout geometry
+
+            # TODO: currently it is assumed that all geometries
+            # are in EPSG:4326 which is not necessarily the case.
+            # Reprojection is required.
+
             outline = browse.footprint
             if mask_geom:
                 if mask.validity:
                     outline = mask_geom
                 else:
                     outline = outline - mask_geom
+            elif mask.validity:
+                outline = None
 
-            shape_obj = ms.shapeObj.fromWKT(outline.wkt)
-            mask_layer_obj.addFeature(shape_obj)
+            if outline:
+                shape_obj = ms.shapeObj.fromWKT(outline.wkt)
+                mask_layer_obj.addFeature(shape_obj)
 
             mask_layer_obj.name = mask_name
 
