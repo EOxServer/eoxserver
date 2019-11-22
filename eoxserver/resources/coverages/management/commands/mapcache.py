@@ -159,7 +159,7 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
                 'begin_time', 'end_time'
             )
 
-            logger.info("Number browses: %s" % len(products_qs))
+            logger.info("Number products: %s" % products_qs.count())
 
             if not unique_times:
                 time_intervals = (
@@ -179,7 +179,7 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
                 ).order_by(
                     'begin_time', 'end_time'
                 )
-                logger.info("Number unique times: %s" % len(unique_times_qs))
+                logger.info("Number unique times: %s" % unique_times_qs.count())
 
                 logger.info("Iterating through unique times")
                 time_intervals = []
@@ -200,7 +200,7 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
                         end_time=end_time
                     )
 
-                    if len(time_qs) <= 0:
+                    if time_qs.count() <= 0:
                         logger.errro(
                             "DB queries got different results which should "
                             "never happen."
