@@ -141,8 +141,7 @@ class LayerMapper(object):
                         "%s%smasked_%s" % (
                             eo_object.identifier, self.suffix_separator,
                             mask_type_name
-                        ),
-                        styles=geometry_styles
+                        )
                     )
                 )
 
