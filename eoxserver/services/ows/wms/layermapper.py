@@ -564,9 +564,9 @@ class LayerMapper(object):
         for product in products:
             if name:
                 mask = product.masks.filter(mask_type__name=name).first()
-                mask_type = models.MaskType(
+                mask_type = models.MaskType.objects.filter(
                     product_type=product.product_type, name=name
-                )
+                ).first()
             else:
                 mask = product.masks.filter(mask_type__isnull=True).first()
                 mask_type = None
