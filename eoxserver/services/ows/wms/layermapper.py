@@ -439,7 +439,7 @@ class LayerMapper(object):
                     return MaskLayer(
                         name=full_name, style=style,
                         masks=[
-                            Mask.from_model(mask_model)
+                            Mask.from_model(mask_model, mask_type)
                             for _, mask_model in self.iter_products_masks(
                                 eo_object, filters_expressions, sort_by, suffix,
                                 limit=limit_products
