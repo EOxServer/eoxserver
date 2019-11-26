@@ -26,7 +26,7 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-from eoxserver.services.ows.wps.util import OrderedDict
+from collections import OrderedDict
 from eoxserver.services.ows.wps.parameters import (
     fix_parameter, LiteralData, BoundingBoxData, ComplexData,
     InputReference, InputData, RequestParameter,
@@ -197,4 +197,3 @@ def pack_outputs(outputs, response_form, output_defs):
         elif isinstance(output_def, LiteralData) and output_def.default is not None:
             packed[identifier] = (output_def.default, output_def, request)
     return packed
-
