@@ -27,12 +27,12 @@
 #-------------------------------------------------------------------------------
 
 from optparse import make_option
+from importlib import import_module
 
 from django.core.management import call_command
 from django.core.management.base import CommandError, BaseCommand
 from django.utils.dateparse import parse_datetime
 from django.contrib.gis import geos
-from django.utils.importlib import import_module
 
 from eoxserver.core import env
 from eoxserver.contrib import gdal, osr

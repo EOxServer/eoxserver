@@ -37,7 +37,7 @@ For convenience, the module imports the most important items from the
 import logging
 import threading
 
-from django.utils.importlib import import_module
+from importlib import import_module
 
 from eoxserver.core.component import (
     ComponentManager, ComponentMeta, Component,
