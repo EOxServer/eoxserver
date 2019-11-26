@@ -25,11 +25,11 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-from django.conf.urls import url
+from django.urls import re_path
 
 from eoxserver.webclient.views import index, configuration
-
-urlpatterns = ([
-    url(r'^$', index, name='index'),
-    url(r'^configuration/$', configuration, name='configuration')
-], 'webclient', 'webclient')
+app_name = 'webclient'
+urlpatterns = [
+    re_path(r'^$', index, name='index'),
+    re_path(r'^configuration/$', configuration, name='configuration')
+]

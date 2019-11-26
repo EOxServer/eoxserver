@@ -132,7 +132,7 @@ def dispatch(map_, request):
         status = map_.OWSDispatch(request)
         te = time.time()
         logger.debug("MapServer: Dispatch took %f seconds." % (te - ts))
-    except Exception, e:
+    except Exception as e:
         raise MapServerException(str(e), "NoApplicableCode")
 
     raw_bytes = msIO_getStdoutBufferBytes()

@@ -34,7 +34,11 @@ import logging
 from lxml import etree
 import tempfile
 import mimetypes
-from cStringIO import StringIO
+
+try:
+    from io import StringIO 
+except ImportError:
+    from cStringIO import StringIO
 import cgi
 from unittest import SkipTest
 

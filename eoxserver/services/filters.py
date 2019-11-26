@@ -118,7 +118,7 @@ def compare(lhs, rhs, op, mapping_choices=None):
             elif hasattr(rhs, 'value'):
                 rhs = Value(mapping_choices[field_name][rhs.value])
 
-        except KeyError, e:
+        except KeyError as e:
             raise AssertionError("Invalid field value %s" % e)
 
     if comp:
@@ -262,7 +262,7 @@ def contains(lhs, items, not_=False, mapping_choices=None):
                 elif hasattr(item, 'value'):
                     item = Value(mapping_choices[lhs.name][item.value])
 
-            except KeyError, e:
+            except KeyError as e:
                 raise AssertionError("Invalid field value %s" % e)
             return item
 

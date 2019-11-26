@@ -152,7 +152,7 @@ class GCPList(GeographicReference):
                     # retrieve the footprint from the given GCPs
                     footprint_wkt = rt.get_footprint_wkt(src_ds, **rt_prm )
 
-                except RuntimeError, e:
+                except RuntimeError as e:
                     logger.debug("Failed using order '%i'. Error was '%s'."
                                  % (order, str(e)))
                     # the given method was not applicable, use the next one

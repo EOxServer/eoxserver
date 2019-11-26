@@ -25,13 +25,16 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-from django.conf.urls import url
-from django.core.urlresolvers import reverse
+from django.urls import re_path
+try:
+    from django.core.urlresolvers import reverse
+except ImportError:
+    from django.urls import reverse
 
 from eoxserver.services import views
 
 urlpatterns = [
-    url(r'^$', views.ows, name='ows'),
+    re_path(r'^$', views.ows, name='ows')
 ]
 
 

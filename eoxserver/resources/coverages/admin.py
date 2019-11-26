@@ -28,7 +28,10 @@
 #-------------------------------------------------------------------------------
 
 from django.contrib.gis import admin
-from django.core.urlresolvers import reverse, NoReverseMatch
+try:
+    from django.core.urlresolvers import reverse, NoReverseMatch
+except ImportError:
+    from django.urls import reverse, NoReverseMatch
 from django.utils.safestring import mark_safe
 from django.conf import settings
 

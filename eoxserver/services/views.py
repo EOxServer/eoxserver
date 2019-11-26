@@ -73,7 +73,7 @@ def ows(request):
         handler = query_service_handler(request)
         result = handler.handle(request)
         default_status = 200
-    except HTTPMethodNotAllowedError, e:
+    except HTTPMethodNotAllowedError as e:
         handler = query_exception_handler(request)
         result = handler.handle_exception(request, e)
         content, content_type = handler.handle_exception(request, e)[:2]
@@ -81,7 +81,7 @@ def ows(request):
             content=content, content_type=content_type, status=405
         )
         result["Allow"] = ", ".join(e.allowed_methods)
-    except Exception, e:
+    except Exception as e:
         logger.debug(traceback.format_exc())
         handler = query_exception_handler(request)
         result = handler.handle_exception(request, e)

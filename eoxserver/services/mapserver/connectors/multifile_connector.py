@@ -98,7 +98,7 @@ class MultiFileConnector(object):
             layer.setMetaData("eoxs_ref_data", path)
 
             with vsi.open(vrt_path) as f:
-                print f.read(100000)
+                print (f.read(100000))
 
         """
         # TODO!!

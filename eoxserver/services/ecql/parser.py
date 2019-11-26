@@ -255,10 +255,10 @@ class ECQLParser(object):
 
     def p_error(self, p):
         if p:
-            print dir(p)
+            print (dir(p))
             print("Syntax error at token", p.type, p.value, p.lexpos, p.lineno)
 
-            print self.__query.split('\n')
+            print (self.__query.split('\n'))
             line = self.__query.split('\n')[p.lineno - 1]
             print(line)
             print((' ' * p.lexpos) + '^')

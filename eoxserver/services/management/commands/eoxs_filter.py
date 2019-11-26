@@ -94,4 +94,4 @@ class Command(CommandOutputMixIn, BaseCommand):
                 self.print_msg(filters, 2)
 
         qs = qs.values_list('identifier', flat=True)
-        print "\n".join(qs)
+        print ("\n".join(qs))

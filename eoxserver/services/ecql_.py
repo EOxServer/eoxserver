@@ -334,11 +334,11 @@ class ECQLEvaluator(object):
 
 
     def geometry_string(self, node):
-        print node
+        print (node)
 
 
     def geometry_literal(self, node):
-        print node[1]
+        print (node[1])
         return filters.literal(GEOSGeometry(node[1][1]))
 
 
@@ -359,12 +359,12 @@ def parse(inp, field_mapping):
     try:
         test(inp)
         return ECQLParser.parse(inp, ECQLEvaluator(field_mapping))[1]
-    except LrParsingError, e:
-        print dir(e)
-        print e.stack
-        print e.input_token
-        print inp.split("\n")[getattr(e, 'line', 1) - 1]
-        print "%s^" % (" " * getattr(e, 'column', 0))
+    except LrParsingError as e:
+        print (dir(e))
+        print (e.stack)
+        print (e.input_token)
+        print (inp.split("\n")[getattr(e, 'line', 1) - 1])
+        print ("%s^" % (" " * getattr(e, 'column', 0)))
         raise
 
 
@@ -373,7 +373,7 @@ def parse(inp, field_mapping):
 
 
 def test(inp):
-    print "Processing: %r" % inp
+    print ("Processing: %r" % inp)
     try:
         # print_parse_tree(inp)
         # print tree

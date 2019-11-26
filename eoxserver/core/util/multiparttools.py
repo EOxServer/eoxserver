@@ -223,7 +223,8 @@ Output:
         return key.strip().lower(), val.strip()
 
     # filter function rejecting entries with blank keys
-    def noblank((k, v)):
+    def noblank(tup):
+        (k, v) = tup
         return bool(k)
 
     #--------------------------------------------------------------------------
@@ -241,7 +242,7 @@ Output:
             off = findBorder(off[2])
             offsets.append(off)
 
-    except ValueError, e:
+    except ValueError as e:
         raise Exception(
             "The buffer is not a valid MIME multi-part message! Reason: %s"
             % e.message

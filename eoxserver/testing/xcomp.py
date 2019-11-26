@@ -106,7 +106,7 @@ def _skipIgnorable( node , path ) :
         # unexpected nodes - raise exception  
         if node.nodeType in (ATTRIBUTE_NODE,DOCUMENT_NODE,DOCUMENT_FRAGMENT_NODE,
                 NOTATION_NODE,ENTITY_REFERENCE_NODE,ENTITY_NODE,DOCUMENT_TYPE_NODE): 
-            raise XMLParseError , "Unexpected child node '%s' ! PATH='%s'" % (NODE_DICT[node.nodeType],path) 
+            raise XMLParseError("Unexpected child node '%s' ! PATH='%s'" % (NODE_DICT[node.nodeType],path)) 
         # the rest is just ignored  
         #if node.nodeType in (COMMENT_NODE,PROCESSING_INSTRUCTION_NODE) : pass
         node = node.nextSibling 
@@ -120,7 +120,7 @@ def _compareAttributes( a0 , a1 , level , path , verbose = False ) :
 
     #attribute mismatch  
     if ( a0 is None ) or ( a1 is None ) :
-            raise XMLMismatchError , "Attribute mismatch! PATH=\"%s\""%path 
+            raise XMLMismatchError("Attribute mismatch! PATH=\"%s\""%path) 
 
     # get list of attributes and filter-out namespace definitions 
     isNotNS  = lambda v : ( v[0][0] != "http://www.w3.org/2000/xmlns/" )  
@@ -132,17 +132,17 @@ def _compareAttributes( a0 , a1 , level , path , verbose = False ) :
     if len( items0 ) != len( items0 ) : 
         if verbose : 
             for item in items0 :
-                print " < \t %s@%s=\"%s\"" %( path , item[0] , item[1] ) 
+                print (" < \t %s@%s=\"%s\"" %( path , item[0] , item[1] ))
             for item in items1 :
-                print " > \t %s@%s=\"%s\"" %( path , item[0] , item[1] )
-        raise XMLMismatchError , "Attribute count mismatch! PATH=\"%s\""%path
+                print (" > \t %s@%s=\"%s\"" %( path , item[0] , item[1] ))
+        raise XMLMismatchError("Attribute count mismatch! PATH=\"%s\""%path)
 
     for pair in zip( items0 , items1 ) : 
         if verbose : 
-            print " < \t %s@%s=\"%s\"" %( path , pair[0][0] , pair[0][1] ) 
-            print " > \t %s@%s=\"%s\"" %( path , pair[1][0] , pair[1][1] )
+            print (" < \t %s@%s=\"%s\"" %( path , pair[0][0] , pair[0][1] )) 
+            print (" > \t %s@%s=\"%s\"" %( path , pair[1][0] , pair[1][1] ))
         if ( pair[0] != pair[1]) : 
-            raise XMLMismatchError , "Attribute mismatch! PATH=\"%s\""%path
+            raise XMLMismatchError("Attribute mismatch! PATH=\"%s\""%path)
 
 
 def _compareNode( n0 , n1 , level = 0 , path = "/" , verbose = False ) : 
@@ -155,13 +155,13 @@ def _compareNode( n0 , n1 , level = 0 , path = "/" , verbose = False ) :
     path1 = "%s/%s"%( path , nn1 ) if level > 1 else "/%s"%nn1 if level == 1 else _getNodeName( n0 )
 
     if verbose : 
-        print "< \t %s" %( path0 ) 
-        print "> \t %s" %( path1 )
+        print ("< \t %s" %( path0 )) 
+        print ("> \t %s" %( path1 ))
     
     # compare node name and node type 
     if (( n0.nodeType != n1.nodeType ) 
         or ( _getNodeName( n0 ) != _getNodeName( n1 ) )): 
-            raise XMLMismatchError , "Node mismatch! PATH0=\"%s\" vs. PATH1=\"%s\""%(path0,path1) 
+            raise XMLMismatchError("Node mismatch! PATH0=\"%s\" vs. PATH1=\"%s\""%(path0,path1)) 
 
     # compare attributes 
     _compareAttributes( n0.attributes , n1.attributes , level , path0 , verbose ) 
@@ -169,18 +169,18 @@ def _compareNode( n0 , n1 , level = 0 , path = "/" , verbose = False ) :
     # in case of text-nodes and CDATA section check the content 
     if n0.nodeType == TEXT_NODE : 
         if verbose : 
-            print " < TEXT: \t \"%s\"" % n0.wholeText.strip()
-            print " > TEXT: \t \"%s\"" % n1.wholeText.strip()
+            print (" < TEXT: \t \"%s\"" % n0.wholeText.strip())
+            print (" > TEXT: \t \"%s\"" % n1.wholeText.strip())
         if n0.wholeText.strip() != n1.wholeText.strip() : 
-            raise XMLMismatchError , "Text mismatch! PATH=\"%s\""%(path) 
+            raise XMLMismatchError("Text mismatch! PATH=\"%s\""%(path)) 
         return 
 
     if n0.nodeType == CDATA_SECTION_NODE : 
         if verbose : 
-            print " < CDATA: \t \"%s\"" % n0.wholeText
-            print " > CDATA: \t \"%s\"" % n1.wholeText
+            print (" < CDATA: \t \"%s\"" % n0.wholeText)
+            print (" > CDATA: \t \"%s\"" % n1.wholeText)
         if n0.wholeText != n1.wholeText : 
-            raise XMLMismatchError , "CDATA mismatch! PATH=\"%s\""%(path) 
+            raise XMLMismatchError("CDATA mismatch! PATH=\"%s\""%(path)) 
         return 
 
     
@@ -196,7 +196,7 @@ def _compareNode( n0 , n1 , level = 0 , path = "/" , verbose = False ) :
 
     # make sure there are no remaining nodes 
     if not (( nn0 is None ) and ( nn1 is None )) :  
-        raise XMLMismatchError , "Childern count mismatch! PATH=\"%s\""%path0
+        raise XMLMismatchError("Childern count mismatch! PATH=\"%s\""%path0)
 
 #-------------------------------------------------------------------------------
 
@@ -213,7 +213,7 @@ def xmlCompareStrings( str0 , str1  , verbose = False ) :
         try : 
             return dom.parseString( src ) 
         except Exception as e : 
-            raise XMLParseError , "Failed to parse %s XML string! %s" % ( label , str(e) ) 
+            raise XMLParseError("Failed to parse %s XML string! %s" % ( label , str(e) )) 
 
     return xmlCompareDOMs( parse(str0,"the first") , parse(str1,"the second") , verbose ) 
 
@@ -226,13 +226,13 @@ def xmlCompareFiles( src0 , src1 , verbose = False ) :
             with file( src ) as fid : 
                 return dom.parse( fid ) 
         except Exception as e : 
-            raise XMLParseError , "Failed to parse the \"%s\" file! %s" % ( src , str(e) ) 
+            raise XMLParseError("Failed to parse the \"%s\" file! %s" % ( src , str(e) )) 
 
     def parseFileObj( src , label ) : 
         try : 
             return dom.parse( src ) 
         except Exception as e : 
-            raise XMLParseError , "Failed to parse the %s XML file(-like) object! %e" % ( label , str(e) ) 
+            raise XMLParseError("Failed to parse the %s XML file(-like) object! %e" % ( label , str(e) )) 
 
     def parse( src , label ) : 
         return  parseFileName( src ) if ( type(src) in types.StringTypes ) else parseFileObj( src , label ) 

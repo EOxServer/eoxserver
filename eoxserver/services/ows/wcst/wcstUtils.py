@@ -43,8 +43,10 @@ import sys
 import traceback
 import urlparse 
 
-try :       from cStringIO import StringIO 
-except :    from StringIO import StringIO 
+try:
+    from io import StringIO 
+except ImportError:
+    from cStringIO import StringIO
 #-------------------------------------------------------------------------------
 
 import wcst11Exception 
@@ -146,7 +148,7 @@ def downloadReference( url , basename , prefix = "" ) :
     #check the HTTP error code 
     httpCode = sock.getcode()
     if ( httpCode is not None ) and ( int(httpCode) != 200 ) :  
-        raise HTTPError , "%sCode: %s\tURL: %s" % ( prefix , str(httpCode) , url ) 
+        raise HTTPError("%sCode: %s\tURL: %s" % ( prefix , str(httpCode) , url )) 
     
     # guess file extension 
     info = sock.info() 

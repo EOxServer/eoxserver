@@ -35,8 +35,10 @@
 import os 
 import sys 
 
-try :       from cStringIO import StringIO
-except :    from StringIO import StringIO
+try:
+    from io import StringIO 
+except ImportError:
+    from cStringIO import StringIO
 
 from xml.etree import ElementTree as etree
 
@@ -116,8 +118,8 @@ def eop20SetID( src , dst , eoid ) :
 if __name__ == "__main__" : 
         
     fname = os.path.abspath( sys.argv[1] ) 
-    print "FNAME: " , fname 
-    print "NAME " , eop20GetID( file( fname ) ) 
+    print ("FNAME: " , fname) 
+    print ("NAME " , eop20GetID( file( fname ) ) )
     #eop20SetID( StringIO( file(fname).read() ) , file(fname,"w") , "NEW_ID" ) 
     eop20SetID( StringIO( file(fname).read() ) , sys.stdout , "NEW_ID" ) 
     #eop20SetID( StringIO( file(fname).read() ) , file(fname,"w") , "NEW_ID" ) 

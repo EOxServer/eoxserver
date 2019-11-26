@@ -35,7 +35,7 @@ class Migration(migrations.Migration):
                 ('time', models.DateTimeField(auto_now=True)),
                 ('status', models.IntegerField(editable=False, choices=[(0, b'UNDEFINED'), (1, b'ACCEPTED'), (2, b'SCHEDULED'), (3, b'RUNNING'), (4, b'PAUSED'), (5, b'FINISHED'), (6, b'FAILED')])),
                 ('message', models.TextField(editable=False)),
-                ('instance', models.ForeignKey(editable=False, to='processes.Instance')),
+                ('instance', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, editable=False, to='processes.Instance')),
             ],
         ),
         migrations.CreateModel(
@@ -44,7 +44,7 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('response', models.TextField(editable=False)),
                 ('mimeType', models.TextField()),
-                ('instance', models.ForeignKey(editable=False, to='processes.Instance', unique=True)),
+                ('instance', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, editable=False, to='processes.Instance', unique=True)),
             ],
         ),
         migrations.CreateModel(
@@ -53,7 +53,7 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('time', models.DateTimeField(auto_now=True)),
                 ('lock', models.BigIntegerField(default=0)),
-                ('instance', models.ForeignKey(editable=False, to='processes.Instance')),
+                ('instance', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, editable=False, to='processes.Instance')),
             ],
         ),
         migrations.CreateModel(
@@ -75,7 +75,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='input',
             name='instance',
-            field=models.ForeignKey(editable=False, to='processes.Instance', unique=True),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, editable=False, to='processes.Instance', unique=True),
         ),
         migrations.AlterUniqueTogether(
             name='instance',

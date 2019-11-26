@@ -25,14 +25,15 @@
 # THE SOFTWARE.
 # ------------------------------------------------------------------------------
 
-from django.conf.urls import url
+from django.urls import re_path
 
 from eoxserver.resources.coverages import views
 
 
 urlpatterns = [
-    url(r'^metadata/(?P<identifier>[^/]+)/(?P<semantic>[^/]+)$',
+    re_path(
+        r'^metadata/(?P<identifier>[^/]+)/(?P<semantic>[^/]+)$',
         views.metadata, name='metadata'
     ),
-    url(r'^product/$', views.product_register, name='product_register'),
+    re_path(r'^product/$', views.product_register, name='product_register'),
 ]

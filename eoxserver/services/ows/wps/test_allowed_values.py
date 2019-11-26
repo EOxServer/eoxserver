@@ -45,14 +45,14 @@ class BaseTestMixin(object):
                 self.assertTrue(self.domain.check(val))
                 self.assertTrue(val is self.domain.verify(val))
             except:
-                print "\n%s: value: %r" % (type(self).__name__, val)
+                print ("\n%s: value: %r" % (type(self).__name__, val))
                 raise
         for val in self.rejected:
             try:
                 self.assertFalse(self.domain.check(val))
                 self.assertRaises(ValueError, self.domain.verify, val)
             except:
-                print "\n%s: value: %r" % (type(self).__name__, val)
+                print ("\n%s: value: %r" % (type(self).__name__, val))
                 raise
 
 #------------------------------------------------------------------------------

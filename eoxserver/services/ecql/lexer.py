@@ -212,4 +212,4 @@ class ECQLLexer(object):
     t_ignore = ' \t'
 
     def t_error(self, t):
-        print "ERROR", t
+        print ("ERROR", t)

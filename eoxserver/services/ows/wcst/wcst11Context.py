@@ -118,7 +118,7 @@ def contextCreate( requestId = None , reponseHandler = None , maxAttempts = 3 ) 
     else : 
         msg = "WCSt11: Failed to create an unique WCS transaction's context!" 
         logging.error( msg ) 
-        raise OSError , msg 
+        raise OSError(msg) 
 
     return context 
 

@@ -25,11 +25,14 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-from urllib import quote
+try:
+    from urllib import quote
+except ImportError:
+    from urllib.parse import quote
 
 from eoxserver.testing.utils import tag
 from autotest_services import base as testbase
-import base as wcsbase
+from . import base as wcsbase
 
 
 #===============================================================================

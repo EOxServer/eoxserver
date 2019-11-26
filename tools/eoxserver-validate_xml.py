@@ -46,10 +46,10 @@ if __name__ == "__main__" :
             continue
         # Check if file exists
         if not os.path.exists(name):
-            print "Usage: %s <xml-filename>" % sys.argv[0]
+            print ("Usage: %s <xml-filename>" % sys.argv[0])
             sys.exit(1)
 
-        print "Validating XML document: %s" % name
+        print ("Validating XML document: %s" % name)
         doc = etree.parse(name).getroot()
         schema_locations = doc.get("{http://www.w3.org/2001/XMLSchema-instance}schemaLocation")
         locations = schema_locations.split()
@@ -68,7 +68,7 @@ if __name__ == "__main__" :
                     "schemaLocation": location
                 }
             )
-            print "Schema: Namespace: %s, Location: %s" % (ns, location)
+            print ("Schema: Namespace: %s, Location: %s" % (ns, location))
         
         # TODO: Workaround, but otherwise the doc is not recognized as schema
         schema = etree.XMLSchema(etree.XML(etree.tostring(schema_def)))
@@ -76,7 +76,7 @@ if __name__ == "__main__" :
         # Validate file against schema
         try:
             schema.assertValid(doc)
-            print "%s validates" % name
+            print ("%s validates" % name)
         except etree.Error as e:
-            print "%s doesn't validate" % name
-            print "Error was: %s" % str(e)
+            print ("%s doesn't validate" % name)
+            print ("Error was: %s" % str(e))

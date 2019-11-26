@@ -1,7 +1,10 @@
 import os.path
 from zipfile import ZipFile
 import json
-from cStringIO import StringIO
+try:
+    from io import StringIO 
+except ImportError:
+    from cStringIO import StringIO
 import traceback
 import re
 import mimetypes
@@ -100,7 +103,7 @@ def product_register(request):
     try:
         buffered_file = StringIO(content)
         zipfile = ZipFile(buffered_file)
-    except Exception, e:
+    except Exception as e:
         return HttpResponseBadRequest('Failed to open ZIP file: %s' % e)
 
     try:
@@ -150,7 +153,7 @@ def product_register(request):
                 collection, product_summary=True, coverage_summary=True
             )
 
-    except (KeyError, ValueError), e:
+    except (KeyError, ValueError) as e:
         return HttpResponseBadRequest(str(e))
     except Exception:
         return HttpResponseBadRequest(traceback.format_exc())

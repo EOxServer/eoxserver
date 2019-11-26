@@ -28,7 +28,7 @@
 from eoxserver.testing.utils import tag
 
 from autotest_services import base as testbase
-import base as wcsbase
+from . import base as wcsbase
 
 
 #===============================================================================

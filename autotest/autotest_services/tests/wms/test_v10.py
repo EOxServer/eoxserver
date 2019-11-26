@@ -26,4 +26,4 @@
 #-------------------------------------------------------------------------------
 
 from autotest_services import base as testbase
-import base as wmsbase
+from . import base as wmsbase

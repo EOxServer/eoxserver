@@ -27,7 +27,11 @@
 
 import os
 import os.path
-from cStringIO import StringIO
+try:
+    from io import StringIO 
+except ImportError:
+    from cStringIO import StringIO
+
 from uuid import uuid4
 
 from django.http import HttpResponse

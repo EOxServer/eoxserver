@@ -49,14 +49,14 @@ class BaseTestMixin(object):
             try:
                 res = self.dtype.parse(src)
             except:
-                print "\n%s: input: %r" % (type(self).__name__, src)
+                print ("\n%s: input: %r" % (type(self).__name__, src))
                 raise
 
             try:
                 self.assertTrue(isinstance(res, type(dst)))
                 self.assertTrue(res == dst or (res != res and dst != dst))
             except:
-                print "\n%s: %r != %r" % (type(self).__name__, res, dst)
+                print ("\n%s: %r != %r" % (type(self).__name__, res, dst))
                 raise
 
     def testEncodeOK(self):
@@ -64,13 +64,13 @@ class BaseTestMixin(object):
             try:
                 res = self.dtype.encode(src)
             except:
-                print "\n%s: input: %r" % (type(self).__name__, src)
+                print ("\n%s: input: %r" % (type(self).__name__, src))
                 raise
             try:
                 self.assertTrue(isinstance(res, type(dst)))
                 self.assertTrue(res == dst)
             except:
-                print "\n%s: %r != %r" % (type(self).__name__, res, dst)
+                print ("\n%s: %r != %r" % (type(self).__name__, res, dst))
                 raise
 
     def testParseFail(self):
@@ -89,7 +89,7 @@ class TimeZoneTestMixin(object):
             try:
                 res = self.dtype.parse(src)
             except:
-                print "\n input: %r" % src
+                print ("\n input: %r" % src)
                 raise
             try:
                 if dst.tzinfo is None:
@@ -98,7 +98,7 @@ class TimeZoneTestMixin(object):
                     self.assertTrue(res.tzinfo is not None)
                     self.assertTrue(res.utcoffset() == dst.utcoffset())
             except:
-                print "\n%r != %r" % (res, dst)
+                print ("\n%r != %r" % (res, dst))
                 raise
 
 #------------------------------------------------------------------------------

@@ -137,7 +137,7 @@ class WCS20GetEOCoverageSetHandler(Component):
                 crs="http://www.opengis.net/def/crs/EPSG/0/4326",
                 allowed_types=Trim
             )
-        except ValueError, e:
+        except ValueError as e:
             raise InvalidSubsettingException(str(e))
 
         if len(eo_ids) == 0:

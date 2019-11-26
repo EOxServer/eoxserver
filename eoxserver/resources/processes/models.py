@@ -111,7 +111,7 @@ class Task( models.Model ):
         DB fields: 
             instance   - process instance.
     """
-    instance     = models.ForeignKey( Instance , blank=False , null=False , editable = False )
+    instance     = models.ForeignKey( Instance , blank=False , null=False , editable = False, on_delete = models.PROTECT )
     time         = models.DateTimeField( auto_now=True, editable = False )
     lock         = models.BigIntegerField( default = 0 )  
 
@@ -134,7 +134,7 @@ class LogRecord( models.Model ):
             message    - text message associated to the log message.
 
     """
-    instance     = models.ForeignKey( Instance , blank=False , null=False , editable = False )
+    instance     = models.ForeignKey( Instance , blank=False , null=False , editable = False, on_delete = models.PROTECT )
     time         = models.DateTimeField( auto_now=True, editable = False )
     status       = models.IntegerField( null=False , choices = STATUS2TEXT.items(), editable = False )
     message      = models.TextField( editable = False )
@@ -163,7 +163,7 @@ class Response( models.Model ):
             response   - process XML response (if not in plain text GZIP+BASE64 is applied).
 
     """
-    instance  = models.OneToOneField( Instance , blank=False , null=False , editable = False )
+    instance  = models.OneToOneField( Instance , on_delete=models.PROTECT, blank=False , null=False , editable = False )
     response  = models.TextField( editable = False )
     mimeType  = models.TextField( editable = True )
 
@@ -183,7 +183,7 @@ class Input( models.Model ):
             input      - task inputs.
 
     """
-    instance    = models.OneToOneField( Instance , blank=False , null=False , editable = False )
+    instance    = models.OneToOneField( Instance , blank=False , on_delete=models.PROTECT, null=False , editable = False )
     input       = models.TextField( editable = False ) # store the data as Base64 encoded pickle object
 
     def __unicode__( self ) : return unicode( self.instance )  
