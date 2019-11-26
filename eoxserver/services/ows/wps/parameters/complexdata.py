@@ -32,18 +32,13 @@
 import json
 from os import remove
 from copy import deepcopy
+from collections import OrderedDict
 from StringIO import StringIO
 
 try:
     from cStringIO import StringIO as FastStringIO
 except ImportError:
     FastStringIO = StringIO
-
-try:
-    # available in Python 2.7+
-    from collections import OrderedDict
-except ImportError:
-    from django.utils.datastructures import SortedDict as OrderedDict
 
 from lxml import etree
 from .base import Parameter

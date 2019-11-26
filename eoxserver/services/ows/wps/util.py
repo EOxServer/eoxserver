@@ -31,13 +31,6 @@ from urllib2 import urlopen, Request, URLError
 from contextlib import closing
 from urlparse import urlparse
 from logging import getLogger
-
-try:
-    # available in Python 2.7+
-    from collections import OrderedDict
-except ImportError:
-    from django.utils.datastructures import SortedDict as OrderedDict
-
 from eoxserver.core.util.multiparttools import iterate as iterate_multipart
 
 def parse_named_parts(request):

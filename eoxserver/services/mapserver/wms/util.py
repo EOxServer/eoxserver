@@ -28,8 +28,7 @@
 
 import logging
 from itertools import chain
-
-from django.utils.datastructures import SortedDict
+from collections import OrderedDict
 
 from eoxserver.core import Component, ExtensionPoint
 from eoxserver.core.config import get_eoxserver_config
@@ -115,7 +114,7 @@ class MapServerWMSBaseComponent(Component):
         return result
 
     def setup_map(self, layer_selection, map_, options):
-        group_layers = SortedDict()
+        group_layers = OrderedDict()
         session = ConnectorSession(options)
 
         # set up group layers before any "real" layers

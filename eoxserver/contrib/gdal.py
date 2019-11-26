@@ -34,6 +34,7 @@ all available drivers.
 """
 
 import os
+from collections import OrderedDict
 
 
 if os.environ.get('READTHEDOCS', None) != 'True':
@@ -41,12 +42,11 @@ if os.environ.get('READTHEDOCS', None) != 'True':
         from osgeo.gdal import *
     except ImportError:
         from gdal import *
-    from django.utils.datastructures import SortedDict
 
     UseExceptions()
     AllRegister()
 
-    GCI_TO_NAME = SortedDict((
+    GCI_TO_NAME = OrderedDict((
         (GCI_Undefined, "Undefined"),
         (GCI_GrayIndex, "GrayIndex"),
         (GCI_PaletteIndex, "PaletteIndex"),
@@ -68,7 +68,7 @@ if os.environ.get('READTHEDOCS', None) != 'True':
 
     NAME_TO_GCI = dict((j.lower(), i) for (i, j) in GCI_TO_NAME.items())
 
-    GDT_TO_NAME = SortedDict((
+    GDT_TO_NAME = OrderedDict((
         (GDT_Byte, "Byte"),
         (GDT_UInt16, "UInt16"),
         (GDT_Int16, "Int16"),
@@ -82,7 +82,7 @@ if os.environ.get('READTHEDOCS', None) != 'True':
         (GDT_CFloat64, "CFloat64"),
     ))
 
-    NAME_TO_GDT = SortedDict((j.lower(), i) for (i, j) in GDT_TO_NAME.items())
+    NAME_TO_GDT = OrderedDict((j.lower(), i) for (i, j) in GDT_TO_NAME.items())
 
     GDT_NUMERIC_LIMITS = {
         GDT_Byte: (0, 255),

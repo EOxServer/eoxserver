@@ -29,11 +29,7 @@
 from sys import stdout
 import json
 from optparse import make_option
-try:
-    # available in Python 2.7+
-    from collections import OrderedDict
-except ImportError:
-    from django.utils.datastructures import SortedDict as OrderedDict
+from collections import OrderedDict
 from django.core.management.base import BaseCommand, CommandError
 from eoxserver.resources.coverages.management.commands import CommandOutputMixIn
 from eoxserver.services.models import WMSRenderOptions

@@ -28,12 +28,7 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-try:
-    # available in Python 2.7+
-    from collections import OrderedDict
-except ImportError:
-    from django.utils.datastructures import SortedDict as OrderedDict
-
+from collections import OrderedDict
 from .base import ParamMetadata
 
 
