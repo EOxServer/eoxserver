@@ -30,7 +30,7 @@
 URLs config for EOxServer's autotest instance.
 
 """
-from django.conf.urls import patterns, include, url
+from django.conf.urls import include, url
 
 # Enable the admin:
 from django.contrib import admin
@@ -44,7 +44,7 @@ from eoxserver.resources.processes import views as procViews
 
 from eoxserver.services.opensearch.urls import urlpatterns as opensearch
 
-urlpatterns = patterns('',
+urlpatterns = [
     (r'^$', 'eoxserver.views.index'),
     url(r'^ows$', include("eoxserver.services.urls")),
     url(r'^opensearch/', include(opensearch)),
@@ -64,4 +64,4 @@ urlpatterns = patterns('',
     #(r'^process/status/(?P<requestType>[^/]{,64})/(?P<requestID>[^/]{,64})$', procViews.status ),
     #(r'^process/task$', procViews.task ),
     (r'^process/response/(?P<requestType>[^/]{,64})/(?P<requestID>[^/]{,64})', procViews.response ),
-)
+]
