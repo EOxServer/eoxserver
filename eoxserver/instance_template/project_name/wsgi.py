@@ -56,6 +56,10 @@ if path not in sys.path:
 #os.environ.setdefault("DJANGO_SETTINGS_MODULE", "{{ project_name }}.settings")
 os.environ["DJANGO_SETTINGS_MODULE"] = "{{ project_name }}.settings"
 
+# Initialize Django apps
+import django
+django.setup()
+
 # Initialize the EOxServer component system.
 import eoxserver.core
 eoxserver.core.initialize()
