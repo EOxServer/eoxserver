@@ -27,7 +27,7 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-VERSION = (0, 4, 1, 'dev', 0)
+VERSION = (0, 4, 2, 'dev', 0)
 #VERSION = (0, 4, None, 'alpha', 1)
 #VERSION = (0, 4, None, 'beta', 3)
 #VERSION = (0, 4, None, 'rc', 1)
