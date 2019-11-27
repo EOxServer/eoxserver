@@ -232,7 +232,7 @@ class CoverageLayerFactory(CoverageLayerFactoryMixIn, BaseMapServerLayerFactory)
             coverages = layer.coverages
 
         coverage_layers = []
-        for coverage in coverages:
+        for coverage in reversed(coverages):
             fields = self.get_fields(
                 coverage.range_type, layer.bands, layer.wavelengths
             )
@@ -261,7 +261,7 @@ class OutlinedCoverageLayerFactory(CoverageLayerFactoryMixIn, BaseMapServerLayer
 
         coverage_layers = []
 
-        for coverage in coverages:
+        for coverage in reversed(coverages):
             fields = self.get_fields(
                 coverage.range_type, layer.bands, layer.wavelengths
             )
@@ -298,7 +298,7 @@ class MosaicLayerFactory(CoverageLayerFactoryMixIn, BaseMapServerLayerFactory):
             self.create_coverage_layer(
                 map_obj, coverage, fields, layer.style, layer.ranges
             )
-            for coverage in layer.coverages
+            for coverage in reversed(layer.coverages)
         ]
 
     def destroy(self, map_obj, layer, data):
@@ -311,7 +311,7 @@ class MosaicLayerFactory(CoverageLayerFactoryMixIn, BaseMapServerLayerFactory):
 class BrowseLayerMixIn(object):
     def make_browse_layer_generator(self, map_obj, browses, map_, filename_generator,
                                     group_name, ranges, style):
-        for browse in browses:
+        for browse in reversed(browses):
             if isinstance(browse, GeneratedBrowse):
                 creation_info, filename_generator, reset_info = generate_browse(
                     browse.band_expressions,
@@ -414,7 +414,7 @@ class BrowseLayerFactory(CoverageLayerFactoryMixIn, BrowseLayerMixIn, BaseMapSer
         style = layer.style
 
         generator = self.make_browse_layer_generator(
-            map_obj, layer.browses, layer.map, filename_generator,
+            map_obj, reversed(layer.browses), layer.map, filename_generator,
             group_name, ranges, style
         )
 
@@ -442,7 +442,7 @@ class OutlinedBrowseLayerFactory(BrowseLayerMixIn, BaseMapServerLayerFactory):
         vector_style = style if style and style in BASE_COLORS else "red"
 
         generator = self.make_browse_layer_generator(
-            map_obj, layer.browses, layer.map, filename_generator,
+            map_obj, reversed(layer.browses), layer.map, filename_generator,
             group_name, ranges, raster_style
         )
 
@@ -468,7 +468,7 @@ class MaskLayerFactory(BaseMapServerLayerFactory):
 
     def create(self, map_obj, layer):
         layer_obj = _create_polygon_layer(map_obj)
-        for mask in layer.masks:
+        for mask in reversed(layer.masks):
             if mask.geometry:
                 mask_geom = mask.geometry
             elif mask.filename:
@@ -493,7 +493,7 @@ class MaskedBrowseLayerFactory(BrowseLayerMixIn, BaseMapServerLayerFactory):
 
         browses, masks = zip(*[
             [masked_browse.browse, masked_browse.mask]
-            for masked_browse in layer.masked_browses
+            for masked_browse in reversed(layer.masked_browses)
         ])
 
         generator = self.make_browse_layer_generator(
@@ -563,7 +563,10 @@ class OutlinesLayerFactory(BaseMapServerLayerFactory):
 
     def create(self, map_obj, layer):
         layer_obj = _create_polygon_layer(map_obj)
-        for footprint, mask in izip_longest(layer.footprints, layer.masks or []):
+        footprint_masks = list(
+            izip_longest(layer.footprints, layer.masks or [])
+        )
+        for footprint, mask in reversed(footprint_masks):
             if mask:
                 if mask.geometry:
                     mask_geom = mask.geometry

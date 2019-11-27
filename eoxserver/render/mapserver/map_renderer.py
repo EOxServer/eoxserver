@@ -128,7 +128,7 @@ class MapserverMapRenderer(object):
 
             try:
                 image_bytes = image_obj.getBytes()
-            except:
+            except Exception:
                 tmp_name = '/vsimem/%s' % uuid4().hex
                 image_obj.save(tmp_name, map_obj)
                 with vsi.open(tmp_name) as f:
@@ -152,7 +152,6 @@ class MapserverMapRenderer(object):
             # disconnect
             for layer, factory, data in layers_plus_factories_plus_data:
                 factory.destroy(map_obj, layer, data)
-
 
     def _get_layers_plus_factories(self, render_map):
         layers_plus_factories = []
