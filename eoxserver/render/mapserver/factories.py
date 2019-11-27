@@ -494,7 +494,7 @@ class MaskedBrowseLayerFactory(BrowseLayerMixIn, BaseMapServerLayerFactory):
         browses, masks = zip(*[
             [masked_browse.browse, masked_browse.mask]
             for masked_browse in reversed(layer.masked_browses)
-        ])
+        ]) or ([], [])
 
         generator = self.make_browse_layer_generator(
             map_obj, browses, layer.map, filename_generator,
