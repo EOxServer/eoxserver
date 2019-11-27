@@ -26,59 +26,16 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-from optparse import make_option
-
 from django.core.management import call_command
 from django.core.management.base import CommandError, BaseCommand
-
 from eoxserver.core.util.importtools import import_module
 from eoxserver.resources.coverages import models
 from eoxserver.resources.coverages.management.commands import (
-    CommandOutputMixIn, _variable_args_cb, nested_commit_on_success
+    CommandOutputMixIn, nested_commit_on_success
 )
 
 
 class Command(CommandOutputMixIn, BaseCommand):
-    option_list = BaseCommand.option_list + (
-        make_option("-i", "--identifier",
-            dest="identifier", action="store", default=None,
-            help=("Dataset series identifier.")
-        ),
-        make_option("-t", "--type",
-            dest="type", action="store", default="DatasetSeries",
-            help=("Optional. Type of the collection to create. Defaults to "
-                  "`DatasetSeries`.")
-        ),
-        make_option("-c", "--collection", dest="collection_ids",
-            action='callback', callback=_variable_args_cb,
-            default=None, help=("Optional. Link to one or more collections.")
-        ),
-        make_option("-a", "--add", dest="object_ids",
-            action='callback', callback=_variable_args_cb,
-            default=None, help=("Optional. Link one or more eo-objects.")
-        ),
-        make_option('--ignore-missing-collection',
-            dest='ignore_missing_collection',
-            action="store_true", default=False,
-            help=("Optional. Proceed even if the linked parent "
-                  "does not exist. By default, a missing parent "
-                  "will terminate the command.")
-        ),
-        make_option('--ignore-missing-object',
-            dest='ignore_missing_object',
-            action="store_true", default=False,
-            help=("Optional. Proceed even if the linked child "
-                  "does not exist. By default, a missing child "
-                  "will terminate the command.")
-        )
-    )
-
-    args = (
-        "-i <identifier> [-t <collection-type>] "
-        "[-c <super-collection-id> [-c <super-collection-id> ...]] "
-        "[-a <eo-object-id> [-a <eo-object-id> ...]] "
-        "[--ignore-missing-collection] [--ignore-missing-object]"
-    )
 
     help = """
         Creates a new Collection. By default the type of the new collection is
@@ -91,12 +48,46 @@ class Command(CommandOutputMixIn, BaseCommand):
         E.g: 'myapp.models.MyCollection'.
     """
 
+    def add_arguments(self, parser):
+        super(Command, self).add_arguments(parser)
+        parser.add_argument(
+            "-i", "--identifier", dest="identifier", required=True,
+            help="Dataset series identifier."
+        )
+        parser.add_argument(
+            "-t", "--type", dest="type", default="DatasetSeries", help=(
+                "Optional. Type of the collection to create. Defaults to "
+                "`DatasetSeries`."
+            )
+        )
+        parser.add_argument(
+            "-c", "--collection", dest="collection_ids", action='append',
+            help="Optional. Link to one or more collections."
+        )
+        parser.add_argument(
+            "-a", "--add", dest="object_ids", action='append',
+            help="Optional. Link one or more eo-objects."
+        )
+        parser.add_argument(
+            '--ignore-missing-collection', dest='ignore_missing_collection',
+            action="store_true", default=False, help=(
+                "Optional. Proceed even if the linked parent "
+                "does not exist. By default, a missing parent "
+                "will terminate the command."
+            )
+        )
+        parser.add_argument(
+            '--ignore-missing-object', dest='ignore_missing_object',
+            action="store_true", default=False, help=(
+                "Optional. Proceed even if the linked child "
+                "does not exist. By default, a missing child "
+                "will terminate the command."
+            )
+        )
+
     @nested_commit_on_success
     def handle(self, *args, **kwargs):
         identifier = kwargs['identifier']
-        if not identifier:
-            raise CommandError("Missing the mandatory collection identifier.")
-
         collection_type = kwargs["type"]
         try:
             module = models
@@ -104,9 +95,9 @@ class Command(CommandOutputMixIn, BaseCommand):
                 mod_name, _, collection_type = collection_type.rpartition(".")
                 module = import_module(mod_name)
 
-            CollectionType = getattr(module, collection_type)
+            collection_class = getattr(module, collection_type)
 
-            if not issubclass(CollectionType, models.Collection):
+            if not issubclass(collection_class, models.Collection):
                 raise CommandError(
                     "Type '%s' is not a collection type." % collection_type
                 )
@@ -124,27 +115,29 @@ class Command(CommandOutputMixIn, BaseCommand):
         self.print_msg("Creating Collection: '%s'" % identifier)
 
         try:
-            collection = CollectionType(identifier=identifier)
+            collection = collection_class(identifier=identifier)
             collection.full_clean()
             collection.save()
 
             ignore_missing_collection = kwargs["ignore_missing_collection"]
             # insert into super collections and insert child objects
             if kwargs["collection_ids"]:
-                call_command("eoxs_collection_link",
+                call_command(
+                    "eoxs_collection_link",
                     collection_ids=kwargs["collection_ids"],
                     add_ids=[identifier],
                     ignore_missing_collection=ignore_missing_collection
                 )
 
             if kwargs["object_ids"]:
-                call_command("eoxs_collection_link",
+                call_command(
+                    "eoxs_collection_link",
                     collection_ids=[identifier], add_ids=kwargs["object_ids"],
                     ignore_missing_object=kwargs["ignore_missing_object"],
                 )
 
-        except Exception, e:
-            self.print_traceback(e, kwargs)
-            raise CommandError("Collection creation failed: %s" % e)
+        except Exception as error:
+            self.print_traceback(error, kwargs)
+            raise CommandError("Collection creation failed: %s" % error)
 
-        self.print_msg("Collection created sucessfully.")
+        self.print_msg("Collection created successfully.")

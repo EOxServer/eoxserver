@@ -33,7 +33,7 @@ with the instance name in the given (optional) directory.
 """
 
 import sys
-from optparse import OptionParser
+from argparse import ArgumentParser
 import textwrap
 
 from django.core.management.base import OutputWrapper
@@ -44,47 +44,39 @@ from eoxserver.core.instance import create_instance
 
 
 def main():
-    parser = OptionParser(
-        usage=textwrap.dedent("""\
-            %prog [options] <instance-name> [<target-directory>]
 
-            Creates a new EOxServer instance with all necessary files and
-            folder structure. Optionally, a SQLite database is initiated.
-        """),
-        version=eoxserver.get_version()
+    parser = ArgumentParser(
+        description=(
+            "Create a new EOxServer instance with all necessary files and "
+            "folder structure. Optionally, a new SQLite database is initiated."
+        ),
     )
-    parser.add_option('-i', '--init-spatialite', '--init_spatialite',
-        dest='init_spatialite', action='store_true', default=False,
+    parser.add_argument("instance-name")
+    parser.add_argument("target-directory", nargs="?")
+    parser.add_argument(
+        '-i', '--init-spatialite', dest='init_spatialite',
+        action='store_true', default=False,
         help='Flag to initialize the sqlite database.'
     )
-    parser.add_option('-v', '--verbosity',
-        action='store', dest='verbosity', default='1',
-        type='choice', choices=['0', '1', '2', '3']
+    parser.add_argument(
+        '-v', '--verbosity', dest='verbosity', type=int, choices=[0, 1, 2, 3],
+        default=1,
     )
-    parser.add_option('--traceback',
-        action='store_true', help='Raise on exception'
+    parser.add_argument(
+        '--traceback', action='store_true', help='Raise on exception'
     )
 
-    options, args = parser.parse_args()
-
-    error_stream = OutputWrapper(sys.stderr, color_style().ERROR)
-
-    if not args:
-        error_stream.write("Mandatory argument 'instance-name' not given.\n")
-        sys.exit(1)
-
-    name = args[0]
-    try:
-        target = args[1]
-    except IndexError:
-        target = None
+    options = vars(parser.parse_args())
+    name = options.pop('instance-name')
+    target = options.pop('target-directory')
 
     try:
-        create_instance(name, target, **options.__dict__)
-    except Exception as e:
-        if options.traceback:
+        create_instance(name, target, **options)
+    except Exception as error:
+        if options['traceback']:
             raise
-        error_stream.write("%s: %s\n" % (e.__class__.__name__, e))
+        error_stream = OutputWrapper(sys.stderr, color_style().ERROR)
+        error_stream.write("%s: %s\n" % (error.__class__.__name__, error))
 
 if __name__ == "__main__":
     main()

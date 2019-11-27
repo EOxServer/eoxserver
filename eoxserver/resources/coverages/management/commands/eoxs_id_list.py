@@ -26,34 +26,14 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-
-from optparse import make_option
-
+from inspect import isclass
 from django.core.management.base import CommandError, BaseCommand
-
 from eoxserver.resources.coverages import models
 
 INDENT = "  "
 
 
 class Command(BaseCommand):
-    option_list = BaseCommand.option_list + (
-        make_option("-t", "--type",
-            dest="type_name", action="store", default="EOObject",
-            help=("Optional. Restrict the listed identifiers to given type.")
-        ),
-        make_option("-r", "--recursive",
-            dest="recursive", action="store_true", default=False,
-            help=("Optional. Recursive listing for collections.")
-        ),
-        make_option("-s", "--suppress-type",
-            dest="suppress_type", action="store_true", default=False,
-            help=("Optional. Supress the output of the type. By default, the "
-                  "type is also printed after the identifier.")
-        )
-    )
-
-    args = "[<id> [<id> ...]] [-t <type>] [-r]"
 
     help = """
         Print a list of all objects in the database. Alternatively the list
@@ -62,25 +42,45 @@ class Command(BaseCommand):
         The listing can also be done recursively with the `-r` option
     """
 
-    def handle(self, *identifiers, **kwargs):
+    def add_arguments(self, parser):
+        super(Command, self).add_arguments(parser)
+        parser.add_argument("identifier", nargs="*")
+        parser.add_argument(
+            "-t", "--type", dest="type_name", default="EOObject",
+            help="Optional. Restrict the listed identifiers to given type."
+        )
+        parser.add_argument(
+            "-r", "--recursive", dest="recursive", action="store_true",
+            default=False, help="Optional. Recursive listing for collections."
+        )
+        parser.add_argument(
+            "-s", "--suppress-type", dest="suppress_type", action="store_true",
+            default=False, help=(
+                "Optional. Suppress the output of the type. By default, the "
+                "type is also printed after the identifier."
+            )
+        )
+
+    def handle(self, *args, **kwargs):
+        identifiers = kwargs["identifier"]
         type_name = kwargs["type_name"]
         suppress_type = kwargs["suppress_type"]
 
+        eo_models = collect_eoobj_types()
         try:
-            # TODO: allow types residing in different apps
-            ObjectType = getattr(models, type_name)
-            if not issubclass(ObjectType, models.EOObject):
-                raise CommandError("Unsupported type '%s'." % type_name)
-        except AttributeError:
+            eo_model = eo_models[type_name]
+        except KeyError:
             raise CommandError("Unsupported type '%s'." % type_name)
 
-        eo_objects = ObjectType.objects.all()
-
+        eo_objects = eo_model.objects
         if identifiers:
             eo_objects = eo_objects.filter(identifier__in=identifiers)
+        else:
+            eo_objects = eo_objects.all()
 
         for eo_object in eo_objects:
             self.print_object(eo_object, kwargs["recursive"], suppress_type)
+
 
     def print_object(self, eo_object, recursive=False, suppress_type=False,
                      level=0):
@@ -97,3 +97,24 @@ class Command(BaseCommand):
                 self.print_object(
                     sub_eo_object, recursive, suppress_type, level+1
                 )
+
+
+def collect_eoobj_types():
+    """ Collect all available EOObject type into a name->class map. """
+
+    def _collect_obobj_models():
+        for model in models.EO_OBJECT_TYPE_REGISTRY.values():
+            yield model
+
+        for name in dir(models):
+            if not name.startswith("__"):
+                model = getattr(models, name)
+                if isclass(model) and issubclass(model, models.EOObject):
+                    yield model
+
+    def _collect_eoobj_types():
+        for model in _collect_obobj_models():
+            yield (model.__name__, model)
+            yield ("%s.%s" % (model.__module__, model.__name__), model)
+
+    return {name: model for name, model in _collect_eoobj_types()}

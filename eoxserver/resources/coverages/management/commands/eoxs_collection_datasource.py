@@ -25,40 +25,16 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-from optparse import make_option
 from textwrap import dedent
-
-from django.core.management.base import CommandError, BaseCommand
-
+from django.core.management.base import BaseCommand
 from eoxserver.resources.coverages import models
 from eoxserver.backends import models as backends
 from eoxserver.resources.coverages.management.commands import (
-    CommandOutputMixIn, _variable_args_cb, nested_commit_on_success
+    CommandOutputMixIn, nested_commit_on_success
 )
 
 
 class Command(CommandOutputMixIn, BaseCommand):
-    option_list = BaseCommand.option_list + (
-        make_option("--identifier", "-i", dest="collection_ids",
-            action='callback', callback=_variable_args_cb,
-            default=None, help=("Collection(s) that will be provided with the "
-                                "datasource.")
-        ),
-        make_option("--source", "-s", dest="source",
-            action="store", default=None,
-            help="Mandatory. The source glob pattern to match datasets"
-        ),
-        make_option("--template", "-t", dest="templates",
-            action='callback', callback=_variable_args_cb,
-            default=None, help=("Collection(s) that will be provided with the "
-                                "datasource.")
-        )
-    )
-
-    args = (
-        "-i <collection-id> [-i ...] -s <source-path-glob> "
-        "[-t <template-path-glob> ...]"
-    )
 
     help = dedent("""
         Add a datasource to a collection.
@@ -75,18 +51,26 @@ class Command(CommandOutputMixIn, BaseCommand):
           - {source}: the full path of the source file
     """)
 
+    def add_arguments(self, parser):
+        super(Command, self).add_arguments(parser)
+        parser.add_argument(
+            "--identifier", "-i", dest="collection_ids", required=True,
+            action='append',
+            help="Collection(s) that will be provided with the datasource."
+        )
+        parser.add_argument(
+            "--source", "-s", dest="source", required=True,
+            help="Mandatory. The source glob pattern to match datasets"
+        )
+        parser.add_argument(
+            "--template", "-t", dest="templates", action='append', default=[],
+            help="Collection(s) that will be provided with the datasource."
+        )
+
     @nested_commit_on_success
     def handle(self, collection_ids, source, templates, *args, **kwargs):
-        if not collection_ids:
-            raise CommandError(
-                "Missing the mandatory collection identifier(s)!"
-            )
-
-        if not source:
-            raise CommandError("Missing mandatory parameter `--source.")
 
         print templates
-        templates = templates or []
 
         for collection_id in collection_ids:
             collection = models.Collection.objects.get(identifier=collection_id)

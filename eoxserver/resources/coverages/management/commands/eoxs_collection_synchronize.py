@@ -25,45 +25,39 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-from optparse import make_option
-
 from django.core.management.base import CommandError, BaseCommand
-
 from eoxserver.resources.coverages import models
 from eoxserver.resources.coverages.synchronization import synchronize
 from eoxserver.resources.coverages.management.commands import (
-    CommandOutputMixIn, _variable_args_cb, nested_commit_on_success
+    CommandOutputMixIn, nested_commit_on_success
 )
 
 
 class Command(CommandOutputMixIn, BaseCommand):
-    option_list = BaseCommand.option_list + (
-        make_option("--identifier", "-i", dest="collection_ids",
-            action='callback', callback=_variable_args_cb,
-            default=None, help=("Collection(s) to be synchronized.")
-        ),
-        make_option("--all", "-a", dest="all_collections",
-            action='store_true', default=False,
-            help=("Optional. Synchronize all collections.")
-        )
-    )
-
-    args = (
-        "-i <collection-id> [-i <collection-id> ...] "
-    )
 
     help = "Synchronizes one or more collections and all their data sources."
 
+    def add_arguments(self, parser):
+        super(Command, self).add_arguments(parser)
+        parser.add_argument(
+            "--identifier", "-i", dest="collection_ids", action='append',
+            help="Collection to be synchronized."
+        )
+        parser.add_argument(
+            "--all", "-a", dest="all_collections", action='store_true',
+            default=False, help="Optional. Synchronize all collections."
+        )
+
     @nested_commit_on_success
     def handle(self, collection_ids, all_collections, *args, **kwargs):
-        if not collection_ids and not all_collections:
-            raise CommandError(
-                "Missing the mandatory collection identifier(s)!"
-            )
 
         if all_collections:
-            collection_ids = (
+            collection_ids = [
                 c.identifier for c in models.Collection.objects.all()
+            ]
+        elif not collection_ids:
+            raise CommandError(
+                "Missing the mandatory collection identifier(s)!"
             )
 
         for collection_id in collection_ids:

@@ -28,7 +28,6 @@
 
 from sys import stdout
 import json
-from optparse import make_option
 from collections import OrderedDict
 from django.core.management.base import BaseCommand, CommandError
 from eoxserver.resources.coverages.management.commands import CommandOutputMixIn
@@ -42,32 +41,31 @@ JSON_OPTIONS = {
 
 class Command(CommandOutputMixIn, BaseCommand):
 
-    option_list = BaseCommand.option_list + (
-        make_option(
-            '--json', dest='json_dump', action='store_true', default=False,
-            help=(
-                "Optional. Dump rangetype(s) in JSON format. This JSON "
-                "dump can be loaded by another instance of EOxServer."
-            )
-        ),
-        make_option(
-            '-o', '--output', dest='filename', action='store', type='string',
-            default='-', help=(
-                "Optional. Write output to a file rather than to the default"
-                " standard output."
-            )
-        ),
-    )
-
-    args = "[<eo-id> [<eo-id> ...]]"
-
     help = """
     Print WMS options for listed coverages or all coverages. If the coverage
     does not exist or if it exists but it has WMS option record no options
     are printed.
     """
 
+    def add_arguments(self, parser):
+        super(Command, self).add_arguments(parser)
+        parser.add_argument("eo-id", nargs="*")
+        parser.add_argument(
+            '--json', dest='json_dump', action='store_true', default=False,
+            help=(
+                "Optional. Dump rangetype(s) in JSON format. This JSON "
+                "dump can be loaded by another instance of EOxServer."
+            )
+        )
+        parser.add_argument(
+            '-o', '--output', dest='filename', default='-', help=(
+                "Optional. Write output to a file rather than to the default"
+                " standard output."
+            )
+        )
+
     def handle(self, *args, **options):
+        eo_ids = options['eo-id']
         # collect input parameters
         self.verbosity = int(options.get('verbosity', 1))
         print_json = bool(options.get('json_dump', False))
@@ -76,7 +74,7 @@ class Command(CommandOutputMixIn, BaseCommand):
         # get the range types
         wms_opts = WMSRenderOptions.objects.select_related('coverage')
         if args:
-            wms_opts = wms_opts.filter(coverage__identifier__in=args)
+            wms_opts = wms_opts.filter(coverage__identifier__in=eo_ids)
         else:
             wms_opts = wms_opts.all()
 

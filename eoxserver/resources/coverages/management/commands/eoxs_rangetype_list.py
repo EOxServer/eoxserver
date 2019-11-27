@@ -28,7 +28,6 @@
 
 from sys import stdout
 import json
-from optparse import make_option
 from django.core.management.base import BaseCommand, CommandError
 from eoxserver.contrib.gdal import GDT_TO_NAME, GCI_TO_NAME
 from eoxserver.resources.coverages.models import RangeType
@@ -43,29 +42,6 @@ JSON_OPTIONS = {
 
 class Command(CommandOutputMixIn, BaseCommand):
 
-    option_list = BaseCommand.option_list + (
-        make_option(
-            '--details', dest='details', action='store_true', default=False,
-            help="Optional. Print details of the reangetypes."
-        ),
-        make_option(
-            '--json', dest='json_dump', action='store_true', default=False,
-            help=(
-                "Optional. Dump range-type(s) in JSON format. This JSON "
-                "dump can be loaded by another instance of EOxServer."
-            )
-        ),
-        make_option(
-            '-o', '--output', dest='filename', action='store', type='string',
-            default='-', help=(
-                "Optional. Write output to a file rather than to the default"
-                " standard output."
-            )
-        ),
-    )
-
-    args = "[<rt-id> [<rt-id> ...]]"
-
     help = """
     Print either list of all range-type identifiers and their details.
     When the range-type identifiers are specified than only these range-types
@@ -78,16 +54,38 @@ class Command(CommandOutputMixIn, BaseCommand):
           to EOxServer 0.3.* and earlier.
     """
 
+    def add_arguments(self, parser):
+        super(Command, self).add_arguments(parser)
+        parser.add_argument("range-type-id", nargs='*')
+        parser.add_argument(
+            '--details', dest='details', action='store_true', default=False,
+            help="Optional. Print details of the reange-types."
+        )
+        parser.add_argument(
+            '--json', dest='json_dump', action='store_true', default=False,
+            help=(
+                "Optional. Dump range-type(s) in JSON format. This JSON "
+                "dump can be loaded by another instance of EOxServer."
+            )
+        )
+        parser.add_argument(
+            '-o', '--output', dest='filename', default='-', help=(
+                "Optional. Write output to a file rather than to the default"
+                " standard output."
+            )
+        )
+
     def handle(self, *args, **options):
         # collect input parameters
         self.verbosity = int(options.get('verbosity', 1))
         print_details = bool(options.get('details', False))
         print_json = bool(options.get('json_dump', False))
         filename = options.get('filename', '-')
+        range_type_ids = options['range-type-id']
 
         # get the range types
-        if args:
-            range_types = RangeType.objects.filter(name__in=args)
+        if range_type_ids:
+            range_types = RangeType.objects.filter(name__in=range_type_ids)
         else:
             range_types = RangeType.objects.all()
 
@@ -130,6 +128,7 @@ def output_detailed(range_types):
             yield "    %-8s %s\n" % (data_type, band.identifier)
         yield "\n"
 
+
 def output_json(range_types):
     """ Full JSON range-type dump. """
     range_types = iter(range_types)
@@ -145,7 +144,7 @@ def output_json(range_types):
 
 
 def range_type_to_dict(range_type):
-    """ Convert range-type to a JSON serializable dictionary.
+    """ Convert range-type to a JSON-serializable dictionary.
     """
     # loop over band records (ordering set in model)
     output_bands = []
@@ -181,5 +180,5 @@ def range_type_to_dict(range_type):
         # append created band dictionary
         output_bands.append(output_band)
 
-    # return a JSON serializable dictionary
+    # return a JSON-serializable dictionary
     return {'name': range_type.name, 'bands': output_bands}

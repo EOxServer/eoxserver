@@ -33,33 +33,27 @@ Create a new EOxServer instance. This instance will create a root directory
 with the instance name in the given (optional) directory.
 """
 
-from optparse import make_option
-
-from django.core.management.base import CommandError
-
 from eoxserver.core.management import EOxServerAdminCommand
 from eoxserver.core.instance import create_instance
 
 
 class Command(EOxServerAdminCommand):
-    option_list = EOxServerAdminCommand.option_list + (
-        make_option('--init_spatialite', '--init-spatialite',
-            action='store_true', help='Flag to initialize the sqlite database.'
-        ),
+
+    help = (
+        "Create a new EOxServer instance with all necessary files and "
+        "folder structure. Optionally, a SQLite database is initiated"
     )
 
-    args = "INSTANCE_ID [Optional destination directory] [--init-spatialite]"
-    help = ("Creates a new EOxServer instance with all necessary files and "
-            "folder structure. Optionally, a SQLite database is initiated")
-
-    def handle(self, instance_id=None, target=None, *args, **options):
-        if instance_id is None:
-            raise CommandError("Instance ID not given.")
-
-        init_spatialite = options["init_spatialite"]
-        verbosity = options["verbosity"]
-        traceback = options.get("traceback")
-
-        create_instance(
-            instance_id, target, init_spatialite, verbosity, traceback
+    def add_arguments(self, parser):
+        super(Command, self).add_arguments(parser)
+        parser.add_argument("instance-name")
+        parser.add_argument("target-directory", nargs="?")
+        parser.add_argument(
+            '--init_spatialite', action='store_true', default=False,
+            help='Flag to initialize the sqlite database.'
         )
+
+    def handle(self, *args, **options):
+        name = options.pop('instance-name')
+        target = options.pop('target-directory')
+        create_instance(name, target, **options)

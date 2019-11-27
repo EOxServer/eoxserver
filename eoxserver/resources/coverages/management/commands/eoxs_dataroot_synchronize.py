@@ -25,42 +25,36 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-from optparse import make_option
 from itertools import product
 from os.path import isabs
-
 from django.core.management.base import CommandError, BaseCommand
-
 from eoxserver.resources.coverages import models
 from eoxserver.resources.coverages.synchronization import synchronize
 from eoxserver.resources.coverages.management.commands import (
-    CommandOutputMixIn, _variable_args_cb, nested_commit_on_success
+    CommandOutputMixIn, nested_commit_on_success
 )
 
 
 class Command(CommandOutputMixIn, BaseCommand):
-    option_list = BaseCommand.option_list + (
-        make_option("--root", "-r", dest="root",
-            action='callback', callback=_variable_args_cb,
-            default=None, help=("Collection(s) from which the "
-                                "objects shall be removed.")
-        ),
-        make_option("--dry", "-d", dest="dry",
-            action="store_true", default=False,
-            help="Only do a dry-run and don't delete/register collections."
-        )
-    )
-
-    args = (
-        "<root-dir> [-p <pattern> [ ... ] ] "
-    )
 
     help = """
         Synchronizes one or more collections and all their data sources.
     """
 
-    def handle(self, patterns, *root_dirs):
-        root_dir = root_dirs[0]
+    def add_arguments(self, parser):
+        super(Command, self).add_arguments(parser)
+        parser.add_argument("root-dir")
+        parser.add_argument(
+            "--root", "-r", dest="root", action='append',
+            help="Collection from which the objects shall be removed."
+        )
+        parser.add_argument(
+            "--dry", "-d", dest="dry", action="store_true", default=False,
+            help="Only do a dry-run and don't delete/register collections."
+        )
+
+    def handle(self, *args, **kwargs):
+        root_dir = kwargs['root-dir']
 
         subdirs = []
         existing_collections = models.DatasetSeries.objects.filter()  # TODO
@@ -78,4 +72,3 @@ class Command(CommandOutputMixIn, BaseCommand):
         for identifier in existing_ids & registered_ids:
             pass
             # TODO: print
-

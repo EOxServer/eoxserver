@@ -28,7 +28,6 @@
 
 
 from django.core.management.base import CommandError, BaseCommand
-
 from eoxserver.resources.coverages import models
 from eoxserver.resources.coverages.management.commands import (
     CommandOutputMixIn, nested_commit_on_success
@@ -37,36 +36,32 @@ from eoxserver.resources.coverages.management.commands import (
 
 class Command(CommandOutputMixIn, BaseCommand):
 
-    args = "<identifier> [<identifier> ...]"
+    help = "Deregister one or more Datasets."
 
-    help = "Deregister on or more Datasets."
+    def add_arguments(self, parser):
+        super(Command, self).add_arguments(parser)
+        parser.add_argument("identifier", nargs="+")
 
     @nested_commit_on_success
     def handle(self, *identifiers, **kwargs):
-        if not identifiers:
-            raise CommandError("Missing the mandatory dataset identifier(s).")
+        identifiers = kwargs["identifier"]
 
         for identifier in identifiers:
             self.print_msg("Deleting Dataset: '%s'" % (identifier))
             try:
-                # locate coverage an check the type
                 coverage = models.Coverage.objects.get(
                     identifier=identifier
                 ).cast()
-
-                # final removal
                 coverage.delete()
-
             except models.Coverage.DoesNotExist:
                 raise CommandError(
                     "No dataset is matching the given identifier: '%s'."
                     % identifier
                 )
-
-            except Exception, e:
-                self.print_traceback(e, kwargs)
+            except Exception as error:
+                self.print_traceback(error, kwargs)
                 raise CommandError(
-                    "Dataset deregistration failed: %s" % e
+                    "Dataset deregistration failed: %s" % error
                 )
 
         self.print_msg("Dataset deregistered sucessfully.")

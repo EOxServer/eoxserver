@@ -28,7 +28,6 @@
 from sys import stdin
 import traceback
 import json
-from optparse import make_option
 from django.core.management.base import BaseCommand, CommandError
 from eoxserver.contrib.gdal import NAME_TO_GDT, NAME_TO_GCI
 from eoxserver.resources.coverages.management.commands import (
@@ -41,23 +40,6 @@ from eoxserver.resources.coverages.models import (
 
 class Command(CommandOutputMixIn, BaseCommand):
 
-    option_list = BaseCommand.option_list + (
-        make_option(
-            '-i', '--input', dest='filename', action='store', type='string',
-            default='-', help=(
-                "Optional. Read input from a file rather than from the "
-                "default standard input."
-            )
-        ),
-        make_option(
-            '-u', '--update', dest='update', action='store_true', default=False,
-            help=(
-                "Optional. Update the existing range-types. By default the "
-                "range type updates are not allowed."
-            )
-        ),
-    )
-
     help = """
     Load range-types stored in JSON format from standard input (default) or from
     a file (-i option).
@@ -67,6 +49,23 @@ class Command(CommandOutputMixIn, BaseCommand):
           It is thus possible to export range-types from an older EOxServer
           instances and import them to a new one.
     """
+
+    def add_arguments(self, parser):
+        super(Command, self).add_arguments(parser)
+        parser.add_argument(
+            '-i', '--input', dest='filename', action='store', type=str,
+            default='-', help=(
+                "Optional. Read input from a file rather than from the "
+                "default standard input."
+            )
+        )
+        parser.add_argument(
+            '-u', '--update', dest='update', action='store_true', default=False,
+            help=(
+                "Optional. Update the existing range-types. By default the "
+                "range type updates are not allowed."
+            )
+        )
 
     def _error(self, rt_name, message):
         self.print_err(

@@ -29,7 +29,6 @@
 from sys import stdin
 import traceback
 import json
-from optparse import make_option
 from django.core.management.base import BaseCommand, CommandError
 from eoxserver.resources.coverages.management.commands import (
     CommandOutputMixIn, nested_commit_on_success,
@@ -40,20 +39,19 @@ from eoxserver.services.models import WMSRenderOptions
 
 class Command(CommandOutputMixIn, BaseCommand):
 
-    option_list = BaseCommand.option_list + (
-        make_option(
-            '-i', '--input', dest='filename', action='store', type='string',
-            default='-', help=(
-                "Optional. Read input from a file rather than from the "
-                "default standard input."
-            )
-        ),
-    )
-
     help = """
     Load WMS options stored in JSON format from standard input (default) or from
     a file (-i option).
     """
+
+    def add_arguments(self, parser):
+        super(Command, self).add_arguments(parser)
+        parser.add_argument(
+            '-i', '--input', dest='filename', default='-', help=(
+                "Optional. Read input from a file rather than from the "
+                "default standard input."
+            )
+        )
 
     def handle(self, *args, **options):
         # Collect parameters

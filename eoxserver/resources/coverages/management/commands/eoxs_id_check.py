@@ -27,26 +27,12 @@
 #-------------------------------------------------------------------------------
 
 import sys
-from optparse import make_option
-
 from django.core.management.base import CommandError, BaseCommand
-
-from eoxserver.resources.coverages.management.commands import (
-    CommandOutputMixIn
-)
-
+from eoxserver.resources.coverages.management.commands import CommandOutputMixIn
 from eoxserver.resources.coverages import models
 
 
 class Command(CommandOutputMixIn, BaseCommand):
-    option_list = BaseCommand.option_list + (
-        make_option("-t", "--type",
-            dest="type_name", action="store", default="EOObject",
-            help=("Optional. Restrict the listed identifiers to given type.")
-        ),
-    )
-
-    args = "<id> [<id> ...] [-t <type>]"
 
     help = """
         Check whether one or more identifier are used by existing EOObjects or
@@ -56,33 +42,40 @@ class Command(CommandOutputMixIn, BaseCommand):
         indicates that any of the supplied identifiers is already in use.
     """
 
-    def handle(self, *identifiers, **kwargs):
-        if not identifiers:
-            raise CommandError("Missing the mandatory identifier(s).")
+    def add_arguments(self, parser):
+        super(Command, self).add_arguments(parser)
+        parser.add_argument("identifier", nargs="+")
+        parser.add_argument(
+            "-t", "--type", dest="type_name", default="EOObject",
+            help="Optional. Restrict the listed identifiers to the given type."
+        )
 
+    def handle(self, *args, **kwargs):
+        identifiers = kwargs["identifier"]
         type_name = kwargs["type_name"]
 
         try:
             # TODO: allow types residing in different apps
-            ObjectType = getattr(models, type_name)
-            if not issubclass(ObjectType, models.EOObject):
+            object_model = getattr(models, type_name)
+            if not issubclass(object_model, models.EOObject):
                 raise CommandError("Unsupported type '%s'." % type_name)
         except AttributeError:
             raise CommandError("Unsupported type '%s'." % type_name)
 
-        used = False
+        any_exits = False
+        any_missing = False
         for identifier in identifiers:
             try:
-                obj = ObjectType.objects.get(identifier=identifier)
+                obj = object_model.objects.get(identifier=identifier)
                 self.print_msg(
                     "The identifier '%s' is already in use by a '%s'."
                     % (identifier, obj.real_type.__name__)
                 )
-                used = True
-            except ObjectType.DoesNotExist:
+                any_exits = True
+            except object_model.DoesNotExist:
                 self.print_msg(
                     "The identifier '%s' is currently not in use." % identifier
                 )
+                any_missing = True
 
-        if used:
-            sys.exit(1)
+        sys.exit((2 if any_missing else 1) if any_exits else 0)

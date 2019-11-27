@@ -26,8 +26,7 @@
 #-------------------------------------------------------------------------------
 # pylint: disable=missing-docstring
 
-from optparse import make_option
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import BaseCommand
 from eoxserver.resources.coverages.management.commands import (
     CommandOutputMixIn,
 )
@@ -38,81 +37,77 @@ from eoxserver.services.management.commands.wms_options_load import (
 
 class Command(CommandOutputMixIn, BaseCommand):
 
-    option_list = BaseCommand.option_list + (
-        make_option(
-            "-i", "--identifier", "--coverage-id", dest="identifier",
-            action="store", default=None,
-            help="Mandatory coverage identifier."
-        ),
-        make_option(
-            "-r", "--red", dest="red", action="store", default=None,
-            help="Band index of the red channel."
-        ),
-        make_option(
-            "-g", "--green", dest="green", action="store", default=None,
-            help="Band index of the green channel."
-        ),
-        make_option(
-            "-b", "--blue", dest="blue", action="store", default=None,
-            help="Band index of the blue channel."
-        ),
-        make_option(
-            "-a", "--alpha", dest="alpha", action="store", default=None,
-            help="Band index of the alpha channel."
-        ),
-        make_option(
-            "--grey", "--grey-scale", dest="red", action="store", default=None,
-            help="Index of the band displayed as a grey-scale image."
-        ),
-        make_option(
-            "--resampling", dest="resampling", action="store",
-            default=None, choices=["NEAREST", "AVERAGE", "BILINEAR"],
-            help="Set image resampling method."
-        ),
-        make_option(
-            "--min", "--scale-min", dest="scale_min", action="store",
-            default=None,
-            help=(
-                "Range scale minimum value. Use a comma separated list "
-                "if each band has a different value."
-            )
-        ),
-        make_option(
-            "--max", "--scale-max", dest="scale_max", action="store",
-            default=None,
-            help=(
-                "Range scale minimum value. Use a comma separated list "
-                "if each band has a different value."
-            )
-        ),
-        make_option(
-            "--auto-scale", dest="scale_auto", action="store_true",
-            default=False,
-            help="Enable automatic range scaling."
-        ),
-        make_option(
-            "--no-auto-scale", dest="scale_auto", action="store_false",
-            help="Disable automatic range scaling."
-        ),
-    )
-
-    args = "<coverage-id>"
-
     help = """
     Set WMS options for a coverage.
-    
+
     NOTE: Band indices are counted from 1.
     """
 
+    def add_arguments(self, parser):
+        super(Command, self).add_arguments(parser)
+        parser.add_argument("coverage-id")
+        parser.add_argument(
+            "-i", "--identifier", "--coverage-id", dest="identifier",
+            default=None,
+            help="Mandatory coverage identifier."
+        )
+        parser.add_argument(
+            "-r", "--red", dest="red", default=None,
+            help="Band index of the red channel."
+        )
+        parser.add_argument(
+            "-g", "--green", dest="green", default=None,
+            help="Band index of the green channel."
+        )
+        parser.add_argument(
+            "-b", "--blue", dest="blue", default=None,
+            help="Band index of the blue channel."
+        )
+        parser.add_argument(
+            "-a", "--alpha", dest="alpha", default=None,
+            help="Band index of the alpha channel."
+        )
+        parser.add_argument(
+            "--grey", "--grey-scale", dest="red", default=None,
+            help="Index of the band displayed as a grey-scale image."
+        )
+        parser.add_argument(
+            "--resampling", dest="resampling",
+            default=None, choices=["NEAREST", "AVERAGE", "BILINEAR"],
+            help="Set image resampling method."
+        )
+        parser.add_argument(
+            "--min", "--scale-min", dest="scale_min",
+            default=None,
+            help=(
+                "Range scale minimum value. Use a comma separated list "
+                "if each band has a different value."
+            )
+        )
+        parser.add_argument(
+            "--max", "--scale-max", dest="scale_max",
+            default=None,
+            help=(
+                "Range scale minimum value. Use a comma separated list "
+                "if each band has a different value."
+            )
+        )
+        parser.add_argument(
+            "--auto-scale", dest="scale_auto", action="store_true",
+            default=False,
+            help="Enable automatic range scaling."
+        )
+        parser.add_argument(
+            "--no-auto-scale", dest="scale_auto", action="store_false",
+            help="Disable automatic range scaling."
+        )
+
+
     def handle(self, *args, **options):
-        # Collect parameters
         self.traceback = bool(options.get("traceback", False))
         self.verbosity = int(options.get('verbosity', 1))
 
-        try:
-            coverage_id = args[0]
-        except IndexError:
-            raise CommandError("Missing the mandatory coverage identifier!")
+        coverage_id = options["coverage-id"]
 
         keys = set((
             'red', 'green', 'blue', 'alpha', 'resampling', 'scale_auto'

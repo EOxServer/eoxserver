@@ -26,10 +26,7 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-from optparse import make_option
-
 from django.core.management.base import CommandError, BaseCommand
-
 from eoxserver.resources.coverages import models
 from eoxserver.resources.coverages.management.commands import (
     CommandOutputMixIn, nested_commit_on_success
@@ -37,22 +34,6 @@ from eoxserver.resources.coverages.management.commands import (
 
 
 class Command(CommandOutputMixIn, BaseCommand):
-    option_list = BaseCommand.option_list + (
-        make_option("-i", "--identifier",
-            dest="identifier", action="store", default=None,
-            help=("Collection identifier.")
-        ),
-        make_option("-r", "--recursive", "--recursive-delete",
-            dest="recursive", action="store_true", default=False,
-            help=("Optional. Delete all contained collections.")
-        ),
-        make_option("-f", "--force",
-            dest="force", action="store_true", default=False,
-            help=("Optional. Force deletion of non-empty collections.")
-        )
-    )
-
-    args = "-i <collection-id> [-r] [-f]"
 
     help = """
         Deletes a Collection.
@@ -66,11 +47,25 @@ class Command(CommandOutputMixIn, BaseCommand):
         removed when they are still containing objects.
     """
 
+    def add_arguments(self, parser):
+        super(Command, self).add_arguments(parser)
+        parser.add_argument(
+            "-i", "--identifier", dest="identifier", required=True,
+            help="Collection identifier."
+        )
+        parser.add_argument(
+            "-r", "--recursive", "--recursive-delete",
+            dest="recursive", action="store_true", default=False,
+            help="Optional. Delete all contained collections."
+        )
+        parser.add_argument(
+            "-f", "--force", dest="force", action="store_true", default=False,
+            help="Optional. Force deletion of non-empty collections."
+        )
+
     @nested_commit_on_success
     def handle(self, *args, **kwargs):
         identifier = kwargs['identifier']
-        if not identifier:
-            raise CommandError("Missing the mandatory collection identifier.")
 
         try:
             collection = models.Collection.objects.get(identifier=identifier)
@@ -81,9 +76,9 @@ class Command(CommandOutputMixIn, BaseCommand):
             count = self._delete_collection(
                 collection, kwargs["recursive"], kwargs["force"]
             )
-        except Exception, e:
-            self.print_traceback(e, kwargs)
-            raise CommandError("Deletion of the collection failed: %s" % e)
+        except Exception as error:
+            self.print_traceback(error, kwargs)
+            raise CommandError("Deletion of the collection failed: %s" % error)
 
         self.print_msg("Successfully deleted %d collections." % count)
 
