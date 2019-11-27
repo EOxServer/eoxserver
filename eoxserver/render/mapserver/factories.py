@@ -311,7 +311,7 @@ class MosaicLayerFactory(CoverageLayerFactoryMixIn, BaseMapServerLayerFactory):
 class BrowseLayerMixIn(object):
     def make_browse_layer_generator(self, map_obj, browses, map_, filename_generator,
                                     group_name, ranges, style):
-        for browse in reversed(browses):
+        for browse in browses:
             if isinstance(browse, GeneratedBrowse):
                 creation_info, filename_generator, reset_info = generate_browse(
                     browse.band_expressions,
