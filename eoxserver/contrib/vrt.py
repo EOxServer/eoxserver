@@ -27,6 +27,7 @@
 
 import subprocess
 import math
+from django.utils.six import string_types
 
 from eoxserver.contrib import gdal, vsi, osr
 
@@ -148,7 +149,7 @@ class VRTBuilder(object):
                          <eoxserver.core.util.rect.Rect>` specifying the target
                          area to contribute
         """
-        if isinstance(src, basestring):
+        if isinstance(src, string_types):
             pass
 
         else:
@@ -218,7 +219,7 @@ class VRTBuilder2(object):
                          <eoxserver.core.util.rect.Rect>` specifying the target
                          area to contribute
         """
-        if isinstance(src, basestring):
+        if isinstance(src, string_types):
             pass
 
         else:

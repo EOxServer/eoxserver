@@ -33,7 +33,7 @@ import operator
 import numpy as np
 
 from eoxserver.contrib import vrt, gdal, osr
-
+from django.utils.six import string_types
 
 class BrowseGenerationError(Exception):
     pass
@@ -128,7 +128,7 @@ def extract_fields(band_expression):
         :return: a list of field names
         :rtype: list
     """
-    if isinstance(band_expression, basestring):
+    if isinstance(band_expression, string_types):
         root_expr = parse_expression(band_expression)
     else:
         root_expr = band_expression

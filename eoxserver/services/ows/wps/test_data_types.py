@@ -160,7 +160,7 @@ class TestDataTypeInt(TestCase, BaseTestMixin):
             ('32145', 32145),
             (-1, -1),
             (u'4722366482869645213695', 0xFFFFFFFFFFFFFFFFFF),
-            ('-4722366482869645213695', -4722366482869645213695L),
+            ('-4722366482869645213695', -4722366482869645213695),
         ]
         self.parsed_rejected = [
             'nan',

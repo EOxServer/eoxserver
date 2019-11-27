@@ -27,8 +27,15 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-from itertools import chain, ifilterfalse
+
+try:
+    from itertools import chain, ifilterfalse
+except ImportError:
+    pass
+
+from django.utils.six import PY2, PY3, string_types
 from .data_types import BaseType, Double, DTYPES
+
 
 class TypedMixIn(object):
     """ Mix-in class adding date-type to an allowed value range. """
@@ -105,7 +112,13 @@ class AllowedEnum(BaseAllowed, TypedMixIn):
         vlist = []
         vset_add = vset.add
         vlist_append = vlist.append
-        for value in ifilterfalse(vset.__contains__, values):
+
+        if PY2:
+            filtering = ifilterfalse
+        elif PY3:
+            filtering = filter
+
+        for value in filtering(vset.__contains__, values):
             vset_add(value)
             vlist_append(value)
         return vlist, vset

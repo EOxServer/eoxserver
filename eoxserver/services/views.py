@@ -40,6 +40,7 @@ except:
     class StreamingHttpResponse(object):
         pass
 from django.views.decorators.csrf import csrf_exempt
+from django.utils.six import string_types
 
 from eoxserver.core import env
 from eoxserver.services.ows.component import ServiceComponent
@@ -91,7 +92,7 @@ def ows(request):
     if isinstance(result, (HttpResponse, StreamingHttpResponse)):
         return result
 
-    elif isinstance(result, basestring):
+    elif isinstance(result, string_types):
         return HttpResponse(result)
 
     # convert result to a django response

@@ -101,17 +101,17 @@ class Rect(tuple):
         """
         return self.intersection(other).area > 0
 
-    def translated(self, (diff_x, diff_y)):
+    def translated(self, tup):
         """ Returns a new :class:`Rect` shifted by the given offset.
         """
         return Rect(
-            self.offset_x + diff_x, self.offset_y + diff_y,
+            self.offset_x + tup[0], self.offset_y + tup[1],
             self.size_x, self.size_y
         )
 
     __add__ = translated
 
-    __sub__ = (lambda self, (x, y): self.translated((-x, -y)))
+    __sub__ = (lambda self, coordinates: self.translated((-x, -y)))
 
     def __repr__(self):
         return "Rect(offset_x=%s, offset_y=%s, size_x=%s, size_y=%s)" % self

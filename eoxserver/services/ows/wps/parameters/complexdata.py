@@ -32,12 +32,13 @@
 import json
 from os import remove
 from copy import deepcopy
-from StringIO import StringIO
 
 try:
+    from StringIO import StringIO
     from cStringIO import StringIO as FastStringIO
 except ImportError:
-    FastStringIO = StringIO
+    from io import StringIO
+    from io import StringIO as FastStringIO
 
 try:
     # available in Python 2.7+
@@ -48,6 +49,8 @@ except ImportError:
 from lxml import etree
 from .base import Parameter
 from .formats import Format
+from django.utils.encoding import smart_text
+from django.utils.six import string_types, text_type
 
 #-------------------------------------------------------------------------------
 # complex data - data containers
@@ -163,7 +166,7 @@ class CDTextBuffer(StringIO, CDBase):
     """
     def __init__(self, data=u'', *args, **kwargs):
         # NOTE: StringIO is an old-style class and super cannot be used!
-        StringIO.__init__(self, unicode(data))
+        StringIO.__init__(self, smart_text(data))
         CDBase.__init__(self, *args, **kwargs)
         self.text_encoding = kwargs.get('text_encoding', None)
 
@@ -174,9 +177,9 @@ class CDTextBuffer(StringIO, CDBase):
 
     def write(self, data):
         if self.text_encoding is None:
-            return StringIO.write(self, unicode(data))
+            return StringIO.write(self, smart_text(data))
         else:
-            return StringIO.write(self, unicode(data, self.text_encoding))
+            return StringIO.write(self, smart_text(data, self.text_encoding))
 
     def read(self, size=None):
         if size is None:
@@ -213,7 +216,7 @@ class CDAsciiTextBuffer(CDByteBuffer):
         self.text_encoding = kwargs.get('text_encoding', None)
 
     def write(self, data):
-        if not isinstance(data, basestring):
+        if not isinstance(data, string_types):
             data = str(data)
         StringIO.write(self, data.encode('ascii'))
 
@@ -431,7 +434,7 @@ class ComplexData(Parameter):
         elif format_.is_json:
             return json.dumps(data, ensure_ascii=False)
         elif format_.is_text:
-            if not isinstance(data, basestring):
+            if not isinstance(data, string_types):
                 data.seek(0)
                 data = data.read()
             return data
@@ -497,10 +500,11 @@ def _bytestring(data):
 
 
 def _unicode(data, encoding):
-    if isinstance(data, unicode):
+
+    if isinstance(data, text_type):
         return data
-    elif isinstance(data, str):
-        return unicode(data, encoding)
+    elif isinstance(data, bytes):
+        return smart_text(data, encoding)
     raise TypeError(
         "Byte or Unicode string expected, %s received!" % type(data)
     )

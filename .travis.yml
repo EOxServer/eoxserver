@@ -1,14 +1,14 @@
 language: python
 
 env:
-# - OS=centos PY=py2 DB=postgis DJANGO="1.11.26"
-# - OS=centos PY=py2 DB=spatialite DJANGO="1.11.26"
-- OS=ubuntu PY=py2 DB=postgis DJANGO="1.11.26"
-- OS=ubuntu PY=py2 DB=spatialite DJANGO="1.11.26"
-- OS=ubuntu PY=py3 DB=postgis DJANGO="1.11.26"
-- OS=ubuntu PY=py3 DB=spatialite DJANGO="1.11.26"
-- OS=ubuntu PY=py3 DB=postgis DJANGO="2.2.7"
-- OS=ubuntu PY=py3 DB=spatialite DJANGO="2.2.7"
+# - OS=centos PY=py2 DB=postgis DJANGO="1.11.26" PYTHON=python
+# - OS=centos PY=py2 DB=spatialite DJANGO="1.11.26 PYTHON=python"
+- OS=ubuntu PY=py2 DB=postgis DJANGO="1.11.26 PYTHON=python"
+- OS=ubuntu PY=py2 DB=spatialite DJANGO="1.11.26 PYTHON=python"
+- OS=ubuntu PY=py3 DB=postgis DJANGO="1.11.26 PYTHON=python3"
+- OS=ubuntu PY=py3 DB=spatialite DJANGO="1.11.26 PYTHON=python3"
+- OS=ubuntu PY=py3 DB=postgis DJANGO="2.2.7 PYTHON=python3"
+- OS=ubuntu PY=py3 DB=spatialite DJANGO="2.2.7 PYTHON=python3"
 
 services:
 - docker
@@ -28,17 +28,17 @@ script:
 - docker-compose up -d
 - docker-compose ps
 - docker-compose exec autotest bash -c 'apt-get install -y postgresql-client; until PGPASSWORD=${DB_PW} psql "${DB_NAME}" -h "${DB_HOST}" -U "${DB_USER}" -c "\q"; do >&2 echo "Database is unavailable - sleeping"; sleep 5; done'
-- docker-compose exec autotest python -m eoxserver.services.ows.wps.test_data_types
-- docker-compose exec autotest python -m eoxserver.services.ows.wps.test_allowed_values
-- docker-compose exec autotest python manage.py test --pythonpath=../eoxserver/ eoxserver.core -v2
-- docker-compose exec autotest python manage.py test --pythonpath=../eoxserver/ eoxserver.backends -v2
-- docker-compose exec autotest python manage.py test --pythonpath=../eoxserver/ eoxserver.services -v2
-- docker-compose exec autotest python manage.py test --pythonpath=../eoxserver/ eoxserver.resources.coverages -v2
-- docker-compose exec autotest python manage.py test autotest_services --tag wcs20 -v2
-- docker-compose exec autotest python manage.py test autotest_services --tag wcs11 -v2
-- docker-compose exec autotest python manage.py test autotest_services --tag wcs10 -v2
-- docker-compose exec autotest python manage.py test autotest_services --tag wms -v2
-- docker-compose exec autotest python manage.py test autotest_services --tag wps -v2
+- docker-compose exec autotest $(PYTHON) -m eoxserver.services.ows.wps.test_data_types
+- docker-compose exec autotest $(PYTHON) -m eoxserver.services.ows.wps.test_allowed_values
+- docker-compose exec autotest $(PYTHON) manage.py test --pythonpath=../eoxserver/ eoxserver.core -v2
+- docker-compose exec autotest $(PYTHON) manage.py test --pythonpath=../eoxserver/ eoxserver.backends -v2
+- docker-compose exec autotest $(PYTHON) manage.py test --pythonpath=../eoxserver/ eoxserver.services -v2
+- docker-compose exec autotest $(PYTHON) manage.py test --pythonpath=../eoxserver/ eoxserver.resources.coverages -v2
+- docker-compose exec autotest $(PYTHON) manage.py test autotest_services --tag wcs20 -v2
+- docker-compose exec autotest $(PYTHON) manage.py test autotest_services --tag wcs11 -v2
+- docker-compose exec autotest $(PYTHON) manage.py test autotest_services --tag wcs10 -v2
+- docker-compose exec autotest $(PYTHON) manage.py test autotest_services --tag wms -v2
+- docker-compose exec autotest $(PYTHON) manage.py test autotest_services --tag wps -v2
 
 after_failure:
 - diff autotest/expected autotest/responses

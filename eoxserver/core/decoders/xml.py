@@ -30,6 +30,7 @@
 
 from lxml import etree
 from eoxserver.core.decoders.base import BaseParameter
+from django.utils.six import string_types
 
 
 class Parameter(BaseParameter):
@@ -60,12 +61,12 @@ class Parameter(BaseParameter):
 
     def select(self, decoder):
         # prepare the XPath selector if necessary
-        if isinstance(self.selector, basestring):
+        if isinstance(self.selector, string_types):
             namespaces = self.namespaces or decoder.namespaces
             self.selector = etree.XPath(self.selector, namespaces=namespaces)
 
         results = self.selector(decoder._tree)
-        if isinstance(results, (basestring, float, int)):
+        if isinstance(results, (string_types, float, int)):
             results = [results]
 
         return results
@@ -117,7 +118,7 @@ class Decoder(object):
     namespaces = {}  # must be overriden if the XPath expressions use namespaces
 
     def __init__(self, tree):
-        if isinstance(tree, basestring):
+        if isinstance(tree, string_types):
             try:
                 tree = etree.fromstring(tree)
             except etree.XMLSyntaxError as exc:

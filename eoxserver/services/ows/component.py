@@ -31,6 +31,7 @@ import itertools
 from functools import partial
 
 from django.http import HttpResponse
+from django.utils.six import string_types
 
 from eoxserver.core import Component, ExtensionPoint, env
 from eoxserver.services.ows.interfaces import *
@@ -283,7 +284,7 @@ def sort_handlers(handlers, ascending=True):
 def handler_supports_service(handler, service=None):
     """ Convenience method to check whether or not a handler supports a service.
     """
-    if isinstance(handler.service, basestring):
+    if isinstance(handler.service, string_types):
         return handler.service.upper() == service
     else:
         return service in handler.service

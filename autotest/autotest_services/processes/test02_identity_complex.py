@@ -26,7 +26,10 @@
 #-------------------------------------------------------------------------------
 
 import json
-from StringIO import StringIO
+try:
+    from cStringIO import StringIO
+except ImportError:
+    from io import StringIO
 from lxml import etree
 from eoxserver.core import Component, implements
 from eoxserver.services.ows.wps.interfaces import ProcessInterface
@@ -34,6 +37,7 @@ from eoxserver.services.ows.wps.exceptions import InvalidOutputDefError
 from eoxserver.services.ows.wps.parameters import (
     ComplexData, CDObject, CDTextBuffer, FormatText, FormatXML, FormatJSON,
 )
+from django.utils.encoding import smart_text
 
 class TestProcess02(Component):
     """ Test identity process (the outputs are copies of the inputs)
@@ -113,7 +117,7 @@ class TestProcess02(Component):
                 filename=(output_filename_base + ".xml")
             )
             # text output also accepts Unicode strings
-            outputs['output01'] = unicode(
+            outputs['output01'] = smart_text(
                 etree.tostring(
                     input00.data, encoding='utf-8', pretty_print=True
                 ), 'utf-8'

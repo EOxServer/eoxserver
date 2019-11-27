@@ -30,7 +30,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
-
+from django.utils.encoding import smart_text
 LANG="en"
 
 #=======================================================
@@ -41,13 +41,13 @@ class OWS11_Exception( Exception ) :
     def __init__( self , locator = None , message = None ) : 
         self.locator = locator 
         self.message = message 
-        self.msg = unicode( self ) 
+        self.msg = smart_text( self ) 
 
     def getCode( self ) : 
         return self.__class__.__name__[2:]
 
     def __str__( self ) : 
-        return unicode( self ).encode("UTF-8")
+        return smart_text( self ).encode("UTF-8")
 
     def __unicode__( self ) : 
         t = [ u"code=%s" % self.getCode() ] 
@@ -112,7 +112,7 @@ def ows11ExceptionReport( exception ) :
     try :   raise exception 
     except OWS11_Exception : pass # the exception is already a OWS11 exception
     except : # conversion must be done  
-        exception = ExNoApplicableCode( unicode( exception ) ) 
+        exception = ExNoApplicableCode( smart_text( exception ) ) 
 
     # prepare report 
     code = exception.getCode() 
@@ -126,7 +126,7 @@ def ows11ExceptionReport( exception ) :
     xml.append( u'\t<ows:Exception exceptionCode="%s"%s' % ( code , loc ) ) 
 
     if exception.message : 
-        msg = unicode( exception.message ).replace( "]]>" , "]]]]><![CDATA[>" ) 
+        msg = smart_text( exception.message ).replace( "]]>" , "]]]]><![CDATA[>" ) 
         xml.append( u">\n\t\t<ows:ExceptionText><![CDATA[%s]]></ows:ExceptionText>\n\t</ows:Exception>\n" % msg )
     else : 
         xml.append( u"/>\n" )

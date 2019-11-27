@@ -41,7 +41,7 @@ from eoxserver.resources.coverages.metadata.coverage_formats import (
 from eoxserver.resources.coverages.registration.exceptions import (
     RegistrationError
 )
-
+from django.utils.six import string_types
 
 class RegistrationReport(object):
     def __init__(self, coverage, replaced, metadata_parsers, retrieved_metadata):
@@ -381,7 +381,7 @@ class BaseRegistrator(object):
         """ Get or create a grid according to our defintion
         """
         grid = None
-        if isinstance(definition, basestring):
+        if isinstance(definition, string_types):
             try:
                 grid = models.Grid.objects.get(name=definition)
             except models.Grid.DoesNotExist:

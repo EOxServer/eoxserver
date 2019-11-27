@@ -30,6 +30,7 @@ import re
 from datetime import datetime
 
 from lxml.builder import ElementMaker
+from django.utils.six import string_types
 
 from eoxserver.core.util.xmltools import NameSpace, NameSpaceMap, ns_xsi
 from eoxserver.core.util.timetools import parse_iso8601
@@ -84,7 +85,7 @@ class RangeSubset(list):
         all_bands = range_type[:]
 
         for subset in self:
-            if isinstance(subset, basestring):
+            if isinstance(subset, string_types):
                 # slice, i.e single band
                 start = stop = subset
 

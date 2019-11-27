@@ -36,7 +36,7 @@ is an essential part of the ATP (Asynchronous Task Processing) subsystem. """
 #-------------------------------------------------------------------------------
 
 from django.db import models
-
+from django.utils.encoding import smart_text
 #-------------------------------------------------------------------------------
 
 #: status code to text conversion dictionary
@@ -69,9 +69,9 @@ class Type( models.Model ) :
     timeret    = models.FloatField( default = -1.0 , blank = False , null = False , editable = False ) 
 
     def __unicode__( self ) :
-        return unicode( self.identifier ) 
+        return smart_text( self.identifier ) 
 
-    def __str__( self ) : return unicode(self).encode("utf8")
+    def __str__( self ) : return smart_text(self).encode("utf8")
 
     class Admin : pass
 
@@ -99,7 +99,7 @@ class Instance( models.Model ) :
     def __unicode__( self ) :
         return u"%s::%s"%( self.type.identifier , self.identifier ) 
 
-    def __str__( self ) : return unicode(self).encode("utf8")
+    def __str__( self ) : return smart_text(self).encode("utf8")
 
     class Admin : pass
 
@@ -118,7 +118,7 @@ class Task( models.Model ):
     def __unicode__( self ) :
         return u"%s::%s"%( self.instance.type.identifier , self.instance.identifier ) 
 
-    def __str__( self ) : return unicode(self).encode("utf8")
+    def __str__( self ) : return smart_text(self).encode("utf8")
 
     class Admin : pass
 
@@ -143,13 +143,13 @@ class LogRecord( models.Model ):
 
     def __unicode__( self ) :
 
-        message = unicode(self.message) 
+        message = smart_text(self.message) 
         if ( 28 < len(message) ) : 
             message = u"%s ..."%message[:28] 
 
         return u'%22.22s [%s] %s\t%s' % ( self.time , self.instance , STATUS2TEXT[self.status] , message ) 
 
-    def __str__( self ) : return unicode(self).encode("utf8")
+    def __str__( self ) : return smart_text(self).encode("utf8")
  
     class Admin : pass
 
@@ -167,9 +167,9 @@ class Response( models.Model ):
     response  = models.TextField( editable = False )
     mimeType  = models.TextField( editable = True )
 
-    def __unicode__( self ) : return unicode( self.instance )  
+    def __unicode__( self ) : return smart_text( self.instance )  
 
-    def __str__( self ) : return unicode(self).encode("utf8")
+    def __str__( self ) : return smart_text(self).encode("utf8")
 
     class Admin : pass
 
@@ -186,9 +186,9 @@ class Input( models.Model ):
     instance    = models.OneToOneField( Instance , blank=False , on_delete=models.PROTECT, null=False , editable = False )
     input       = models.TextField( editable = False ) # store the data as Base64 encoded pickle object
 
-    def __unicode__( self ) : return unicode( self.instance )  
+    def __unicode__( self ) : return smart_text( self.instance )  
 
-    def __str__( self ) : return unicode(self).encode("utf8")
+    def __str__( self ) : return smart_text(self).encode("utf8")
 
     class Admin : pass 
 

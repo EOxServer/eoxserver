@@ -177,7 +177,7 @@ class BoundingBoxData(Parameter):
                 (raw_bbox.lower, raw_bbox.upper),
                 raw_bbox.crs if raw_bbox.crs is not None else self.default_crs
             )
-        elif isinstance(raw_bbox, basestring):
+        elif isinstance(raw_bbox, string_types):
             items = raw_bbox.split(',')
             dim = len(items)/2
             lower = [self.dtype.parse(item) for item in items[0:dim]]

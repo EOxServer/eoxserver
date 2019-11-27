@@ -26,7 +26,10 @@
 #-------------------------------------------------------------------------------
 
 
-from django.urls import re_path, include
+try:
+    from django.conf.urls import include, url as re_path
+except ImportError:
+    from django.urls import include, re_path
 
 from eoxserver.services.opensearch.views import description, search
 

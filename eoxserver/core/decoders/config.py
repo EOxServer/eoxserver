@@ -131,7 +131,10 @@ class Reader(object):
     ::
 
         from ConfigParser import RawConfigParser
-        from StringIO import StringIO
+        try:
+            from cStringIO import StringIO
+        except ImportError:
+            from io import StringIO
         from textwrap import dedent
         from eoxserver.core.decoders import config
 

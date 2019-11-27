@@ -38,7 +38,7 @@ from eoxserver.processing.preprocessing.util import (
 from eoxserver.resources.coverages.crss import (
     parseEPSGCode, fromShortCode, fromURL, fromURN, fromProj4Str
 )
-
+from django.utils.six import string_types
 
 logger = logging.getLogger(__name__)
 
@@ -65,7 +65,7 @@ class ReprojectionOptimization(DatasetOptimization):
     def __init__(self, crs_or_srid, temporary_directory=None):
         if isinstance(crs_or_srid, int):
             pass
-        elif isinstance(crs_or_srid, basestring):
+        elif isinstance(crs_or_srid, string_types):
             crs_or_srid = parseEPSGCode(crs_or_srid, (fromShortCode, fromURL,
                                                       fromURN, fromProj4Str))
         else:

@@ -32,6 +32,8 @@
 #-------------------------------------------------------------------------------
 
 from xml.dom.minidom import Node as DOMNode
+from django.utils.encoding import smart_text
+from django.utils.six import text_type
 
 #-----------------------------------------------------------------------
 
@@ -97,7 +99,7 @@ class LangSelect( object ) :
         return self.__data.get( key , default ) 
         
     def __setitem__( self , key ,value ) :
-        if type(key) is unicode : key = str(key) 
+        if isinstance(key, text_type): key = str(key) 
         self.__data[key] = value
 
     def __contains__( self , key ) :  
@@ -113,7 +115,7 @@ class LangSelect( object ) :
         return "LangSelect%s" % str( self.__data ) 
 
     def __unicode__( self ) : 
-        return u"LangSelect%s" % unicode( self.__data ) 
+        return u"LangSelect%s" % smart_text( self.__data ) 
 
 #-----------------------------------------------------------------------
     
@@ -126,7 +128,7 @@ class KeywordSet( object ) :
 
     def append( self , keyword , lang = None , kstype = None , codeSpace = None ) : 
         """ append new keyword with optional language specification """
-        if type(lang) is unicode : lang = str(lang)  
+        if isinstance(lang, text_type): lang = str(lang)  
         self.__keys.append( (keyword,lang) ) 
 
     def items( self ) : 
@@ -145,11 +147,11 @@ class KeywordSet( object ) :
         """ get set of all available language codes """
         return set( map( lambda k,l : l , self.__keys ) )   
         
-    def __unicode__( self ) : 
-        return u"KeywordSet(%s,type=%s,codeSpace=%s)" % ( unicode(self.__keys) , unicode(self.type) , unicode(self.codeSpace) ) 
+    def __text_type__( self ) : 
+        return u"KeywordSet(%s,type=%s,codeSpace=%s)" % ( smart_text(self.__keys) , smart_text(self.type) , smart_text(self.codeSpace) ) 
 
     def __str__( self ) : 
-        return unicode(self).encode("UTF-8")
+        return smart_text(self).encode("UTF-8")
 
     def __repr__( self ) :
         return str( self ) 

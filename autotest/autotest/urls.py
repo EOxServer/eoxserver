@@ -1,7 +1,9 @@
 from django.conf import settings
 
-
-from django.conf.urls import include, re_path
+try:
+    from django.conf.urls import include, url as re_path
+except ImportError:
+    from django.urls import include, re_path
 from django.contrib import admin
 from django.conf.urls.static import static
 

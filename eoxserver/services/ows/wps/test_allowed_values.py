@@ -35,6 +35,7 @@ from eoxserver.services.ows.wps.parameters import (
     Integer, Double, String, Duration, Date, Time, DateTime,
 )
 
+from django.utils.six import text_type
 #------------------------------------------------------------------------------
 
 class BaseTestMixin(object):
@@ -125,7 +126,7 @@ class TestAllowedEnumString2(TestCase, BaseTestMixin):
 class TestAllowedEnumString3(TestCase, BaseTestMixin):
     def setUp(self):
         enum = ['John', 'James', 'Jeffrey', 'Jacob', 'Jerry']
-        self.domain = AllowedEnum(enum, dtype=unicode)
+        self.domain = AllowedEnum(enum, dtype=text_type)
         self.accepted = ['John', 'Jacob', 'Jerry']
         self.rejected = ['Alex', '']
 

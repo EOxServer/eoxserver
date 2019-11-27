@@ -31,22 +31,24 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-import os 
+import os
 import base64
 import urllib
 import httplib
-import logging 
+import logging
 import mimetypes
-import time 
+import time
 import ftplib
 import sys
 import traceback
-import urlparse 
+import urlparse
 
 try:
-    from io import StringIO 
+    from io import StringIO
 except ImportError:
     from cStringIO import StringIO
+
+from django.utils.six import text_type
 #-------------------------------------------------------------------------------
 
 import wcst11Exception 
@@ -54,21 +56,23 @@ import wcst11Exception
 
 #-------------------------------------------------------------------------------
 
-def saveToFile( data , fname , mode = "w" , encoding = "UTF-8" ) : 
+
+def saveToFile(data, fname, mode="w", encoding="UTF-8"):
     """ save string to file """
 
-    fid = file( fname , mode ) 
+    fid = file(fname, mode)
 
-    if type( data ) is unicode : 
-        tmp = data.encode( encoding ) 
-    else : 
-        tmp = str( data ) 
+    if isinstance(data, text_type):
+        tmp = data.encode(encoding)
+    else:
+        tmp = str(data)
 
-    fid.write( tmp ) 
+    fid.write(tmp)
 
-    fid.close() 
+    fid.close()
 
 #-------------------------------------------------------------------------------
+
 
 LLEVELS = {
             "DEBUG": logging.DEBUG,
@@ -78,37 +82,43 @@ LLEVELS = {
             "CRITICAL": logging.CRITICAL
         }
 
-def loggingSetUp( context ) : 
 
-    msg   = "%(message)s" 
+def loggingSetUp(context):
+
+    msg = "%(message)s"
 
     logging.basicConfig(
         level    = LLEVELS[ context['loggingLevel'] ],
         format   = context['loggingFormat'].replace(msg,"(%s) %s"%(context["tid"],msg)) , 
         filename = context['loggingFilename'] ) 
 
-def loggingShutDown() : 
+
+def loggingShutDown():
 
     logging.shutdown()
 
 #-------------------------------------------------------------------------------
 
-def timeStampUTC( ttt = None ) : 
+
+def timeStampUTC(ttt=None):
     """ get ISO XML date-time """
     return time.strftime("%Y-%m-%dT%H:%M:%SZ", \
         time.gmtime() if ( ttt is None ) else ttt )
 
 #-------------------------------------------------------------------------------
 
-# return a new process ID token 
+
+# return a new process ID token
 def getNewCoverageID() : 
     return "wcstCov_%s" % ( base64.urlsafe_b64encode( os.urandom(15) ) ) 
 
-# return a new request ID token 
+
+# return a new request ID token
 def getNewRequestID() : 
     return "wcstReq_%s" % ( base64.urlsafe_b64encode( os.urandom(15) ) ) 
 
 #-------------------------------------------------------------------------------
+
 
 def guessExtension( mimeType ) : 
 
@@ -135,6 +145,7 @@ def guessExtension( mimeType ) :
 #-------------------------------------------------------------------------------
 
 class HTTPError( Exception ) : pass  
+
 
 def downloadReference( url , basename , prefix = "" ) : 
     """

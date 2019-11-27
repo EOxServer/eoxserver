@@ -76,6 +76,7 @@ import eoxserver
 from eoxserver.resources.coverages.managers import RectifiedDatasetManager
 from eoxserver.resources.processes.tracker import QueueFull, registerTaskType, enqueueTask
 from eoxserver.core.system import System
+from django.utils.encoding import smart_text
 
 settings = __import__( os.environ.get("DJANGO_SETTINGS_MODULE","settings") )  
 
@@ -171,7 +172,7 @@ def wcst11AsynchronousTransction( taskStatus , ( actions , context ) ) :
     except Exception as e :
 
         # change status 
-        taskStatus.setFailure(unicode(e)) 
+        taskStatus.setFailure(smart_text(e)) 
 
         # dump exception to the log file 
         logging.error( "[%s] %s"%( context['tid'] , traceback.format_exc() ) ) 

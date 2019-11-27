@@ -29,7 +29,7 @@
 """
 This module contains utils for XML encoding, decoding and printing.
 """
-
+from django.utils.six import string_types
 import logging
 try:
     from lxml import etree
@@ -91,7 +91,7 @@ class NameSpace(object):
     def __eq__(self, other):
         if isinstance(other, NameSpace):
             return self.uri == other.uri
-        elif isinstance(other, basestring):
+        elif isinstance(other, string_types):
             return self.uri == other
 
         raise TypeError

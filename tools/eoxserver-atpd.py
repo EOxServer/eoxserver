@@ -56,7 +56,7 @@ from datetime import datetime, timedelta
 from multiprocessing import Lock, Process, Queue , cpu_count 
 from multiprocessing.queues import Empty as MPQEmpty
 from multiprocessing.queues import Full as MPQFull
-
+from django.utils.encoding import smart_text
 try:    import cPickle as pickle 
 except: import pickle 
 
@@ -206,10 +206,10 @@ def taskDispatch( taskID , threadID ) :
     except (KeyboardInterrupt,SystemExit): raise 
     except Exception as e : 
 
-        pStatus.setFailure( unicode(e) ) 
+        pStatus.setFailure( smart_text((e) ) 
 
         # finish the task 
-        error( "[%3.3i] %s " % ( threadID , unicode(e) ) ) 
+        error( "[%3.3i] %s " % ( threadID , smart_text((e) ) ) 
 
 
 #-------------------------------------------------------------------------------

@@ -28,7 +28,10 @@
 #-------------------------------------------------------------------------------
 
 from datetime import datetime
-from StringIO import StringIO
+try:
+    from cStringIO import StringIO
+except ImportError:
+    from io import StringIO
 from textwrap import dedent
 
 from django.test import TestCase

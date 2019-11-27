@@ -36,6 +36,7 @@ from eoxserver.contrib import gdal, osr
 from eoxserver.core.util.rect import Rect
 from eoxserver.core.util.xmltools import parse, etree
 from eoxserver.contrib import vsi
+from django.utils.six import string_types
 
 #-------------------------------------------------------------------------------
 # approximation transformer's threshold in pixel units
@@ -862,7 +863,7 @@ def reproject_image(src_ds, src_wkt, dst_ds, dst_wkt,
 
 
 def _open_ds(path_or_ds):
-    if isinstance(path_or_ds, basestring):
+    if isinstance(path_or_ds, string_types):
         gdal.AllRegister()
         return gdal.OpenShared(str(path_or_ds))
     return path_or_ds
