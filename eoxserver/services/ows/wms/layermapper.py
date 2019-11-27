@@ -167,7 +167,8 @@ class LayerMapper(object):
         )
 
     def lookup_layer(self, layer_name, suffix, style, filters_expressions,
-                     sort_by, time, ranges, bands, wavelengths, elevation, zoom):
+                     sort_by, time, ranges, bands, wavelengths, elevation,
+                     zoom):
         """ Lookup the layer from the registered objects.
         """
         reader = LayerMapperConfigReader(get_eoxserver_config())
@@ -490,6 +491,10 @@ class LayerMapper(object):
                 '-' if sort_by[1] == 'DESC' else '',
                 sort_by[0]
             ))
+        else:
+            qs = qs.order_by(
+                '-begin_time', '-end_time', 'identifier'
+            )
 
         return qs
 
@@ -509,6 +514,10 @@ class LayerMapper(object):
                 '-' if sort_by[1] == 'DESC' else '',
                 sort_by[0]
             ))
+        else:
+            qs = qs.order_by(
+                '-begin_time', '-end_time', 'identifier'
+            )
 
         return qs
 
