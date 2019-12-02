@@ -45,7 +45,12 @@ import os
 import sys
 import uuid 
 import time 
-
+try:
+    # Python 2
+    xrange
+except NameError:
+    # Python 3, xrange is now named range
+    xrange = range
 #----------------------------------------------------------------------
 #number of test tasks 
 

@@ -38,6 +38,12 @@ from eoxserver.core.util.xmltools import parse, etree
 from eoxserver.contrib import vsi
 from django.utils.six import string_types
 
+try:
+    # Python 2
+    xrange
+except NameError:
+    # Python 3, xrange is now named range
+    xrange = range
 #-------------------------------------------------------------------------------
 # approximation transformer's threshold in pixel units
 # 0.125 is the default value used by CLI gdalwarp tool

@@ -27,13 +27,12 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-
+from math import isinf
 try:
-    from itertools import chain, ifilterfalse
+    from itertools import chain, ifilterfalse as filterfalse
 except ImportError:
-    pass
+    from itertools import filterfalse
 
-from django.utils.six import PY2, PY3, string_types
 from .data_types import BaseType, Double, DTYPES
 
 
@@ -113,12 +112,7 @@ class AllowedEnum(BaseAllowed, TypedMixIn):
         vset_add = vset.add
         vlist_append = vlist.append
 
-        if PY2:
-            filtering = ifilterfalse
-        elif PY3:
-            filtering = filter
-
-        for value in filtering(vset.__contains__, values):
+        for value in filterfalse(vset.__contains__, values):
             vset_add(value)
             vlist_append(value)
         return vlist, vset
@@ -222,10 +216,12 @@ class AllowedRange(BaseAllowed, TypedMixIn):
         tmp0 = ddtype.as_number(self._dtype.sub(value, self._base))
         tmp1 = ddtype.as_number(self.spacing)
         tmp2 = float(tmp0) / float(tmp1)
+        if isinf(tmp2):
+            return True
         return not self._rtol >= abs(tmp2 - round(tmp2))
 
     def _out_of_bounds(self, value):
-        if value != value: # simple type-safe NaN check (works in Python > 2.5)
+        if value != value:  # simple type-safe NaN check (works in Python > 2.5)
             return True
         below = self._minval is not None and (
             value < self._minval or (

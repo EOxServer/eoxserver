@@ -43,6 +43,12 @@ from eoxserver.core.decoders import kvp, lower
 from eoxserver.core.util.xmltools import XMLEncoder, NameSpace, NameSpaceMap
 from eoxserver.services.ows.interfaces import ExceptionHandlerInterface
 
+try:
+    # Python 2
+    xrange
+except NameError:
+    # Python 3, xrange is now named range
+    xrange = range
 
 class WMS13ExceptionHandler(Component):
     implements(ExceptionHandlerInterface)

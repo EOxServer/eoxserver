@@ -37,6 +37,13 @@ from numpy import logical_and as aand
 from numpy import abs as aabs
 from math import sqrt 
 
+try:
+    # Python 2
+    xrange
+except NameError:
+    # Python 3, xrange is now named range
+    xrange = range
+
 # --------------------------------
 # analytical geometry 
 

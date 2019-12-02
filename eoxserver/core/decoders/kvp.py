@@ -28,13 +28,9 @@
 """ This module contains facilities to help decoding KVP strings.
 """
 
-try:
-    from urllib.parse import parse_qs
-except:
-    from cgi import parse_qs
-
 from django.http import QueryDict
 from django.utils.six import string_types, add_metaclass
+from django.utils.six.moves import urllib
 
 from eoxserver.core.decoders.base import BaseParameter
 
@@ -154,7 +150,7 @@ class Decoder(object):
                 query_dict[key.lower()] = values
 
         elif isinstance(params, string_types):
-            tmp = parse_qs(params)
+            tmp = urllib.parse_qs(params)
             for key, values in tmp.items():
                 query_dict[key.lower()] = values
 

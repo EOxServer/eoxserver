@@ -27,7 +27,7 @@
 
 
 from datetime import datetime
-from urllib import unquote
+from django.utils.six.moves import urllib
 import logging
 
 from lxml import etree
@@ -306,7 +306,7 @@ class RectifiedCoverageMapServerRenderer(BaseRenderer):
 
 
 def split_format(frmt):
-    parts = unquote(frmt).split(";")
+    parts = urllib.unquote(frmt).split(";")
     mime_type = parts[0]
     options = map(
         lambda kv: map(lambda i: i.strip(), kv.split("=")), parts[1:]

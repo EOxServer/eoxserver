@@ -60,7 +60,13 @@ from eoxserver.resources.coverages.managers import (
 
 #-------------------------------------------------------------------------------
 
-
+try:
+    # Python 2
+    xrange
+except NameError:
+    # Python 3, xrange is now named range
+    xrange = range
+    
 logger = logging.getLogger(__name__)
 
 # ACTION: ADD 

@@ -26,7 +26,10 @@
 # ------------------------------------------------------------------------------
 
 
-from operator import and_, or_, add, sub, mul, div
+try: 
+    from operator import and_, or_, add, sub, mul, div
+except ImportError :
+    from operator import and_, or_, add, sub, mul, truediv as div
 from datetime import datetime, timedelta
 
 try:

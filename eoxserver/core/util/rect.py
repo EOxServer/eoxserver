@@ -111,7 +111,7 @@ class Rect(tuple):
 
     __add__ = translated
 
-    __sub__ = (lambda self, coordinates: self.translated((-x, -y)))
+    __sub__ = (lambda self, coordinates: self.translated((-coordinates[0], -coordinates[-1])))
 
     def __repr__(self):
         return "Rect(offset_x=%s, offset_y=%s, size_x=%s, size_y=%s)" % self

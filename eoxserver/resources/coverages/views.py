@@ -2,7 +2,7 @@ import os.path
 from zipfile import ZipFile
 import json
 try:
-    from io import StringIO 
+    from io import StringIO
 except ImportError:
     from cStringIO import StringIO
 import traceback

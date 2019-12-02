@@ -36,7 +36,13 @@ from eoxserver.services.ows.wps.parameters import (
     LiteralData, ComplexData, CDFile, CDByteBuffer,
     FormatBinaryRaw, FormatBinaryBase64, AllowedRange,
 )
-
+try:
+    # Python 2
+    xrange
+except NameError:
+    # Python 3, xrange is now named range
+    xrange = range
+    
 class TestProcess03(Component):
     """ Test process generating binary complex data output. """
     implements(ProcessInterface)

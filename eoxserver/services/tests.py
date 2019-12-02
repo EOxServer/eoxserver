@@ -29,6 +29,7 @@ from textwrap import dedent
 
 from django.test import TestCase, TransactionTestCase
 from django.contrib.gis.geos import Polygon, MultiPolygon
+from django.utils.six import assertCountEqual, b
 
 from eoxserver.core.util import multiparttools as mp
 from eoxserver.core.util.timetools import parse_iso8601
@@ -42,7 +43,7 @@ class MultipartTest(TestCase):
     """ Test class for multipart parsing/splitting
     """
 
-    example_multipart = dedent("""\
+    example_multipart = b(dedent("""\
         MIME-Version: 1.0\r
         Content-Type: multipart/mixed; boundary=frontier\r
         \r
@@ -57,13 +58,12 @@ class MultipartTest(TestCase):
         \r
         PGh0bWw+CiAgPGhlYWQ+CiAgPC9oZWFkPgogIDxib2R5PgogICAgPHA+VGhpcyBpcyB0aGUgYm9keSBvZiB0aGUgbWVzc2FnZS48L3A+CiAgPC9ib2R5Pgo8L2h0bWw+Cg==\r
         --frontier--
-    """)
+    """))
 
     def test_multipart_iteration(self):
-        parsed = map(
+        parsed = list(map(
             lambda i: (i[0], str(i[1])), mp.iterate(self.example_multipart)
-        )
-
+        ))
         self.assertEqual([
                 ({"MIME-Version": "1.0", "Content-Type": "multipart/mixed; boundary=frontier"}, ""),
                 ({"Content-Type": "text/plain"}, "This is the body of the message."),
@@ -74,7 +74,7 @@ class MultipartTest(TestCase):
 
 class ResultSetTestCase(TestCase):
 
-    example_multipart = dedent("""\
+    example_multipart = b(dedent("""\
         MIME-Version: 1.0\r
         Content-Type: multipart/mixed; boundary=frontier\r
         \r
@@ -91,8 +91,7 @@ class ResultSetTestCase(TestCase):
         \r
         PGh0bWw+CiAgPGhlYWQ+CiAgPC9oZWFkPgogIDxib2R5PgogICAgPHA+VGhpcyBpcyB0aGUgYm9keSBvZiB0aGUgbWVzc2FnZS48L3A+CiAgPC9ib2R5Pgo8L2h0bWw+Cg==\r
         --frontier--
-    """)
-
+    """))
 
     def test_result_set_from_raw(self):
         result_set = result_set_from_raw_data(self.example_multipart)
@@ -234,12 +233,12 @@ class TemporalSubsetsTestCase(TransactionTestCase):
         qs = models.EOObject.objects.filter(**subsets.get_filters(containment))
 
         # test the "filter()" function
-        self.assertItemsEqual(
+        self.assertCountEqual(
             expected_ids, qs.values_list("identifier", flat=True)
         )
 
         # test the "matches()" function
-        self.assertItemsEqual(
+        self.assertCountEqual(
             expected_ids, [
                 ds.identifier for ds in self.datasets
                 if subsets.matches(ds, containment)

@@ -430,10 +430,17 @@ class TestAllowedRangeDiscrDateTime(TestCase, BaseTestMixin):
             '2014-01-11T10:30Z',
         ]
 
-##------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
+
 
 class TestAllowedRangeCollectionFloat(TestCase, BaseTestMixin):
     def setUp(self):
+        try:
+            # Python 2
+            xrange
+        except NameError:
+            # Python 3, xrange is now named range
+            xrange = range
         self.domain = AllowedRangeCollection(
             AllowedRange(None, -5.0, 'open'),
             AllowedRange(6.0, None, spacing=3.0),
@@ -444,6 +451,7 @@ class TestAllowedRangeCollectionFloat(TestCase, BaseTestMixin):
         self.rejected = ['nan', '+inf', 7, 3, -0.5, -5]
 
 #------------------------------------------------------------------------------
+
 
 if __name__ == '__main__':
     main()

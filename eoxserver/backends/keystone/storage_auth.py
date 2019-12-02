@@ -36,7 +36,7 @@ from keystoneclient import exceptions as ksexceptions
 from keystoneclient.v2_0 import client as ksclient_v2
 from keystoneclient.v3 import client as ksclient_v3
 from swiftclient.exceptions import ClientException
-from six.moves.urllib.parse import urljoin, urlparse, urlunparse
+from django.utils.six.moves import urllib
 
 from eoxserver.core.util.timetools import parse_iso8601
 
@@ -62,13 +62,13 @@ def get_keystone_client(auth_url, user, key, os_options, **kwargs):
     # Add the version suffix in case of versionless Keystone endpoints. If
     # auth_version is also unset it is likely that it is v3
     if not VERSIONFUL_AUTH_PATH.match(
-            urlparse(auth_url).path.rstrip('/').rsplit('/', 1)[-1]):
+            urllib.urlparse(auth_url).path.rstrip('/').rsplit('/', 1)[-1]):
         # Normalize auth_url to end in a slash because urljoin
         auth_url = auth_url.rstrip('/') + '/'
         if auth_version and auth_version in AUTH_VERSIONS_V2:
-            auth_url = urljoin(auth_url, "v2.0")
+            auth_url = urllib.urljoin(auth_url, "v2.0")
         else:
-            auth_url = urljoin(auth_url, "v3")
+            auth_url = urllib.urljoin(auth_url, "v3")
             auth_version = '3'
         logger.debug("Versionless auth_url - using %s as endpoint" % auth_url)
 

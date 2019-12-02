@@ -46,7 +46,13 @@ from eoxserver.core.system import System
 
 #-------------------------------------------------------------------------------
 
-
+try:
+    # Python 2
+    xrange
+except NameError:
+    # Python 3, xrange is now named range
+    xrange = range
+    
 logger = logging.getLogger(__name__) #  TODO: set up logging for this module
 
 def contextCreate( requestId = None , reponseHandler = None , maxAttempts = 3 ) : 

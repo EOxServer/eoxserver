@@ -36,14 +36,15 @@ import tempfile
 import mimetypes
 
 try:
-    from io import StringIO 
-except ImportError:
     from cStringIO import StringIO
+except ImportError:
+    from io import StringIO
 import cgi
 from unittest import SkipTest
 
 from django.test import Client, TransactionTestCase
 from django.conf import settings
+from django.utils.six import assertCountEqual
 
 from eoxserver.core.config import get_eoxserver_config
 from eoxserver.core.util import multiparttools as mp
@@ -1049,7 +1050,7 @@ class WCS20DescribeEOCoverageSetSubsettingTestCase(XMLTestCase):
             }
         )
         expected_coverage_ids = self.getExpectedCoverageIds()
-        self.assertItemsEqual(result_coverage_ids, expected_coverage_ids)
+        self.assertCountEqual(result_coverage_ids, expected_coverage_ids)
 
         # assert that every coverage ID is unique in the response
         for coverage_id in result_coverage_ids:
@@ -1094,7 +1095,7 @@ class WCS20DescribeEOCoverageSetSectionsTestCase(XMLTestCase):
             }
         )
         sections = [section.tag for section in sections]
-        self.assertItemsEqual(sections, self.getExpectedSections())
+        self.assertCountEqual(sections, self.getExpectedSections())
 
 class WCS20GetCoverageMultipartTestCase(MultipartTestCase):
     @tag('xml-comparison')

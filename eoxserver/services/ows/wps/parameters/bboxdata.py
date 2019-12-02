@@ -34,6 +34,7 @@ from eoxserver.core.util.rect import Rect
 from .data_types import Double
 from .crs import CRSType
 from .base import Parameter
+from django.utils.six import string_types
 
 # pre-compiled regular expression used to eliminate repeated extra white-spaces
 _RE_MULTIWS = re.compile(r"\s+")

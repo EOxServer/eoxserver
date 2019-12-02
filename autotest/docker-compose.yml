@@ -23,6 +23,9 @@ services:
         target: /usr/local/lib/python2.7/dist-packages/eoxserver/
       - type: bind
         source: ./../eoxserver
+        target: /usr/local/lib/python3.7/dist-packages/eoxserver/
+      - type: bind
+        source: ./../eoxserver
         target: /opt/eoxserver/eoxserver/
       - type: bind
         source: ./

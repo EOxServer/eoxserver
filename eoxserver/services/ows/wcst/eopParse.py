@@ -32,24 +32,23 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-import os 
-import sys 
+import os
+import sys
 
 try:
-    from io import StringIO 
 except ImportError:
     from cStringIO import StringIO
 
 from xml.etree import ElementTree as etree
 
 #-------------------------------------------------------------------------------
-# explicite namespace prefix registration 
+# explicite namespace prefix registration
 
 try:
     # works for Python >= 2.7 ( ElementTree >= 1.3 ) 
     register_namespace = etree.register_namespace
 except AttributeError:
-    # falback for older Python versions 
+    # falback for older Python versions
     def register_namespace(prefix, uri):
         etree._namespace_map[uri] = prefix
 
@@ -57,7 +56,7 @@ except AttributeError:
 
 # namespaces 
 NS_EOP20='http://www.opengis.net/eop/2.0'
-NS_GML32='http://www.opengis.net/gml/3.2' 
+NS_GML32='http://www.opengis.net/gml/3.2'
 NS_OM20='http://www.opengis.net/om/2.0'
 NS_XSI="http://www.w3.org/2001/XMLSchema-instance"
 NS_XLN="http://www.w3.org/1999/xlink"

@@ -36,6 +36,8 @@ try:
 except ImportError:
     from configparser import NoOptionError, NoSectionError
 
+from django.utils.six import with_metaclass
+
 
 def section(name):
     """ Helper to set the section of a :class:`Reader`.
@@ -84,6 +86,7 @@ class Option(property):
         self.section = section
 
     def fget(self, reader):
+        
         section = self.section or reader.section
         try:
             if self.type is bool:
@@ -122,7 +125,7 @@ class ReaderMetaclass(type):
         super(ReaderMetaclass, cls).__init__(name, bases, dct)
 
 
-class Reader(object):
+class Reader(with_metaclass(ReaderMetaclass, object)):
     """ Base class for config readers.
 
     :param config: an instance of :class:`ConfigParser.RawConfigParser`

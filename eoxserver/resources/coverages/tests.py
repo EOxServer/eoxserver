@@ -29,7 +29,7 @@
 
 from datetime import datetime
 try:
-    from cStringIO import StringIO
+    from StringIO import StringIO
 except ImportError:
     from io import StringIO
 from textwrap import dedent
@@ -470,7 +470,6 @@ class MetadataFormatTests(GeometryMixIn, TestCase):
           </eop:metaDataProperty>
         </eop:EarthObservation>
         """
-
         reader = eoom.EOOMFormatReader(env)
         self.assertTrue(reader.test(xml))
         values = reader.read(xml)

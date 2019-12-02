@@ -27,7 +27,7 @@
 
 import json
 try:
-    from cStringIO import StringIO
+    from StringIO import StringIO
 except ImportError:
     from io import StringIO
 from lxml import etree

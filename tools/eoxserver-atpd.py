@@ -59,7 +59,12 @@ from multiprocessing.queues import Full as MPQFull
 from django.utils.encoding import smart_text
 try:    import cPickle as pickle 
 except: import pickle 
-
+try:
+    # Python 2
+    xrange
+except NameError:
+    # Python 3, xrange is now named range
+    xrange = range
 #-------------------------------------------------------------------------------
 
 QUEUE_EMPTY_QUERY_DELAY=1.5 # time in seconds of next query to empty queue 

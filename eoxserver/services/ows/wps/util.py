@@ -27,9 +27,8 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-from urllib2 import urlopen, Request, URLError
+
 from contextlib import closing
-from urlparse import urlparse
 from logging import getLogger
 
 try:
@@ -40,6 +39,7 @@ except ImportError:
 
 from django.conf import settings
 from django.utils.module_loading import import_string
+from django.utils.six.moves import urllib
 
 from eoxserver.core.util.multiparttools import iterate as iterate_multipart
 from eoxserver.services.ows.wps.config import (
@@ -81,7 +81,7 @@ class InMemoryURLResolver(object):
         self.logger.debug(
             "Resolving reference: %s%s", href, "" if body is None else " (POST)"
         )
-        url = urlparse(href)
+        url = urllib.urlparse(href)
         if url.scheme == "cid":
             return self._resolve_multipart(url.path)
         elif url.scheme in ('http', 'https'):
@@ -99,9 +99,9 @@ class InMemoryURLResolver(object):
     def _resolve_http(self, href, body=None, headers=None):
         """ Resolve the HTTP request."""
         try:
-            with closing(urlopen(Request(href, body, dict(headers)))) as fobj:
+            with closing(urllib.urlopen(urllib.Request(href, body, dict(headers)))) as fobj:
                 return fobj.read()
-        except URLError as exc:
+        except urllib.URLError as exc:
             raise ValueError(str(exc))
 
 

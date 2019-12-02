@@ -27,7 +27,7 @@
 
 import os.path
 try:
-    from io import StringIO 
+    from io import StringIO
 except ImportError:
     from cStringIO import StringIO
 from ConfigParser import RawConfigParser

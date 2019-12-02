@@ -43,6 +43,12 @@ from qhull import chull2D_qhull
 
 from eoxserver.contrib import osr, gdal
 
+try:
+    # Python 2
+    xrange
+except NameError:
+    # Python 3, xrange is now named range
+    xrange = range
 #-------------------------------------------------------------------------------
 
 class GeoTransform(object) : 

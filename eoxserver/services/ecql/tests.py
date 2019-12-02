@@ -29,6 +29,7 @@
 from django.test import TransactionTestCase
 from django.db.models import ForeignKey
 from django.contrib.gis.geos import Polygon, MultiPolygon
+from django.utils.six import assertCountEqual
 
 from eoxserver.core.util.timetools import parse_iso8601
 from eoxserver.resources.coverages import models
@@ -130,7 +131,7 @@ class ECQLTestCase(TransactionTestCase):
 
         qs = model_type.objects.filter(filters)
 
-        self.assertItemsEqual(
+        self.assertCountEqual(
             expected_ids, qs.values_list("identifier", flat=True)
         )
 
