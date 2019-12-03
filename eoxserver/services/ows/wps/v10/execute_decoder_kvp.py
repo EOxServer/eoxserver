@@ -28,7 +28,7 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-from django.utils.six.moves import urllib
+from django.utils.six.moves.urllib.parse import unquote_plus
 from eoxserver.core.decoders import kvp
 from eoxserver.services.ows.wps.parameters import (
     InputData, InputReference, Output, ResponseDocument, RawDataOutput
@@ -72,10 +72,10 @@ def _parse_param(raw_string):
     items = (item.partition('=') for item in raw_string.split("@"))
     attr = {}
     id_, dlm, data = items.next()
-    id_ = urllib.unquote_plus(id_)
-    data = urllib.unquote_plus(data) if dlm else None
+    id_ = unquote_plus(id_)
+    data = unquote_plus(data) if dlm else None
     for key, dlm, value in items:
-        attr[urllib.unquote_plus(key)] = urllib.unquote_plus(value) if dlm else None
+        attr[unquote_plus(key)] = unquote_plus(value) if dlm else None
     return id_, data, attr
 
 
@@ -111,9 +111,9 @@ def parse_query_string(query_string):
     """
     unescaped = set(('datainputs', 'responsedocument', 'rawdataoutput'))
     return dict(
-        (key, value if key.lower() in unescaped else urllib.unquote_plus(value))
+        (key, value if key.lower() in unescaped else unquote_plus(value))
         for key, value in (
-            (urllib.unquote_plus(key), value) for key, _, value in (
+            (unquote_plus(key), value) for key, _, value in (
                 item.partition('=') for item in query_string.split('&')
             )
         )

@@ -30,7 +30,7 @@ import shutil
 import tarfile
 import zipfile
 import fnmatch
-from django.utils.six.moves import urllib
+from django.utils.six.moves.urllib import parse, request
 
 import ftplib
 import glob
@@ -228,11 +228,11 @@ class HTTPStorageHandler(BaseStorageHandler):
         self.url = url
 
     def retrieve(self, location, path):
-        urllib.urlretrieve(urllib.urljoin(self.url, location), path)
+        request.urlretrieve(parse.urljoin(self.url, location), path)
         return True, path
 
     def get_vsi_path(self, location):
-        return '/vsicurl/%s' % urllib.urljoin(self.url, location)
+        return '/vsicurl/%s' % parse.urljoin(self.url, location)
 
     @classmethod
     def test(cls, locator):
@@ -285,7 +285,7 @@ class FTPStorageHandler(BaseStorageHandler):
         return filenames
 
     def get_vsi_path(self, location):
-        return '/vsicurl/%s' % urllib.urljoin(self.url, location)
+        return '/vsicurl/%s' % parse.urljoin(self.url, location)
 
     @classmethod
     def test(cls, locator):

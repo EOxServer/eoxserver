@@ -25,11 +25,10 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-
-from datetime import datetime
-from django.utils.six.moves import urllib
 import logging
+from datetime import datetime
 
+from django.utils.six.moves.urllib.parse import unquote
 from lxml import etree
 
 from eoxserver.contrib import mapserver as ms
@@ -306,7 +305,7 @@ class RectifiedCoverageMapServerRenderer(BaseRenderer):
 
 
 def split_format(frmt):
-    parts = urllib.unquote(frmt).split(";")
+    parts = unquote(frmt).split(";")
     mime_type = parts[0]
     options = map(
         lambda kv: map(lambda i: i.strip(), kv.split("=")), parts[1:]

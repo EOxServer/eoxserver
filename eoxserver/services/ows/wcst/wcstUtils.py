@@ -33,7 +33,7 @@
 
 import os
 import base64
-import urllib
+from django.utils.six.moves.urllib.request import urlopen
 import httplib
 import logging
 import mimetypes
@@ -154,7 +154,7 @@ def downloadReference( url , basename , prefix = "" ) :
     if prefix : prefix = "%s: " % prefix 
 
     # open the URL and get info 
-    sock = urllib.urlopen( url )
+    sock = urlopen( url )
 
     #check the HTTP error code 
     httpCode = sock.getcode()

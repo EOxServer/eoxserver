@@ -30,7 +30,7 @@
 
 from django.http import QueryDict
 from django.utils.six import string_types, add_metaclass
-from django.utils.six.moves import urllib
+from django.utils.six.moves.urllib.parse import parse_qs
 
 from eoxserver.core.decoders.base import BaseParameter
 
@@ -150,7 +150,7 @@ class Decoder(object):
                 query_dict[key.lower()] = values
 
         elif isinstance(params, string_types):
-            tmp = urllib.parse_qs(params)
+            tmp = parse_qs(params)
             for key, values in tmp.items():
                 query_dict[key.lower()] = values
 

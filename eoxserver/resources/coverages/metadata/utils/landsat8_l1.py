@@ -26,9 +26,9 @@
 # ------------------------------------------------------------------------------
 
 try:
-    from io import StringIO
-except ImportError:
     from cStringIO import StringIO
+except ImportError:
+    from io import StringIO
 
 from eoxserver.contrib.vsi import open as vsi_open
 

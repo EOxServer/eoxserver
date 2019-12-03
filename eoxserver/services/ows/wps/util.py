@@ -39,7 +39,7 @@ except ImportError:
 
 from django.conf import settings
 from django.utils.module_loading import import_string
-from django.utils.six.moves import urllib
+from django.utils.six.moves.urllib import parse, request, error
 
 from eoxserver.core.util.multiparttools import iterate as iterate_multipart
 from eoxserver.services.ows.wps.config import (
@@ -81,7 +81,7 @@ class InMemoryURLResolver(object):
         self.logger.debug(
             "Resolving reference: %s%s", href, "" if body is None else " (POST)"
         )
-        url = urllib.urlparse(href)
+        url = parse.urlparse(href)
         if url.scheme == "cid":
             return self._resolve_multipart(url.path)
         elif url.scheme in ('http', 'https'):
@@ -99,9 +99,9 @@ class InMemoryURLResolver(object):
     def _resolve_http(self, href, body=None, headers=None):
         """ Resolve the HTTP request."""
         try:
-            with closing(urllib.urlopen(urllib.Request(href, body, dict(headers)))) as fobj:
+            with closing(request.urlopen(request.Request(href, body, dict(headers)))) as fobj:
                 return fobj.read()
-        except urllib.URLError as exc:
+        except error.URLError as exc:
             raise ValueError(str(exc))
 
 
