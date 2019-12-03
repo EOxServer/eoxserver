@@ -35,7 +35,7 @@ from eoxserver.services.gml.v32.encoders import ns_gml
 from eoxserver.render.coverage.objects import IrregularAxis
 
 # namespace declarations
-ns_cis = NameSpace("http://www.opengis.net/gml/1.1", "gml")
+ns_cis = NameSpace("http://www.opengis.net/gml/1.1", "cis")
 ns_swe = NameSpace("http://www.opengis.net/swe/2.0", "swe")
 
 nsmap = NameSpaceMap(ns_cis, ns_swe)
