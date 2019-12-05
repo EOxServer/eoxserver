@@ -53,6 +53,9 @@ from eoxserver.services.ows.wps.v10.execute_util import (
     resolve_request_parameters,
 )
 
+from eoxserver.services.ows.wps.util import get_async_backends
+
+
 class WPS10ExecuteHandler(object):
     """ WPS 1.0 Execute service handler. """
 
@@ -85,11 +88,15 @@ class WPS10ExecuteHandler(object):
                 return process
         raise NoSuchProcessError(identifier)
 
+    @property
+    def async_backends(self):
+        pass
+
     def get_async_backend(self):
         """ Get available asynchronous back-end matched by the service version.
         """
         version_set = set(self.versions)
-        for backend in self.async_backends:
+        for backend in get_async_backends():
             if set(backend.supported_versions) & version_set:
                 return backend
 
