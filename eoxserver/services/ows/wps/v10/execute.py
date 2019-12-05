@@ -88,10 +88,6 @@ class WPS10ExecuteHandler(object):
                 return process
         raise NoSuchProcessError(identifier)
 
-    @property
-    def async_backends(self):
-        pass
-
     def get_async_backend(self):
         """ Get available asynchronous back-end matched by the service version.
         """
