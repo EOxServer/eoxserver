@@ -26,9 +26,9 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-from django.shortcuts import render_to_response
+from django.shortcuts import render
 
 
 def index(request):
     # show overview with links to active components, resources
-    return render_to_response("eoxserver/index.html")
+    return render(request, "eoxserver/index.html")

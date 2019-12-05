@@ -39,13 +39,14 @@ admin.autodiscover()
 #from django.contrib import databrowse
 
 # Enable the ATP auxiliary views:
-from eoxserver.resources.processes import views as procViews
+#from eoxserver.resources.processes import views as procViews
 from eoxserver.services.opensearch.urls import urlpatterns as opensearch
+from eoxserver.views import index
 
 
 urlpatterns = [
-    (r'^$', 'eoxserver.views.index'),
-    url(r'^ows$', include("eoxserver.services.urls")),
+    url(r'$^', index),
+    url(r'^ows', include("eoxserver.services.urls")),
 
     # enable OpenSearch URLs
     url(r'^opensearch/', include(opensearch)),
@@ -64,5 +65,5 @@ urlpatterns = [
     #(r'^process/status$', procViews.status ),
     #(r'^process/status/(?P<requestType>[^/]{,64})/(?P<requestID>[^/]{,64})$', procViews.status ),
     #(r'^process/task$', procViews.task ),
-    (r'^process/response/(?P<requestType>[^/]{,64})/(?P<requestID>[^/]{,64})', procViews.response ),
+    #(r'^process/response/(?P<requestType>[^/]{,64})/(?P<requestID>[^/]{,64})', procViews.response ),
 ]
