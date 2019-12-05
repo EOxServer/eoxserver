@@ -29,55 +29,9 @@
 
 import logging
 import traceback
-from optparse import OptionValueError
-
 from django.db import transaction
 
-
 logger = logging.getLogger(__name__)
-
-
-def _variable_args_cb(option, opt_str, value, parser):
-    """ Helper function for optparse module. Allows
-        variable number of option values when used
-        as a callback.
-    """
-    args = []
-    for arg in parser.rargs:
-        if not arg.startswith('-'):
-            args.append(arg)
-        else:
-            break
-
-    del parser.rargs[:len(args)]
-
-    if getattr(parser.values, option.dest):
-        args.extend(getattr(parser.values, option.dest))
-    setattr(parser.values, option.dest, args)
-
-
-class StringFormatCallback(object):
-    """ Small helper class to supply a variable number of arguments to a
-    callback function and store the resulting value in the `dest` field of the
-    parser.
-    """
-
-    def __init__(self, callback):
-        self.callback = callback
-
-    def __call__(self, option, opt_str, value, parser):
-        args = []
-        for arg in parser.rargs:
-            if not arg.startswith('-'):
-                args.append(arg)
-            else:
-                del parser.rargs[:len(args)]
-                break
-
-        try:
-            setattr(parser.values, option.dest, self.callback(" ".join(args)))
-        except ValueError, e:
-            raise OptionValueError(str(e))
 
 
 class CommandOutputMixIn(object):
@@ -97,7 +51,7 @@ class CommandOutputMixIn(object):
 
         logger.warning(msg)
 
-        if 0 < max(0, getattr(self, "verbosity", 1)):
+        if max(0, getattr(self, "verbosity", 1)) > 0:
             self.stderr.write("WARNING: %s\n" % msg)
 
     def print_msg(self, msg, level=1):
@@ -127,7 +81,7 @@ class CommandOutputMixIn(object):
         if level <= verbosity:
             self.stdout.write("%s: %s\n" % (prefix, msg))
 
-    def print_traceback(self, e, kwargs):
+    def print_traceback(self, error, kwargs):
         """ Prints a traceback/stacktrace if the traceback option is set.
         """
         if kwargs.get("traceback", False):
@@ -157,6 +111,5 @@ def nested_commit_on_success(func):
         def _nested_commit_on_success(*args, **kwargs):
             if transaction.is_managed():
                 return func(*args, **kwargs)
-            else:
-                return commit_on_success(*args, **kwargs)
+            return commit_on_success(*args, **kwargs)
         return transaction.wraps(func)(_nested_commit_on_success)
