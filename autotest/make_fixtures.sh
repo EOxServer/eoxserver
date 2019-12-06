@@ -1,5 +1,11 @@
 #!/bin/bash -xe
 
+shopt -s expand_aliases
+if [[ $(command -v python3) == *'python3'* ]]
+then 
+    alias python="python3"
+fi
+
 function dumpdata_coveragetype() {
   python manage.py dumpdata --indent=4 coverages.CoverageType coverages.FieldType coverages.AllowedValueRange coverages.NilValue  \
   | sed 's/        "inserted":.*/        "inserted": "2019-01-01T00:00:00.000Z",/g' \
