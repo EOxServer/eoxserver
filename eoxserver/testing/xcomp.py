@@ -30,8 +30,10 @@
 
 """ Simple XML documets' comparator. """
 
-import xml.dom.minidom as dom 
-import types 
+import xml.dom.minidom as dom
+
+from django.utils.six import string_types
+
 
 # define node types 
 ELEMENT_NODE                = dom.Element.ELEMENT_NODE
@@ -223,7 +225,7 @@ def xmlCompareFiles( src0 , src1 , verbose = False ) :
 
     def parseFileName( src ) : 
         try : 
-            with file( src ) as fid : 
+            with open( src ) as fid : 
                 return dom.parse( fid ) 
         except Exception as e : 
             raise XMLParseError("Failed to parse the \"%s\" file! %s" % ( src , str(e) )) 
@@ -235,7 +237,7 @@ def xmlCompareFiles( src0 , src1 , verbose = False ) :
             raise XMLParseError("Failed to parse the %s XML file(-like) object! %e" % ( label , str(e) )) 
 
     def parse( src , label ) : 
-        return  parseFileName( src ) if ( type(src) in types.StringTypes ) else parseFileObj( src , label ) 
+        return  parseFileName( src ) if ( type(src) in string_types ) else parseFileObj( src , label ) 
 
     return xmlCompareDOMs( parse(src0,"the first") , parse(src1,"the second") , verbose ) 
 

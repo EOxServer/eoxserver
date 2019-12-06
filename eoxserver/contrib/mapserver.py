@@ -52,7 +52,6 @@ else:
     msversion = msGetVersionInt()
 
 from lxml import etree
-
 from eoxserver.core.util.multiparttools import iterate
 from eoxserver.contrib import gdal
 
@@ -146,7 +145,7 @@ def dispatch(map_, request):
 
         try:
             # try to parse the output as XML
-            _, data = iterate(raw_bytes).next()
+            _, data = next(iterate(raw_bytes))
             tree = etree.fromstring(str(data))
             exception_elem = tree.xpath("*[local-name() = 'Exception']|*[local-name() = 'ServiceException']")[0]
             locator = exception_elem.attrib.get("locator")

@@ -29,7 +29,7 @@ import os.path
 
 from lxml.etree import parse, fromstring
 from django.contrib.gis.geos import MultiPolygon, Polygon
-
+from django.utils.six import iteritems
 from eoxserver.resources.coverages import crss
 
 
@@ -140,7 +140,7 @@ class S2ProductFormatReader(object):
         return values
 
     def _read_mask(self, granule, mask_type):
-        for item in granule._metadata.iter("Pixel_Level_QI").next():
+        for item in next(granule._metadata.iter("Pixel_Level_QI")):
             if item.attrib.get("type") == mask_type:
                 gml_filename = os.path.join(
                     granule.granule_path, "QI_DATA", os.path.basename(item.text)
@@ -154,7 +154,7 @@ class S2ProductFormatReader(object):
 
 
 def parse_mask(mask_elem):
-    nsmap = {k: v for k, v in mask_elem.nsmap.iteritems() if k}
+    nsmap = {k: v for k, v in iteritems(mask_elem.nsmap) if k}
     # name = mask_elem.xpath('gml:name/text()', namespaces=nsmap)[0]
     try:
         crs = mask_elem.xpath(

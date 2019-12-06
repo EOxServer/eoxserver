@@ -34,6 +34,8 @@ import xml.dom.minidom
 import eoxserver
 from urlparse import urlparse
 
+from django.utils.six import iteritems
+
 from eoxserver.core import implements
 from eoxserver.core.config import get_eoxserver_config
 from eoxserver.services.ows.decoders import get_decoder
@@ -137,7 +139,7 @@ class CharonPDP(BasePDP):
         # adding the REMOTE_ADDR from HTTP header to subject attributes
         attributes['REMOTE_ADDR'] = httpHeader['REMOTE_ADDR']
 
-        for key, value in self.attribMapping.iteritems():
+        for key, value in iteritems(self.attribMapping):
             if key in httpHeader:
                 attributes[key] = httpHeader[value]
                 logger.debug(

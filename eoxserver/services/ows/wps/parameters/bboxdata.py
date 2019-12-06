@@ -180,7 +180,7 @@ class BoundingBoxData(Parameter):
             )
         elif isinstance(raw_bbox, string_types):
             items = raw_bbox.split(',')
-            dim = len(items)/2
+            dim = len(items)//2
             lower = [self.dtype.parse(item) for item in items[0:dim]]
             upper = [self.dtype.parse(item) for item in items[dim:2*dim]]
             if len(items) > 2*dim:

@@ -41,7 +41,7 @@ from eoxserver.services.ows.wps.parameters import (
     LiteralData, ComplexData, BoundingBoxData,
 )
 from eoxserver.services.ows.wps.exceptions import InvalidOutputValueError
-from django.utils.six import string_types
+from django.utils.six import string_types, itervalues
 
 
 class WPS10ExecuteResponseRawEncoder(object):
@@ -60,7 +60,7 @@ class WPS10ExecuteResponseRawEncoder(object):
     def encode_response(self, results):
         """Pack the raw execute response."""
         outputs = []
-        for data, prm, req in results.itervalues():
+        for data, prm, req in itervalues(results):
             if prm.identifier in self.resp_form:
                 outputs.append(_encode_raw_output(data, prm, req))
 
@@ -83,7 +83,7 @@ class ResultAlt(ResultItem):
                  close=False, headers=None):
         # pylint: disable=too-many-arguments
         ResultItem.__init__(self, content_type, filename, identifier)
-        if isinstance(buf, string_types):
+        if isinstance(buf, string_types) or isinstance(buf, bytes):
             self._file = StringIO(str(buf))  # make sure a byte string is passed
         elif isinstance(buf, (tuple, list, types.GeneratorType)):
             tmp = StringIO()

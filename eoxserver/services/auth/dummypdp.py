@@ -6,6 +6,8 @@ import xml.dom.minidom
 import eoxserver
 from urlparse import urlparse
 
+from django.utils.six import iteritems
+
 from eoxserver.core import implements
 from eoxserver.services.auth.base import BasePDP
 from eoxserver.services.auth.interfaces import PolicyDecisionPointInterface
@@ -40,7 +42,7 @@ class DummyPDP(BasePDP):
 
 class DummyAuthzClient(object):
     def authorize(self, userAttributes, resourceAttributes, action):
-        for key, value in validUser.iteritems():
+        for key, value in iteritems(validUser):
             if key in userAttributes:
                 if value != userAttributes[key]:
                     return (False, 'Not Authorised')

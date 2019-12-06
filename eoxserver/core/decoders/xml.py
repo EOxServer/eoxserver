@@ -64,9 +64,8 @@ class Parameter(BaseParameter):
         if isinstance(self.selector, string_types):
             namespaces = self.namespaces or decoder.namespaces
             self.selector = etree.XPath(self.selector, namespaces=namespaces)
-
         results = self.selector(decoder._tree)
-        if isinstance(results, (string_types, float, int)):
+        if isinstance(results, (string_types + (float, int))):
             results = [results]
 
         return results
@@ -118,9 +117,10 @@ class Decoder(object):
     namespaces = {}  # must be overriden if the XPath expressions use namespaces
 
     def __init__(self, tree):
-        if isinstance(tree, string_types):
+        if isinstance(tree, string_types) or isinstance(tree, bytes):
             try:
                 tree = etree.fromstring(tree)
+                
             except etree.XMLSyntaxError as exc:
                 # NOTE: lxml.etree.XMLSyntaxError is incorretly identified as
                 #       an OWS exception by the exception handler leading
