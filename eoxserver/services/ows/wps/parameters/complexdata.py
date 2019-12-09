@@ -355,7 +355,7 @@ class ComplexData(Parameter):
     @property
     def default_format(self):
         """ Get default the default format. """
-        return next(itervalues(self.formats)).next()
+        return next(itervalues(self.formats))
 
     def get_format(self, mime_type, encoding=None, schema=None):
         """ Get format definition for the given mime-type and the optional
