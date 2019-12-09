@@ -44,7 +44,7 @@ from unittest import SkipTest
 
 from django.test import Client, TransactionTestCase
 from django.conf import settings
-from django.utils.six import assertCountEqual
+from django.utils.six import assertCountEqual, binary_type
 
 from eoxserver.core.config import get_eoxserver_config
 from eoxserver.core.util import multiparttools as mp
@@ -278,13 +278,6 @@ class OWSTestCase(TransactionTestCase):
             self.getResponseFileDir(), self.getResponseFileName(file_type)
         )
 
-        try:
-            with open(expected_path, 'r') as f:
-                expected = f.read()
-
-        except IOError:
-            expected = None
-
         actual_response = None
         if data is None:
             if file_type in ("raster", "html"):
@@ -296,6 +289,18 @@ class OWSTestCase(TransactionTestCase):
         else:
             actual_response = data
 
+        # read the expected response, either binary or as string
+        try:
+            if isinstance(actual_response, binary_type):
+                open_type = 'rb'
+            else:
+                open_type = 'r'
+            with open(expected_path, 'r') as f:
+                expected = f.read()
+
+        except IOError:
+            expected = None
+
         if expected != actual_response:
             if self.getFileExtension("raster") in ("hdf", "nc"):
                 self.skipTest(
@@ -304,7 +309,11 @@ class OWSTestCase(TransactionTestCase):
                 )
 
             # save the contents of the file
-            with open(response_path, 'w') as f:
+            if isinstance(actual_response, binary_type):
+                open_type = 'wb'
+            else:
+                open_type = 'w'
+            with open(response_path, open_type) as f:
                 f.write(actual_response)
 
             if file_type == "raster":
