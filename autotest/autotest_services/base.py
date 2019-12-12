@@ -34,6 +34,7 @@ import logging
 from lxml import etree
 import tempfile
 import mimetypes
+from base64 import b64decode
 
 try:
     from cStringIO import StringIO as BytesIO
@@ -730,7 +731,7 @@ class MultipartTestCase(XMLTestCase):
         return etree.tostring(xml , encoding="UTF-8" , xml_declaration=True)"""
 
     def _unpackMultipartContent(self, response):
-        
+
         if getattr(response, "streaming", False):
             content = "".join(response)
         else:
@@ -1162,7 +1163,7 @@ class WPS10XMLComparison(XMLTestCase):
     @staticmethod
     def parseFileName(src) :
         try :
-            with open( src ) as fid :
+            with open(src, 'rb') as fid :
                 return fid.read()
         except Exception as e :
             raise XMLParseError ("Failed to parse the \"%s\" file! %s" % ( src , str(e) ))
@@ -1205,10 +1206,15 @@ class WPS10XMLComparison(XMLTestCase):
         )
         # creates a response image that contains the encoded text of the response xml file
         doc = etree.fromstring( self.prepareXMLData(self.getXMLData()))
-        encodedText= b' '.join(e.text for e in doc.xpath('//wps:ComplexData', namespaces= {'wps': 'http://www.opengis.net/wps/1.0.0'}))
+
+        try:
+            encodedText = doc.xpath('//wps:ComplexData', namespaces= {'wps': 'http://www.opengis.net/wps/1.0.0'})[0].text
+        except IndexError:
+            self.fail('No complex data found in the XML tree')
+
         _, self.tmppath = tempfile.mkstemp("." + self.getFileExtension("raster"))
         with open(self.tmppath, 'wb') as f:
-            f.write(encodedText.decode('base64'))
+            f.write(b64decode(encodedText))
         gdal.AllRegister()
 
         exp_path = os.path.join(
