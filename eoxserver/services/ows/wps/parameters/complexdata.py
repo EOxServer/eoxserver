@@ -76,14 +76,18 @@ class CDBase(object):
         # pylint: disable=redefined-builtin, unused-argument, too-many-arguments
         if isinstance(format, Format):
             self.mime_type = format.mime_type
-            self.encoding = format.encoding
+            self._encoding = format.encoding
             self.schema = format.schema
         else:
             self.mime_type = mime_type
-            self.encoding = encoding
+            self._encoding = encoding
             self.schema = schema
         self.filename = filename
         self.headers = headers or []
+
+    @property
+    def encoding(self):
+        return self._encoding
 
     @property
     def data(self):
@@ -117,7 +121,7 @@ class CDObject(CDBase):
         return self._data
 
 
-class CDByteBuffer(StringIO, CDBase):
+class CDByteBuffer(BytesIO, CDBase):
     """ Complex data binary in-memory buffer (StringIO).
         To be used to hold a generic binary (byte-stream) payload.
 
@@ -471,7 +475,7 @@ class ComplexData(Parameter):
         if isinstance(data, CDObject):
             data = data.data
         if format_.is_xml:
-            data = FastStringIO(etree.tostring(
+            data = BytesIO(etree.tostring(
                 data, pretty_print=False, xml_declaration=True,
                 encoding=text_encoding
             ))
