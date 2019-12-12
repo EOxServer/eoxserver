@@ -37,9 +37,10 @@ try:
     from StringIO import StringIO
     from cStringIO import StringIO as FastStringIO
 except ImportError:
-    from io import BytesIO
     from io import StringIO
     from io import StringIO as FastStringIO
+
+from io import BytesIO
 
 try:
     # available in Python 2.7+
@@ -116,7 +117,7 @@ class CDObject(CDBase):
         return self._data
 
 
-class CDByteBuffer(BytesIO, CDBase):
+class CDByteBuffer(StringIO, CDBase):
     """ Complex data binary in-memory buffer (StringIO).
         To be used to hold a generic binary (byte-stream) payload.
 
@@ -441,14 +442,11 @@ class ComplexData(Parameter):
                 data.seek(0)
                 data = data.read()
             return data
-        else: # generic binary byte-stream
+        else:  # generic binary byte-stream
             if format_.encoding is not None:
                 data.seek(0)
-                data_out = FastStringIO()
-                # data_out.write(str(data.data,'utf-8'))
+                data_out = BytesIO()
                 for chunk in format_.encode(data):
-                    if isinstance(chunk, binary_type):
-                        chunk = str(chunk,'utf-8')
                     data_out.write(chunk)
                 data = data_out
             data.seek(0)
