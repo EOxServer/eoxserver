@@ -162,6 +162,5 @@ class Decoder(object):
             raise ValueError(
                 "Decoder input '%s' not supported." % type(params).__name__
             )
-
         self.kvp = params
         self._query_dict = query_dict

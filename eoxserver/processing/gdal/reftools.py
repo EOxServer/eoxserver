@@ -29,7 +29,12 @@
 import ctypes as C
 from ctypes.util import find_library
 import logging
-from itertools import izip, chain
+try:
+    from itertools import chain, izip
+except ImportError :
+    from itertools import chain
+    izip = zip
+
 import math
 
 from eoxserver.contrib import gdal, osr

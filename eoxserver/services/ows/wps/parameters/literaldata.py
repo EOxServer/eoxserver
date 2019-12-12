@@ -119,12 +119,12 @@ class LiteralData(Parameter):
     @property
     def default_uom(self):
         """ Get the default UOM. """
-        return self._uoms.keys()[0] if self._uoms else None
+        return list(self._uoms)[0] if self._uoms else None
 
     @property
     def uoms(self):
         """ Get all allowed UOMs. """
-        return self._uoms.keys() if self._uoms else None
+        return list(self._uoms) if self._uoms else None
 
     @property
     def dtype(self):
@@ -201,8 +201,10 @@ class LiteralData(Parameter):
             _value = self._dtype.parse(raw_value)
             _value = self.strip_uom(_value, uom or self.default_uom)
             _value = self._allowed_values.verify(_value)
+            
             return _value
         except (ValueError, TypeError) as exc:
+            
             raise ValueError(
                 "Input parsing error: '%s' (raw value '%s')" % (exc, raw_value)
             )

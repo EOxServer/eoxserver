@@ -50,7 +50,7 @@ from lxml import etree
 from .base import Parameter
 from .formats import Format
 from django.utils.encoding import smart_text
-from django.utils.six import string_types, text_type
+from django.utils.six import string_types, text_type, itervalues
 
 #-------------------------------------------------------------------------------
 # complex data - data containers
@@ -355,7 +355,7 @@ class ComplexData(Parameter):
     @property
     def default_format(self):
         """ Get default the default format. """
-        return self.formats.itervalues().next()
+        return next(itervalues(self.formats))
 
     def get_format(self, mime_type, encoding=None, schema=None):
         """ Get format definition for the given mime-type and the optional

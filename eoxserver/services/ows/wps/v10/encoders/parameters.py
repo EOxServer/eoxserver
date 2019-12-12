@@ -28,6 +28,7 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 # pylint: disable=bad-continuation
+from django.utils.six import itervalues
 
 from eoxserver.services.ows.wps.parameters import (
     LiteralData, ComplexData, BoundingBoxData,
@@ -182,7 +183,7 @@ def _encode_complex(prm, is_input):
     """
     return NIL("ComplexData" if is_input else "ComplexOutput",
         NIL("Default", _encode_format(prm.default_format)),
-        NIL("Supported", *[_encode_format(f) for f in prm.formats.itervalues()])
+        NIL("Supported", *[_encode_format(f) for f in itervalues(prm.formats)])
     )
 
 

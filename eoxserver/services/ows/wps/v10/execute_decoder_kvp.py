@@ -29,6 +29,7 @@
 #-------------------------------------------------------------------------------
 
 from django.utils.six.moves.urllib.parse import unquote_plus
+
 from eoxserver.core.decoders import kvp
 from eoxserver.services.ows.wps.parameters import (
     InputData, InputReference, Output, ResponseDocument, RawDataOutput
@@ -71,7 +72,7 @@ def _parse_param(raw_string):
     """ Parse one input or output item. """
     items = (item.partition('=') for item in raw_string.split("@"))
     attr = {}
-    id_, dlm, data = items.next()
+    id_, dlm, data = next(items)
     id_ = unquote_plus(id_)
     data = unquote_plus(data) if dlm else None
     for key, dlm, value in items:

@@ -27,7 +27,10 @@
 
 from os.path import join
 from uuid import uuid4
-from itertools import izip_longest
+try:
+    from itertools import izip_longest
+except ImportError:
+    from itertools import zip_longest as izip_longest
 
 from django.conf import settings
 from django.utils.module_loading import import_string

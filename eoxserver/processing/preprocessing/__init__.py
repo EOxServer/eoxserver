@@ -28,7 +28,11 @@
 #-------------------------------------------------------------------------------
 
 from os.path import splitext
-from itertools import izip
+try:
+    from itertools import chain, izip
+except ImportError :
+    from itertools import chain
+    izip = zip
 import numpy
 import logging
 

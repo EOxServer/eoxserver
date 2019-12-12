@@ -36,9 +36,9 @@ import tempfile
 import mimetypes
 
 try:
-    from cStringIO import StringIO
+    from cStringIO import StringIO as BytesIO
 except ImportError:
-    from io import StringIO
+    from io import BytesIO
 import cgi
 from unittest import SkipTest
 
@@ -249,7 +249,7 @@ class OWSTestCase(TransactionTestCase):
         # check that the expected XML response exists
         if not os.path.isfile(expected_path):
             with open(response_path, 'w') as f:
-                f.write(response)
+                f.write(str(response))
 
             self.skipTest(
                 "Missing the expected XML response '%s'." % expected_path
@@ -257,11 +257,10 @@ class OWSTestCase(TransactionTestCase):
 
         # perform the actual comparison
         try:
-            xmlCompareFiles(expected_path, StringIO(response))
+            xmlCompareFiles(expected_path, BytesIO(response))
         except Exception as e:
             with open(response_path, 'w') as f:
-                f.write(response)
-
+                f.write(str(response))
             self.fail(
                 "Response returned in '%s' is not equal to expected response "
                 "in '%s'. REASON: %s " % (response_path, expected_path, str(e))
@@ -731,6 +730,7 @@ class MultipartTestCase(XMLTestCase):
         return etree.tostring(xml , encoding="UTF-8" , xml_declaration=True)"""
 
     def _unpackMultipartContent(self, response):
+        
         if getattr(response, "streaming", False):
             content = "".join(response)
         else:
@@ -1208,7 +1208,7 @@ class WPS10XMLComparison(XMLTestCase):
         encodedText= ' '.join(e.text for e in doc.xpath('//wps:ComplexData', namespaces= {'wps': 'http://www.opengis.net/wps/1.0.0'}))
         _, self.tmppath = tempfile.mkstemp("." + self.getFileExtension("raster"))
         with open(self.tmppath, 'w') as f:
-            f.write(encodedText.decode('base64'))
+            f.write(encodedText.encode('base64'))
         gdal.AllRegister()
 
         exp_path = os.path.join(

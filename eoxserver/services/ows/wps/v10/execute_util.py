@@ -26,6 +26,7 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
+from django.utils.six import iteritems, itervalues
 from eoxserver.services.ows.wps.util import OrderedDict
 from eoxserver.services.ows.wps.parameters import (
     fix_parameter, LiteralData, BoundingBoxData, ComplexData,
@@ -41,7 +42,7 @@ from eoxserver.services.ows.wps.exceptions import (
 def parse_params(param_defs):
     """ Parse process's inputs/outputs parameter definitions. """
     if isinstance(param_defs, dict):
-        param_defs = param_defs.iteritems()
+        param_defs = iteritems(param_defs)
     return OrderedDict(
         (param.identifier, (name, param)) for name, param in (
             (name, fix_parameter(name, param)) for name, param in param_defs
@@ -67,7 +68,7 @@ def check_invalid_outputs(outputs, output_defs):
 
 def resolve_request_parameters(inputs, input_defs, request):
     """ Resolve request parameters. """
-    for identifier, (_, input_def) in input_defs.iteritems():
+    for identifier, (_, input_def) in iteritems(input_defs):
         if isinstance(input_def, RequestParameter):
             inputs[identifier] = input_def.parse_request(request)
     return inputs
@@ -78,7 +79,7 @@ def decode_raw_inputs(raw_inputs, input_defs, resolver):
         all given inputs. This also includes resolving of references.
     """
     decoded_inputs = {}
-    for identifier, (name, input_def) in input_defs.iteritems():
+    for identifier, (name, input_def) in iteritems(input_defs):
         raw_value = raw_inputs.get(identifier)
         if isinstance(input_def, RequestParameter):
             value = raw_value
@@ -149,7 +150,7 @@ def decode_output_requests(response_form, output_defs):
         is passed as an input to the process
     """
     output_requests = {}
-    for identifier, (name, output_def) in output_defs.iteritems():
+    for identifier, (name, output_def) in iteritems(output_defs):
         request = response_form.get_output(identifier)
         if isinstance(output_def, ComplexData):
             format_ = output_def.get_format(
@@ -180,7 +181,7 @@ def pack_outputs(outputs, response_form, output_defs):
     # Normalize the outputs to a dictionary.
     if not isinstance(outputs, dict):
         if len(output_defs) == 1:
-            outputs = {output_defs.values()[0][0]: outputs}
+            outputs = {list(itervalues(output_defs))[0][0]: outputs}
         else:
             outputs = dict(outputs)
     # Pack the outputs to a tuple containing:
@@ -188,7 +189,7 @@ def pack_outputs(outputs, response_form, output_defs):
     #   - the process output declaration (ProcessDescription/Output)
     #   - the output's requested form (RequestForm/Output)
     packed = OrderedDict()
-    for identifier, (name, output_def) in output_defs.iteritems():
+    for identifier, (name, output_def) in iteritems(output_defs):
         request = response_form.get_output(identifier)
         result = outputs.get(name)
         # TODO: Can we silently skip the missing outputs? Check the standard!
