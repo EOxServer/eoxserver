@@ -44,7 +44,7 @@ from unittest import SkipTest
 
 from django.test import Client, TransactionTestCase
 from django.conf import settings
-from django.utils.six import assertCountEqual
+from django.utils.six import assertCountEqual, binary_type
 
 from eoxserver.core.config import get_eoxserver_config
 from eoxserver.core.util import multiparttools as mp
@@ -277,13 +277,6 @@ class OWSTestCase(TransactionTestCase):
             self.getResponseFileDir(), self.getResponseFileName(file_type)
         )
 
-        try:
-            with open(expected_path, 'r') as f:
-                expected = f.read()
-
-        except IOError:
-            expected = None
-
         actual_response = None
         if data is None:
             if file_type in ("raster", "html"):
@@ -295,6 +288,18 @@ class OWSTestCase(TransactionTestCase):
         else:
             actual_response = data
 
+        # read the expected response, either binary or as string
+        try:
+            if isinstance(actual_response, binary_type):
+                open_type = 'rb'
+            else:
+                open_type = 'r'
+            with open(expected_path, open_type) as f:
+                expected = f.read()
+
+        except IOError:
+            expected = None
+
         if expected != actual_response:
             if self.getFileExtension("raster") in ("hdf", "nc"):
                 self.skipTest(
@@ -303,8 +308,12 @@ class OWSTestCase(TransactionTestCase):
                 )
 
             # save the contents of the file
-            with open(response_path, 'w') as f:
-                f.write(str(actual_response))
+            if isinstance(actual_response, binary_type):
+                open_type = 'wb'
+            else:
+                open_type = 'w'
+            with open(response_path, open_type) as f:
+                f.write(actual_response)
 
             if file_type == "raster":
                 try:
@@ -1153,7 +1162,7 @@ class WPS10XMLComparison(XMLTestCase):
     @staticmethod
     def parseFileName(src) :
         try :
-            with file( src ) as fid :
+            with open( src ) as fid :
                 return fid.read()
         except Exception as e :
             raise XMLParseError ("Failed to parse the \"%s\" file! %s" % ( src , str(e) ))
@@ -1196,10 +1205,10 @@ class WPS10XMLComparison(XMLTestCase):
         )
         # creates a response image that contains the encoded text of the response xml file
         doc = etree.fromstring( self.prepareXMLData(self.getXMLData()))
-        encodedText= ' '.join(e.text for e in doc.xpath('//wps:ComplexData', namespaces= {'wps': 'http://www.opengis.net/wps/1.0.0'}))
+        encodedText= b' '.join(e.text for e in doc.xpath('//wps:ComplexData', namespaces= {'wps': 'http://www.opengis.net/wps/1.0.0'}))
         _, self.tmppath = tempfile.mkstemp("." + self.getFileExtension("raster"))
-        with open(self.tmppath, 'w') as f:
-            f.write(encodedText.encode('base64'))
+        with open(self.tmppath, 'wb') as f:
+            f.write(encodedText.decode('base64'))
         gdal.AllRegister()
 
         exp_path = os.path.join(
