@@ -479,19 +479,25 @@ class ComplexData(Parameter):
                 data, pretty_print=False, xml_declaration=True,
                 encoding=text_encoding
             ))
-            content_type = "%s; charset=%s" % (format_.mime_type, text_encoding)
+            content_type = "%s; charset=%s" % (
+                format_.mime_type, text_encoding
+            )
         elif format_.is_json:
-            data = FastStringIO(
+            data = BytesIO(
                 json.dumps(data, ensure_ascii=False).encode(text_encoding)
             )
-            content_type = "%s; charset=%s" % (format_.mime_type, text_encoding)
+            content_type = "%s; charset=%s" % (
+                format_.mime_type, text_encoding
+            )
         elif format_.is_text:
             if isinstance(data, (CDTextBuffer, CDAsciiTextBuffer)):
                 data.text_encoding = text_encoding
             else:
                 data = FastStringIO(_rewind(data).read().encode(text_encoding))
-            content_type = "%s; charset=%s" % (format_.mime_type, text_encoding)
-        else: # generic binary byte-stream
+            content_type = "%s; charset=%s" % (
+                format_.mime_type, text_encoding
+            )
+        else:  # generic binary byte-stream
             if format_.encoding is not None:
                 data_out = FastStringIO()
                 for chunk in format_.encode(_rewind(data)):
