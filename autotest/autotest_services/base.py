@@ -294,7 +294,7 @@ class OWSTestCase(TransactionTestCase):
                 open_type = 'rb'
             else:
                 open_type = 'r'
-            with open(expected_path, 'r') as f:
+            with open(expected_path, open_type) as f:
                 expected = f.read()
 
         except IOError:
@@ -1162,7 +1162,7 @@ class WPS10XMLComparison(XMLTestCase):
     @staticmethod
     def parseFileName(src) :
         try :
-            with file( src ) as fid :
+            with open( src ) as fid :
                 return fid.read()
         except Exception as e :
             raise XMLParseError ("Failed to parse the \"%s\" file! %s" % ( src , str(e) ))
@@ -1205,10 +1205,10 @@ class WPS10XMLComparison(XMLTestCase):
         )
         # creates a response image that contains the encoded text of the response xml file
         doc = etree.fromstring( self.prepareXMLData(self.getXMLData()))
-        encodedText= ' '.join(e.text for e in doc.xpath('//wps:ComplexData', namespaces= {'wps': 'http://www.opengis.net/wps/1.0.0'}))
+        encodedText= b' '.join(e.text for e in doc.xpath('//wps:ComplexData', namespaces= {'wps': 'http://www.opengis.net/wps/1.0.0'}))
         _, self.tmppath = tempfile.mkstemp("." + self.getFileExtension("raster"))
-        with open(self.tmppath, 'w') as f:
-            f.write(encodedText.encode('base64'))
+        with open(self.tmppath, 'wb') as f:
+            f.write(encodedText.decode('base64'))
         gdal.AllRegister()
 
         exp_path = os.path.join(

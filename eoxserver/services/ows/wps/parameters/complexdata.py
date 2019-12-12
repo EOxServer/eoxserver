@@ -37,6 +37,7 @@ try:
     from StringIO import StringIO
     from cStringIO import StringIO as FastStringIO
 except ImportError:
+    from io import BytesIO
     from io import StringIO
     from io import StringIO as FastStringIO
 
@@ -50,7 +51,7 @@ from lxml import etree
 from .base import Parameter
 from .formats import Format
 from django.utils.encoding import smart_text
-from django.utils.six import string_types, text_type, itervalues
+from django.utils.six import string_types, text_type, itervalues, binary_type
 
 #-------------------------------------------------------------------------------
 # complex data - data containers
@@ -115,7 +116,7 @@ class CDObject(CDBase):
         return self._data
 
 
-class CDByteBuffer(StringIO, CDBase):
+class CDByteBuffer(BytesIO, CDBase):
     """ Complex data binary in-memory buffer (StringIO).
         To be used to hold a generic binary (byte-stream) payload.
 
@@ -131,13 +132,13 @@ class CDByteBuffer(StringIO, CDBase):
         headers    additional raw output HTTP headers encoded as a list
                    of <key>, <value> pairs (tuples).
     """
-    def __init__(self, data='', *args, **kwargs):
+    def __init__(self, data=b'', *args, **kwargs):
         # NOTE: StringIO is an old-style class and super cannot be used!
-        StringIO.__init__(self, str(data))
+        BytesIO.__init__(self, data)
         CDBase.__init__(self, *args, **kwargs)
 
     def write(self, data):
-        StringIO.write(self, str(data))
+        BytesIO.write(self, data)
 
     @property
     def data(self):
@@ -287,7 +288,7 @@ class CDFile(CDFileWrapper):
                    should be removed or not. Set to True by default.
     """
 
-    def __init__(self, name, mode='r', buffering=-1, *args, **kwargs):
+    def __init__(self, name, mode='rb', buffering=-1, *args, **kwargs):
         CDFileWrapper.__init__(
             self, open(name, mode, buffering), *args, **kwargs
         )
@@ -402,8 +403,10 @@ class ComplexData(Parameter):
         else: # generic binary byte-stream
             parsed_data = CDByteBuffer(data, **fattr)
             if format_.encoding is not None:
-                data_out = FastStringIO()
+                data_out = BytesIO()
                 for chunk in format_.decode(parsed_data, **opt):
+                    if isinstance(chunk, binary_type):
+                        chunk = str(chunk,'utf-8')
                     data_out.write(chunk)
                 parsed_data = data_out
             parsed_data.seek(0)
@@ -442,7 +445,10 @@ class ComplexData(Parameter):
             if format_.encoding is not None:
                 data.seek(0)
                 data_out = FastStringIO()
+                # data_out.write(str(data.data,'utf-8'))
                 for chunk in format_.encode(data):
+                    if isinstance(chunk, binary_type):
+                        chunk = str(chunk,'utf-8')
                     data_out.write(chunk)
                 data = data_out
             data.seek(0)
@@ -487,6 +493,8 @@ class ComplexData(Parameter):
             if format_.encoding is not None:
                 data_out = FastStringIO()
                 for chunk in format_.encode(_rewind(data)):
+                    # if isinstance(chunk, binary_type):
+                    #     chunk = str(chunk,'utf-8')
                     data_out.write(chunk)
                 data = data_out
             content_type = format_.mime_type

@@ -150,7 +150,7 @@ class TestProcess03(Component):
                 # None that the object holds the format attributes!
                 # The 'filename' parameter sets the raw output
                 # 'Content-Disposition: filename=' HTTP header.
-                with file(tmp_filename) as fid:
+                with open(tmp_filename, 'rb') as fid:
                     _output = CDByteBuffer(
                         fid.read(), filename=output_filename, **output
                     )
