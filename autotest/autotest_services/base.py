@@ -391,8 +391,14 @@ class GDALDatasetTestCase(RasterTestCase):
     def setUp(self):
         super(GDALDatasetTestCase, self).setUp()
         _, self.tmppath = tempfile.mkstemp("." + self.getFileExtension("raster"))
-        with open(self.tmppath, 'w') as f:
-            f.write(self.getResponseData())
+
+        data = self.getResponseData()
+        if isinstance(data, bytes):
+            mode = 'wb'
+        else:
+            mode = 'w'
+        with open(self.tmppath, mode) as f:
+            f.write(data)
 
         gdal.AllRegister()
 
