@@ -84,7 +84,7 @@ class BaseParameter(property):
                 return self.default
 
             try:
-                return map(self.type, results)
+                return [self.type(v) for v in results]
             except Exception as e:
                 # let some more sophisticated exceptions pass
                 if hasattr(e, "locator") or hasattr(e, "code"):
