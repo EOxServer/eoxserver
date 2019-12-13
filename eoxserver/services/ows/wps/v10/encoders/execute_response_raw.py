@@ -84,7 +84,7 @@ class ResultAlt(ResultItem):
         # pylint: disable=too-many-arguments
         ResultItem.__init__(self, content_type, filename, identifier)
         if isinstance(buf, string_types) or isinstance(buf, bytes):
-            self._file = StringIO(str(buf))  # make sure a byte string is passed
+            self._file = StringIO(buf.decode('utf-8'))  # make sure a byte string is passed
         elif isinstance(buf, (tuple, list, types.GeneratorType)):
             tmp = StringIO()
             for chunk in buf:

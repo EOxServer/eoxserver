@@ -36,11 +36,11 @@ from copy import deepcopy
 try:
     from StringIO import StringIO
     from cStringIO import StringIO as FastStringIO
+    BytesIO = StringIO
 except ImportError:
+    from io import BytesIO
     from io import StringIO
     from io import StringIO as FastStringIO
-
-from io import BytesIO
 
 try:
     # available in Python 2.7+
@@ -411,7 +411,7 @@ class ComplexData(Parameter):
                 data_out = BytesIO()
                 for chunk in format_.decode(parsed_data, **opt):
                     if isinstance(chunk, binary_type):
-                        chunk = str(chunk,'utf-8')
+                        chunk = chunk.decode('utf-8')
                     data_out.write(chunk)
                 parsed_data = data_out
             parsed_data.seek(0)
@@ -446,11 +446,15 @@ class ComplexData(Parameter):
                 data.seek(0)
                 data = data.read()
             return data
-        else:  # generic binary byte-stream
+        else: # generic binary byte-stream
             if format_.encoding is not None:
                 data.seek(0)
-                data_out = BytesIO()
+                data_out = FastStringIO()
+                # data_out.write(str(data.data,'utf-8'))
                 for chunk in format_.encode(data):
+                    if isinstance(chunk, binary_type):
+                        chunk = chunk.decode('utf-8')
+
                     data_out.write(chunk)
                 data = data_out
             data.seek(0)
@@ -493,13 +497,13 @@ class ComplexData(Parameter):
             if isinstance(data, (CDTextBuffer, CDAsciiTextBuffer)):
                 data.text_encoding = text_encoding
             else:
-                data = FastStringIO(_rewind(data).read().encode(text_encoding))
+                data = BytesIO(_rewind(data).read().encode(text_encoding))
             content_type = "%s; charset=%s" % (
                 format_.mime_type, text_encoding
             )
         else:  # generic binary byte-stream
             if format_.encoding is not None:
-                data_out = FastStringIO()
+                data_out = BytesIO()
                 for chunk in format_.encode(_rewind(data)):
                     # if isinstance(chunk, binary_type):
                     #     chunk = str(chunk,'utf-8')
