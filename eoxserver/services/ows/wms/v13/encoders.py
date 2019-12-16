@@ -148,6 +148,10 @@ class WMS13Encoder(XMLEncoder):
             WMS("Name", layer_description.name)
         ]
 
+        title = getattr(layer_description, 'title')
+        if title:
+            elems.append(WMS("Title", title))
+
         if layer_description.bbox:
             bbox = map(str, layer_description.bbox)
             elems.append(
