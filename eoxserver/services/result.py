@@ -28,7 +28,7 @@
 import os
 import os.path
 try:
-    from io import StringIO 
+    from io import StringIO
 except ImportError:
     from cStringIO import StringIO
 
@@ -280,18 +280,18 @@ def parse_headers(headers):
 
         :param headers: the raw header :class:`dict`
     """
-    content_type = headers.get("Content-Type", "application/octet-stream")
+    content_type = headers.get(b"Content-Type", b"application/octet-stream")
     _, params = mp.parse_parametrized_option(
-        headers.get("Content-Disposition", "")
+        headers.get(b"Content-Disposition", b"")
     )
-    filename = params.get("filename")
+    filename = params.get(b"filename")
     if filename:
-        if filename.startswith('"'):
+        if filename.startswith(b'"'):
             filename = filename[1:]
-        if filename.endswith('"'):
+        if filename.endswith(b'"'):
             filename = filename[:-1]
 
-    identifier = headers.get("Content-Id")
+    identifier = headers.get(b"Content-Id")
     return content_type, filename, identifier
 
 
@@ -306,5 +306,5 @@ def result_set_from_raw_data(data):
     return [
         ResultBuffer(d, *parse_headers(headers))
         for headers, d in mp.iterate(data)
-        if not headers.get("Content-Type").startswith("multipart")
+        if not headers.get(b"Content-Type").startswith(b"multipart")
     ]
