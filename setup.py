@@ -89,7 +89,7 @@ setup(
         'django>=1.4',
         'python-dateutil',
         'ply',
-        'django-model-utils',
+        'django-model-utils<4.0.0',
         'zipstream',
     ],
     zip_safe=False,
