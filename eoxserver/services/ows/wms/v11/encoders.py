@@ -131,6 +131,10 @@ class WMS11Encoder(XMLEncoder):
             E("Name", layer_description.name)
         ]
 
+        title = getattr(layer_description, 'title')
+        if title:
+            elems.append(E("Title", title))
+
         if layer_description.bbox:
             bbox = map(str, layer_description.bbox)
             elems.append(
