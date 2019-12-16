@@ -135,7 +135,7 @@ def parse_bbox(raw):
 
     return MultiPolygon(
         Polygon.from_bbox((minx, miny, 180.0, maxy)),
-        Polygon.from_bbox((-180.0, miny, maxy, maxy)),
+        Polygon.from_bbox((-180.0, miny, maxx, maxy)),
     )
 
 
