@@ -384,7 +384,7 @@ class LayerDescription(object):
         self._queryable = queryable
         self._styles = styles if styles is not None else []
         self._sub_layers = sub_layers if sub_layers is not None else []
-        self._tile = title
+        self._title = title
 
     @property
     def name(self):
