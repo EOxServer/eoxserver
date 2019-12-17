@@ -60,4 +60,4 @@ urlpatterns = [
     # (r'^process/status/(?P<requestType>[^/]{,64})/(?P<requestID>[^/]{,64})$', procViews.status ),
     # (r'^process/task$', procViews.task ),
     url(r'^process/response/(?P<requestType>[^/]{,64})/(?P<requestID>[^/]{,64})', processes.response ),
-]
+] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
