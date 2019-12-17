@@ -61,13 +61,15 @@ class MultipartTest(TestCase):
     """))
 
     def test_multipart_iteration(self):
-        parsed = list(map(
-            lambda i: (i[0], str(i[1])), mp.iterate(self.example_multipart)
-        ))
+        parsed = [
+            (i[0], i[1].tobytes() if isinstance(i[1], memoryview) else i[1])
+            for i in mp.iterate(self.example_multipart)
+        ]
+
         self.assertEqual([
-                ({"MIME-Version": "1.0", "Content-Type": "multipart/mixed; boundary=frontier"}, ""),
-                ({"Content-Type": "text/plain"}, "This is the body of the message."),
-                ({"Content-Type": "application/octet-stream", "Content-Transfer-Encoding": "base64"}, "PGh0bWw+CiAgPGhlYWQ+CiAgPC9oZWFkPgogIDxib2R5PgogICAgPHA+VGhpcyBpcyB0aGUgYm9keSBvZiB0aGUgbWVzc2FnZS48L3A+CiAgPC9ib2R5Pgo8L2h0bWw+Cg==")
+                ({b"MIME-Version": b"1.0", b"Content-Type": b"multipart/mixed; boundary=frontier"}, b""),
+                ({b"Content-Type": b"text/plain"}, b"This is the body of the message."),
+                ({b"Content-Type": b"application/octet-stream", b"Content-Transfer-Encoding": b"base64"}, b"PGh0bWw+CiAgPGhlYWQ+CiAgPC9oZWFkPgogIDxib2R5PgogICAgPHA+VGhpcyBpcyB0aGUgYm9keSBvZiB0aGUgbWVzc2FnZS48L3A+CiAgPC9ib2R5Pgo8L2h0bWw+Cg==")
             ], parsed
         )
 
@@ -100,11 +102,26 @@ class ResultSetTestCase(TestCase):
         first = result_set[0]
         second = result_set[1]
 
-        self.assertEqual(str(first.data), "This is the body of the message.")
-        self.assertEqual(first.content_type, "text/plain")
-        self.assertEqual(first.filename, "message.msg")
-        self.assertEqual(first.identifier, "message-part")
-        self.assertEqual(str(second.data), "PGh0bWw+CiAgPGhlYWQ+CiAgPC9oZWFkPgogIDxib2R5PgogICAgPHA+VGhpcyBpcyB0aGUgYm9keSBvZiB0aGUgbWVzc2FnZS48L3A+CiAgPC9ib2R5Pgo8L2h0bWw+Cg==")
+        self.assertEqual(
+            first.data.tobytes(),
+            b"This is the body of the message."
+        )
+        self.assertEqual(
+            first.content_type,
+            b"text/plain"
+        )
+        self.assertEqual(
+            first.filename,
+            b"message.msg"
+        )
+        self.assertEqual(
+            first.identifier,
+            b"message-part"
+        )
+        self.assertEqual(
+            second.data.tobytes(),
+            b"PGh0bWw+CiAgPGhlYWQ+CiAgPC9oZWFkPgogIDxib2R5PgogICAgPHA+VGhpcyBpcyB0aGUgYm9keSBvZiB0aGUgbWVzc2FnZS48L3A+CiAgPC9ib2R5Pgo8L2h0bWw+Cg=="
+        )
 
 
 class TemporalSubsetsTestCase(TransactionTestCase):
