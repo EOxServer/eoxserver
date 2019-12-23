@@ -35,6 +35,7 @@ except ImportError:
 from uuid import uuid4
 
 from django.http import HttpResponse
+from django.utils.six import b
 
 from eoxserver.core.util import multiparttools as mp
 
@@ -125,15 +126,17 @@ class ResultBuffer(ResultItem):
 
     def __init__(self, buf, content_type=None, filename=None, identifier=None):
         super(ResultBuffer, self).__init__(content_type, filename, identifier)
-        self.buf = buf
+        if isinstance(buf, str) or isinstance(buf, bytes):
+            self.buf = buf
+        else: 
+            self.buf = buf.tobytes()
 
     @property
     def data(self):
         return self.buf
-
-    @property
-    def data_file(self):
-        return StringIO(self.buf)
+    # @property
+    # def data_file(self):
+    #     return StringIO(self.buf)
 
     def __len__(self):
         return len(self.buf)
@@ -169,16 +172,16 @@ def get_headers(result_item):
     if hasattr(result_item, 'headers'):
         for header in result_item.headers:
             yield header
-    yield "Content-Type", result_item.content_type or "application/octet-stream"
+    yield b"Content-Type", result_item.content_type or b"application/octet-stream"
     if result_item.identifier:
-        yield "Content-Id", result_item.identifier
+        yield b"Content-Id", result_item.identifier.encode('utf-8')
     if result_item.filename:
         yield (
-            "Content-Disposition", 'attachment; filename="%s"'
+            b"Content-Disposition", b'attachment; filename="%s"'
             % result_item.filename
         )
     try:
-        yield "Content-Length", len(result_item)
+        yield b"Content-Length", b"%d" % len(result_item)
     except (AttributeError, NotImplementedError):
         pass
 
@@ -187,14 +190,14 @@ def get_payload_size(result_set, boundary):
     """ Calculate the size of the result set and all entailed result items plus
         headers.
     """
-    boundary_str = "%s--%s%s" % (mp.CRLF, boundary, mp.CRLF)
-    boundary_str_end = "%s--%s--" % (mp.CRLF, boundary)
+    boundary_str = b"%s--%s%s" % (mp.CRLF, boundary, mp.CRLF)
+    boundary_str_end = b"%s--%s--" % (mp.CRLF, boundary)
 
     size = 0
     for item in result_set:
         size += len(boundary_str)
         size += len(
-            mp.CRLF.join("%s: %s" % (k, v) for k, v in get_headers(item))
+            mp.CRLF.join(b"%s: %s" % (k, v) for k, v in get_headers(item))
         )
         size += len(mp.CRLFCRLF)
         size += len(item)
@@ -223,28 +226,33 @@ def to_http_response(result_set, response_type=HttpResponse, boundary=None):
     # if more than one item is contained in the result set, the content type is
     # multipart
     if len(result_set) > 1:
-        boundary = boundary or uuid4().hex
-        content_type = "multipart/related; boundary=%s" % boundary
+        boundary = boundary or (uuid4().hex).encode('utf-8')
+        content_type = b"multipart/related; boundary=%s" % boundary
         headers = (('Content-Length', get_payload_size(result_set, boundary)), )
 
     # otherwise, the content type is the content type of the first included item
+    elif len(result_set) < 1 or result_set[0].content_type is None:
+        boundary = None
+        content_type = b"application/octet-stream"
+        headers = (('Content-Length', 0 ),)
+
     else:
         boundary = None
-        content_type = result_set[0].content_type or "application/octet-stream"
+        content_type = result_set[0].content_type or b"application/octet-stream"
         headers = tuple(get_headers(result_set[0]))
 
     def response_iterator(items, boundary=None):
         try:
             if boundary:
-                boundary_str = "%s--%s%s" % (mp.CRLF, boundary, mp.CRLF)
-                boundary_str_end = "%s--%s--" % (mp.CRLF, boundary)
+                boundary_str = b"%s--%s%s" % (mp.CRLF, boundary, mp.CRLF)
+                boundary_str_end = b"%s--%s--" % (mp.CRLF, boundary)
 
             for item in items:
                 if boundary:
                     yield boundary_str
                     yield mp.CRLF.join(
-                        "%s: %s" % (key, value)
-                        for key, value in get_headers(item)
+                    b"%s: %s" % (key, value) 
+                    for key, value in get_headers(item)
                     ) + mp.CRLFCRLF
                 yield item.data
             if boundary:

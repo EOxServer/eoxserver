@@ -255,7 +255,7 @@ class TemporaryVSIFile(VSIFile):
     """
 
     @classmethod
-    def from_buffer(cls, buf, mode="w", filename=None):
+    def from_buffer(cls, buf, mode="wb", filename=None):
         """ Creates a :class:`TemporaryVSIFile` from a string.
 
         :param buf: the supplied string

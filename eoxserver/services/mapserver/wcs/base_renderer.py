@@ -157,7 +157,7 @@ class BaseRenderer(Component):
             }, namespace="wcs")
 
         native_crs = "EPSG:%d" % sr.srid
-        all_crss = crss.getSupportedCRS_WCS(format_function=crss.asShortCode)
+        all_crss = list(crss.getSupportedCRS_WCS(format_function=crss.asShortCode))
         if native_crs in all_crss:
             all_crss.remove(native_crs)
 

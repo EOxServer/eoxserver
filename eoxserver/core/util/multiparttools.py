@@ -342,13 +342,13 @@ def iterate(data, offset=0, end=None, headers=None):
 
     # get the content type
     content_type, params = parse_parametrized_option(
-        headers.get(b"Content-Type", "")
+        headers.get(b"Content-Type", b"")
     )
 
     # check if this is a multipart
     if content_type.startswith(b"multipart"):
         # if this is a multipart, yield only its headers and an empty string
-        yield headers, b""
+        yield headers, memoryview(b"")
 
         # parse the boundary and find the final index of all multiparts
         boundary = b"%s--%s" % (CRLF, params[b"boundary"])

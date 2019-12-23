@@ -35,7 +35,8 @@ from lxml import etree
 import tempfile
 import mimetypes
 from base64 import b64decode
-
+import numpy as np
+from scipy.stats import linregress
 try:
     from cStringIO import StringIO as BytesIO
 except ImportError:
@@ -45,7 +46,7 @@ from unittest import SkipTest
 
 from django.test import Client, TransactionTestCase
 from django.conf import settings
-from django.utils.six import assertCountEqual, binary_type
+from django.utils.six import assertCountEqual, binary_type, b
 
 from eoxserver.core.config import get_eoxserver_config
 from eoxserver.core.util import multiparttools as mp
@@ -393,7 +394,7 @@ class GDALDatasetTestCase(RasterTestCase):
         _, self.tmppath = tempfile.mkstemp("." + self.getFileExtension("raster"))
 
         data = self.getResponseData()
-        if isinstance(data, bytes):
+        if isinstance(data, binary_type):
             mode = 'wb'
         else:
             mode = 'w'
@@ -742,12 +743,15 @@ class MultipartTestCase(XMLTestCase):
             content = "".join(response)
         else:
             content = response.content
-
-        for headers, data in mp.iterate(content, headers=response):
-            if RE_MIME_TYPE_XML.match(headers["Content-Type"]):
-                self.xmlData = str(data)
+        headers = {
+            b(key): b(value)
+            for key, value in response.items()
+        }
+        for headers, data in mp.iterate(content, headers=headers):
+            if RE_MIME_TYPE_XML.match(headers[b"Content-Type"].decode("utf-8")):
+                self.xmlData = data.tobytes()
             else:
-                self.imageData = str(data)
+                self.imageData = data.tobytes()
 
     def _setUpMultiparts(self):
         if self.isSetUp:
@@ -1265,3 +1269,42 @@ class WPS10BinaryComparison(GDALDatasetTestCase):
             except AttributeError:
                 pass
 
+
+
+class WCSBinaryComparison(GDALDatasetTestCase):
+    def testBinaryComparisonRaster(self):
+        self.skipTest('compare the band size, count, and statistics')
+
+    @tag('size')
+    def testSize(self):
+        self.assertEqual((self.res_ds.RasterXSize, self.res_ds.RasterYSize),
+                         (self.exp_ds.RasterXSize, self.exp_ds.RasterYSize))
+
+    @tag('band-count')
+    def testBandCount(self):
+        self.assertEqual(self.res_ds.RasterCount, self.exp_ds.RasterCount)
+
+    @tag('stastics')
+    def testBandStatistics(self):
+        if (self.exp_ds.RasterCount != self.res_ds.RasterCount):
+            for band in range( self.res_ds.RasterCount ):
+                band += 1
+            if band:
+                src_band = self.src_ds.GetRasterBand(band)
+                res_band = self.res_ds.GetRasterBand(band)
+                array1 = np.array(src_band.ReadAsArray()).flatten()
+                array2 = np.array(res_band.ReadAsArray()).flatten()
+                regress_result = linregress(array1,array2)
+                self.assertGreaterEqual(regress_result.rvalue, 0.95)
+    
+
+
+
+    def tearDown(self):
+        super(WCSBinaryComparison, self).tearDown()
+        try:
+            del self.res_ds
+            del self.exp_ds
+            os.remove(self.tmppath)
+        except AttributeError:
+            pass

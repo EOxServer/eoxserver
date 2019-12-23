@@ -1,6 +1,7 @@
 django<2.0
 gunicorn
 eventlet
+scipy-stack
 greenlet>=0.4.14
 psycopg2
 lxml
