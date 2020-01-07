@@ -34,6 +34,7 @@ script:
 - docker-compose exec autotest python manage.py test autotest_services --tag wcs10 -v2
 - docker-compose exec autotest python manage.py test autotest_services --tag wms -v2
 - docker-compose exec autotest python manage.py test autotest_services --tag wps -v2
+- docker-compose exec autotest python manage.py test autotest_services --tag opensearch -v2
 
 after_failure:
 - diff autotest/expected autotest/responses
