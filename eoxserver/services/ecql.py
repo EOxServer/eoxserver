@@ -4,7 +4,7 @@
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
 #
 # ------------------------------------------------------------------------------
-# Copyright (C) 2017 EOX IT Services GmbH
+# Copyright (C) 2019 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -25,7 +25,31 @@
 # THE SOFTWARE.
 # ------------------------------------------------------------------------------
 
-from .parser import parse
-from .ast import get_repr
-from .evaluate import to_filter, apply
-from ..filters import get_field_mapping_for_model
+from pycql import parse, get_repr
+from pycql.integrations.django import to_filter
+
+
+from .filters import get_field_mapping_for_model
+
+
+def apply(qs, cql, exclude=False):
+    """ Applies a given CQL filter on a passed queryset. The field mapping is
+        deducted from the model of the passed queryset.
+        A new queryset is returned with all filters applied.
+        :param qs: the base query to apply the filters on. The :attr:`model`
+                   is used to determine the metadata field mappings.
+        :param cql: a string containing the CQL expressions to be parsed and
+                    applied
+        :param exclude: whether the filters shall be applied using
+                        :meth:`exclude`. Default is ``False``.
+        :returns: A new queryset object representing the filtered queryset.
+        :rtype: :class:`django.db.models.QuerySet`
+    """
+    mapping, mapping_choices = get_field_mapping_for_model(qs.model)
+    ast = parse(cql)
+
+    filters = to_filter(ast, mapping, mapping_choices)
+    if exclude:
+        return qs.exclude(filters)
+    else:
+        return qs.filter(filters)
