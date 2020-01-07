@@ -25,7 +25,9 @@
 # THE SOFTWARE.
 # ------------------------------------------------------------------------------
 
-from pycql import parse, get_repr, to_filter
+from pycql import parse, get_repr
+from pycql.integrations.django import to_filter
+
 
 from .filters import get_field_mapping_for_model
 
