@@ -103,7 +103,7 @@ class ResultSetTestCase(TestCase):
         second = result_set[1]
 
         self.assertEqual(
-            first.data.tobytes(),
+            first.data,
             b"This is the body of the message."
         )
         self.assertEqual(
@@ -119,7 +119,7 @@ class ResultSetTestCase(TestCase):
             b"message-part"
         )
         self.assertEqual(
-            second.data.tobytes(),
+            second.data,
             b"PGh0bWw+CiAgPGhlYWQ+CiAgPC9oZWFkPgogIDxib2R5PgogICAgPHA+VGhpcyBpcyB0aGUgYm9keSBvZiB0aGUgbWVzc2FnZS48L3A+CiAgPC9ib2R5Pgo8L2h0bWw+Cg=="
         )
 
