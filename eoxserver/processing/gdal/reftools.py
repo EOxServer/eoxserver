@@ -41,7 +41,7 @@ from eoxserver.contrib import gdal, osr
 from eoxserver.core.util.rect import Rect
 from eoxserver.core.util.xmltools import parse, etree
 from eoxserver.contrib import vsi
-from django.utils.six import string_types
+from django.utils.six import string_types, b
 
 try:
     # Python 2
@@ -701,8 +701,13 @@ def create_rectified_vrt(path_or_ds, vrt_path, srid=None,
     #     y_size.value = size_y
 
     # vrt_ds = GDALCreateWarpedVRT(ptr, x_size, y_size, geotransform, options)
+    if isinstance(wkt, str):
+        wkt = b(wkt)
     vrt_ds = GDALAutoCreateWarpedVRT(ptr, None, wkt, resample, max_error, None)
     # GDALSetProjection(vrt_ds, wkt)
+    if isinstance(vrt_path, str):
+       vrt_path = b(vrt_path)
+        
     GDALSetDescription(vrt_ds, vrt_path)
     GDALClose(vrt_ds)
     # GDALDestroyWarpOptions(options)
