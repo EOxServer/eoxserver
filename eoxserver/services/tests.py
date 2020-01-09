@@ -101,9 +101,19 @@ class ResultSetTestCase(TestCase):
 
         first = result_set[0]
         second = result_set[1]
+        
+        if isinstance(first.data, str):
+            first_data = first.data.tobytes()
+        else:
+            first_data = first.data
 
+        if isinstance(second.data, str):
+            second_data = second.data.tobytes()
+        else:
+            second_data = second.data
+        
         self.assertEqual(
-            first.data.tobytes(),
+            first_data,
             b"This is the body of the message."
         )
         self.assertEqual(
@@ -119,7 +129,7 @@ class ResultSetTestCase(TestCase):
             b"message-part"
         )
         self.assertEqual(
-            second.data.tobytes(),
+            second_data,
             b"PGh0bWw+CiAgPGhlYWQ+CiAgPC9oZWFkPgogIDxib2R5PgogICAgPHA+VGhpcyBpcyB0aGUgYm9keSBvZiB0aGUgbWVzc2FnZS48L3A+CiAgPC9ib2R5Pgo8L2h0bWw+Cg=="
         )
 
