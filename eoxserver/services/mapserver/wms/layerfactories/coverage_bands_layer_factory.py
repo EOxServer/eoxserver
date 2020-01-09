@@ -70,7 +70,7 @@ class CoverageBandsLayerFactory(OffsiteColorMixIn, AbstractLayerFactory):
 
         if len(req_bands) in (3, 4):
             indices_str = ",".join(map(str, band_indices))
-            offsite_indices = map(lambda v: v-1, band_indices[:3])
+            offsite_indices = list(map(lambda v: v-1, band_indices[:3]))
         elif len(req_bands) == 1:
             indices_str = ",".join(map(str, band_indices * 3))
             v = band_indices[0] - 1

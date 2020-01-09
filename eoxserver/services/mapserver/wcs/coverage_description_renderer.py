@@ -84,9 +84,7 @@ class CoverageDescriptionMapServerRenderer(BaseRenderer):
             elem.getparent().remove(elem)
 
         xml_result_data =  etree.tostring(xml_result, pretty_print=True, encoding='UTF-8', xml_declaration=True)
-
-        item= ResultBuffer(xml_result_data, result[0].content_type)
-
-        result[0] = item
+        
+        result[0] = ResultBuffer(xml_result_data, result[0].content_type)
         
         return result

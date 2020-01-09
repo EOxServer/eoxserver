@@ -158,7 +158,7 @@ class SectionsMixIn(object):
         if not self.sections:
             return True
 
-        requested_sections = map(lambda s: s.lower(), self.sections)
+        requested_sections = [s.lower() for s in self.sections]
 
         for section in map(lambda s: s.lower(), sections):
             section = section.lower()
