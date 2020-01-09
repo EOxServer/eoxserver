@@ -27,12 +27,14 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
+import sys
 from datetime import datetime
 try:
     from StringIO import StringIO
 except ImportError:
     from io import StringIO
 from textwrap import dedent
+from unittest import skipIf
 
 from django.test import TestCase
 from django.core.exceptions import ValidationError
@@ -217,7 +219,7 @@ class ModelTests(GeometryMixIn, TestCase):
         self.assertIn(rectified_3, series_2_list)
 
 
-        
+
         self.assertEqual(len(mosaic_list), 3)
         self.assertEqual(len(series_1_list), 3)
         self.assertEqual(len(series_2_list), 3)
@@ -244,7 +246,7 @@ class ModelTests(GeometryMixIn, TestCase):
         series_1_time_extent = series_1.begin_time, series_1.end_time
         series_2_time_extent = series_2.begin_time, series_2.end_time
         mosaic_time_extent = mosaic.begin_time, mosaic.end_time
-        
+
         self.assertEqual(series_1_time_extent, time_extent)
         self.assertEqual(series_2_time_extent, time_extent)
         self.assertEqual(mosaic_time_extent, time_extent)
@@ -293,7 +295,7 @@ class ModelTests(GeometryMixIn, TestCase):
 
         series_1 = refresh(series_1)
 
-        
+
         collection_exclude_eo_object(series_1, rectified_2)
 
         series_1 = refresh(series_1)
@@ -305,11 +307,11 @@ class ModelTests(GeometryMixIn, TestCase):
 
     def test_propagate_eo_metadata_change(self):
         rectified_1, series_1 = self.rectified_1, self.series_1
-        
+
 
         new_begin_time = parse_datetime("2010-06-11T14:55:23Z")
         new_end_time = parse_datetime("2010-06-11T14:55:23Z")
-      
+
         rectified_1.begin_time = new_begin_time
         rectified_1.end_time = new_end_time
         rectified_1.full_clean()
@@ -358,6 +360,7 @@ class MetadataFormatTests(GeometryMixIn, TestCase):
             "format": "native"
         }, values)
 
+    @skipIf(sys.version_info.major == 3, 'segfault in Django')
     def test_native_writer(self):
         values = {
             "identifier": "some_unique_id",
@@ -482,7 +485,7 @@ class MetadataFormatTests(GeometryMixIn, TestCase):
                 Polygon.from_bbox((50, 60, 70, 80))
             ),
             'format': 'eogml',
-            'metadata': {  
+            'metadata': {
               'acquisition_station': 'PDHS-E',
               'acquisition_sub_type': None,
               'antenna_look_direction': None,
