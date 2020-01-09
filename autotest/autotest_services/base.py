@@ -250,8 +250,10 @@ class OWSTestCase(TransactionTestCase):
 
         # check that the expected XML response exists
         if not os.path.isfile(expected_path):
+            if isinstance(response, binary_type):
+                response = response.decode()
             with open(response_path, 'w') as f:
-                f.write(str(response))
+                f.write(response)
 
             self.skipTest(
                 "Missing the expected XML response '%s'." % expected_path
@@ -262,7 +264,9 @@ class OWSTestCase(TransactionTestCase):
             xmlCompareFiles(expected_path, BytesIO(response))
         except Exception as e:
             with open(response_path, 'w') as f:
-                f.write(str(response))
+                if isinstance(response, binary_type):
+                    response = response.decode()
+                f.write(response)
             self.fail(
                 "Response returned in '%s' is not equal to expected response "
                 "in '%s'. REASON: %s " % (response_path, expected_path, str(e))
@@ -429,6 +433,22 @@ class GDALDatasetTestCase(RasterTestCase):
 
 @tag('rectifiedgrid')
 class RectifiedGridCoverageTestCase(GDALDatasetTestCase):
+    def testBinaryComparisonRaster(self):
+        self.skipTest('compare the band size, count, and statistics')
+    
+    @tag('stastics')
+    def testBandStatistics(self):
+        if (self.exp_ds.RasterCount != self.res_ds.RasterCount):
+            for band in range( self.res_ds.RasterCount ):
+                band += 1
+            if band:
+                src_band = self.src_ds.GetRasterBand(band)
+                res_band = self.res_ds.GetRasterBand(band)
+                array1 = np.array(src_band.ReadAsArray()).flatten()
+                array2 = np.array(res_band.ReadAsArray()).flatten()
+                regress_result = linregress(array1,array2)
+                self.assertGreaterEqual(regress_result.rvalue, 0.95)
+
     @tag('size')
     def testSize(self):
         self.assertEqual((self.res_ds.RasterXSize, self.res_ds.RasterYSize),
@@ -466,6 +486,22 @@ class RectifiedGridCoverageTestCase(GDALDatasetTestCase):
 
 @tag('referenceablegrid')
 class ReferenceableGridCoverageTestCase(GDALDatasetTestCase):
+    def testBinaryComparisonRaster(self):
+        self.skipTest('compare the band size, count, and statistics')
+    
+    @tag('stastics')
+    def testBandStatistics(self):
+        if (self.exp_ds.RasterCount != self.res_ds.RasterCount):
+            for band in range( self.res_ds.RasterCount ):
+                band += 1
+            if band:
+                src_band = self.src_ds.GetRasterBand(band)
+                res_band = self.res_ds.GetRasterBand(band)
+                array1 = np.array(src_band.ReadAsArray()).flatten()
+                array2 = np.array(res_band.ReadAsArray()).flatten()
+                regress_result = linregress(array1,array2)
+                self.assertGreaterEqual(regress_result.rvalue, 0.95)
+
     @tag('size')
     def testSize(self):
         self.assertEqual((self.res_ds.RasterXSize, self.res_ds.RasterYSize),
@@ -518,7 +554,6 @@ class XMLTestCase(XMLNoValTestCase):
     @tag('validate')
     def testValidate(self, XMLData=None):
         logger.info("Validating XML ...")
-
         if XMLData is None:
             doc = etree.XML(self.getXMLData())
         else:
@@ -1187,12 +1222,11 @@ class WPS10XMLComparison(XMLTestCase):
         expected_path= os.path.join(
             self.getExpectedFileDir(), self.getExpectedFileName('xml')
         )
-
+        
         expectedString= self.parse(expected_path)
         expected_doc = etree.fromstring(expectedString)
         # replace the encoded data so it compare other nodes in the xml files
         response_doc = etree.fromstring(self.prepareXMLData(self.getXMLData()))
-
         expected_elems = expected_doc.xpath('//wps:ComplexData', namespaces={'wps': 'http://www.opengis.net/wps/1.0.0'})
         response_elems = response_doc.xpath('//wps:ComplexData', namespaces= {'wps': 'http://www.opengis.net/wps/1.0.0'})
 

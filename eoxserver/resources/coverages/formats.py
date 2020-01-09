@@ -279,8 +279,8 @@ class FormatRegistry(object):
         #  WMS and WCS suported formats
 
         nonNone = lambda v: (v is not None)
-        self.__wms_supported_formats = filter(nonNone, map(self.getFormatByMIME, reader.supported_formats_wms))
-        self.__wcs_supported_formats = filter(nonNone, map(self.getFormatByMIME, reader.supported_formats_wcs))
+        self.__wms_supported_formats = list(filter(nonNone, map(self.getFormatByMIME, reader.supported_formats_wms)))
+        self.__wcs_supported_formats = list(filter(nonNone, map(self.getFormatByMIME, reader.supported_formats_wcs)))
 
         #  WCS 2.0.1 source to native format mapping
 

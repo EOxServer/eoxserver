@@ -438,8 +438,8 @@ def get_footprint_wkt(ds, method=METHOD_GCP, order=0):
     x_size = ds.RasterXSize
     y_size = ds.RasterYSize
 
-    x_e = max(x_size / 100 - 1, 0)
-    y_e = max(y_size / 100 - 1, 0)
+    x_e = max(x_size // 100 - 1, 0)
+    y_e = max(y_size // 100 - 1, 0)
 
     num_points = 4 + 2 * x_e + 2 * y_e
     coord_array_type = (C.c_double * num_points)

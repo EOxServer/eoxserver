@@ -46,7 +46,7 @@ class WCS10CoverageRenderParams(CoverageRenderParams):
                  interpolation=None):
 
         super(WCS10CoverageRenderParams, self).__init__(coverage, "1.0.0")
-        self._bbox = bbox
+        self._bbox = list(bbox)
         self._crs = crs
         self._format = format
         self._response_crs = response_crs

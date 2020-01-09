@@ -51,7 +51,7 @@ class ResultItem(object):
     """
 
     def __init__(self, content_type=None, filename=None, identifier=None):
-        self.content_type = content_type
+        self._content_type = content_type
         self.filename = filename
         self.identifier = identifier
 
@@ -67,6 +67,14 @@ class ResultItem(object):
         """ Returns the data as a Python file-like object.
         """
         return StringIO("")
+
+    @property
+    def content_type(self):
+        """ Reterns a binary value of content-type if it is a string. 
+        """
+        if isinstance(self._content_type, str):
+            self._content_type = b(self._content_type)
+        return self._content_type
 
     def __len__(self):
         """ Unified access to size of data.
@@ -96,7 +104,7 @@ class ResultFile(ResultItem):
 
     @property
     def data(self):
-        with open(self.path) as f:
+        with open(self.path, 'rb') as f:
             return f.read()
 
     @property
@@ -107,7 +115,7 @@ class ResultFile(ResultItem):
         return os.path.getsize(self.path)
 
     def chunked(self, chunksize):
-        with open(self.path) as f:
+        with open(self.path, 'rb') as f:
             while True:
                 data = f.read(chunksize)
                 if not data:
@@ -175,6 +183,8 @@ def get_headers(result_item):
     yield b"Content-Type", result_item.content_type or b"application/octet-stream"
     if result_item.identifier:
         yield b"Content-Id", result_item.identifier.encode('utf-8')
+        if  isinstance(result_item.filename, str):
+            result_item.filename = b(result_item.filename)
     if result_item.filename:
         yield (
             b"Content-Disposition", b'attachment; filename="%s"'

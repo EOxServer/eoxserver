@@ -25,11 +25,13 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
+from lxml import etree
 from eoxserver.contrib import mapserver as ms
 from eoxserver.services.mapserver.wcs.base_renderer import BaseRenderer
 from eoxserver.services.ows.version import Version
 from eoxserver.services.exceptions import NoSuchCoverageException
-from eoxserver.services.result import result_set_from_raw_data
+from eoxserver.services.result import result_set_from_raw_data, ResultBuffer
+
 
 
 class CoverageDescriptionMapServerRenderer(BaseRenderer):
@@ -70,5 +72,21 @@ class CoverageDescriptionMapServerRenderer(BaseRenderer):
 
         request = ms.create_request(params)
         raw_result = ms.dispatch(map_, request)
+        
         result = result_set_from_raw_data(raw_result)
+        # load XML using lxml
+        # find and exclude <metadataLink> nodes if present
+        # re-encode
+
+        xml_result = etree.fromstring(result[0].data)
+
+        for elem in xml_result.xpath('//*[local-name() = "metadataLink"]'):
+            elem.getparent().remove(elem)
+
+        xml_result_data =  etree.tostring(xml_result, pretty_print=True, encoding='UTF-8', xml_declaration=True)
+
+        item= ResultBuffer(xml_result_data, result[0].content_type)
+
+        result[0] = item
+        
         return result

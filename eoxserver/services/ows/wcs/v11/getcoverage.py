@@ -70,8 +70,8 @@ def parse_bbox_xml(node):
     try:
         lower_corner = node.xpath("ows:LowerCorner/text()", namespaces=nsmap)[0]
         upper_corner = node.xpath("ows:UpperCorner/text()", namespaces=nsmap)[0]
-        ll = map(float, lower_corner.split(" "))
-        ur = map(float, upper_corner.split(" "))
+        ll = list(map(float, lower_corner.split(" ")))
+        ur = list(map(float, upper_corner.split(" ")))
     except (IndexError, ValueError):
         raise ValueError("Invalid bounding box.")
     crs = node.attrib["crs"]

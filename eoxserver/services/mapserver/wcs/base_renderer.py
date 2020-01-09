@@ -56,6 +56,7 @@ class BaseRenderer(Component):
         """
         map_ = ms.mapObj()
         map_.setMetaData("ows_enable_request", "*")
+        map_.setMetaData("ows_onlineresource", "*")
         maxsize = WCSConfigReader(get_eoxserver_config()).maxsize
         if maxsize is not None:
             map_.maxsize = maxsize
