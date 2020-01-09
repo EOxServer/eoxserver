@@ -25,10 +25,15 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
+import sys
+from unittest import skipIf
+
 from eoxserver.testing.utils import tag
 from autotest_services import base as testbase
 from . import base as wcsbase
 
+
+IS_PY2 = (sys.version_info.major == 2)
 
 #===============================================================================
 # WCS 2.0 Get Capabilities
@@ -1114,6 +1119,10 @@ class WCS20GetCoverageReferenceableDatasetGeogCRSSubsetExceedsExtentTestCase(wcs
     def getRequest(self):
         params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775&format=image/tiff&mediatype=multipart/mixed&subset=x(18,23)&subset=y(-35,-33)&subsettingcrs=http://www.opengis.net/def/crs/EPSG/0/4326"
         return (params, "kvp")
+
+    @skipIf(IS_PY2, 'slight differences. Python 3 is baseline')
+    def testXMLComparison(self):
+        return super(WCS20GetCoverageReferenceableDatasetGeogCRSSubsetExceedsExtentTestCase, self).testXMLComparison()
 
 @tag('wcs', 'wcs20')
 class WCS20GetCoverageReferenceableDatasetGeogCRSSubsetOutsideExtentTestCase(testbase.ExceptionTestCase):
