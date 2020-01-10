@@ -273,8 +273,9 @@ class TemporaryVSIFile(VSIFile):
     def close(self):
         """ Close the file. This also deletes it.
         """
-        super(TemporaryVSIFile, self).close()
-        remove(self.name)
+        if not self.closed:
+            super(TemporaryVSIFile, self).close()
+            remove(self.name)
 
 
 def join(first, *paths):
