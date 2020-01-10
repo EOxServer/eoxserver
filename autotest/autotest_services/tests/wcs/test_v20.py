@@ -28,11 +28,14 @@
 import sys
 from unittest import skipIf
 
+from osgeo import gdal
+
 from eoxserver.testing.utils import tag
 from autotest_services import base as testbase
 from . import base as wcsbase
 
-
+GDAL_VERSION = gdal.VersionInfo()
+GDAL_VERSION = int(GDAL_VERSION[0]), int(GDAL_VERSION[1:3]), int(GDAL_VERSION[3:5])
 IS_PY2 = (sys.version_info.major == 2)
 
 #===============================================================================
@@ -665,6 +668,8 @@ class WCS20GetCoverageJPEG2000TestCase(testbase.RectifiedGridCoverageTestCase, t
     def getFileExtension(self, part=None):
         return "jp2"
 
+
+@skipIf(GDAL_VERSION >= (2, 4, 0), 'netCDF output is broken in MapServer for GDAL > 2.4')
 @tag('wcs', 'wcs20')
 class WCS20GetCoverageNetCDFTestCase(testbase.RectifiedGridCoverageTestCase, testbase.WCSBinaryComparison):
     def getRequest(self):
