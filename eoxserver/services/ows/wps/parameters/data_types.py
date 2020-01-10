@@ -29,10 +29,23 @@
 
 from datetime import datetime, date, time, timedelta
 from django.utils.dateparse import parse_date, parse_datetime, parse_time, utc
-from django.utils.timezone import FixedOffset
 from django.utils.six import PY2, PY3, string_types
 from django.utils.encoding import smart_text
 from eoxserver.core.util.timetools import parse_duration
+
+try:
+    from datetime import timezone
+
+    # as this class will be deprecated in Django 3.1, offer a constructor
+    def FixedOffset(offset, name=None):
+        if isinstance(offset, timedelta):
+            pass
+        else:
+            offset = timedelta(minutes=offset)
+        return timezone(offset) if name is None else timezone(offset, name)
+
+except ImportError:
+    from django.utils.timezone import FixedOffset
 
 
 class BaseType(object):
