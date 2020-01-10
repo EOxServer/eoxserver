@@ -54,8 +54,6 @@ class VRTBuilder(object):
                  vrt_filename=None):
         driver = get_vrt_driver()
         data_type = data_type if data_type is not None else gdal.GDT_Byte
-
-        print (vrt_filename)
         self._ds = driver.Create(
             vrt_filename or "", size_x, size_y, num_bands, data_type
         )
