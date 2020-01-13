@@ -127,8 +127,8 @@ class WMS13GetMapPNGDatasetTestCase(wmsbase.WMS13GetMapTestCase):
 #     bbox = (8.5, 32.2, 25.4, 46.3)
 #     frmt = "image/gif"
 
-@skip("defferent in binary level between py2 response and py3 response")
-class WMS13GetMapTIFFDatasetTestCase(wmsbase.WMS13GetMapTestCase):
+
+class WMS13GetMapTIFFDatasetTestCase(wmsbase.WMSTIFFComparison):
     """ Test a GetMap request with a dataset series. """
     layers = ("mosaic_MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_RGB_reduced",)
     bbox = (8.5, 32.2, 25.4, 46.3)
