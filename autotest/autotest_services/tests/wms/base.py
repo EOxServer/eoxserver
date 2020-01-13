@@ -149,4 +149,4 @@ class WMSTIFFComparison(WMS13GetMapTestCase, testbase.GDALDatasetTestCase):
                 array1 = np.array(exp_band.ReadAsArray()).flatten()
                 array2 = np.array(res_band.ReadAsArray()).flatten()
                 regress_result = linregress(array1,array2)
-                self.assertGreaterEqual(regress_result.rvalue, 0.94)
+                self.assertGreaterEqual(regress_result.rvalue, 0.9)
