@@ -438,17 +438,15 @@ class RectifiedGridCoverageTestCase(GDALDatasetTestCase):
     
     @tag('stastics')
     def testBandStatistics(self):
-        if (self.exp_ds.RasterCount != self.res_ds.RasterCount):
-            for band in range( self.res_ds.RasterCount ):
-                band += 1
+        for band in range( self.res_ds.RasterCount ):
+            band += 1
             if band:
-                src_band = self.src_ds.GetRasterBand(band)
+                exp_band = self.exp_ds.GetRasterBand(band)
                 res_band = self.res_ds.GetRasterBand(band)
-                array1 = np.array(src_band.ReadAsArray()).flatten()
+                array1 = np.array(exp_band.ReadAsArray()).flatten()
                 array2 = np.array(res_band.ReadAsArray()).flatten()
                 regress_result = linregress(array1,array2)
-                self.assertGreaterEqual(regress_result.rvalue, 0.95)
-
+                self.assertGreaterEqual(regress_result.rvalue, 0.9)
     @tag('size')
     def testSize(self):
         self.assertEqual((self.res_ds.RasterXSize, self.res_ds.RasterYSize),
@@ -491,16 +489,15 @@ class ReferenceableGridCoverageTestCase(GDALDatasetTestCase):
     
     @tag('stastics')
     def testBandStatistics(self):
-        if (self.exp_ds.RasterCount != self.res_ds.RasterCount):
-            for band in range( self.res_ds.RasterCount ):
-                band += 1
+        for band in range( self.res_ds.RasterCount ):
+            band += 1
             if band:
-                src_band = self.src_ds.GetRasterBand(band)
+                exp_band = self.exp_ds.GetRasterBand(band)
                 res_band = self.res_ds.GetRasterBand(band)
-                array1 = np.array(src_band.ReadAsArray()).flatten()
+                array1 = np.array(exp_band.ReadAsArray()).flatten()
                 array2 = np.array(res_band.ReadAsArray()).flatten()
                 regress_result = linregress(array1,array2)
-                self.assertGreaterEqual(regress_result.rvalue, 0.95)
+                self.assertGreaterEqual(regress_result.rvalue, 0.9)
 
     @tag('size')
     def testSize(self):
@@ -1320,16 +1317,15 @@ class WCSBinaryComparison(GDALDatasetTestCase):
 
     @tag('stastics')
     def testBandStatistics(self):
-        if (self.exp_ds.RasterCount != self.res_ds.RasterCount):
-            for band in range( self.res_ds.RasterCount ):
-                band += 1
+        for band in range( self.res_ds.RasterCount ):
+            band += 1
             if band:
-                src_band = self.src_ds.GetRasterBand(band)
+                exp_band = self.exp_ds.GetRasterBand(band)
                 res_band = self.res_ds.GetRasterBand(band)
-                array1 = np.array(src_band.ReadAsArray()).flatten()
+                array1 = np.array(exp_band.ReadAsArray()).flatten()
                 array2 = np.array(res_band.ReadAsArray()).flatten()
                 regress_result = linregress(array1,array2)
-                self.assertGreaterEqual(regress_result.rvalue, 0.95)
+                self.assertGreaterEqual(regress_result.rvalue, 0.9)
     
 
 

@@ -45,7 +45,7 @@ class WCS11CoverageRenderParams(CoverageRenderParams):
                  gridtype=None, gridorigin=None, gridoffsets=None):
 
         super(WCS11CoverageRenderParams, self).__init__(coverage, "1.1.2")
-        self._bbox = bbox
+        self._bbox = list(bbox)
         self._format = format
         self._gridcs = gridcs
         self._gridbasecrs = gridbasecrs

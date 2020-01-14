@@ -390,7 +390,10 @@ def float_or_star(value):
 
     if value == "*":
         return None
-    return float(value)
+    try:
+        return float(value)
+    except ValueError:
+        raise ValueError("could not convert string to float: '%s'" % value)
 
 
 def parse_quoted_temporal(value):

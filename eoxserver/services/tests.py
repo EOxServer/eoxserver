@@ -103,12 +103,12 @@ class ResultSetTestCase(TestCase):
         second = result_set[1]
         
         if isinstance(first.data, str):
-            first_data = first.data.tobytes()
+            first_data = b(first.data)
         else:
             first_data = first.data
 
         if isinstance(second.data, str):
-            second_data = second.data.tobytes()
+            second_data = b(second.data)
         else:
             second_data = second.data
         

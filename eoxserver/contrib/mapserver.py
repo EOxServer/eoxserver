@@ -54,7 +54,7 @@ else:
 from lxml import etree
 from eoxserver.core.util.multiparttools import iterate
 from eoxserver.contrib import gdal
-
+from eoxserver.services.result import result_set_from_raw_data
 
 logger = logging.getLogger(__name__)
 
@@ -145,8 +145,8 @@ def dispatch(map_, request):
 
         try:
             # try to parse the output as XML
-            _, data = next(iterate(raw_bytes))
-            tree = etree.fromstring(str(data))
+            result = result_set_from_raw_data(raw_bytes)
+            tree = etree.fromstring(result[0].data)
             exception_elem = tree.xpath("*[local-name() = 'Exception']|*[local-name() = 'ServiceException']")[0]
             locator = exception_elem.attrib.get("locator")
             code = exception_elem.attrib.get("exceptionCode")
