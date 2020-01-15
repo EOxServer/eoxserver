@@ -4,7 +4,7 @@ env:
 # - OS=centos PY=py2 DB=postgis DJANGO="1.11.26" PYTHON=python
 # - OS=centos PY=py2 DB=spatialite DJANGO="1.11.26 PYTHON=python"
 - OS=ubuntu PY=py2 DB=postgis DJANGO="1.11.26" PYTHON=python
-- OS=ubuntu PY=py2 DB=spatialite DJANGO="1.11.26"  PYTHON=python
+- OS=ubuntu PY=py2 DB=spatialite DJANGO="1.11.26" PYTHON=python
 - OS=ubuntu PY=py3 DB=postgis DJANGO="1.11.26" PYTHON=python3
 - OS=ubuntu PY=py3 DB=spatialite DJANGO="1.11.26" PYTHON=python3
 - OS=ubuntu PY=py3 DB=postgis DJANGO="2.2.7" PYTHON=python3
@@ -21,7 +21,7 @@ before_install:
 - curl -L https://github.com/docker/compose/releases/download/1.24.0/docker-compose-`uname -s`-`uname -m` > docker-compose
 - chmod +x docker-compose
 - sudo mv docker-compose /usr/local/bin
-- docker build -t eox-a/eoxserver:$OS-$PY-django$DJANGO -t eoxserver --build-arg django=$DJANGO -f docker/$OS/$PY/Dockerfile .
+- docker build -t eox-a/eoxserver:$OS-$PY-django$DJANGO -t eoxserver --build-arg DJANGO=$DJANGO -f docker/$OS/$PY/Dockerfile .
 
 script:
 - cd autotest
