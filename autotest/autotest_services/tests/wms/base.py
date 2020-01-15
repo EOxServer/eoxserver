@@ -25,6 +25,9 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
+from unittest import SkipTest
+import numpy as np
+from scipy.stats import linregress
 from eoxserver.testing.utils import tag
 
 from autotest_services import base as testbase
@@ -131,3 +134,19 @@ class WMS13GetMapTestCase(testbase.RasterTestCase):
 class WMS13ExceptionTestCase(testbase.ExceptionTestCase):
     def getExceptionCodeLocation(self):
         return "ogc:ServiceException/@code"
+
+@tag('wms', 'wms13')
+class WMSTIFFComparison(WMS13GetMapTestCase, testbase.GDALDatasetTestCase):
+    def testBinaryComparisonRaster(self):
+        self.skipTest('compare the band size, count, and statistics')
+    @tag('stastics')
+    def testBandStatistics(self):
+        for band in range( self.res_ds.RasterCount ):
+            band += 1
+            if band:
+                exp_band = self.exp_ds.GetRasterBand(band)
+                res_band = self.res_ds.GetRasterBand(band)
+                array1 = np.array(exp_band.ReadAsArray()).flatten()
+                array2 = np.array(res_band.ReadAsArray()).flatten()
+                regress_result = linregress(array1,array2)
+                self.assertGreaterEqual(regress_result.rvalue, 0.9)

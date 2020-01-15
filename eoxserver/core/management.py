@@ -101,25 +101,25 @@ def execute_from_commandline():
             cmd.print_help(sys.argv[0], sys.argv[2])
         except IndexError:
             # TODO print general help
-            print "Usage: %s <command-name> [args]" % sys.argv[0]
+            print ("Usage: %s <command-name> [args]" % sys.argv[0])
             print_possible_commands(commands)
         except KeyError:
-            print "Command '%s' not found.\n" % sys.argv[2]
+            print ("Command '%s' not found.\n" % sys.argv[2])
             print_possible_commands(commands)
 
     elif subcommand == '--version':
-        print eoxserver.get_version()
+        print (eoxserver.get_version())
 
     else:
         try:
             command = commands[subcommand]
         except KeyError:
-            print "Command '%s' not found.\n" % sys.argv[1]
+            print ("Command '%s' not found.\n" % sys.argv[1])
             print_possible_commands(commands)
             sys.exit(1)
 
         try:
             command.run_from_argv(sys.argv)
-        except CommandError, e:
-            print termcolors.colorize("Error: %s" % e, fg="red")
+        except CommandError as e:
+            print (termcolors.colorize("Error: %s" % e, fg="red"))
             sys.exit(1)

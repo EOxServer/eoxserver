@@ -25,6 +25,7 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
+from lxml import etree
 
 from eoxserver.core import Component, implements
 from eoxserver.core.config import get_eoxserver_config
@@ -38,7 +39,7 @@ from eoxserver.services.ows.wcs.interfaces import (
     WCSCapabilitiesRendererInterface
 )
 from eoxserver.services.ows.version import Version
-from eoxserver.services.result import result_set_from_raw_data, get_content_type
+from eoxserver.services.result import result_set_from_raw_data, get_content_type, ResultBuffer
 from eoxserver.services.urls import get_http_service_url
 
 
@@ -120,4 +121,16 @@ class MapServerWCSCapabilitiesRenderer(BaseRenderer):
         request.setParameter("version", params.version)
         raw_result = map_.dispatch(request)
         result = result_set_from_raw_data(raw_result)
+         # load XML using lxml
+        # find and exclude <metadataLink> nodes if present
+        # re-encode
+
+        xml_result = etree.fromstring(result[0].data)
+
+        for elem in xml_result.xpath('//*[local-name() = "metadataLink"]'):
+            elem.getparent().remove(elem)
+
+        xml_result_data =  etree.tostring(xml_result, pretty_print=True, encoding='UTF-8', xml_declaration=True)
+        
+        result[0] = ResultBuffer(xml_result_data, result[0].content_type)
         return result

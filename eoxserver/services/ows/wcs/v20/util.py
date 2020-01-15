@@ -30,6 +30,7 @@ import re
 from datetime import datetime
 
 from lxml.builder import ElementMaker
+from django.utils.six import string_types
 
 from eoxserver.core.util.xmltools import NameSpace, NameSpaceMap, ns_xsi
 from eoxserver.core.util.timetools import parse_iso8601
@@ -84,7 +85,7 @@ class RangeSubset(list):
         all_bands = range_type[:]
 
         for subset in self:
-            if isinstance(subset, basestring):
+            if isinstance(subset, string_types):
                 # slice, i.e single band
                 start = stop = subset
 
@@ -157,7 +158,7 @@ class SectionsMixIn(object):
         if not self.sections:
             return True
 
-        requested_sections = map(lambda s: s.lower(), self.sections)
+        requested_sections = [s.lower() for s in self.sections]
 
         for section in map(lambda s: s.lower(), sections):
             section = section.lower()
@@ -389,7 +390,10 @@ def float_or_star(value):
 
     if value == "*":
         return None
-    return float(value)
+    try:
+        return float(value)
+    except ValueError:
+        raise ValueError("could not convert string to float: '%s'" % value)
 
 
 def parse_quoted_temporal(value):

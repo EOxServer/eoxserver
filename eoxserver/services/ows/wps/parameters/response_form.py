@@ -33,6 +33,7 @@ try:
     from collections import OrderedDict
 except ImportError:
     from django.utils.datastructures import SortedDict as OrderedDict
+from django.utils.six import iteritems
 
 from .base import ParamMetadata
 
@@ -104,7 +105,7 @@ class ResponseDocument(ResponseForm):
     def __reduce__(self): # NOTE: needed for correct async-WPS request pickling
         return (
             self.__class__, (self.lineage, self.status, self.store_response),
-            None, None, self.iteritems()
+            None, None, iteritems(self)
         )
 
     def __str__(self):

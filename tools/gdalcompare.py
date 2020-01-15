@@ -81,7 +81,7 @@ def compare_files(filename1, filename2):
             raise Exception("Error while reading '%s' via GDAL." % filename2)
         
         # Check image checksums
-        print "Checking checksums..."
+        print ("Checking checksums...")
         
         for band_num in range(1,file2.RasterCount+1):
             if file1.GetRasterBand(band_num).Checksum() != \
@@ -91,8 +91,8 @@ def compare_files(filename1, filename2):
                                 file1.GetRasterBand(band_num).Checksum(), \
                                 file2.GetRasterBand(band_num).Checksum()))
             else:
-                print "Checksum of band '%s' matches and is '%s'." % \
-                      (band_num, file1.GetRasterBand(band_num).Checksum())
+                print ("Checksum of band '%s' matches and is '%s'." % \
+                      (band_num, file1.GetRasterBand(band_num).Checksum()))
         
         # Check image size
         print "Checking size..."
@@ -104,7 +104,7 @@ def compare_files(filename1, filename2):
                              file2.RasterXSize, file2.RasterYSize))
         
         # Check extent
-        print "Checking extent..."
+        print ("Checking extent...")
         
         EPSILON = 1e-8
         extent1 = extent_from_ds(file1)
@@ -117,7 +117,7 @@ def compare_files(filename1, filename2):
                              (', '.join(map(str, extent2)))))
         
         # Check resolution
-        print "Checking resolution..."
+        print ("Checking resolution...")
         
         resolution1 = resolution_from_ds(file1)
         resolution2 = resolution_from_ds(file2)
@@ -127,26 +127,26 @@ def compare_files(filename1, filename2):
                              (', '.join(map(str, resolution2)))))
         
         # Check projection
-        print "Checking projection..."
+        print ("Checking projection...")
         
         if file1.GetProjection() != file2.GetProjection():
             raise Exception("Projection differs.")
         
         # Check GCPs
-        print "Checking GCPs..."
+        print ("Checking GCPs...")
         
         if file1.GetGCPCount() != file2.GetGCPCount():
             raise Exception("Number of GCPs differs: '%s' != '%s'." % \
                             (file1.GetGCPCount(), file2.GetGCPCount()))
         
         # Check GCP projection
-        print "Checking GCP projection..."
+        print ("Checking GCP projection...")
         
         if file1.GetGCPProjection() != file2.GetGCPProjection():
             raise Exception("GCP projection differs.")
         
         # Check metadata
-        print "Checking metadata..."
+        print ("Checking metadata...")
         
         file1_md = file1.GetMetadata()
         file2_md = file2.GetMetadata()
@@ -170,8 +170,8 @@ if __name__ == "__main__":
     try:
         src0 = sys.argv[1]
         src1 = sys.argv[2]
-        print "< FILE: %s" % src0
-        print "> FILE: %s" % src1
+        print ("< FILE: %s" % src0)
+        print ("> FILE: %s" % src1)
     except:
         sys.stderr.write("ERROR: Not enough input arguments!\n")
         sys.stderr.write("USAGE: %s <filename> <filename>\n" % sys.argv[0])
@@ -183,5 +183,5 @@ if __name__ == "__main__":
         sys.stderr.write("ERROR: %s\n" % str(e))
         sys.exit(1)
     
-    print "OK - Files match."
+    print ("OK - Files match.")
     sys.exit(0)

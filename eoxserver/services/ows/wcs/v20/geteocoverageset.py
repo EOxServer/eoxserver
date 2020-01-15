@@ -26,7 +26,6 @@
 #-------------------------------------------------------------------------------
 
 
-import sys
 import os
 import tempfile
 import logging
@@ -40,6 +39,7 @@ try:
 except:
     StreamingHttpResponse = HttpResponse
 
+from django.utils.six import MAXSIZE
 from eoxserver.core import Component, implements, ExtensionPoint
 from eoxserver.core.config import get_eoxserver_config
 from eoxserver.core.decoders import xml, kvp, typelist, enum
@@ -137,7 +137,7 @@ class WCS20GetEOCoverageSetHandler(Component):
                 crs="http://www.opengis.net/def/crs/EPSG/0/4326",
                 allowed_types=Trim
             )
-        except ValueError, e:
+        except ValueError as e:
             raise InvalidSubsettingException(str(e))
 
         if len(eo_ids) == 0:
@@ -304,7 +304,7 @@ class WCS20GetEOCoverageSetKVPDecoder(kvp.Decoder):
     eo_ids      = kvp.Parameter("eoid", type=typelist(str, ","), num=1, locator="eoid")
     subsets     = kvp.Parameter("subset", type=parse_subset_kvp, num="*")
     containment = kvp.Parameter(type=containment_enum, num="?")
-    count       = kvp.Parameter(type=pos_int, num="?", default=sys.maxint)
+    count       = kvp.Parameter(type=pos_int, num="?", default=MAXSIZE)
     format      = kvp.Parameter(num=1, type=parse_format)
 
 
@@ -312,7 +312,7 @@ class WCS20GetEOCoverageSetXMLDecoder(xml.Decoder):
     eo_ids      = xml.Parameter("/wcseo:EOID/text()", num="+", locator="eoid")
     subsets     = xml.Parameter("/wcs:DimensionTrim", type=parse_subset_xml, num="*")
     containment = xml.Parameter("/wcseo:containment/text()", type=containment_enum, locator="containment")
-    count       = xml.Parameter("/@count", type=pos_int, num="?", default=sys.maxint, locator="count")
+    count       = xml.Parameter("/@count", type=pos_int, num="?", default=MAXSIZE, locator="count")
     format      = xml.Parameter("/wcs:format/text()", type=parse_format, num=1, locator="format")
 
     namespaces = nsmap

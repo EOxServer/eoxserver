@@ -49,7 +49,7 @@ class PDPMiddleware(object):
                 authorized = pdp.authorize(request)
                 message = "Not authorized"
                 code = "AccessForbidden"
-            except AuthorisationException, e:
+            except AuthorisationException as e:
                 authorized = False
                 message = str(e)
                 code = e.code
@@ -86,7 +86,7 @@ def pdp_protect(view):
                 authorized = pdp.authorize(request)
                 message = "Not authorized"
                 code = "NotAuthorized"
-            except AuthorisationException, e:
+            except AuthorisationException as e:
                 authorized = False
                 message = str(e)
                 code = e.code

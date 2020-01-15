@@ -32,7 +32,7 @@ except ImportError:
 
 from copy import deepcopy
 
-from django.utils import six
+from django.utils.six import string_types
 from eoxserver.core.util.timetools import parse_iso8601, parse_duration
 from eoxserver.contrib import gdal, osr
 from eoxserver.contrib.osr import SpatialReference
@@ -148,7 +148,7 @@ class RangeType(list):
     def subset(self, subsets):
         fields = []
         for subset in subsets:
-            if isinstance(subset, six.string_types):
+            if isinstance(subset, string_types):
                 fields.append(deepcopy(self.get_field(subset)))
             elif isinstance(subset, (list, tuple)):
                 start_id, stop_id = subset

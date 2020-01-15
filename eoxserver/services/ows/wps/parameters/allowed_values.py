@@ -27,8 +27,14 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-from itertools import chain, ifilterfalse
+from math import isinf
+try:
+    from itertools import chain, ifilterfalse as filterfalse
+except ImportError:
+    from itertools import filterfalse
+
 from .data_types import BaseType, Double, DTYPES
+
 
 class TypedMixIn(object):
     """ Mix-in class adding date-type to an allowed value range. """
@@ -105,7 +111,8 @@ class AllowedEnum(BaseAllowed, TypedMixIn):
         vlist = []
         vset_add = vset.add
         vlist_append = vlist.append
-        for value in ifilterfalse(vset.__contains__, values):
+
+        for value in filterfalse(vset.__contains__, values):
             vset_add(value)
             vlist_append(value)
         return vlist, vset
@@ -209,10 +216,12 @@ class AllowedRange(BaseAllowed, TypedMixIn):
         tmp0 = ddtype.as_number(self._dtype.sub(value, self._base))
         tmp1 = ddtype.as_number(self.spacing)
         tmp2 = float(tmp0) / float(tmp1)
+        if isinf(tmp2):
+            return True
         return not self._rtol >= abs(tmp2 - round(tmp2))
 
     def _out_of_bounds(self, value):
-        if value != value: # simple type-safe NaN check (works in Python > 2.5)
+        if value != value:  # simple type-safe NaN check (works in Python > 2.5)
             return True
         below = self._minval is not None and (
             value < self._minval or (

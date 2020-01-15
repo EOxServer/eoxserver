@@ -25,7 +25,10 @@
 # THE SOFTWARE.
 # ------------------------------------------------------------------------------
 
-from cStringIO import StringIO
+try:
+    from cStringIO import StringIO
+except ImportError:
+    from io import StringIO
 
 from eoxserver.contrib.vsi import open as vsi_open
 

@@ -96,7 +96,7 @@ def band_expression_validator(band_expression):
 
 
 class FieldType(models.Model):
-    coverage_type = models.ForeignKey('CoverageType', related_name='field_types', **mandatory)
+    coverage_type = models.ForeignKey('CoverageType', on_delete=models.CASCADE, related_name='field_types', **mandatory)
     index = models.PositiveSmallIntegerField(**mandatory)
     identifier = models.CharField(max_length=512, validators=identifier_validators, **mandatory)
     description = models.TextField(**optional)
@@ -119,7 +119,7 @@ class FieldType(models.Model):
 
 
 class AllowedValueRange(models.Model):
-    field_type = models.ForeignKey(FieldType, related_name='allowed_value_ranges')
+    field_type = models.ForeignKey(FieldType, on_delete=models.CASCADE, related_name='allowed_value_ranges')
     start = models.FloatField(**mandatory)
     end = models.FloatField(**mandatory)
 
@@ -141,7 +141,7 @@ class NilValue(models.Model):
 
 class MaskType(models.Model):
     name = models.CharField(max_length=512, validators=name_validators, **mandatory)
-    product_type = models.ForeignKey('ProductType', related_name='mask_types', **mandatory)
+    product_type = models.ForeignKey('ProductType', on_delete=models.CASCADE, related_name='mask_types', **mandatory)
     validity = models.BooleanField(default=False)
 
     def __str__(self):
@@ -178,7 +178,7 @@ class CollectionType(models.Model):
 
 
 class BrowseType(models.Model):
-    product_type = models.ForeignKey(ProductType, related_name="browse_types", **mandatory)
+    product_type = models.ForeignKey(ProductType, on_delete=models.CASCADE, related_name="browse_types", **mandatory)
     name = models.CharField(max_length=256, validators=name_validators, blank=True, null=False)
 
     red_or_grey_expression = models.CharField(max_length=512, validators=[band_expression_validator], **optional)
@@ -335,7 +335,7 @@ class EOObject(models.Model):
 class Collection(EOObject):
     collection_type = models.ForeignKey(CollectionType, related_name='collections', **optional_protected)
 
-    grid = models.ForeignKey(Grid, **optional)
+    grid = models.ForeignKey(Grid, on_delete=models.CASCADE, **optional)
 
 
 class Mosaic(EOObject, GridFixture):
@@ -356,7 +356,7 @@ class Coverage(EOObject, GridFixture):
 
     collections = models.ManyToManyField(Collection, related_name='coverages', blank=True)
     mosaics = models.ManyToManyField(Mosaic, related_name='coverages', blank=True)
-    parent_product = models.ForeignKey(Product, related_name='coverages', **optional)
+    parent_product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='coverages', **optional)
 
 
 class ReservedIDManager(models.Manager):
@@ -425,7 +425,7 @@ class MetaDataItem(backends.DataItem):
         for code, name in SEMANTIC_CHOICES
     }
 
-    eo_object = models.ForeignKey(EOObject, related_name='metadata_items', **mandatory)
+    eo_object = models.ForeignKey(EOObject, on_delete=models.CASCADE, related_name='metadata_items', **mandatory)
     semantic = models.SmallIntegerField(choices=SEMANTIC_CHOICES, **optional)
 
     class Meta:
@@ -434,8 +434,8 @@ class MetaDataItem(backends.DataItem):
 
 
 class Browse(backends.DataItem):
-    product = models.ForeignKey(Product, related_name='browses', **mandatory)
-    browse_type = models.ForeignKey(BrowseType, **optional)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='browses', **mandatory)
+    browse_type = models.ForeignKey(BrowseType, on_delete=models.CASCADE, **optional)
     style = models.CharField(max_length=256, **optional)
 
     coordinate_reference_system = models.TextField(**mandatory)
@@ -451,14 +451,14 @@ class Browse(backends.DataItem):
 
 
 class Mask(backends.DataItem):
-    product = models.ForeignKey(Product, related_name='masks', **mandatory)
-    mask_type = models.ForeignKey(MaskType, **mandatory)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='masks', **mandatory)
+    mask_type = models.ForeignKey(MaskType, on_delete=models.CASCADE, **mandatory)
 
     geometry = models.GeometryField(**optional)
 
 
 class ProductDataItem(backends.DataItem):
-    product = models.ForeignKey(Product, related_name='product_data_items', **mandatory)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='product_data_items', **mandatory)
 
 
 class ArrayDataItem(backends.DataItem):
@@ -467,7 +467,7 @@ class ArrayDataItem(backends.DataItem):
         (1, 'dimension')
     ]
 
-    coverage = models.ForeignKey(EOObject, related_name='arraydata_items', **mandatory)
+    coverage = models.ForeignKey(EOObject, on_delete=models.CASCADE, related_name='arraydata_items', **mandatory)
 
     field_index = models.PositiveSmallIntegerField(default=0, **mandatory)
     band_count = models.PositiveSmallIntegerField(default=1, **mandatory)
@@ -487,7 +487,7 @@ class ArrayDataItem(backends.DataItem):
 
 
 class CollectionMetadata(models.Model):
-    collection = models.OneToOneField(Collection, related_name='collection_metadata')
+    collection = models.OneToOneField(Collection, on_delete=models.CASCADE, related_name='collection_metadata')
 
     product_type = models.CharField(max_length=256, **optional_indexed)
     doi = models.CharField(max_length=256, **optional_indexed)
@@ -627,7 +627,7 @@ class ProductMetadata(models.Model):
         (1, 'RIGHT')
     )
 
-    product = models.OneToOneField(Product, related_name='product_metadata')
+    product = models.OneToOneField(Product, on_delete=models.CASCADE, related_name='product_metadata')
 
     parent_identifier = models.CharField(max_length=256, **optional_indexed)
 
@@ -678,7 +678,7 @@ class ProductMetadata(models.Model):
 
 
 class CoverageMetadata(models.Model):
-    coverage = models.OneToOneField(Coverage, related_name="coverage_metadata")
+    coverage = models.OneToOneField(Coverage, on_delete=models.CASCADE, related_name="coverage_metadata")
 
 
 # ==============================================================================

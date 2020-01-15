@@ -30,9 +30,9 @@
 
 import types
 try:
-    from cStringIO import StringIO
-except ImportError:
     from StringIO import StringIO
+except ImportError:
+    from io import StringIO
 
 from eoxserver.services.result import (
     to_http_response, ResultItem,
@@ -41,6 +41,7 @@ from eoxserver.services.ows.wps.parameters import (
     LiteralData, ComplexData, BoundingBoxData,
 )
 from eoxserver.services.ows.wps.exceptions import InvalidOutputValueError
+from django.utils.six import string_types, itervalues
 
 
 class WPS10ExecuteResponseRawEncoder(object):
@@ -59,7 +60,7 @@ class WPS10ExecuteResponseRawEncoder(object):
     def encode_response(self, results):
         """Pack the raw execute response."""
         outputs = []
-        for data, prm, req in results.itervalues():
+        for data, prm, req in itervalues(results):
             if prm.identifier in self.resp_form:
                 outputs.append(_encode_raw_output(data, prm, req))
 
@@ -82,8 +83,8 @@ class ResultAlt(ResultItem):
                  close=False, headers=None):
         # pylint: disable=too-many-arguments
         ResultItem.__init__(self, content_type, filename, identifier)
-        if isinstance(buf, basestring):
-            self._file = StringIO(str(buf)) # make sure a byte string is passed
+        if isinstance(buf, string_types) or isinstance(buf, bytes):
+            self._file = StringIO(buf.decode('utf-8'))  # make sure a byte string is passed
         elif isinstance(buf, (tuple, list, types.GeneratorType)):
             tmp = StringIO()
             for chunk in buf:
@@ -120,6 +121,7 @@ class ResultAlt(ResultItem):
 
 #-------------------------------------------------------------------------------
 
+
 def _encode_raw_output(data, prm, req):
     """ Encode a raw output item."""
     if isinstance(prm, LiteralData):
@@ -130,10 +132,11 @@ def _encode_raw_output(data, prm, req):
         return _encode_raw_complex(data, prm)
     raise TypeError("Invalid output type! %r"%(prm))
 
+
 def _encode_raw_literal(data, prm, req):
     """ Encode a raw literal."""
     content_type = "text/plain" if req.mime_type is None else req.mime_type
-    content_type = "%s; charset=utf-8"%content_type
+    content_type = "%s; charset=utf-8" % content_type
     try:
         encoded_data = prm.encode(data, req.uom or prm.default_uom, 'utf-8')
     except (ValueError, TypeError) as exc:
@@ -141,6 +144,7 @@ def _encode_raw_literal(data, prm, req):
     return ResultAlt(
         encoded_data, identifier=prm.identifier, content_type=content_type
     )
+
 
 def _encode_raw_bbox(data, prm, req):
     """ Encode a raw bounding box."""
@@ -154,6 +158,7 @@ def _encode_raw_bbox(data, prm, req):
         encoded_data, identifier=prm.identifier,
         content_type="text/plain" if req.mime_type is None else req.mime_type
     )
+
 
 def _encode_raw_complex(data, prm):
     """ Encode raw complex data."""

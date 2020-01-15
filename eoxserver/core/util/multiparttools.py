@@ -33,7 +33,7 @@ The main benefit of the utilities over other methods of mutipart handling
 is that the functions of this module do not manipulate the input data
 buffers and especially avoid any unnecessary data copying.
 """
-
+from django.utils.six import b
 
 def capitalize(header_name):
     """ Capitalize header field name. Eg., 'content-type' is capilalized to
@@ -214,16 +214,17 @@ Output:
 
     # capitalize header name
     def unpackCC(v):
-        key, _, val = v.partition(":")
+        key, _, val = v.partition(b(":"":"))
         return __capitalize(key.strip()), val.strip()
 
     # header name all lower
     def unpackLC(v):
-        key, _, val = v.partition(":")
+        key, _, val = v.partition(b(":"))
         return key.strip().lower(), val.strip()
 
     # filter function rejecting entries with blank keys
-    def noblank((k, v)):
+    def noblank(tup):
+        (k, v) = tup
         return bool(k)
 
     #--------------------------------------------------------------------------
@@ -241,7 +242,7 @@ Output:
             off = findBorder(off[2])
             offsets.append(off)
 
-    except ValueError, e:
+    except ValueError as e:
         raise Exception(
             "The buffer is not a valid MIME multi-part message! Reason: %s"
             % e.message
@@ -287,9 +288,9 @@ def parse_parametrized_option(string):
 
     :returns: the base string and a :class:`dict` with all parameters
     """
-    parts = string.split(";")
+    parts = string.split(b";")
     params = dict(
-        param.strip().split("=", 1) for param in parts[1:]
+        param.strip().split(b"=", 1) for param in parts[1:]
     )
     return parts[0], params
 
@@ -298,9 +299,12 @@ def capitalize_header(key):
     """ Returns a capitalized version of the header line such as
     'content-type' -> 'Content-Type'.
     """
-    return "-".join([
-        item if item[0].isupper() else item[0].upper() + item[1:]
-        for item in key.split("-")
+
+    return b"-".join([
+        item
+        if item.decode()[0].isupper() else
+        (item.decode()[0].upper() + item.decode()[1:]).encode('ascii')
+        for item in key.split(b"-")
     ])
 
 
@@ -333,22 +337,22 @@ def iterate(data, offset=0, end=None, headers=None):
         # parse the headers into a dict
         headers = {}
         for line in header_bytes.split(CRLF):
-            key, _, value = line.partition(":")
+            key, _, value = line.partition(b":")
             headers[capitalize_header(key.strip())] = value.strip()
 
     # get the content type
     content_type, params = parse_parametrized_option(
-        headers.get("Content-Type", "")
+        headers.get(b"Content-Type", b"")
     )
 
     # check if this is a multipart
-    if content_type.startswith("multipart"):
+    if content_type.startswith(b"multipart"):
         # if this is a multipart, yield only its headers and an empty string
-        yield headers, ""
+        yield headers, memoryview(b"")
 
         # parse the boundary and find the final index of all multiparts
-        boundary = "%s--%s" % (CRLF, params["boundary"])
-        end_boundary = "%s--" % boundary
+        boundary = b"%s--%s" % (CRLF, params[b"boundary"])
+        end_boundary = b"%s--" % boundary
 
         sub_end = data.find(end_boundary)
         if sub_end == -1:
@@ -376,6 +380,6 @@ def iterate(data, offset=0, end=None, headers=None):
         # in case we have a single part, just yield the headers and a buffer
         # pointing to a substring of the original data stream.
         if end is not None:
-            yield headers, buffer(data, offset, (end-offset))
+            yield headers, memoryview(data)[offset:end]
         else:
-            yield headers, buffer(data, offset)
+            yield headers, memoryview(data)[offset:]

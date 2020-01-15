@@ -27,6 +27,7 @@
 
 import subprocess
 import math
+from django.utils.six import string_types
 
 from eoxserver.contrib import gdal, vsi, osr
 
@@ -53,8 +54,6 @@ class VRTBuilder(object):
                  vrt_filename=None):
         driver = get_vrt_driver()
         data_type = data_type if data_type is not None else gdal.GDT_Byte
-
-        print vrt_filename
         self._ds = driver.Create(
             vrt_filename or "", size_x, size_y, num_bands, data_type
         )
@@ -148,7 +147,7 @@ class VRTBuilder(object):
                          <eoxserver.core.util.rect.Rect>` specifying the target
                          area to contribute
         """
-        if isinstance(src, basestring):
+        if isinstance(src, string_types):
             pass
 
         else:
@@ -218,7 +217,7 @@ class VRTBuilder2(object):
                          <eoxserver.core.util.rect.Rect>` specifying the target
                          area to contribute
         """
-        if isinstance(src, basestring):
+        if isinstance(src, string_types):
             pass
 
         else:

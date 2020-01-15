@@ -26,18 +26,22 @@
 #-------------------------------------------------------------------------------
 
 
-from django.conf.urls import url, include
+try:
+    from django.conf.urls import include, url as re_path
+except ImportError:
+    from django.urls import include, re_path
 
 from eoxserver.services.opensearch.views import description, search
 
-urlpatterns = ([
-    url(r'^$', description, name='description'),
-    url(r'^(?P<format_name>[^/]+)/$', search, name='search'),
-    url(r'^collections/(?P<collection_id>[^/]+)/', include([
-        url(r'^$', description, name='description'),
-        url(
+app_name = 'opensearch'
+urlpatterns = [
+    re_path(r'^$', description, name='description'),
+    re_path(r'^(?P<format_name>[^/]+)/$', search, name='search'),
+    re_path(r'^collections/(?P<collection_id>[^/]+)/', include(([
+        re_path(r'^$', description, name='description'),
+        re_path(
             r'^(?P<format_name>[^/]+)/$', search,
             name='search'
         )
-    ], namespace='collection'))
-], 'opensearch', 'opensearch')
+    ], 'collection')))
+]

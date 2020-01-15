@@ -88,7 +88,7 @@ if __name__ == "__main__" :
             enqueueTask( "SequenceSum" , "Task001" , (1,2,3,4,5) )
             break
         except QueueFull : # retry if queue full
-            print "QueueFull!"
+            print ("QueueFull!")
             time.sleep( 5 )
 
 #-------------------------------------------------------------------------------
@@ -96,22 +96,22 @@ if __name__ == "__main__" :
 
     while True :
         status = getTaskStatusByIdentifier( "SequenceSum" , "Task001" )
-        print time.asctime() , "Status: " , status[1]
+        print (time.asctime() , "Status: " , status[1])
         if status[1] in ( "FINISHED" , "FAILED" ) : break
         time.sleep( 5 )
 
 #-------------------------------------------------------------------------------
 # Step 5 - getting the logged task history 
 
-    print "Processing history:"
+    print ("Processing history:")
     for rec in getTaskLog( "SequenceSum" , "Task001" ) :
-        print "-" , rec[0] , "Status: " , rec[1][1] , "\t Message: %s"%rec[2] if rec[2] else ""
+        print ("-" , rec[0] , "Status: " , rec[1][1] , "\t Message: %s"%rec[2] if rec[2] else "")
 
 #-------------------------------------------------------------------------------
 # Step 6 - getting result 
 
     if status[1] == "FINISHED" :
-        print "Result: " , getTaskResponse( "SequenceSum" , "Task001" )
+        print ("Result: " , getTaskResponse( "SequenceSum" , "Task001" ))
 
 #-------------------------------------------------------------------------------
 # Step 7 - removing task 

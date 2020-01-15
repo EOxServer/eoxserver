@@ -40,7 +40,7 @@ nsmap = NameSpaceMap(ns_ows10, ns_ows11, ns_ows20)
 
 
 def get_decoder(request):
-    """ Convenience function to return the right OWS Common request deocder for 
+    """ Convenience function to return the right OWS Common request deocder for
         the given `django.http.HttpRequest`.
     """
     if request.method == "GET":

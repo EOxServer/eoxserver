@@ -29,19 +29,36 @@
 
 from datetime import datetime, date, time, timedelta
 from django.utils.dateparse import parse_date, parse_datetime, parse_time, utc
-from django.utils.timezone import FixedOffset
-
+from django.utils.six import PY2, PY3, string_types
+from django.utils.encoding import smart_text
 from eoxserver.core.util.timetools import parse_duration
+
+try:
+    from datetime import timezone
+
+    # as this class will be deprecated in Django 3.1, offer a constructor
+    def FixedOffset(offset, name=None):
+        if isinstance(offset, timedelta):
+            pass
+        else:
+            offset = timedelta(minutes=offset)
+        return timezone(offset) if name is None else timezone(offset, name)
+
+except ImportError:
+    from django.utils.timezone import FixedOffset
 
 
 class BaseType(object):
     """ Base literal data type class.
         This class defines the class interface.
     """
-    name = None # to be replaced by a name
-    dtype = str # to be replaced by a proper type
-    zero = None # when applicable to be replaced by a proper zero value
-    comparable = True # indicate whether the type can be compared (<,>,==)
+    name = None  # to be replaced by a name
+    if PY2:
+        dtype = str
+    elif PY3:
+        dtype = bytes
+    zero = None  # when applicable to be replaced by a proper zero value
+    comparable = True  # indicate whether the type can be compared (<,>,==)
 
     @classmethod
     def parse(cls, raw_value):
@@ -51,22 +68,22 @@ class BaseType(object):
     @classmethod
     def encode(cls, value):
         """ Encode value to a Unicode string."""
-        return unicode(value)
+        return smart_text(value)
 
     @classmethod
-    def get_diff_dtype(cls): # difference type - change if differs from the base
+    def get_diff_dtype(cls):  # difference type - change if differs from the base
         """ Get type of the difference of this type.
             E.g., `timedelta` for a `datetime`.
         """
         return cls
 
     @classmethod
-    def as_number(cls, value): # pylint: disable=unused-argument
+    def as_number(cls, value):  # pylint: disable=unused-argument
         """ convert to a number (e.g., duration)"""
         raise TypeError("Data type %s cannot be converted to a number!" % cls)
 
     @classmethod
-    def sub(cls, value0, value1): # pylint: disable=unused-argument
+    def sub(cls, value0, value1):  # pylint: disable=unused-argument
         """ subtract value0 - value1 """
         raise TypeError("Data type %s cannot be subtracted!" % cls)
 
@@ -78,8 +95,9 @@ class Boolean(BaseType):
 
     @classmethod
     def parse(cls, raw_value):
-        if isinstance(raw_value, basestring):
-            raw_value = unicode(raw_value.lower())
+
+        if isinstance(raw_value, string_types):
+            raw_value = smart_text(raw_value.lower())
             if raw_value in ('1', 'true'):
                 return True
             elif raw_value in ('0', 'false'):
@@ -112,7 +130,7 @@ class Integer(BaseType):
     @classmethod
     def encode(cls, value):
         """ Encode value to a Unicode string."""
-        return unicode(int(value))
+        return smart_text(int(value))
 
     @classmethod
     def as_number(cls, value):
@@ -147,24 +165,27 @@ class Double(BaseType):
 class String(BaseType):
     """ Unicode character string literal data type class. """
     name = "string"
-    dtype = unicode
+    if PY2:
+        dtype = unicode
+    elif PY3:
+        dtype = str
     encoding = 'utf-8'
-    comparable = False # disabled although Python implements comparable strings
+    comparable = False  # disabled although Python implements comparable strings
 
     @classmethod
     def encode(cls, value):
         """ Encode value to a Unicode string."""
         try:
-            return unicode(value)
+            return smart_text(value)
         except UnicodeDecodeError:
-            return unicode(value, cls.encoding)
+            return smart_text(value, cls.encoding)
 
     @classmethod
     def parse(cls, raw_value):
         return cls.dtype(raw_value)
 
     @classmethod
-    def get_diff_dtype(cls): # string has no difference
+    def get_diff_dtype(cls):  # string has no difference
         return None
 
 
@@ -193,7 +214,7 @@ class Duration(BaseType):
         if value.days != 0:
             items.append('%dD' % value.days)
         elif value.seconds == 0 and value.microseconds == 0:
-            items.append('T0S') # zero interval
+            items.append('T0S')  # zero interval
         if value.seconds != 0 or value.microseconds != 0:
             minutes, seconds = divmod(value.seconds, 60)
             hours, minutes = divmod(minutes, 60)
@@ -207,7 +228,7 @@ class Duration(BaseType):
             elif seconds != 0:
                 items.append('%dS' % seconds)
 
-        return unicode("".join(items))
+        return smart_text("".join(items))
 
     @classmethod
     def as_number(cls, value):
@@ -240,7 +261,7 @@ class Date(BaseType):
     @classmethod
     def encode(cls, value):
         if isinstance(value, cls.dtype):
-            return unicode(value.isoformat())
+            return smart_text(value.isoformat())
         raise ValueError("Invalid value type '%s'!" % type(value))
 
     @classmethod
@@ -271,7 +292,7 @@ class Time(BaseType):
     @classmethod
     def encode(cls, value):
         if isinstance(value, cls.dtype):
-            return unicode(value.isoformat())
+            return smart_text(value.isoformat())
         raise ValueError("Invalid value type '%s'!" % type(value))
 
     @classmethod
@@ -308,7 +329,7 @@ class DateTime(BaseType):
     @classmethod
     def encode(cls, value):
         if isinstance(value, cls.dtype):
-            return unicode(cls._isoformat(value))
+            return smart_text(cls._isoformat(value))
         raise ValueError("Invalid value type '%s'!" % type(value))
 
     @classmethod
@@ -365,15 +386,30 @@ class DateTimeTZAware(DateTime):
 
 
 # mapping of plain Python types to data type classes
-DTYPES = {
-    str: String,
-    unicode: String,
-    bool: Boolean,
-    int: Integer,
-    long: Integer,
-    float: Double,
-    date: Date,
-    datetime: DateTime,
-    time: Time,
-    timedelta: Duration,
-}
+if PY3:
+
+    DTYPES = {
+        bytes: String,
+        str: String,
+        bool: Boolean,
+        int: Integer,
+        float: Double,
+        date: Date,
+        datetime: DateTime,
+        time: Time,
+        timedelta: Duration,
+    }
+elif PY2:
+
+    DTYPES = {
+        str: String,
+        unicode: String,
+        bool: Boolean,
+        int: Integer,
+        long: Integer,
+        float: Double,
+        date: Date,
+        datetime: DateTime,
+        time: Time,
+        timedelta: Duration,
+    }

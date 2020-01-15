@@ -26,15 +26,18 @@
 #-------------------------------------------------------------------------------
 
 import os.path
-from cStringIO import StringIO
+try:
+    from cStringIO import StringIO
+except ImportError:
+    from io import StringIO
 from ConfigParser import RawConfigParser
 
 from eoxserver.core.decoders import config
-
+from django.utils.six import string_types
 
 class NativeConfigFormatReader(object):
     def open_reader(self, obj):
-        if isinstance(obj, basestring):
+        if isinstance(obj, string_types):
             try:
                 parser = RawConfigParser()
                 if os.path.exists(obj):

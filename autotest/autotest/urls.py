@@ -1,7 +1,9 @@
 from django.conf import settings
 
-
-from django.conf.urls import include, url
+try:
+    from django.conf.urls import include, url as re_path
+except ImportError:
+    from django.urls import include, re_path
 from django.contrib import admin
 from django.conf.urls.static import static
 
@@ -14,15 +16,15 @@ admin.autodiscover()
 
 
 urlpatterns = [
-    url(r'^$', index),
-    url(r'^ows', include("eoxserver.services.urls")),
-    url(r'^opensearch/', include(opensearch)),
+    re_path(r'^$', index),
+    re_path(r'^ows', include("eoxserver.services.urls")),
+    re_path(r'^opensearch/', include('eoxserver.services.opensearch.urls')),
 
     # enable the client
-    url(r'^client/', include(webclient)),
+    re_path(r'^client/', include('eoxserver.webclient.urls')),
 
     # Enable admin documentation:
-    url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
+    re_path(r'^admin/doc/', include('django.contrib.admindocs.urls')),
     # Enable the admin:
-    url(r'^admin/', include(admin.site.urls)),
+    re_path(r'^admin/', admin.site.urls),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

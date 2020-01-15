@@ -49,6 +49,8 @@ import numpy
 from argparse import ArgumentParser
 from decimal import Decimal
 
+from django.utils.six import iteritems
+
 """
     Helper functions to namespaceify xml tag names
 """
@@ -259,7 +261,7 @@ if options.map is not None:
     layer.setMetaData("wcs_bandcount", str(len(bands)))
     layer.setMetaData("wcs_band_names", " ".join([band['band_name'] for band in bands]))
     for band in bands:
-        for key, value in band.iteritems():
+        for key, value in iteritems(band):
             if value is None or key == "band_name":
                 continue
             layer.setMetaData("%s_%s" % (band['band_name'], key), str(value))

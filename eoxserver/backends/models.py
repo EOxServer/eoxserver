@@ -67,9 +67,9 @@ class Storage(models.Model):
     url = models.CharField(max_length=1024, **mandatory)
     storage_type = models.CharField(max_length=32, **mandatory)
     name = models.CharField(max_length=1024, null=True, blank=True, unique=True)
-    storage_auth = models.ForeignKey(StorageAuth, **optional)
+    storage_auth = models.ForeignKey(StorageAuth, on_delete=models.CASCADE, **optional)
 
-    parent = models.ForeignKey("self", **optional)
+    parent = models.ForeignKey("self", on_delete=models.CASCADE, **optional)
 
     def __str__(self):
         return "%s: %s" % (self.storage_type, self.url)
@@ -83,7 +83,7 @@ class DataItem(models.Model):
     """ Abstract model for locateable data items contributing to a dataset.
     """
 
-    storage = models.ForeignKey(Storage, **optional)
+    storage = models.ForeignKey(Storage, on_delete=models.CASCADE, **optional)
     location = models.CharField(max_length=1024, **mandatory)
     format = models.CharField(max_length=64, **optional)
 

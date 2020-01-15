@@ -36,7 +36,13 @@ from eoxserver.services.ows.wps.parameters import (
     LiteralData, ComplexData, CDFile, CDByteBuffer,
     FormatBinaryRaw, FormatBinaryBase64, AllowedRange,
 )
-
+try:
+    # Python 2
+    xrange
+except NameError:
+    # Python 3, xrange is now named range
+    xrange = range
+    
 class TestProcess03(Component):
     """ Test process generating binary complex data output. """
     implements(ProcessInterface)
@@ -144,7 +150,7 @@ class TestProcess03(Component):
                 # None that the object holds the format attributes!
                 # The 'filename' parameter sets the raw output
                 # 'Content-Disposition: filename=' HTTP header.
-                with file(tmp_filename) as fid:
+                with open(tmp_filename, 'rb') as fid:
                     _output = CDByteBuffer(
                         fid.read(), filename=output_filename, **output
                     )

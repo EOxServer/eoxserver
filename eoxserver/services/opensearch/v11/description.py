@@ -29,7 +29,10 @@
 from itertools import chain
 
 from lxml.builder import ElementMaker
-from django.core.urlresolvers import reverse
+try:
+    from django.core.urlresolvers import reverse
+except ImportError:
+    from django.urls import reverse
 from django.shortcuts import get_object_or_404
 
 from eoxserver.core.config import get_eoxserver_config

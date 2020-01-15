@@ -26,11 +26,11 @@
 #-------------------------------------------------------------------------------
 
 
-import sys
 import logging
 from itertools import chain
 
 from django.db.models import Q
+from django.utils.six import MAXSIZE
 
 from eoxserver.core.config import get_eoxserver_config
 from eoxserver.core.decoders import xml, kvp, typelist, enum
@@ -241,7 +241,7 @@ class WCS20DescribeEOCoverageSetKVPDecoder(kvp.Decoder, SectionsMixIn):
     eo_ids      = kvp.Parameter("eoid", type=typelist(str, ","), num=1, locator="eoid")
     subsets     = kvp.Parameter("subset", type=parse_subset_kvp, num="*")
     containment = kvp.Parameter(type=containment_enum, num="?")
-    count       = kvp.Parameter(type=pos_int, num="?", default=sys.maxint)
+    count       = kvp.Parameter(type=pos_int, num="?", default=MAXSIZE)
     sections    = kvp.Parameter(type=typelist(sections_enum, ","), num="?")
 
 
@@ -249,7 +249,7 @@ class WCS20DescribeEOCoverageSetXMLDecoder(xml.Decoder, SectionsMixIn):
     eo_ids      = xml.Parameter("wcseo:eoId/text()", num="+", locator="eoid")
     subsets     = xml.Parameter("wcs:DimensionTrim", type=parse_subset_xml, num="*")
     containment = xml.Parameter("wcseo:containment/text()", type=containment_enum, locator="containment")
-    count       = xml.Parameter("@count", type=pos_int, num="?", default=sys.maxint, locator="count")
+    count       = xml.Parameter("@count", type=pos_int, num="?", default=MAXSIZE, locator="count")
     sections    = xml.Parameter("wcseo:sections/wcseo:section/text()", type=sections_enum, num="*", locator="sections")
 
     namespaces = nsmap

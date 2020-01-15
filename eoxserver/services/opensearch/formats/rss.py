@@ -29,7 +29,10 @@ from itertools import chain
 
 from lxml.etree import CDATA
 from lxml.builder import ElementMaker
-from django.core.urlresolvers import reverse
+try:
+    from django.core.urlresolvers import reverse
+except ImportError:
+    from django.urls import reverse
 
 from eoxserver.core.util.xmltools import etree, NameSpace, NameSpaceMap, typemap
 from eoxserver.core.util.timetools import isoformat

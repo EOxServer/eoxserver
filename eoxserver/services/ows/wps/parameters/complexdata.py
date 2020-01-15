@@ -32,12 +32,15 @@
 import json
 from os import remove
 from copy import deepcopy
-from StringIO import StringIO
 
 try:
+    from StringIO import StringIO
     from cStringIO import StringIO as FastStringIO
+    BytesIO = StringIO
 except ImportError:
-    FastStringIO = StringIO
+    from io import BytesIO
+    from io import StringIO
+    from io import StringIO as FastStringIO
 
 try:
     # available in Python 2.7+
@@ -48,6 +51,8 @@ except ImportError:
 from lxml import etree
 from .base import Parameter
 from .formats import Format
+from django.utils.encoding import smart_text
+from django.utils.six import string_types, text_type, itervalues, binary_type
 
 #-------------------------------------------------------------------------------
 # complex data - data containers
@@ -71,14 +76,18 @@ class CDBase(object):
         # pylint: disable=redefined-builtin, unused-argument, too-many-arguments
         if isinstance(format, Format):
             self.mime_type = format.mime_type
-            self.encoding = format.encoding
+            self._encoding = format.encoding
             self.schema = format.schema
         else:
             self.mime_type = mime_type
-            self.encoding = encoding
+            self._encoding = encoding
             self.schema = schema
         self.filename = filename
         self.headers = headers or []
+
+    @property
+    def encoding(self):
+        return self._encoding
 
     @property
     def data(self):
@@ -112,7 +121,7 @@ class CDObject(CDBase):
         return self._data
 
 
-class CDByteBuffer(StringIO, CDBase):
+class CDByteBuffer(BytesIO, CDBase):
     """ Complex data binary in-memory buffer (StringIO).
         To be used to hold a generic binary (byte-stream) payload.
 
@@ -128,13 +137,13 @@ class CDByteBuffer(StringIO, CDBase):
         headers    additional raw output HTTP headers encoded as a list
                    of <key>, <value> pairs (tuples).
     """
-    def __init__(self, data='', *args, **kwargs):
+    def __init__(self, data=b'', *args, **kwargs):
         # NOTE: StringIO is an old-style class and super cannot be used!
-        StringIO.__init__(self, str(data))
+        BytesIO.__init__(self, data)
         CDBase.__init__(self, *args, **kwargs)
 
     def write(self, data):
-        StringIO.write(self, str(data))
+        BytesIO.write(self, data)
 
     @property
     def data(self):
@@ -163,7 +172,7 @@ class CDTextBuffer(StringIO, CDBase):
     """
     def __init__(self, data=u'', *args, **kwargs):
         # NOTE: StringIO is an old-style class and super cannot be used!
-        StringIO.__init__(self, unicode(data))
+        StringIO.__init__(self, smart_text(data))
         CDBase.__init__(self, *args, **kwargs)
         self.text_encoding = kwargs.get('text_encoding', None)
 
@@ -174,9 +183,9 @@ class CDTextBuffer(StringIO, CDBase):
 
     def write(self, data):
         if self.text_encoding is None:
-            return StringIO.write(self, unicode(data))
+            return StringIO.write(self, smart_text(data))
         else:
-            return StringIO.write(self, unicode(data, self.text_encoding))
+            return StringIO.write(self, smart_text(data, self.text_encoding))
 
     def read(self, size=None):
         if size is None:
@@ -213,7 +222,7 @@ class CDAsciiTextBuffer(CDByteBuffer):
         self.text_encoding = kwargs.get('text_encoding', None)
 
     def write(self, data):
-        if not isinstance(data, basestring):
+        if not isinstance(data, string_types):
             data = str(data)
         StringIO.write(self, data.encode('ascii'))
 
@@ -284,7 +293,7 @@ class CDFile(CDFileWrapper):
                    should be removed or not. Set to True by default.
     """
 
-    def __init__(self, name, mode='r', buffering=-1, *args, **kwargs):
+    def __init__(self, name, mode='rb', buffering=-1, *args, **kwargs):
         CDFileWrapper.__init__(
             self, open(name, mode, buffering), *args, **kwargs
         )
@@ -352,7 +361,7 @@ class ComplexData(Parameter):
     @property
     def default_format(self):
         """ Get default the default format. """
-        return self.formats.itervalues().next()
+        return next(itervalues(self.formats))
 
     def get_format(self, mime_type, encoding=None, schema=None):
         """ Get format definition for the given mime-type and the optional
@@ -399,8 +408,10 @@ class ComplexData(Parameter):
         else: # generic binary byte-stream
             parsed_data = CDByteBuffer(data, **fattr)
             if format_.encoding is not None:
-                data_out = FastStringIO()
+                data_out = BytesIO()
                 for chunk in format_.decode(parsed_data, **opt):
+                    if isinstance(chunk, binary_type):
+                        chunk = chunk.decode('utf-8')
                     data_out.write(chunk)
                 parsed_data = data_out
             parsed_data.seek(0)
@@ -431,7 +442,7 @@ class ComplexData(Parameter):
         elif format_.is_json:
             return json.dumps(data, ensure_ascii=False)
         elif format_.is_text:
-            if not isinstance(data, basestring):
+            if not isinstance(data, string_types):
                 data.seek(0)
                 data = data.read()
             return data
@@ -439,7 +450,11 @@ class ComplexData(Parameter):
             if format_.encoding is not None:
                 data.seek(0)
                 data_out = FastStringIO()
+                # data_out.write(str(data.data,'utf-8'))
                 for chunk in format_.encode(data):
+                    if isinstance(chunk, binary_type):
+                        chunk = chunk.decode('utf-8')
+
                     data_out.write(chunk)
                 data = data_out
             data.seek(0)
@@ -464,26 +479,34 @@ class ComplexData(Parameter):
         if isinstance(data, CDObject):
             data = data.data
         if format_.is_xml:
-            data = FastStringIO(etree.tostring(
+            data = BytesIO(etree.tostring(
                 data, pretty_print=False, xml_declaration=True,
                 encoding=text_encoding
             ))
-            content_type = "%s; charset=%s" % (format_.mime_type, text_encoding)
+            content_type = "%s; charset=%s" % (
+                format_.mime_type, text_encoding
+            )
         elif format_.is_json:
-            data = FastStringIO(
+            data = BytesIO(
                 json.dumps(data, ensure_ascii=False).encode(text_encoding)
             )
-            content_type = "%s; charset=%s" % (format_.mime_type, text_encoding)
+            content_type = "%s; charset=%s" % (
+                format_.mime_type, text_encoding
+            )
         elif format_.is_text:
             if isinstance(data, (CDTextBuffer, CDAsciiTextBuffer)):
                 data.text_encoding = text_encoding
             else:
-                data = FastStringIO(_rewind(data).read().encode(text_encoding))
-            content_type = "%s; charset=%s" % (format_.mime_type, text_encoding)
-        else: # generic binary byte-stream
+                data = BytesIO(_rewind(data).read().encode(text_encoding))
+            content_type = "%s; charset=%s" % (
+                format_.mime_type, text_encoding
+            )
+        else:  # generic binary byte-stream
             if format_.encoding is not None:
-                data_out = FastStringIO()
+                data_out = BytesIO()
                 for chunk in format_.encode(_rewind(data)):
+                    # if isinstance(chunk, binary_type):
+                    #     chunk = str(chunk,'utf-8')
                     data_out.write(chunk)
                 data = data_out
             content_type = format_.mime_type
@@ -497,10 +520,11 @@ def _bytestring(data):
 
 
 def _unicode(data, encoding):
-    if isinstance(data, unicode):
+
+    if isinstance(data, text_type):
         return data
-    elif isinstance(data, str):
-        return unicode(data, encoding)
+    elif isinstance(data, bytes):
+        return smart_text(data, encoding)
     raise TypeError(
         "Byte or Unicode string expected, %s received!" % type(data)
     )

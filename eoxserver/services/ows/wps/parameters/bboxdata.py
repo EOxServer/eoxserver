@@ -34,6 +34,7 @@ from eoxserver.core.util.rect import Rect
 from .data_types import Double
 from .crs import CRSType
 from .base import Parameter
+from django.utils.six import string_types
 
 # pre-compiled regular expression used to eliminate repeated extra white-spaces
 _RE_MULTIWS = re.compile(r"\s+")
@@ -177,9 +178,9 @@ class BoundingBoxData(Parameter):
                 (raw_bbox.lower, raw_bbox.upper),
                 raw_bbox.crs if raw_bbox.crs is not None else self.default_crs
             )
-        elif isinstance(raw_bbox, basestring):
+        elif isinstance(raw_bbox, string_types):
             items = raw_bbox.split(',')
-            dim = len(items)/2
+            dim = len(items)//2
             lower = [self.dtype.parse(item) for item in items[0:dim]]
             upper = [self.dtype.parse(item) for item in items[dim:2*dim]]
             if len(items) > 2*dim:

@@ -77,7 +77,7 @@ class StringFormatCallback(object):
 
         try:
             setattr(parser.values, option.dest, self.callback(" ".join(args)))
-        except ValueError, e:
+        except ValueError as e:
             raise OptionValueError(str(e))
 
 

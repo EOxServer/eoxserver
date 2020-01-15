@@ -26,13 +26,17 @@
 # ------------------------------------------------------------------------------
 
 
-from operator import and_, or_, add, sub, mul, div
+try: 
+    from operator import and_, or_, add, sub, mul, div
+except ImportError :
+    from operator import and_, or_, add, sub, mul, truediv as div
 from datetime import datetime, timedelta
 
 try:
     from collections import OrderedDict
 except ImportError:
     from django.utils.datastructures import SortedDict as OrderedDict
+from django.utils.six import string_types
 
 from django.db.models import Q, F, ForeignKey, Value
 from django.db.models.expressions import Expression
@@ -113,12 +117,12 @@ def compare(lhs, rhs, op, mapping_choices=None):
 
     if mapping_choices and field_name in mapping_choices:
         try:
-            if isinstance(rhs, basestring):
+            if isinstance(rhs, string_types):
                 rhs = mapping_choices[field_name][rhs]
             elif hasattr(rhs, 'value'):
                 rhs = Value(mapping_choices[field_name][rhs.value])
 
-        except KeyError, e:
+        except KeyError as e:
             raise AssertionError("Invalid field value %s" % e)
 
     if comp:
@@ -166,7 +170,7 @@ def like(lhs, rhs, case=False, not_=False, mapping_choices=None):
     """
     assert isinstance(lhs, F)
 
-    if isinstance(rhs, basestring):
+    if isinstance(rhs, string_types):
         pattern = rhs
     elif hasattr(rhs, 'value'):
         pattern = rhs.value
@@ -257,12 +261,12 @@ def contains(lhs, items, not_=False, mapping_choices=None):
     if mapping_choices and lhs.name in mapping_choices:
         def map_value(item):
             try:
-                if isinstance(item, basestring):
+                if isinstance(item, string_types):
                     item = mapping_choices[lhs.name][item]
                 elif hasattr(item, 'value'):
                     item = Value(mapping_choices[lhs.name][item.value])
 
-            except KeyError, e:
+            except KeyError as e:
                 raise AssertionError("Invalid field value %s" % e)
             return item
 

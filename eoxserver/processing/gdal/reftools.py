@@ -29,14 +29,26 @@
 import ctypes as C
 from ctypes.util import find_library
 import logging
-from itertools import izip, chain
+try:
+    from itertools import chain, izip
+except ImportError :
+    from itertools import chain
+    izip = zip
+
 import math
 
 from eoxserver.contrib import gdal, osr
 from eoxserver.core.util.rect import Rect
 from eoxserver.core.util.xmltools import parse, etree
 from eoxserver.contrib import vsi
+from django.utils.six import string_types, b
 
+try:
+    # Python 2
+    xrange
+except NameError:
+    # Python 3, xrange is now named range
+    xrange = range
 #-------------------------------------------------------------------------------
 # approximation transformer's threshold in pixel units
 # 0.125 is the default value used by CLI gdalwarp tool
@@ -228,8 +240,8 @@ class CoordinateTransformation(object):
 
     def __init__(self, src_srs, dst_srs):
         self._handle = OCTNewCoordinateTransformation(
-            C.cast(long(src_srs.this), C.c_void_p),
-            C.cast(long(dst_srs.this), C.c_void_p)
+            C.cast(int(src_srs.this), C.c_void_p),
+            C.cast(int(dst_srs.this), C.c_void_p)
         )
 
     @property
@@ -243,7 +255,7 @@ class CoordinateTransformation(object):
 def _create_referenceable_grid_transformer(ds, method, order):
     # TODO: check method and order
     num_gcps = ds.GetGCPCount()
-    gcps = GDALGetGCPs(C.cast(long(ds.this), C.c_void_p))
+    gcps = GDALGetGCPs(C.cast(int(ds.this), C.c_void_p))
     handle = None
     if method == METHOD_GCP:
         handle = GDALCreateGCPTransformer(num_gcps, C.c_void_p(gcps), order, 0)
@@ -344,11 +356,11 @@ def _create_generic_transformer(src_ds, src_wkt, dst_ds, dst_wkt, method, order)
     # TODO: check method and order
 
     try:
-        src_ds = C.c_void_p(long(src_ds.this))
+        src_ds = C.c_void_p(int(src_ds.this))
     except AttributeError:
         pass
     try:
-        dst_ds = C.c_void_p(long(dst_ds.this))
+        dst_ds = C.c_void_p(int(dst_ds.this))
     except AttributeError:
         pass
 
@@ -426,8 +438,8 @@ def get_footprint_wkt(ds, method=METHOD_GCP, order=0):
     x_size = ds.RasterXSize
     y_size = ds.RasterYSize
 
-    x_e = max(x_size / 100 - 1, 0)
-    y_e = max(y_size / 100 - 1, 0)
+    x_e = max(x_size // 100 - 1, 0)
+    y_e = max(y_size // 100 - 1, 0)
 
     num_points = 4 + 2 * x_e + 2 * y_e
     coord_array_type = (C.c_double * num_points)
@@ -613,7 +625,7 @@ def create_rectified_vrt(path_or_ds, vrt_path, srid=None,
         raise ValueError('size and resolution ar mutually exclusive')
 
     ds = _open_ds(path_or_ds)
-    ptr = C.c_void_p(long(ds.this))
+    ptr = C.c_void_p(int(ds.this))
 
     if srid:
         srs = osr.SpatialReference()
@@ -644,7 +656,7 @@ def create_rectified_vrt(path_or_ds, vrt_path, srid=None,
     # options.eResampleAlg = resample
     # options.pfnTransformer = GDALGenImgProjTransform
     # options.pTransformerArg = transformer
-    # options.hDstDS = C.c_void_p(long(ds.this))
+    # options.hDstDS = C.c_void_p(int(ds.this))
 
     # nb = options.nBandCount = ds.RasterCount
 
@@ -689,8 +701,13 @@ def create_rectified_vrt(path_or_ds, vrt_path, srid=None,
     #     y_size.value = size_y
 
     # vrt_ds = GDALCreateWarpedVRT(ptr, x_size, y_size, geotransform, options)
+    if isinstance(wkt, str):
+        wkt = b(wkt)
     vrt_ds = GDALAutoCreateWarpedVRT(ptr, None, wkt, resample, max_error, None)
     # GDALSetProjection(vrt_ds, wkt)
+    if isinstance(vrt_path, str):
+       vrt_path = b(vrt_path)
+        
     GDALSetDescription(vrt_ds, vrt_path)
     GDALClose(vrt_ds)
     # GDALDestroyWarpOptions(options)
@@ -862,7 +879,7 @@ def reproject_image(src_ds, src_wkt, dst_ds, dst_wkt,
 
 
 def _open_ds(path_or_ds):
-    if isinstance(path_or_ds, basestring):
+    if isinstance(path_or_ds, string_types):
         gdal.AllRegister()
         return gdal.OpenShared(str(path_or_ds))
     return path_or_ds

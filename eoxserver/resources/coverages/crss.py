@@ -324,7 +324,7 @@ def getSupportedCRS_WMS(format_function=asShortCode):
         __SUPPORTED_CRS_WMS = reader.supported_crss_wms
 
     # return formated list of EPSG codes
-    return map(format_function, __SUPPORTED_CRS_WMS)
+    return list(map(format_function, __SUPPORTED_CRS_WMS))
 
 
 def getSupportedCRS_WCS(format_function=asShortCode):
@@ -338,7 +338,7 @@ def getSupportedCRS_WCS(format_function=asShortCode):
         __SUPPORTED_CRS_WCS = reader.supported_crss_wcs
 
     # return formated list of EPSG codes
-    return map(format_function, __SUPPORTED_CRS_WCS)
+    return list(map(format_function, __SUPPORTED_CRS_WCS))
 
 #-------------------------------------------------------------------------------
 
@@ -453,7 +453,7 @@ def _parseListOfCRS(raw_value):
     tmp = "".join([l.partition("#")[0] for l in raw_value.split("\n")])
 
     # filter out invalid EPSG codes and covert them to integer
-    return map(int, filter(checkCode, tmp.split(",")))
+    return list(map(int, filter(checkCode, tmp.split(","))))
 
 #-------------------------------------------------------------------------------
 

@@ -29,6 +29,7 @@ from textwrap import dedent
 
 from django.test import TestCase, TransactionTestCase
 from django.contrib.gis.geos import Polygon, MultiPolygon
+from django.utils.six import assertCountEqual, b
 
 from eoxserver.core.util import multiparttools as mp
 from eoxserver.core.util.timetools import parse_iso8601
@@ -42,7 +43,7 @@ class MultipartTest(TestCase):
     """ Test class for multipart parsing/splitting
     """
 
-    example_multipart = dedent("""\
+    example_multipart = b(dedent("""\
         MIME-Version: 1.0\r
         Content-Type: multipart/mixed; boundary=frontier\r
         \r
@@ -57,24 +58,25 @@ class MultipartTest(TestCase):
         \r
         PGh0bWw+CiAgPGhlYWQ+CiAgPC9oZWFkPgogIDxib2R5PgogICAgPHA+VGhpcyBpcyB0aGUgYm9keSBvZiB0aGUgbWVzc2FnZS48L3A+CiAgPC9ib2R5Pgo8L2h0bWw+Cg==\r
         --frontier--
-    """)
+    """))
 
     def test_multipart_iteration(self):
-        parsed = map(
-            lambda i: (i[0], str(i[1])), mp.iterate(self.example_multipart)
-        )
+        parsed = [
+            (i[0], i[1].tobytes() if isinstance(i[1], memoryview) else i[1])
+            for i in mp.iterate(self.example_multipart)
+        ]
 
         self.assertEqual([
-                ({"MIME-Version": "1.0", "Content-Type": "multipart/mixed; boundary=frontier"}, ""),
-                ({"Content-Type": "text/plain"}, "This is the body of the message."),
-                ({"Content-Type": "application/octet-stream", "Content-Transfer-Encoding": "base64"}, "PGh0bWw+CiAgPGhlYWQ+CiAgPC9oZWFkPgogIDxib2R5PgogICAgPHA+VGhpcyBpcyB0aGUgYm9keSBvZiB0aGUgbWVzc2FnZS48L3A+CiAgPC9ib2R5Pgo8L2h0bWw+Cg==")
+                ({b"MIME-Version": b"1.0", b"Content-Type": b"multipart/mixed; boundary=frontier"}, b""),
+                ({b"Content-Type": b"text/plain"}, b"This is the body of the message."),
+                ({b"Content-Type": b"application/octet-stream", b"Content-Transfer-Encoding": b"base64"}, b"PGh0bWw+CiAgPGhlYWQ+CiAgPC9oZWFkPgogIDxib2R5PgogICAgPHA+VGhpcyBpcyB0aGUgYm9keSBvZiB0aGUgbWVzc2FnZS48L3A+CiAgPC9ib2R5Pgo8L2h0bWw+Cg==")
             ], parsed
         )
 
 
 class ResultSetTestCase(TestCase):
 
-    example_multipart = dedent("""\
+    example_multipart = b(dedent("""\
         MIME-Version: 1.0\r
         Content-Type: multipart/mixed; boundary=frontier\r
         \r
@@ -91,8 +93,7 @@ class ResultSetTestCase(TestCase):
         \r
         PGh0bWw+CiAgPGhlYWQ+CiAgPC9oZWFkPgogIDxib2R5PgogICAgPHA+VGhpcyBpcyB0aGUgYm9keSBvZiB0aGUgbWVzc2FnZS48L3A+CiAgPC9ib2R5Pgo8L2h0bWw+Cg==\r
         --frontier--
-    """)
-
+    """))
 
     def test_result_set_from_raw(self):
         result_set = result_set_from_raw_data(self.example_multipart)
@@ -100,12 +101,37 @@ class ResultSetTestCase(TestCase):
 
         first = result_set[0]
         second = result_set[1]
+        
+        if isinstance(first.data, str):
+            first_data = b(first.data)
+        else:
+            first_data = first.data
 
-        self.assertEqual(str(first.data), "This is the body of the message.")
-        self.assertEqual(first.content_type, "text/plain")
-        self.assertEqual(first.filename, "message.msg")
-        self.assertEqual(first.identifier, "message-part")
-        self.assertEqual(str(second.data), "PGh0bWw+CiAgPGhlYWQ+CiAgPC9oZWFkPgogIDxib2R5PgogICAgPHA+VGhpcyBpcyB0aGUgYm9keSBvZiB0aGUgbWVzc2FnZS48L3A+CiAgPC9ib2R5Pgo8L2h0bWw+Cg==")
+        if isinstance(second.data, str):
+            second_data = b(second.data)
+        else:
+            second_data = second.data
+        
+        self.assertEqual(
+            first_data,
+            b"This is the body of the message."
+        )
+        self.assertEqual(
+            first.content_type,
+            b"text/plain"
+        )
+        self.assertEqual(
+            first.filename,
+            b"message.msg"
+        )
+        self.assertEqual(
+            first.identifier,
+            b"message-part"
+        )
+        self.assertEqual(
+            second_data,
+            b"PGh0bWw+CiAgPGhlYWQ+CiAgPC9oZWFkPgogIDxib2R5PgogICAgPHA+VGhpcyBpcyB0aGUgYm9keSBvZiB0aGUgbWVzc2FnZS48L3A+CiAgPC9ib2R5Pgo8L2h0bWw+Cg=="
+        )
 
 
 class TemporalSubsetsTestCase(TransactionTestCase):
@@ -234,12 +260,12 @@ class TemporalSubsetsTestCase(TransactionTestCase):
         qs = models.EOObject.objects.filter(**subsets.get_filters(containment))
 
         # test the "filter()" function
-        self.assertItemsEqual(
+        self.assertCountEqual(
             expected_ids, qs.values_list("identifier", flat=True)
         )
 
         # test the "matches()" function
-        self.assertItemsEqual(
+        self.assertCountEqual(
             expected_ids, [
                 ds.identifier for ds in self.datasets
                 if subsets.matches(ds, containment)

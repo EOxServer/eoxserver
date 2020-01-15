@@ -1,7 +1,12 @@
 import json
 
 from django.test import TestCase, Client, tag
-from django.core.urlresolvers import reverse
+try:
+    from django.core.urlresolvers import reverse
+except ImportError:
+    from django.urls import reverse
+
+from django.utils.six import assertCountEqual
 
 from eoxserver.core.util.xmltools import etree, parse
 from eoxserver.contrib import gdal, ogr
@@ -96,7 +101,7 @@ class BaseSearchMixIn(object):
         pass
 
     def test_ids(self):
-        self.assertItemsEqual(self.expected_ids, self.get_ids(self.response))
+        self.assertCountEqual(self.expected_ids, self.get_ids(self.response))
 
 
 class CollectionSearchMixIn(object):

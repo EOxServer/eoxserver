@@ -42,6 +42,12 @@ from eoxserver.contrib import gdal
 from eoxserver.core.config import get_eoxserver_config
 from eoxserver.core.decoders import config, typelist, strip
 
+try:
+    # Python 2
+    xrange
+except NameError:
+    # Python 3, xrange is now named range
+    xrange = range
 
 logger = logging.getLogger(__name__)
 
@@ -98,6 +104,8 @@ class Format(object):
         except AttributeError:
             return False
 
+    def __hash__(self):
+        return hash((self.mimeType, self.driver, self.defaultExt, self.isWriteable))
 
 # ------------------------------------------------------------------------------
 
@@ -193,7 +201,6 @@ class FormatRegistry(object):
         Get format record for the given MIME type.
         In case of no match None is returned.
         """
-
         return self.__mime2format.get(valMimeType(mime_type), None)
 
     # --------------------------------------------------------------------------
@@ -272,8 +279,8 @@ class FormatRegistry(object):
         #  WMS and WCS suported formats
 
         nonNone = lambda v: (v is not None)
-        self.__wms_supported_formats = filter(nonNone, map(self.getFormatByMIME, reader.supported_formats_wms))
-        self.__wcs_supported_formats = filter(nonNone, map(self.getFormatByMIME, reader.supported_formats_wcs))
+        self.__wms_supported_formats = list(filter(nonNone, map(self.getFormatByMIME, reader.supported_formats_wms)))
+        self.__wcs_supported_formats = list(filter(nonNone, map(self.getFormatByMIME, reader.supported_formats_wcs)))
 
         #  WCS 2.0.1 source to native format mapping
 
@@ -288,10 +295,9 @@ class FormatRegistry(object):
             )
 
         tmp = reader.source_to_native_format_map
-        tmp = map(lambda m: self.getFormatByMIME(m.strip()), tmp.split(','))
+        tmp = list(map(lambda m: self.getFormatByMIME(m.strip()), list(tmp.split(','))))
         tmp = [(tmp[i], tmp[i + 1]) for i in xrange(0, (len(tmp) >> 1) << 1, 2)]
-        tmp = filter(lambda p: p[0] is not None and p[1] is not None, tmp)
-
+        tmp = list(filter(lambda p: list(p)[0] is not None and list(p)[1] is not None, tmp))
         self.__wcs20_format_mapping = dict(tmp)
 
     def __load_formats(self, path_formats_def, path_formats_opt):
@@ -327,7 +333,7 @@ class FormatRegistry(object):
         Postprocess format specificaions after the loading was finished.
         """
 
-        for frec in self.__mime2format.values():
+        for frec in list(self.__mime2format.values()):
             # driver to format dictionary
             if frec.driver in self.__driver2format:
                 self.__driver2format.append(frec)

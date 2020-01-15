@@ -30,6 +30,7 @@ import logging
 from django.conf import settings
 # from django.utils.module_loading import import_string
 from django.http import HttpResponse
+from django.utils.six import string_types
 
 from eoxserver.services.ows.config import (
     DEFAULT_EOXS_OWS_SERVICE_HANDLERS,
@@ -313,7 +314,7 @@ def filter_handlers(handlers=None, service=None, versions=None, request=None,
 def handler_supports_service(handler, service=None):
     """ Convenience method to check whether or not a handler supports a service.
     """
-    if isinstance(handler.service, basestring):
+    if isinstance(handler.service, string_types):
         return handler.service.upper() == service
     else:
         return service in handler.service

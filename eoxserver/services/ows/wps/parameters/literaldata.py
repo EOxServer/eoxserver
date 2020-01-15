@@ -38,6 +38,8 @@ from .base import Parameter
 from .data_types import BaseType, String, DTYPES
 from .allowed_values import BaseAllowed, AllowedAny, AllowedEnum
 from .units import UnitOfMeasure, UnitLinear
+from django.utils.encoding import smart_text
+from django.utils.six import text_type
 
 
 class LiteralData(Parameter):
@@ -96,9 +98,9 @@ class LiteralData(Parameter):
         elif allowed_values is not None:
             self._allowed_values = AllowedEnum(allowed_values, self._dtype)
         else:
-            self._allowed_values = AllowedAny() # pylint: disable=redefined-variable-type
+            self._allowed_values = AllowedAny()  # pylint: disable=redefined-variable-type
 
-        if uoms: # the first UOM is the default one
+        if uoms:  # the first UOM is the default one
             tmp = OrderedDict()
             for uom in uoms:
                 if not isinstance(uom, UnitOfMeasure):
@@ -117,12 +119,12 @@ class LiteralData(Parameter):
     @property
     def default_uom(self):
         """ Get the default UOM. """
-        return self._uoms.keys()[0] if self._uoms else None
+        return list(self._uoms)[0] if self._uoms else None
 
     @property
     def uoms(self):
         """ Get all allowed UOMs. """
-        return self._uoms.keys() if self._uoms else None
+        return list(self._uoms) if self._uoms else None
 
     @property
     def dtype(self):
@@ -188,18 +190,21 @@ class LiteralData(Parameter):
             Byte strings are decoded using the profited encoding (utf8 by
             default).
         """
+
         try:
-            if isinstance(raw_value, unicode):
+            if isinstance(raw_value, text_type):
                 _value = raw_value
             elif isinstance(raw_value, str):
-                _value = unicode(raw_value, encoding)
+                _value = smart_text(raw_value, encoding)
             else:
-                _value = unicode(raw_value)
+                _value = smart_text(raw_value)
             _value = self._dtype.parse(raw_value)
             _value = self.strip_uom(_value, uom or self.default_uom)
             _value = self._allowed_values.verify(_value)
+            
             return _value
         except (ValueError, TypeError) as exc:
+            
             raise ValueError(
                 "Input parsing error: '%s' (raw value '%s')" % (exc, raw_value)
             )
