@@ -70,6 +70,20 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
                 "it already exists."
             )
         )
+        sync_parser.add_argument(
+            "--unique-times", "-u",
+            dest="unique_times", action="store_true", default=False,
+            help=(
+                "Optional. Force unique time entries. Extents are merged."
+            )
+        )
+        sync_parser.add_argument(
+            "--no-index",
+            dest="index", action="store_false", default=True,
+            help=(
+                "Optional. Do not create an index."
+            )
+        )
 
     def handle(self, subcommand, *args, **kwargs):
         """ Dispatch sub-commands: register, deregister.
@@ -77,7 +91,7 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
         if subcommand == "sync":
             self.handle_sync(*args, **kwargs)
 
-    def handle_sync(self, force, **kwargs):
+    def handle_sync(self, force, unique_times=False, index=True, **kwargs):
         # parse command arguments
         self.verbosity = int(kwargs.get("verbosity", 1))
 
@@ -114,7 +128,12 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             )
             conn.execute(create_sql)
 
-            self.handle_collection(conn, collection)
+            self.handle_collection(conn, collection, unique_times)
+
+            if index:
+                conn.execute(
+                    'CREATE INDEX time_idx ON time (start_time, end_time, minx, miny, maxx, maxy)'
+                )
 
             conn.commit()
             conn.close()
@@ -124,7 +143,7 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             "and extents."
         )
 
-    def handle_collection(self, conn, collection):
+    def handle_collection(self, conn, collection, unique_times):
         try:
             logger.info("Syncing layer '%s'" % collection.identifier)
 
@@ -140,108 +159,114 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
                 'begin_time', 'end_time'
             )
 
-            logger.info("Number browses: %s" % len(products_qs))
+            logger.info("Number products: %s" % products_qs.count())
 
-            logger.debug("Starting query for unique times")
-            # optimization for when there are a lot of equal time entries
-            # like for Sentinel-2
-            unique_times_qs = models.Product.objects.filter(
-                collections=collection,
-            ).values_list(
-                'begin_time', 'end_time'
-            ).distinct(
-                'begin_time', 'end_time'
-            ).order_by(
-                'begin_time', 'end_time'
-            )
-            logger.info("Number unique times: %s" % len(unique_times_qs))
-
-            logger.info("Iterating through unique times")
-            time_intervals = []
-            i = 1
-            for begin_time, end_time in unique_times_qs:
-                logger.debug(
-                    "Working on unique time %s: %s/%s " %
-                    (i, begin_time, end_time)
+            if not unique_times:
+                time_intervals = (
+                    (product['begin_time'], product['end_time']) + product['extent']
+                    for product in products_qs
                 )
-                i += 1
-
-                minx, miny, maxx, maxy = (None,) * 4
-
-                # search for all browses within that time interval and
-                # combine extent
-                time_qs = products_qs.filter(
-                    begin_time=begin_time,
-                    end_time=end_time
+            else:
+                logger.debug("Starting query for unique times")
+                # optimization for when there are a lot of equal time entries
+                # like for Sentinel-2
+                unique_times_qs = models.Product.objects.filter(
+                    collections=collection,
+                ).values_list(
+                    'begin_time', 'end_time'
+                ).distinct(
+                    'begin_time', 'end_time'
+                ).order_by(
+                    'begin_time', 'end_time'
                 )
+                logger.info("Number unique times: %s" % unique_times_qs.count())
 
-                if len(time_qs) <= 0:
-                    logger.errro(
-                        "DB queries got different results which should "
-                        "never happen."
+                logger.info("Iterating through unique times")
+                time_intervals = []
+                i = 1
+                for begin_time, end_time in unique_times_qs:
+                    logger.debug(
+                        "Working on unique time %s: %s/%s " %
+                        (i, begin_time, end_time)
                     )
-                    raise CommandError("DB queries got different results.")
-                else:
-                    for time in time_qs:
-                        # decode extent from the above hack
-                        minx_tmp, miny_tmp, maxx_tmp, maxy_tmp = time['extent']
-                        # change one extent to ]0,360] if difference gets
-                        # smaller
-                        if minx is not None and maxx is not None:
-                            if (minx_tmp <= 0 and maxx_tmp <= 0 and
-                                    (minx-maxx_tmp) > (360+minx_tmp-maxx)):
-                                minx_tmp += 360
-                                maxx_tmp += 360
-                            elif (minx <= 0 and maxx <= 0 and
-                                    (minx_tmp-maxx) > (360+minx-maxx_tmp)):
-                                minx += 360
-                                maxx += 360
-                        minx = min(
-                            i for i in [minx_tmp, minx] if i is not None
-                        )
-                        miny = min(
-                            i for i in [miny_tmp, miny] if i is not None
-                        )
-                        maxx = max(
-                            i for i in [maxx_tmp, maxx] if i is not None
-                        )
-                        maxy = max(
-                            i for i in [maxy_tmp, maxy] if i is not None
-                        )
+                    i += 1
 
-                # check if previous element in ordered list overlaps
-                if (
-                    len(time_intervals) > 0 and (
-                        (
-                            (
-                                begin_time == end_time or
-                                time_intervals[-1][0] ==
-                                time_intervals[-1][1]
-                            ) and (
-                                time_intervals[-1][0] <= end_time and
-                                time_intervals[-1][1] >= begin_time
+                    minx, miny, maxx, maxy = (None,) * 4
+
+                    # search for all browses within that time interval and
+                    # combine extent
+                    time_qs = products_qs.filter(
+                        begin_time=begin_time,
+                        end_time=end_time
+                    )
+
+                    if time_qs.count() <= 0:
+                        logger.errro(
+                            "DB queries got different results which should "
+                            "never happen."
+                        )
+                        raise CommandError("DB queries got different results.")
+                    else:
+                        for time in time_qs:
+                            # decode extent from the above hack
+                            minx_tmp, miny_tmp, maxx_tmp, maxy_tmp = time['extent']
+                            # change one extent to ]0,360] if difference gets
+                            # smaller
+                            if minx is not None and maxx is not None:
+                                if (minx_tmp <= 0 and maxx_tmp <= 0 and
+                                        (minx-maxx_tmp) > (360+minx_tmp-maxx)):
+                                    minx_tmp += 360
+                                    maxx_tmp += 360
+                                elif (minx <= 0 and maxx <= 0 and
+                                        (minx_tmp-maxx) > (360+minx-maxx_tmp)):
+                                    minx += 360
+                                    maxx += 360
+                            minx = min(
+                                i for i in [minx_tmp, minx] if i is not None
                             )
-                        ) or (
-                            time_intervals[-1][0] < end_time and
-                            time_intervals[-1][1] > begin_time
-                        )
-                    )
-                ):
-                    begin_time = min(begin_time, time_intervals[-1][0])
-                    end_time = max(end_time, time_intervals[-1][1])
-                    minx = min(minx, time_intervals[-1][2])
-                    miny = min(miny, time_intervals[-1][3])
-                    maxx = max(maxx, time_intervals[-1][4])
-                    maxy = max(maxy, time_intervals[-1][5])
-                    time_intervals.pop(-1)
-                time_intervals.append(
-                    (begin_time, end_time, minx, miny, maxx, maxy)
-                )
+                            miny = min(
+                                i for i in [miny_tmp, miny] if i is not None
+                            )
+                            maxx = max(
+                                i for i in [maxx_tmp, maxx] if i is not None
+                            )
+                            maxy = max(
+                                i for i in [maxy_tmp, maxy] if i is not None
+                            )
 
-            logger.info(
-                "Number non-overlapping time intervals: %s" %
-                len(time_intervals)
-            )
+                    # check if previous element in ordered list overlaps
+                    if (
+                        len(time_intervals) > 0 and (
+                            (
+                                (
+                                    begin_time == end_time or
+                                    time_intervals[-1][0] ==
+                                    time_intervals[-1][1]
+                                ) and (
+                                    time_intervals[-1][0] <= end_time and
+                                    time_intervals[-1][1] >= begin_time
+                                )
+                            ) or (
+                                time_intervals[-1][0] < end_time and
+                                time_intervals[-1][1] > begin_time
+                            )
+                        )
+                    ):
+                        begin_time = min(begin_time, time_intervals[-1][0])
+                        end_time = max(end_time, time_intervals[-1][1])
+                        minx = min(minx, time_intervals[-1][2])
+                        miny = min(miny, time_intervals[-1][3])
+                        maxx = max(maxx, time_intervals[-1][4])
+                        maxy = max(maxy, time_intervals[-1][5])
+                        time_intervals.pop(-1)
+                    time_intervals.append(
+                        (begin_time, end_time, minx, miny, maxx, maxy)
+                    )
+
+                logger.info(
+                    "Number non-overlapping time intervals: %s" %
+                    len(time_intervals)
+                )
 
             logger.info(
                 "Starting saving time intervals to MapCache SQLite file"

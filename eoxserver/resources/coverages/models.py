@@ -38,6 +38,7 @@ from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
 from django.contrib.gis.db import models
 from django.contrib.gis.db.models import Extent, Union
+from django.contrib.gis.geos import Polygon
 from django.db.models import Min, Max, Q, F, ExpressionWrapper
 from django.db.models.functions import Cast
 from django.utils.timezone import now
@@ -141,6 +142,7 @@ class NilValue(models.Model):
 class MaskType(models.Model):
     name = models.CharField(max_length=512, validators=name_validators, **mandatory)
     product_type = models.ForeignKey('ProductType', on_delete=models.CASCADE, related_name='mask_types', **mandatory)
+    validity = models.BooleanField(default=False)
 
     def __str__(self):
         return self.name
@@ -818,7 +820,8 @@ def collection_exclude_eo_object(collection, eo_object):
 
 def collection_collect_metadata(collection, collect_footprint=True,
                                 collect_begin_time=True, collect_end_time=True,
-                                product_summary=False, coverage_summary=False):
+                                product_summary=False, coverage_summary=False,
+                                use_extent=False):
     """ Collect metadata
     """
 
@@ -826,7 +829,10 @@ def collection_collect_metadata(collection, collect_footprint=True,
         aggregates = {}
 
         if collect_footprint:
-            aggregates["footprint"] = Union("footprint")
+            if use_extent:
+                aggregates["extent"] = Extent("footprint")
+            else:
+                aggregates["footprint"] = Union("footprint")
         if collect_begin_time:
             aggregates["begin_time"] = Min("begin_time")
         if collect_end_time:
@@ -838,7 +844,12 @@ def collection_collect_metadata(collection, collect_footprint=True,
         ).aggregate(**aggregates)
 
         if collect_footprint:
-            collection.footprint = values["footprint"]
+            if use_extent:
+                collection.footprint = Polygon.from_bbox(
+                    values["extent"]
+                )
+            else:
+                collection.footprint = values["footprint"]
         if collect_begin_time:
             collection.begin_time = values["begin_time"]
         if collect_end_time:

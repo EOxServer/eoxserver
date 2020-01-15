@@ -46,11 +46,14 @@ In contrast to EO-WCS and WMS, the OpenSearch interface operates on metadata
 only and allows a performant view of the data, by using slimmer output formats
 such as GeoJSON or Atom/RSS XML structures.
 
-In EOxServer, both the `Time
-<http://www.opensearch.org/Specifications/OpenSearch/Extensions/Time/1.0/Draft_1>`_
-and the
+In EOxServer, `Time
+<http://www.opensearch.org/Specifications/OpenSearch/Extensions/Time/1.0/Draft_1>`_ and
 `Geo <http://www.opensearch.org/Specifications/OpenSearch/Extensions/Geo/1.0/Draft_2>`_ 
 extensions are implemented to limit the spatio-temporal scope of the search.
+Additionally, `EO <https://docs.opengeospatial.org/is/13-026r8/13-026r8.html>`_ extension
+is implemented to support most of the required and recommended 
+best practices of the `CEOS OpenSearch Best Practice Document
+<https://earthdata.nasa.gov/files/CEOS_OpenSearch_Best_Practice_Doc-v.1.0.1_Jun2015.pdf>`_.
 
 Setup
 -----
@@ -194,11 +197,198 @@ following example uses a time span to limit the records::
     ]
     }
 
+
+EO Extension
+------------
+Since version 0.4 EOxServer prvides implementation of the
+`OpenSearch EO <https://docs.opengeospatial.org/is/13-026r8/13-026r8.html>`_
+extension. This extension supports most of the required and recommended 
+best practices of the `CEOS OpenSearch Best Practice Document
+<https://earthdata.nasa.gov/files/CEOS_OpenSearch_Best_Practice_Doc-v.1.0.1_Jun2015.pdf>`_.
+
+The EO extension allows the following EO parameters to be added 
+to the Opensearch request:
+
+.. _table_opensearch_search_request_EO_parameters:
+.. table:: OpenSearch Search Request EO Parameters
+
+    +----------------------------------------+------------------------------------------------------+------------------------------------------+
+    | → Parameter                            | Description                                          | Example                                  |
+    |   (Replacement Tag)                    |                                                      |                                          |
+    +========================================+======================================================+==========================================+
+    | → productType                          | A string that identifies the product type.           |   productType=GES_DISC_AIRH3STD_V005     |
+    |   (eop:productType)                    |                                                      |                                          |
+    +----------------------------------------+------------------------------------------------------+------------------------------------------+
+    | → doi                                  | A Digital Object Identifier "string" identifying the |   doi=doi:10.7666/d.y351065              |
+    |   (eo:doi)                             | product in the `DOI <http://www.doi.org/>`_ system.  |                                          |
+    +----------------------------------------+------------------------------------------------------+------------------------------------------+
+    | → platform                             | The platform / satellite short name.                 |   platform=Sentinel-1                    |
+    |   (eo:shortName)                       |                                                      |                                          |
+    +----------------------------------------+------------------------------------------------------+------------------------------------------+
+    | → platformSerialIdentifier             | The Platform / satellite serial identifier.          |                                          |
+    |   (eo:serialIdentifier)                |                                                      |                                          |
+    +----------------------------------------+------------------------------------------------------+------------------------------------------+
+    | → instrument                           | The name of the sensor / instrument.                 |   instrument=ASAR                        |
+    |   (eop:shortName)                      |                                                      |                                          |
+    +----------------------------------------+------------------------------------------------------+------------------------------------------+
+    | → sensorType                           | The sensor type.                                     |   sensorType=ATMOSPHERIC                 |
+    |   (eo:sensorType)                      |                                                      |                                          |
+    +----------------------------------------+------------------------------------------------------+------------------------------------------+
+    | → compositeType                        | The type of composite product expressed as time      |   compositeType=P10D (P10D) is for       |
+    |   (eo:compositeType)                   | period that the composite product covers.            |   10 days coverage period                |
+    +----------------------------------------+------------------------------------------------------+------------------------------------------+
+    | → processingLevel                      | The processing level applied to the product.         |                                          |
+    |   (eo:processingLevel)                 |                                                      |                                          |
+    +----------------------------------------+------------------------------------------------------+------------------------------------------+
+    | → orbitType                            | The platform / satellite orbit type.                 |   orbitType=LEO (low earth orbit)        |
+    |   (eo:orbitType)                       |                                                      |                                          |
+    +----------------------------------------+------------------------------------------------------+------------------------------------------+
+    | → spectralRange                        | The sensor spectral range.                           |   spectralRange= INFRARED                |
+    |   (eo:spectralRange)                   |                                                      |                                          |
+    +----------------------------------------+------------------------------------------------------+------------------------------------------+
+    | → wavelengths                          | A number, set or interval requesting the sensor      |                                          |
+    |   (eo:discreteWavelengths)             | wavelengths in nanometers.                           |                                          |
+    +----------------------------------------+------------------------------------------------------+------------------------------------------+
+    | → hasSecurityConstraints               | A text informs if the resource has any security      |   hasSecurityConstraints=FALSE           |
+    |                                        | constraints. Possible values: TRUE, FALSE            |                                          |
+    +----------------------------------------+------------------------------------------------------+------------------------------------------+
+    | → dissemination                        | The dissemination method.                            |   dissemination=EUMETCast                |
+    |                                        |                                                      |                                          |
+    +----------------------------------------+------------------------------------------------------+------------------------------------------+
+    | → recordSchema                         | Metadata model in which additional metadata should   |                                          |
+    |                                        | be provided inline.                                  |                                          |
+    +----------------------------------------+------------------------------------------------------+------------------------------------------+
+    | → parentIdentifier                     | The parent of the entry in a hierarchy of resources. |                                          |
+    |   (eo:parentIdentifier)                |                                                      |                                          |
+    +----------------------------------------+------------------------------------------------------+------------------------------------------+
+    | → productionStatus                     | The status of the entry.                             |   productionStatus=ARCHIVED              |
+    |   (eo:status)                          |                                                      |                                          |
+    +----------------------------------------+------------------------------------------------------+------------------------------------------+
+    | → acquisitionType                      | Used to distinguish at a high level the              |    acquisitionType=CALIBRATION           |
+    |   (eo:acquisitionType)                 | appropriateness of the acquisition for "general" use,|                                          |
+    |                                        | whether the product is a nominal acquisition, special|                                          |
+    |                                        | calibration product or other.                        |                                          |
+    |                                        | Values: NOMINAL, CALIBRATION, OTHER.                 |                                          |
+    +----------------------------------------+------------------------------------------------------+------------------------------------------+ 
+    | → orbitNumber                          | A number, set or interval requesting the acquisition |                                          |
+    |   (eo:orbitNumber)                     | orbit.                                               |                                          |
+    +----------------------------------------+------------------------------------------------------+------------------------------------------+
+    | → orbitDirection                       | the acquisition orbit direction.                     |   orbitDirection=ASCENDING               |                 
+    |   (eo:orbitDirection)                  |                                                      |                                          |
+    +----------------------------------------+------------------------------------------------------+------------------------------------------+
+    | → track                                | the orbit track.                                     |                                          |
+    |   (eo:wrsLongitudeGrid)                |                                                      |                                          |
+    +----------------------------------------+------------------------------------------------------+------------------------------------------+
+    | → frame                                | the orbit frame.                                     |                                          |
+    |   (eo:wrsLatitudeGrid)                 |                                                      |                                          |
+    +----------------------------------------+------------------------------------------------------+------------------------------------------+
+    | → swathIdentifier                      | Swath identifier. Value list can be retrieved with   |   swathIdentifier=I3 (Envisat ASAR       |
+    |   (eo:swathIdentifier)                 | codeSpace.                                           |   has 7 distinct swaths (I1,I2...I7)     |
+    |                                        |                                                      |   that correspond to precise             |
+    |                                        |                                                      |   incidence angles for the sensor)       |
+    +----------------------------------------+------------------------------------------------------+------------------------------------------+
+    | → cloudCover                           | The cloud coverage percantage.                       |   cloudCover=65                          |
+    |   (eo:cloudCoverPercentage             |                                                      |                                          |
+    |   or eo:cloudCoverPercentage)          |                                                      |                                          |
+    +----------------------------------------+------------------------------------------------------+------------------------------------------+
+    | → snowCover                            | The cloud coverage percantage.                       |   cloudCover=65                          |
+    |   (eo:snowCoverPercentage              |                                                      |                                          |
+    |   or eo:snowCoverPercentage)           |                                                      |                                          |
+    +----------------------------------------+------------------------------------------------------+------------------------------------------+
+    | → lowestLocation                       | The bottom height of datalayer (in meters).          |                                          |  
+    |   (eo:lowestLocation)                  |                                                      |                                          |
+    +----------------------------------------+------------------------------------------------------+------------------------------------------+
+    | → highestLocation                      | The top height of datalayer (in meters).             |                                          |  
+    |   (eo:highestLocation)                 |                                                      |                                          |
+    +----------------------------------------+------------------------------------------------------+------------------------------------------+
+    | → productVersion                       | The version of the Product.                          |                                          |
+    |   (eo:version)                         |                                                      |                                          |
+    +----------------------------------------+------------------------------------------------------+------------------------------------------+
+    | → productQualityStatus                 | An optional field that must be provided if the       |   productQualityStatus=DEGRADED          |
+    |   (eo:productQualityDegradation)       | product passed a quality check. Possible             |                                          |
+    |                                        | values: NOMINAL and DEGRADED.                        |                                          |
+    +----------------------------------------+------------------------------------------------------+------------------------------------------+
+    | → productQualityDegradationTag         | The degradations affecting the product.Possible      |  productQualityDegradationTag=RADIOMETRY |
+    |   (eo:productQualityDegradationTag)    | values are mission specific and can be freely        |                                          |
+    |                                        | defined.                                             |                                          |
+    +----------------------------------------+------------------------------------------------------+------------------------------------------+
+    | → processorName                        | The processor software name.                         |                                          |
+    |   (eo:processorName)                   |                                                      |                                          |
+    +----------------------------------------+------------------------------------------------------+------------------------------------------+
+    | → processingCenter                     | The processing center.                               |   processingCenter=PDHS-E                |
+    |   (eo:processingCenter)                |                                                      |                                          |
+    +----------------------------------------+------------------------------------------------------+------------------------------------------+
+    | → creationDate                         | The date when the metadata item was ingested for     |                                          |  
+    |   (eo:creationDate)                    | the first time (i.e. inserted) in the catalogue.     |                                          |
+    +----------------------------------------+------------------------------------------------------+------------------------------------------+
+    | → modificationDate                     | The date when the metadata item was last modified    |                                          |  
+    |   (eo:modificationDate)                | (i.e. updated) in the catalogue.                     |                                          |
+    +----------------------------------------+------------------------------------------------------+------------------------------------------+
+    | → processingDate                       | A date interval requesting entries processed within  |                                          |
+    |   (eo:processingDate)                  | a given time interval.                               |                                          |
+    +----------------------------------------+------------------------------------------------------+------------------------------------------+
+    | → sensorMode                           | The sensor mode.                                     |                                          |
+    |   (eo:operationalMode)                 |                                                      |                                          |
+    +----------------------------------------+------------------------------------------------------+------------------------------------------+ 
+    | → archivingCenter                      | The the archiving center.                            |                                          |
+    |   (eo:archivingCente                   |                                                      |                                          |  
+    +----------------------------------------+------------------------------------------------------+------------------------------------------+
+    | → processingMode                       | Processing mode. Often referred to as Real Time,     |                                          |
+    |   (eo:ProcessingMode)                  | Near Real Time etc.                                  |                                          |
+    +----------------------------------------+------------------------------------------------------+------------------------------------------+ 
+    | → availabilityTime                     | The time when the result became available            |                                          |  
+    |   (eo:timePosition)                    | (i.e. updated) in the catalogue.                     |                                          |
+    +----------------------------------------+------------------------------------------------------+------------------------------------------+
+    | → acquisitionStation                   | The station used for the acquisition.                |                                          |
+    |   (eo:acquisitionStation)              |                                                      |                                          |
+    +----------------------------------------+------------------------------------------------------+------------------------------------------+ 
+    | → acquisitionSubType                   | The Acquisition sub-type.                            |                                          |  
+    |   (eo:acquisitionSubType)              |                                                      |                                          |
+    +----------------------------------------+------------------------------------------------------+------------------------------------------+
+    | → startTimeFromAscendingNode           | Start time of acquisition in milliseconds from       |                                          |
+    |   (eo:startTimeFromAscendingNode)      | Ascending node date.                                 |                                          |
+    +----------------------------------------+------------------------------------------------------+------------------------------------------+ 
+    | → completionTimeFromAscendingNode      | Completion time of acquisition in milliseconds from  |                                          |  
+    |   (eo:completionTimeFromAscendingNode) | Ascending node date.                                 |                                          |
+    +----------------------------------------+------------------------------------------------------+------------------------------------------+
+    | → illuminationAzimuthAngle             | Mean illumination/solar azimuth angle given in       |                                          |
+    |   (eo:illuminationAzimuthAngle)        | degrees.                                             |                                          |
+    +----------------------------------------+------------------------------------------------------+------------------------------------------+ 
+    | → illuminationZenithAngle              | Mean illumination/solar zenith angle given in        |                                          |  
+    |    (eo:illuminationZenithAngle)        | degrees.                                             |                                          |
+    +----------------------------------------+------------------------------------------------------+------------------------------------------+
+    | → illuminationElevationAngle           | Mean illumination/solar elevation angle given in     |                                          |
+    |   (eo:illuminationElevationAngle)      | degrees.                                             |                                          |
+    +----------------------------------------+------------------------------------------------------+------------------------------------------+ 
+    | → polarisationMode                     | The polarisation mode taken from codelist:           |     polarisationMode=D                   |  
+    |   (eo:polarisationMode)                | S (for single), D (for dual), T (for twin),          |                                          |
+    |                                        | Q (for quad), UNDEFINED                              |                                          |
+    +----------------------------------------+------------------------------------------------------+------------------------------------------+
+    | → polarisationChannels                 | Polarisation channel transmit/receive configuration. |    polarisationChannels=vertical         |                             
+    |   (eo:polarisationChannels)            |                                                      |                                          |
+    +----------------------------------------+------------------------------------------------------+------------------------------------------+ 
+    | → antennaLookDirection                 | LEFT or RIGHT.                                       |                                          |  
+    |   (eo:antennaLookDirection)            |                                                      |                                          |
+    +----------------------------------------+------------------------------------------------------+------------------------------------------+
+    | → minimumIncidenceAngle                | Minimum incidence angle given in degrees.            |                                          |
+    |    (eo:minimumIncidenceAngle)          |                                                      |                                          |
+    +----------------------------------------+------------------------------------------------------+------------------------------------------+ 
+    | → maximumIncidenceAngle                | Maximum incidence angle given in degrees.            |                                          |  
+    |   (eo:maximumIncidenceAngle)           |                                                      |                                          |
+    +----------------------------------------+------------------------------------------------------+------------------------------------------+
+    | → dopplerFrequency                     | Doppler Frequency of acquisition.                    |                                          |
+    |   (eo:dopplerFrequency)                |                                                      |                                          |
+    +----------------------------------------+------------------------------------------------------+------------------------------------------+ 
+    | → incidenceAngleVariation              | Incidence angle variation                            |                                          |  
+    |   (eo:incidenceAngleVariation)         |                                                      |                                          |
+    +----------------------------------------+------------------------------------------------------+------------------------------------------+
+    
+    
 Parameters
 ----------
 
 As mentioned before, EOxServers implementation of OpenSearch adheres to the core,
-and the time and geo extensions. Thus the interface allows the following
+and the time, geo and EO extensions. Thus the interface allows the following
 parameters when searching for datasets:
 
 .. _table_opensearch_search_request_parameters:
@@ -315,14 +505,3 @@ the available formats, the line added to the line
 where ``<format>`` is one of ``atom``, ``geojson``, ``kml`` or ``rss``. To
 enable more than one format, the last line can be repeated for each format.
 
-Future Work
------------
-
-As of EOxServer version 0.4, it is planned to also implement support for the
-`OpenSearch EO <https://portal.opengeospatial.org/files/?artifact_id=61006>`_
-extension. This extension was held back on purpose, as the current data models
-do not include the necessary metadata fields.
-
-Additionally, the aim is to support most of the required and recommended 
-best practices of the `CEOS OpenSearch Best Practice Document
-<https://earthdata.nasa.gov/files/CEOS_OpenSearch_Best_Practice_Doc-v.1.0.1_Jun2015.pdf>`_.

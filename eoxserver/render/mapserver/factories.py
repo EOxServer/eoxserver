@@ -235,7 +235,7 @@ class CoverageLayerFactory(CoverageLayerFactoryMixIn, BaseMapServerLayerFactory)
             coverages = layer.coverages
 
         coverage_layers = []
-        for coverage in coverages:
+        for coverage in reversed(coverages):
             fields = self.get_fields(
                 coverage.range_type, layer.bands, layer.wavelengths
             )
@@ -264,7 +264,7 @@ class OutlinedCoverageLayerFactory(CoverageLayerFactoryMixIn, BaseMapServerLayer
 
         coverage_layers = []
 
-        for coverage in coverages:
+        for coverage in reversed(coverages):
             fields = self.get_fields(
                 coverage.range_type, layer.bands, layer.wavelengths
             )
@@ -301,7 +301,7 @@ class MosaicLayerFactory(CoverageLayerFactoryMixIn, BaseMapServerLayerFactory):
             self.create_coverage_layer(
                 map_obj, coverage, fields, layer.style, layer.ranges
             )
-            for coverage in layer.coverages
+            for coverage in reversed(layer.coverages)
         ]
 
     def destroy(self, map_obj, layer, data):
@@ -311,25 +311,17 @@ class MosaicLayerFactory(CoverageLayerFactoryMixIn, BaseMapServerLayerFactory):
 # TODO: combine BrowseLayerFactory with OutlinedBrowseLayerFactory, as they are
 # very similar
 
-class BrowseLayerFactory(CoverageLayerFactoryMixIn, BaseMapServerLayerFactory):
-    handled_layer_types = [BrowseLayer]
-
-    def create(self, map_obj, layer):
-        filename_generator = FilenameGenerator(
-            '/vsimem/{uuid}.{extension}', 'vrt'
-        )
-        group_name = layer.name
-        ranges = layer.ranges
-        style = layer.style
-
-        for browse in layer.browses:
+class BrowseLayerMixIn(object):
+    def make_browse_layer_generator(self, map_obj, browses, map_, filename_generator,
+                                    group_name, ranges, style):
+        for browse in browses:
             if isinstance(browse, GeneratedBrowse):
                 creation_info, filename_generator, reset_info = generate_browse(
                     browse.band_expressions,
                     browse.fields_and_coverages,
-                    layer.map.width, layer.map.height,
-                    layer.map.bbox,
-                    layer.map.crs,
+                    map_.width, map_.height,
+                    map_.bbox,
+                    map_.crs,
                     filename_generator
                 )
                 layer_objs = _create_raster_layer_objs(
@@ -348,8 +340,8 @@ class BrowseLayerFactory(CoverageLayerFactoryMixIn, BaseMapServerLayerFactory):
                         ))
 
                     if reset_info:
-                        sr = osr.SpatialReference(layer.map.crs)
-                        extent = layer.map.bbox
+                        sr = osr.SpatialReference(map_.crs)
+                        extent = map_.bbox
                         layer_obj.setMetaData("wms_extent", "%f %f %f %f" % extent)
                         layer_obj.setExtent(*extent)
 
@@ -401,11 +393,36 @@ class BrowseLayerFactory(CoverageLayerFactoryMixIn, BaseMapServerLayerFactory):
                 for layer_obj in layer_objs:
                     layer_obj.data = browse.filename
                 ms.set_env(map_obj, browse.env, True)
+            elif browse is None:
+                # TODO: figure out why and deal with it?
+                continue
             else:
                 raise TypeError('Type %s is not supported', type(browse).__name__)
 
             for layer_obj in layer_objs:
                 layer_obj.group = group_name
+
+            yield browse, layer_objs
+
+
+class BrowseLayerFactory(CoverageLayerFactoryMixIn, BrowseLayerMixIn, BaseMapServerLayerFactory):
+    handled_layer_types = [BrowseLayer]
+
+    def create(self, map_obj, layer):
+        filename_generator = FilenameGenerator(
+            '/vsimem/{uuid}.{extension}', 'vrt'
+        )
+        group_name = layer.name
+        ranges = layer.ranges
+        style = layer.style
+
+        generator = self.make_browse_layer_generator(
+            map_obj, reversed(layer.browses), layer.map, filename_generator,
+            group_name, ranges, style
+        )
+
+        for _ in generator:
+            pass
 
         return filename_generator
 
@@ -415,7 +432,7 @@ class BrowseLayerFactory(CoverageLayerFactoryMixIn, BaseMapServerLayerFactory):
             vsi.unlink(filename)
 
 
-class OutlinedBrowseLayerFactory(BaseMapServerLayerFactory):
+class OutlinedBrowseLayerFactory(BrowseLayerMixIn, BaseMapServerLayerFactory):
     handled_layer_types = [OutlinedBrowseLayer]
 
     def create(self, map_obj, layer):
@@ -427,87 +444,12 @@ class OutlinedBrowseLayerFactory(BaseMapServerLayerFactory):
         raster_style = style if style and style in COLOR_SCALES else "blackwhite"
         vector_style = style if style and style in BASE_COLORS else "red"
 
-        for browse in layer.browses:
-            if isinstance(browse, GeneratedBrowse):
-                creation_info, filename_generator, reset_info = generate_browse(
-                    browse.band_expressions,
-                    browse.fields_and_coverages,
-                    layer.map.width, layer.map.height,
-                    layer.map.bbox,
-                    layer.map.crs,
-                    filename_generator
-                )
-                browse_layer_objs = _create_raster_layer_objs(
-                    map_obj, browse.extent, browse.spatial_reference,
-                    creation_info.filename, filename_generator
-                )
+        generator = self.make_browse_layer_generator(
+            map_obj, reversed(layer.browses), layer.map, filename_generator,
+            group_name, ranges, raster_style
+        )
 
-                for browse_layer_obj in browse_layer_objs:
-                    browse_layer_obj.data = creation_info.filename
-                    if creation_info.env:
-                        ms.set_env(map_obj, creation_info.env, True)
-
-                    if creation_info.bands:
-                        browse_layer_obj.setProcessingKey('BANDS', ','.join(
-                            str(band) for band in creation_info.bands
-                        ))
-
-                    if reset_info:
-                        sr = osr.SpatialReference(layer.map.crs)
-                        extent = layer.map.bbox
-                        browse_layer_obj.setMetaData("wms_extent", "%f %f %f %f" % extent)
-                        browse_layer_obj.setExtent(*extent)
-
-                        if sr.srid is not None:
-                            short_epsg = "EPSG:%d" % sr.srid
-                            browse_layer_obj.setMetaData("ows_srs", short_epsg)
-                            browse_layer_obj.setMetaData("wms_srs", short_epsg)
-                        browse_layer_obj.setProjection(sr.proj)
-
-                    if browse.mode == BROWSE_MODE_GRAYSCALE:
-                        field = browse.field_list[0]
-                        if ranges:
-                            browse_range = ranges[0]
-                        elif browse.ranges[0] != (None, None):
-                            browse_range = browse.ranges[0]
-                        else:
-                            browse_range = _get_range(field)
-
-                        _create_raster_style(
-                            raster_style or "blackwhite", browse_layer_obj,
-                            browse_range[0], browse_range[1], [
-                                nil_value[0] for nil_value in field.nil_values
-                            ]
-                        )
-
-                else:
-                    field_ranges = enumerate(zip(browse.field_list, browse.ranges), start=1)
-                    for i, (field, field_range) in field_ranges:
-                        if ranges:
-                            if len(ranges) == 1:
-                                range_ = ranges[0]
-                            else:
-                                range_ = ranges[i - 1]
-                        elif field_range != (None, None):
-                            range_ = field_range
-                        else:
-                            range_ = _get_range(field)
-
-                        for browse_layer_obj in browse_layer_objs:
-                            browse_layer_obj.setProcessingKey("SCALE_%d" % i,
-                                "%s,%s" % range_
-                            )
-
-            elif isinstance(browse, Browse):
-                browse_layer_objs = _create_raster_layer_objs(
-                    map_obj, browse.extent, browse.spatial_reference,
-                    browse.filename, filename_generator
-                )
-                ms.set_env(map_obj, browse.env, True)
-
-            for browse_layer_obj in browse_layer_objs:
-                browse_layer_obj.group = group_name
-
+        for browse, _ in generator:
             # create the outlines layer
             outlines_layer_obj = _create_polygon_layer(map_obj)
             shape_obj = ms.shapeObj.fromWKT(browse.footprint.wkt)
@@ -529,7 +471,7 @@ class MaskLayerFactory(BaseMapServerLayerFactory):
 
     def create(self, map_obj, layer):
         layer_obj = _create_polygon_layer(map_obj)
-        for mask in layer.masks:
+        for mask in reversed(layer.masks):
             if mask.geometry:
                 mask_geom = mask.geometry
             elif mask.filename:
@@ -545,16 +487,27 @@ class MaskLayerFactory(BaseMapServerLayerFactory):
         )
 
 
-class MaskedBrowseLayerFactory(BaseMapServerLayerFactory):
+class MaskedBrowseLayerFactory(BrowseLayerMixIn, BaseMapServerLayerFactory):
     handled_layer_types = [MaskedBrowseLayer]
 
     def create(self, map_obj, layer):
         filename_generator = FilenameGenerator('/vsimem/{uuid}.vrt')
         group_name = layer.name
-        for masked_browse in layer.masked_browses:
-            browse = masked_browse.browse
-            mask = masked_browse.mask
-            mask_name = 'mask__%d' % id(masked_browse)
+
+        browses, masks = zip(*[
+            [masked_browse.browse, masked_browse.mask]
+            for masked_browse in reversed(layer.masked_browses)
+        ]) or ([], [])
+
+        generator = self.make_browse_layer_generator(
+            map_obj, browses, layer.map, filename_generator,
+            group_name, None, None
+        )
+
+        for browse_and_layer_objs, mask in zip(generator, masks):
+            browse, browse_layer_objs = browse_and_layer_objs
+
+            mask_name = 'mask__%d' % id(mask)
 
             # create mapserver layers for the mask
             mask_layer_obj = _create_polygon_layer(map_obj)
@@ -570,30 +523,34 @@ class MaskedBrowseLayerFactory(BaseMapServerLayerFactory):
             else:
                 mask_geom = None
 
+            # the current logic:
+            # when dealing with validity masks:
+            #  - when geometry is available, use it as a mask
+            #  - when not, the browse shall be hidden
+            # when dealing with 'normal' masks:
+            #  - use footprint/image bounds and cutout geometry
+
+            # TODO: currently it is assumed that all geometries
+            # are in EPSG:4326 which is not necessarily the case.
+            # Reprojection is required.
+
             outline = browse.footprint
             if mask_geom:
-                outline = outline - mask_geom
+                if mask.validity:
+                    outline = mask_geom
+                else:
+                    outline = outline - mask_geom
+            elif mask.validity:
+                outline = None
 
-            shape_obj = ms.shapeObj.fromWKT(outline.wkt)
-            mask_layer_obj.addFeature(shape_obj)
+            if outline:
+                shape_obj = ms.shapeObj.fromWKT(outline.wkt)
+                mask_layer_obj.addFeature(shape_obj)
 
             mask_layer_obj.name = mask_name
 
             # set up the mapserver layers required for the browses
-            browse_layer_objs = _create_raster_layer_objs(
-                map_obj, browse.extent,
-                browse.spatial_reference,
-                browse.filename,
-                filename_generator
-            )
             for browse_layer_obj in browse_layer_objs:
-                browse_layer_obj.group = group_name
-
-                # TODO: generated browses
-                if isinstance(browse, GeneratedBrowse):
-                    raise NotImplementedError
-
-                ms.set_env(map_obj, browse.env, True)
                 browse_layer_obj.mask = mask_name
 
         return filename_generator
@@ -609,13 +566,20 @@ class OutlinesLayerFactory(BaseMapServerLayerFactory):
 
     def create(self, map_obj, layer):
         layer_obj = _create_polygon_layer(map_obj)
-        for footprint, mask in izip_longest(layer.footprints, layer.masks or []):
+        footprint_masks = list(
+            izip_longest(layer.footprints, layer.masks or [])
+        )
+        for footprint, mask in reversed(footprint_masks):
             if mask:
                 if mask.geometry:
                     mask_geom = mask.geometry
                 elif mask.filename:
                     mask_geom = mask.load_geometry()
-                footprint = footprint.difference(mask_geom)
+
+                if mask.validity:
+                    footprint = footprint.intersection(mask_geom)
+                else:
+                    footprint = footprint.difference(mask_geom)
 
             shape_obj = ms.shapeObj.fromWKT(footprint.wkt)
             layer_obj.addFeature(shape_obj)
