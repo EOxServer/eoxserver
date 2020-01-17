@@ -88,10 +88,15 @@ setup(
     install_requires=[
         'django>=1.4',
         'python-dateutil',
-        'ply',
         'django-model-utils<4.0.0',
         'zipstream',
+        'psycopg2',
+        'lxml',
+        'pycql',
     ],
+    extras_require={
+        'dev': ['scipy-stack'],
+    },
     zip_safe=False,
 
     # Metadata
