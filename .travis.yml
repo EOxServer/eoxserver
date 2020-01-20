@@ -3,12 +3,12 @@ language: python
 env:
 # - OS=centos PY=py2 DB=postgis DJANGO="1.11.26" PYTHON=python
 # - OS=centos PY=py2 DB=spatialite DJANGO="1.11.26 PYTHON=python"
-- OS=ubuntu PY=py2 DB=postgis DJANGO="1.11.26" PYTHON=python
-- OS=ubuntu PY=py2 DB=spatialite DJANGO="1.11.26" PYTHON=python
-- OS=ubuntu PY=py3 DB=postgis DJANGO="1.11.26" PYTHON=python3
-- OS=ubuntu PY=py3 DB=spatialite DJANGO="1.11.26" PYTHON=python3
-- OS=ubuntu PY=py3 DB=postgis DJANGO="2.2.7" PYTHON=python3
-- OS=ubuntu PY=py3 DB=spatialite DJANGO="2.2.7" PYTHON=python3
+- OS=ubuntu PY=py2 DB=postgis DJANGO="1.11.26" PYTHON=python PIPY = pip
+- OS=ubuntu PY=py2 DB=spatialite DJANGO="1.11.26" PYTHON=python PIPY = pip
+- OS=ubuntu PY=py3 DB=postgis DJANGO="1.11.26" PYTHON=python3 PIPY = pip3
+- OS=ubuntu PY=py3 DB=spatialite DJANGO="1.11.26" PYTHON=python3 PIPY = pip3
+- OS=ubuntu PY=py3 DB=postgis DJANGO="2.2.7" PYTHON=python3 PIPY = pip3
+- OS=ubuntu PY=py3 DB=spatialite DJANGO="2.2.7" PYTHON=python3 PIPY = pip3
 
 services:
 - docker
@@ -28,6 +28,7 @@ script:
 - docker-compose up -d
 - docker-compose ps
 - docker-compose exec autotest bash -c 'apt-get install -y postgresql-client; until PGPASSWORD=${DB_PW} psql "${DB_NAME}" -h "${DB_HOST}" -U "${DB_USER}" -c "\q"; do >&2 echo "Database is unavailable - sleeping"; sleep 5; done'
+- docker-compose exec autotest $PIPY install scipy-stack
 - docker-compose exec autotest $PYTHON -m eoxserver.services.ows.wps.test_data_types
 - docker-compose exec autotest $PYTHON -m eoxserver.services.ows.wps.test_allowed_values
 - docker-compose exec autotest $PYTHON manage.py test --pythonpath=../eoxserver/ eoxserver.core -v2
