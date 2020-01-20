@@ -95,7 +95,7 @@ setup(
         'pycql',
     ],
     extras_require={
-        'dev': ['scipy-stack'],
+        'dev': ['scipy'],
     },
     zip_safe=False,
 
