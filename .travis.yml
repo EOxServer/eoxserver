@@ -44,7 +44,7 @@ script:
 - cd ..
 
 after_failure:
-- diff autotest/expected autotest/responses
+- diff autotest/autotest/expected autotest/autotest/responses
 
 notifications:
   slack:
