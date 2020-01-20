@@ -3,12 +3,12 @@ language: python
 env:
 # - OS=centos PY=py2 DB=postgis DJANGO="1.11.26" PYTHON=python
 # - OS=centos PY=py2 DB=spatialite DJANGO="1.11.26 PYTHON=python"
-- OS=ubuntu PY=py2 DB=postgis DJANGO="1.11.26" PYTHON=python
-- OS=ubuntu PY=py2 DB=spatialite DJANGO="1.11.26" PYTHON=python
-- OS=ubuntu PY=py3 DB=postgis DJANGO="1.11.26" PYTHON=python3
-- OS=ubuntu PY=py3 DB=spatialite DJANGO="1.11.26" PYTHON=python3
-- OS=ubuntu PY=py3 DB=postgis DJANGO="2.2.7" PYTHON=python3
-- OS=ubuntu PY=py3 DB=spatialite DJANGO="2.2.7" PYTHON=python3
+- OS=ubuntu PY=py2 DB=postgis DJANGO="1.11.26" PYTHON=python PIP=pip
+- OS=ubuntu PY=py2 DB=spatialite DJANGO="1.11.26" PYTHON=python PIP=pip
+- OS=ubuntu PY=py3 DB=postgis DJANGO="1.11.26" PYTHON=python3 PIP=pip3
+- OS=ubuntu PY=py3 DB=spatialite DJANGO="1.11.26" PYTHON=python3 PIP=pip3
+- OS=ubuntu PY=py3 DB=postgis DJANGO="2.2.7" PYTHON=python3 PIP=pip3
+- OS=ubuntu PY=py3 DB=spatialite DJANGO="2.2.7" PYTHON=python3 PIP=pip3
 
 services:
 - docker
@@ -28,6 +28,7 @@ script:
 - docker-compose up -d
 - docker-compose ps
 - docker-compose exec autotest bash -c 'apt-get install -y postgresql-client; until PGPASSWORD=${DB_PW} psql "${DB_NAME}" -h "${DB_HOST}" -U "${DB_USER}" -c "\q"; do >&2 echo "Database is unavailable - sleeping"; sleep 5; done'
+- docker-compose exec autotest $PIP install scipy
 - docker-compose exec autotest $PYTHON -m eoxserver.services.ows.wps.test_data_types
 - docker-compose exec autotest $PYTHON -m eoxserver.services.ows.wps.test_allowed_values
 - docker-compose exec autotest $PYTHON manage.py test --pythonpath=../eoxserver/ eoxserver.core -v2
@@ -48,3 +49,23 @@ notifications:
   slack:
     secure: GPclHjLrLU2BsOS0OOHHm5vQp/GWk2sjCrHpqOVutakGbYMMRao45MHqajim+SypZcva8npIKGAHKTwny3vkvbHUJ7vpjtvRFEISLpvKKQxnq7FXJSc6hkvj+JTAaB+UpOZYyQXtchcLMizD2mST862r8gEKMo7UkbS1VOSjEm0=
 
+before_deploy:
+- docker-compose exec autotest $PYTHON setup.py sdist bdist_wheel
+
+deploy:
+- provider: releases
+  api_key:
+    secure: RvD9qeo90sOI+/hQs0V1wMvxfJBBXz4rUXvjcxP65m90koXN+ALV2YRLmlZElca72BsIFfzNcw6nvOr6TGNEMEgWxoJ+e62N4vCz5leQ0guPV76gS4mrxWWRwmXLmEdfp/EPrs84JSU9gAsSSHYrvJJjzfg6VZMQOLNa+vE8dPk=
+  file_glob: true 
+  file: ./dist/*
+  draft: true
+  on:
+    repo: EOxServer/eoxserver
+    tags: true
+
+- provider: pypi
+  user: __token__
+  password: $PYPI_TOKEN
+  on:
+    repo: EOxServer/eoxserver
+    tags: true

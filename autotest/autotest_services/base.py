@@ -36,13 +36,17 @@ import tempfile
 import mimetypes
 from base64 import b64decode
 import numpy as np
-from scipy.stats import linregress
+try:
+    from scipy.stats import linregress
+    HAVE_SCIPY = True
+except ImportError:
+    HAVE_SCIPY = False
 try:
     from cStringIO import StringIO as BytesIO
 except ImportError:
     from io import BytesIO
 import cgi
-from unittest import SkipTest
+from unittest import SkipTest, skipIf
 
 from django.test import Client, TransactionTestCase
 from django.conf import settings
@@ -439,6 +443,7 @@ class StatisticsMixIn(object):
         except:
             self.skipTest('compare the band size, count, and statistics')
     @tag('stastics')
+    @skipIf(not HAVE_SCIPY, "scipy modoule is not installed")
     def testBandStatistics(self):
         for band in range( self.res_ds.RasterCount ):          
             band += 1

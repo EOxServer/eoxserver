@@ -25,9 +25,13 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-from unittest import SkipTest
+from unittest import SkipTest, skipIf
 import numpy as np
-from scipy.stats import linregress
+try:
+    from scipy.stats import linregress
+    HAVE_SCIPY = True
+except ImportError:
+    HAVE_SCIPY = False
 from eoxserver.testing.utils import tag
 
 from autotest_services import base as testbase
@@ -140,6 +144,7 @@ class WMSTIFFComparison(WMS13GetMapTestCase, testbase.GDALDatasetTestCase):
     def testBinaryComparisonRaster(self):
         self.skipTest('compare the band size, count, and statistics')
     @tag('stastics')
+    @skipIf(not HAVE_SCIPY, "scipy modoule is not installed")
     def testBandStatistics(self):
         for band in range( self.res_ds.RasterCount ):
             band += 1
