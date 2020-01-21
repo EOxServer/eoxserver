@@ -70,3 +70,4 @@ deploy:
   on:
     repo: EOxServer/eoxserver
     tags: true
+  skip_existing: true
