@@ -29,3 +29,7 @@
 
 
 __version__ = '1.0.0-rc4'
+
+
+def get_version():
+    return __version__
