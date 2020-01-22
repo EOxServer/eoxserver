@@ -32,6 +32,7 @@ RUN apt-get update \
     python-gdal \
     gdal-bin \
     libsqlite3-mod-spatialite \
+    postgresql-client \
   && apt-get autoremove -y \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/partial/* /tmp/* /var/tmp/*
