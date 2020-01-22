@@ -31,6 +31,7 @@ RUN apt-get update \
     python3-gdal \
     python3-mapscript \
     gdal-bin \
+    libsqlite3-mod-spatialite \
   && apt-get autoremove -y \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/partial/* /tmp/* /var/tmp/*
@@ -50,10 +51,6 @@ WORKDIR /opt/eoxserver
 RUN pip3 install -r requirements.txt \
   && pip3 install "django==$DJANGO" \
   && pip3 install .
-
-# Create an EOxServer instance
-RUN mkdir /opt/instance && \
-  eoxserver-instance.py instance /opt/instance
 
 EXPOSE 8000
 
