@@ -55,7 +55,7 @@ notifications:
 before_deploy:
 - python setup.py sdist bdist_wheel
 
-deploy:392e23b5-0073-46cc-b43a-f691a18e041a
+deploy:
 - provider: releases
   api_key:
     secure: RvD9qeo90sOI+/hQs0V1wMvxfJBBXz4rUXvjcxP65m90koXN+ALV2YRLmlZElca72BsIFfzNcw6nvOr6TGNEMEgWxoJ+e62N4vCz5leQ0guPV76gS4mrxWWRwmXLmEdfp/EPrs84JSU9gAsSSHYrvJJjzfg6VZMQOLNa+vE8dPk=
