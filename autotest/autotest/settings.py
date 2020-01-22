@@ -43,16 +43,8 @@ from eoxserver.services.ows.wps.config import DEFAULT_EOXS_PROCESSES
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = 'tmp'
 
-# import django
-# django.setup()
-
 PROJECT_DIR = dirname(abspath(__file__))
 PROJECT_URL_PREFIX = ''
-
-#TODO
-#TEST_RUNNER = 'eoxserver.testing.core.EOxServerTestRunner'
-#TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
-#TEST_RUNNER = 'django.test.runner.DiscoverRunner'
 
 DEBUG = True
 
@@ -75,10 +67,11 @@ if db_type == 'postgis':
         }
     }
 elif db_type == 'spatialite':
+    spatialite_path = os.environ.get('SPATIALITE_PATH', 'data/config.sqlite')
     DATABASES = {
         'default': {
             'ENGINE': 'django.contrib.gis.db.backends.spatialite',
-            'NAME': join(PROJECT_DIR, 'data/config.sqlite'),
+            'NAME': join(PROJECT_DIR, spatialite_path),
         }
     }
 
