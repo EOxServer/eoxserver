@@ -75,6 +75,9 @@ elif db_type == 'spatialite':
         }
     }
 
+    SPATIALITE_SQL = join(PROJECT_DIR, 'data/init_spatialite-2.3.sql')
+    SPATIALITE_LIBRARY_PATH = 'mod_spatialite.so'
+
 # Use faster ramfs tablespace for testing in case of PostGIS e.g. in Jenkins
 # Configure via:
 #    mount -t ramfs none /mnt/

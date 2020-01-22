@@ -74,7 +74,8 @@ elif db_type == 'spatialite':
         }
     }
 
-SPATIALITE_SQL = join(PROJECT_DIR, 'data/init_spatialite-2.3.sql')
+    SPATIALITE_SQL = join(PROJECT_DIR, 'data/init_spatialite-2.3.sql')
+    SPATIALITE_LIBRARY_PATH = 'mod_spatialite.so'
 
 # Hosts/domain names that are valid for this site; required if DEBUG is False
 # See https://docs.djangoproject.com/en/1.5/ref/settings/#allowed-hosts
