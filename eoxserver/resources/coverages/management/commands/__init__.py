@@ -31,6 +31,7 @@ import logging
 import traceback
 from optparse import OptionValueError
 
+import django
 from django.db import transaction
 from django.core.management.base import CommandParser
 
@@ -135,12 +136,18 @@ class CommandOutputMixIn(object):
             self.print_msg(traceback.format_exc())
 
 
+def create_parser(cmd, kwargs):
+    if django.VERSION[0] < 2:
+        return CommandParser(cmd, **kwargs)
+    else:
+        return CommandParser(**kwargs)
+
 class SubParserMixIn(object):
     def add_subparser(self, parser, name, *args, **kwargs):
         if not getattr(self, 'subparsers', None):
             self.subparsers = parser.add_subparsers(
                 title="subcommands",
-                parser_class=lambda **kw: CommandParser(self, **kw)
+                parser_class=lambda **kw: create_parser(self, kw)
             )
         subparser = self.subparsers.add_parser(name, *args, **kwargs)
         subparser.set_defaults(subcommand=name)

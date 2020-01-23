@@ -73,7 +73,7 @@ def parse_landsat8_l1_metadata_content(content):
 
 
 def _read_lines(f):
-    return f.read().split('\n')
+    return f.read().split(b'\n')
 
 
 def _parse_group(iterator):

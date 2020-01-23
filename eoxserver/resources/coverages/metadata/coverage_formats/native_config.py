@@ -30,7 +30,10 @@ try:
     from cStringIO import StringIO
 except ImportError:
     from io import StringIO
-from ConfigParser import RawConfigParser
+try:
+    from ConfigParser import RawConfigParser
+except ImportError:
+    from configparser import RawConfigParser
 
 from eoxserver.core.decoders import config
 from django.utils.six import string_types
