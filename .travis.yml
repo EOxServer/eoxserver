@@ -29,6 +29,7 @@ before_install:
 script:
 - cd autotest
 - echo "${DB}" >> eoxserver.env
+- docker-compose config
 - docker-compose up -d
 - docker-compose ps
 - docker-compose exec autotest $PIP install scipy
