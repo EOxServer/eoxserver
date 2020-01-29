@@ -75,15 +75,22 @@ def union(*footprints):
 
 
 class GeometryMixIn(object):
-    def assertGeometryEqual(self, a, b, tolerance=0.05):
+    def assertGeometryEqual(self, ga, gb, tolerance=0.05, max_area=0.00001):
         try:
-            if a.difference(b).empty:
+            if ga.equals(gb):
                 return
-        except:
+            if ga.difference(gb).empty:
+                return
+            if ga.equals_exact(gb, tolerance):
+                return
+            if ga.difference(gb).area < max_area:
+                return
+        except Exception:
             pass
-        self.assertTrue(
-            a.equals_exact(b, tolerance),
-            "%r != %r" % (a.wkt, b.wkt)
+
+        self.fail(
+            ga.equals_exact(gb, tolerance),
+            "%r != %r" % (ga.wkt, gb.wkt)
         )
 
 class ModelTests(GeometryMixIn, TestCase):
@@ -149,7 +156,7 @@ class ModelTests(GeometryMixIn, TestCase):
             begin_time=parse_datetime("2013-06-10T18:55:54Z"),
             end_time=parse_datetime("2013-06-10T18:55:54Z"),
             grid=self.referenced_grid,
-           axis_1_size=100,
+            axis_1_size=100,
             axis_2_size=100,
             coverage_type=self.coverage_type
         )
@@ -191,7 +198,7 @@ class ModelTests(GeometryMixIn, TestCase):
         mosaic_insert_coverage(mosaic, rectified_1)
         mosaic_insert_coverage(mosaic, rectified_2)
         mosaic_insert_coverage(mosaic, rectified_3)
-        mosaic_list= mosaic.coverages.all()
+        mosaic_list = mosaic.coverages.all()
 
         self.assertIn(rectified_1, mosaic_list)
         self.assertIn(rectified_2, mosaic_list)
@@ -212,13 +219,11 @@ class ModelTests(GeometryMixIn, TestCase):
         collection_insert_eo_object(series_2, rectified_2)
         collection_insert_eo_object(series_2, rectified_3)
 
-        series_2_list= series_2.coverages.all()
+        series_2_list = series_2.coverages.all()
 
         self.assertIn(rectified_1, series_2_list)
         self.assertIn(rectified_2, series_2_list)
         self.assertIn(rectified_3, series_2_list)
-
-
 
         self.assertEqual(len(mosaic_list), 3)
         self.assertEqual(len(series_1_list), 3)
@@ -239,8 +244,8 @@ class ModelTests(GeometryMixIn, TestCase):
             Polygon.from_bbox(all_rectified_footprints.extent)
         )
 
-        self.assertGeometryEqual(series_1.footprint, extent_footprint)
-        self.assertGeometryEqual(series_2.footprint, extent_footprint)
+        self.assertGeometryEqual(series_1.footprint, all_rectified_footprints)
+        self.assertGeometryEqual(series_2.footprint, all_rectified_footprints)
         self.assertGeometryEqual(mosaic.footprint, all_rectified_footprints)
 
         series_1_time_extent = series_1.begin_time, series_1.end_time
