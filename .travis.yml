@@ -4,11 +4,11 @@ env:
 # - OS=centos PY=py2 DB=postgis DJANGO="1.11.26" PYTHON=python
 # - OS=centos PY=py2 DB=spatialite DJANGO="1.11.26 PYTHON=python"
 - OS=ubuntu PY=py2 DB=postgis DJANGO="1.11.26" PYTHON=python PIP=pip
-- OS=ubuntu PY=py2 DB=spatialite DJANGO="1.11.26" PYTHON=python PIP=pip
+# - OS=ubuntu PY=py2 DB=spatialite DJANGO="1.11.26" PYTHON=python PIP=pip
 - OS=ubuntu PY=py3 DB=postgis DJANGO="1.11.26" PYTHON=python3 PIP=pip3
-- OS=ubuntu PY=py3 DB=spatialite DJANGO="1.11.26" PYTHON=python3 PIP=pip3
-- OS=ubuntu PY=py3 DB=postgis DJANGO="2.2.7" PYTHON=python3 PIP=pip3
-- OS=ubuntu PY=py3 DB=spatialite DJANGO="2.2.7" PYTHON=python3 PIP=pip3 LATEST=TRUE
+# - OS=ubuntu PY=py3 DB=spatialite DJANGO="1.11.26" PYTHON=python3 PIP=pip3
+- OS=ubuntu PY=py3 DB=postgis DJANGO="2.2.9" PYTHON=python3 PIP=pip3
+- OS=ubuntu PY=py3 DB=spatialite DJANGO="2.2.9" PYTHON=python3 PIP=pip3 LATEST=TRUE
 
 services:
 - docker
