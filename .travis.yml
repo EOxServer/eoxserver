@@ -63,6 +63,7 @@ deploy:
     secure: RvD9qeo90sOI+/hQs0V1wMvxfJBBXz4rUXvjcxP65m90koXN+ALV2YRLmlZElca72BsIFfzNcw6nvOr6TGNEMEgWxoJ+e62N4vCz5leQ0guPV76gS4mrxWWRwmXLmEdfp/EPrs84JSU9gAsSSHYrvJJjzfg6VZMQOLNa+vE8dPk=
   file_glob: true
   file: ./dist/*
+  skip_cleanup: true
   draft: true
   on:
     repo: EOxServer/eoxserver
@@ -75,6 +76,7 @@ deploy:
     repo: EOxServer/eoxserver
     tags: true
   skip_existing: true
+  distributions: "sdist bdist_wheel"
 
 - provider: script
   script: echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin && docker push eoxa/eoxserver
