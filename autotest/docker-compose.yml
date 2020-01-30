@@ -34,5 +34,19 @@ services:
     ports:
      - "8800:8000"
 
+  object-storage:
+    image: minio/minio
+    environment:
+      MINIO_ACCESS_KEY: AKIAIOSFODNN7EXAMPLE
+      MINIO_SECRET_KEY: wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+    volumes:
+      - type: bind
+        source: ./
+        target: /data
+    ports:
+     - "9000:9000"
+    command:
+      ['server', '/data']
+
 volumes:
   database-data:
