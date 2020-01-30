@@ -318,6 +318,35 @@ class SwiftStorageHandler(BaseStorageHandler):
         return False
 
 
+class S3StorageHandler(BaseStorageHandler):
+    name = 'S3'
+
+    allows_parent_storage = False
+    allows_child_storages = True
+
+    def __init__(self, url):
+        self.bucket = url
+
+    def retrieve(self, location, path):
+        pass
+
+    def list_files(self, location, glob_pattern=None):
+        return []
+
+    def get_vsi_path(self, location):
+        import logging
+        logger = logging.getLogger(__name__)
+
+        # logger.debug()
+
+
+        base_path = '/vsis3/%s' % self.bucket if self.bucket else '/vsis3'
+        return vsi.join(base_path, location)
+
+    @classmethod
+    def test(cls, locator):
+        return False
+
 
 # API to setup and retrieve the configured storage handlers
 
