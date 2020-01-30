@@ -3,3 +3,5 @@
 
 # Django
 /autotest/data/config.sqlite
+
+.minio.sys
