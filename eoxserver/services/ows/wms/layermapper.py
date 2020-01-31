@@ -94,7 +94,7 @@ class LayerMapper(object):
                     default=Value(False),
                     output_field=BooleanField()
                 )
-            ).distinct('name').values_list('name', 'is_gray')
+            ).values_list('name', 'is_gray').distinct()
             mask_type_names = mask_type_qs.distinct('name').values_list(
                 'name', flat=True
             )
