@@ -153,7 +153,7 @@ class WMS13Encoder(XMLEncoder):
             elems.append(WMS("Title", title))
 
         if layer_description.bbox:
-            bbox = map(str, layer_description.bbox)
+            bbox = list(map(str, layer_description.bbox))
             elems.append(
                 self.encode_bbox(
                     minx=bbox[0], miny=bbox[1], maxx=bbox[2], maxy=bbox[3]

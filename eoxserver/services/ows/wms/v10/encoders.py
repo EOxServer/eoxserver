@@ -122,7 +122,7 @@ class WMS10Encoder(XMLEncoder):
             elems.append(E("Title", title))
 
         if layer_description.bbox:
-            bbox = map(str, layer_description.bbox)
+            bbox = list(map(str, layer_description.bbox))
             elems.append(
                 E("LatLonBoundingBox",
                     minx=bbox[0], miny=bbox[1], maxx=bbox[2], maxy=bbox[3]

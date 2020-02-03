@@ -95,9 +95,9 @@ class LayerMapper(object):
                     output_field=BooleanField()
                 )
             ).values_list('name', 'is_gray').distinct()
-            mask_type_names = mask_type_qs.distinct('name').values_list(
+            mask_type_names = mask_type_qs.values_list(
                 'name', flat=True
-            )
+            ).distinct()
 
             sub_layers = [
                 LayerDescription(
