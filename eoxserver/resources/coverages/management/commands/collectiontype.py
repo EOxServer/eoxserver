@@ -77,14 +77,15 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
         )
 
     @transaction.atomic
-    def handle(self, subcommand, name, *args, **kwargs):
+    def handle(self, subcommand, *args, **kwargs):
         """ Dispatch sub-commands: create, delete, insert and exclude.
         """
-        name = name[0]
         if subcommand == "create":
-            self.handle_create(name, *args, **kwargs)
+            self.handle_create(*args, **kwargs)
         elif subcommand == "delete":
-            self.handle_delete(name, *args, **kwargs)
+            self.handle_delete(*args, **kwargs)
+        elif subcommand == "list":
+            self.handle_list(*args, **kwargs)
 
     def handle_create(self, name, allowed_coverage_type_names,
                       allowed_product_type_names, **kwargs):
