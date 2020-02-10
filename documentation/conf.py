@@ -216,6 +216,6 @@ latex_show_urls = 'footnote'
 
 # Links to external projects.
 intersphinx_mapping = {
-    'django': ('https://docs.djangoproject.com/en/1.8/', 'http://docs.djangoproject.com/en/1.8/_objects/'),
-    'python': ('http://docs.python.org/2.7', None),
+    'django': ('https://docs.djangoproject.com/en/2.2/', 'http://docs.djangoproject.com/en/2.2/_objects/'),
+    'python': ('http://docs.python.org/3.6', None),
 }
