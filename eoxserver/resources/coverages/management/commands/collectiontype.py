@@ -81,9 +81,9 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
         """ Dispatch sub-commands: create, delete, insert and exclude.
         """
         if subcommand == "create":
-            self.handle_create(*args, **kwargs)
+            self.handle_create(kwargs['name'][0], *args, **kwargs)
         elif subcommand == "delete":
-            self.handle_delete(*args, **kwargs)
+            self.handle_delete(kwargs['name'][0], *args, **kwargs)
         elif subcommand == "list":
             self.handle_list(*args, **kwargs)
 
