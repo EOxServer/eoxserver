@@ -1,4 +1,4 @@
-
+.. _Backends:
 
 Backends
 ========
@@ -23,7 +23,7 @@ Data Item
 ~~~~~~~~~
 
 This abstract model is used to reference files, which are either
-local, or residing on a Storage_. Each concrete implementation
+local, or residing on a _`Storage <Storage Model>`. Each concrete implementation
 of this abstract class has at least a reference to a Storage_,
 a location and an optional format specifier.
 
@@ -34,6 +34,7 @@ Examples of concrete data items are the ``ArrayDataItem`` to
 store raster data for ``Coverages`` or the ``MetaDataItem`` to
 store arbitrary metadata for geospatial objects.
 
+.. _Storage Model:
 
 Storage
 ~~~~~~~
@@ -52,7 +53,7 @@ for a ZIP file storage the URL is the path to the ZIP file.
 
 Each storage can be given a name, which helps with management.
 
-A Storage can be linked to a StorageAuth_ model, which allows
+A Storage can be linked to a `Storage Auth`_ model, which allows
 to specify authorization credentials.
 
 .. table:: Default storage handlers
@@ -75,8 +76,8 @@ to specify authorization credentials.
 
 
 
-StorageAuth
-~~~~~~~~~~~
+Storage Auth
+~~~~~~~~~~~~
 
 The StorageAuth model stores authorization credentials. Similarly to the
 Storage_ model it is linked to a storage authorization handler class via its
