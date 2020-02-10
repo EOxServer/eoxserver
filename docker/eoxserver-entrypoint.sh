@@ -30,7 +30,7 @@ fi
 
 # check if the instance dir exists. if not, this triggers the creation of a new instance
 if [ ! -d "${INSTANCE_DIR}" ]; then
-  mkdir "${INSTANCE_DIR}"
+  mkdir -p "${INSTANCE_DIR}"
   eoxserver-instance.py "${INSTANCE_NAME}" "${INSTANCE_DIR}"
   cd "${INSTANCE_DIR}"
 
