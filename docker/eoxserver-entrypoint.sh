@@ -18,7 +18,7 @@
 
 # select python interpreter
 PYTHON=$(which python3 || which python)
-INSTANCE_DIR="/opt/instance"
+INSTANCE_DIR=${INSTANCE_DIR:-"/opt/instance"}
 
 # wait for the database connection before continuing
 if [ "${DB:-postgis}" = "postgis" ] ; then
