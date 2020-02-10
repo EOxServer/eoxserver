@@ -1011,11 +1011,7 @@ def mosaic_recalc_metadata(mosaic):
     """ Recalculates axis origins and time/footprint metadata
         for the given mosaic model. Does not save the model.
     """
-    values = mosaic.coverages.aggregate(
-        begin_time=Min('begin_time'),
-        end_time=Max('end_time'),
-        footprint=Union('footprint'),
-    )
+    values = mosaic.coverages.aggregate(begin_time=Min('begin_time'),end_time=Max('end_time'),footprint=Union('footprint'),)
     mosaic.begin_time = values['begin_time']
     mosaic.end_time = values['end_time']
     mosaic.footprint = values['footprint']

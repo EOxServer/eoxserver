@@ -120,7 +120,7 @@ class MapserverMapRenderer(object):
             with tempfile.NamedTemporaryFile() as f:
                 map_obj.save(f.name)
                 f.seek(0)
-                logger.debug(f.read())
+                logger.debug(f.read().decode('ascii'))
 
         try:
             # actually render the map
