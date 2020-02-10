@@ -244,7 +244,7 @@ class LayerMapper(object):
                     # generated browse
                     if bands or wavelengths:
                         browse = _generate_browse_from_bands(
-                            product, bands, wavelengths
+                            product, bands, wavelengths, ranges
                         )
                         if browse:
                             browses.append(browse)
@@ -368,7 +368,7 @@ class LayerMapper(object):
                         masked_browses.append(
                             MaskedBrowse(
                                 browse=_generate_browse_from_bands(
-                                    product, bands, wavelengths
+                                    product, bands, wavelengths, ranges
                                 ),
                                 mask=Mask.from_model(mask, mask_type)
                             )
@@ -649,12 +649,10 @@ def _generate_browse_from_browse_type(product, browse_type):
     return None
 
 
-def _generate_browse_from_bands(product, bands, wavelengths):
+def _generate_browse_from_bands(product, bands, wavelengths, ranges):
     assert len(bands or wavelengths or []) in (1, 3, 4)
-
     if bands:
         coverages, fields_and_coverages = _lookup_coverages(product, bands)
-
     # TODO: implement with wavelengths
     # elif wavelengths:
     #     fields_and_coverages = [
@@ -668,11 +666,10 @@ def _generate_browse_from_bands(product, bands, wavelengths):
     #         )
     #         for wavelength in wavelengths
     #     ]
-
     # only return a browse instance if coverages were found
     if coverages:
         return GeneratedBrowse.from_coverage_models(
-            bands, fields_and_coverages, product
+            zip(bands, ranges or [(None, None)] * len(bands)), fields_and_coverages, product
         )
     return None
 
