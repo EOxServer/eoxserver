@@ -6,7 +6,36 @@ This document is a guide to install EOxServer.
 Installing from packages
 ------------------------
 
-EOxServer is packaged and distributed as a Python package.
+EOxServer is packaged and distributed as a Python package. With that in
+prerequisite it is easy to define other Python dependencies. Unfortunately
+this is not the case for non-Python libraries, as they typically need to
+be installed via the operating systems package management system or some
+other means. Table: ":ref:`table_eoxserver_dependencies`" below shows
+the minimal required software to run EOxServer.
+
+.. _table_eoxserver_dependencies:
+.. table:: EOxServer Dependencies
+
+  +-----------+------------------+---------------------------------------------+
+  | Software  | Required Version | Description                                 |
+  +===========+==================+=============================================+
+  | GDAL      | >= 1.7.0         | Geospatial Data Abstraction Library         |
+  |           |                  | providing common interfaces for accessing   |
+  |           |                  | various kinds of raster and vector data     |
+  |           |                  | formats and including a Python binding      |
+  |           |                  | which is used by EOxServer                  |
+  +-----------+------------------+---------------------------------------------+
+  | GEOS      | >= 3.0           | GEOS (Geometry Engine - Open Source) is a   |
+  |           |                  | C++ port of the  Java Topology Suite (JTS). |
+  +-----------+------------------+---------------------------------------------+
+  | libxml2   | >= 2.7           | Libxml2 is the XML C parser and toolkit     |
+  |           |                  | developed for the Gnome project.            |
+  +-----------+------------------+---------------------------------------------+
+  | MapServer | >= 7.0           | Server software implementing various OGC    |
+  |           |                  | Web Service interfaces including WCS and    |
+  |           |                  | WMS. Includes a Python binding which is     |
+  |           |                  | used by EOxServer.                          |
+  +-----------+------------------+---------------------------------------------+
 
 
 Using Docker images
