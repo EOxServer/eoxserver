@@ -13,8 +13,8 @@
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
-# The above copyright notice and this permission notice shall be included in all
-# copies of this Software or works derived from this Software.
+# The above copyright notice and this permission notice shall be included in
+# all copies of this Software or works derived from this Software.
 #
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -41,8 +41,6 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
     """
     def add_arguments(self, parser):
         register_parser = self.add_subparser(parser, 'register')
-        # TODO: think of generating masks?
-        # generate_parser = self.add_subparser(parser, 'generate')
         deregister_parser = self.add_subparser(parser, 'deregister')
 
         for parser in [register_parser, deregister_parser]:
@@ -65,6 +63,10 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             help="The inline geometry of the mask."
         )
 
+        deregister_parser.add_argument(
+            'type', nargs=1, dest='type_name', help='The name of the mask type'
+        )
+
     @transaction.atomic
     def handle(self, subcommand, identifier, *args, **kwargs):
         """ Dispatch sub-commands: register, deregister.
@@ -72,12 +74,11 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
         identifier = identifier[0]
         if subcommand == "register":
             self.handle_register(identifier, *args, **kwargs)
-        # elif subcommand == "generate":
-        #     self.handle_generate(identifier, *args, **kwargs)
         elif subcommand == "deregister":
             self.handle_deregister(identifier, *args, **kwargs)
 
-    def handle_register(self, identifier, location, type_name, geometry, **kwargs):
+    def handle_register(self, identifier, location, type_name, geometry,
+                        **kwargs):
         """ Handle the registration of an existing browse.
         """
 
@@ -88,16 +89,18 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             type_name=type_name,
         )
 
-    # def handle_generate(self, identifier, **kwargs):
-    #     """ Handle the generation of a new browse image
-    #     """
-    #     raise NotImplementedError
-
-    def handle_deregister(self, identifier, **kwargs):
+    def handle_deregister(self, identifier, type_name, **kwargs):
         """ Handle the deregistration a browse image
         """
         try:
-            models.Coverage.objects.get(identifier=identifier).delete()
-        except models.Coverage.DoesNotExist:
-            raise CommandError('No such Coverage %r' % identifier)
-        raise NotImplementedError
+            models.Mask.objects.get(
+                product__identifier=identifier,
+                mask_type__name=type_name
+            ).delete()
+        except models.Mask.DoesNotExist:
+            raise CommandError('No such Mask for product %r' % identifier)
+
+        print(
+            'Successfully deregistered mask %r for product %r'
+            % (type_name, identifier)
+        )
