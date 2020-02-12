@@ -644,7 +644,7 @@ def _generate_browse_from_browse_type(product, browse_type):
     # only return a browse instance if coverages were found
     if coverages:
         return GeneratedBrowse.from_coverage_models(
-            band_expressions, fields_and_coverages, field_names, product
+            band_expressions, fields_and_coverages, product
         )
     return None
 
