@@ -25,8 +25,8 @@ The product type model allows to define the structure of products by
 limiting the coverage types each coverage is allowed to have for
 products of this product type.
 
-Additionally, product types can be associated with a number of
-`Browse Types <Browse Type>`_ and `Mask Types <Mask Type>`_ that
+Additionally, each Product Type can be associated with a number of
+`Browse Type`_ and `Mask Type`_ that
 define the masks and browses that products of that type are allowed to have.
 
 
@@ -75,6 +75,8 @@ Thus, it is, for example, not possible for a collection to have the same
 identifier as a product or coverage.
 
 
+.. _Grid Model:
+
 Grid
 ~~~~
 
@@ -90,6 +92,8 @@ A grid does *not* provide an actual location or area, this information
 can only be obtained with a Grid Fixture in conjunction with a grid.
 
 
+.. _Mosaic Model:
+
 Mosaic
 ~~~~~~
 
@@ -97,6 +101,9 @@ This model is a collection of homogenenous coverages, all sharing the
 same coverage type and grid. This allows to access the mosaic as if it
 were a single coverage by combinig the data from all its comprising
 elements.
+
+
+.. _Coverage Model:
 
 Coverage
 ~~~~~~~~
@@ -113,6 +120,7 @@ the actual raster data.
 TODO: rel OGC coverage
 
 
+.. _Product Model:
 
 Product
 ~~~~~~~
@@ -129,6 +137,8 @@ In some cases, coverages are not necessary at all, and just provide
 data items for a binary download and browses for previewing.
 
 
+.. _Browse Model:
+
 Browse
 ......
 
@@ -138,12 +148,16 @@ that are either pre-generated or can be generated from the
 coverage data.
 
 
+.. _Mask Model:
+
 Mask
 ....
 
 Masks allow to specify regions in products for some kind of
 flag for example validity. Each mask is linked to a `Mask Type`_.
 
+
+.. _Collection Model:
 
 Collection
 ~~~~~~~~~~
@@ -168,9 +182,8 @@ to one of the models above and use sub-commands for specific tasks.
 ``coveragetype``
 ~~~~~~~~~~~~~~~~
 
-This command manages `Coverage Type <Coverage Types>`_ and allows
-to inspect the currently available ones. This command has four
-sub-commands:
+This command manages `Coverage Type`_ models and allows to inspect the
+currently available ones. This command has four sub-commands:
 
 - ``create``: creates a new Coverage Type with specifications
   from the parameters.
@@ -183,13 +196,13 @@ sub-commands:
 ``producttype``
 ~~~~~~~~~~~~~~~
 
-This command manages `Product Types <Product Type>`_. It provides the
+This command manages `Product Type`_ models. It provides the
 following sub-commands:
 
 - ``create``: creates a new Product Type. It allows to specify the
   allowed coverage types using the ``--coverage-type`` parameter.
-  Also, rudimentary `Browse Types <Browse Type>`_ and
-  `Mask Types <Mask Type>`_ can be created as well using the
+  Also, rudimentary `Browse Type`_ instances and
+  `Mask Type`_ instances can be created as well using the
   ``--browse-type`` and ``--mask-type`` parameters respectively.
   For both an own command (`browsetype`_ and `masktype`_) exists that
   allows for more options if needed.
@@ -200,7 +213,7 @@ following sub-commands:
 ``browsetype``
 ~~~~~~~~~~~~~~
 
-This command allows to create, delete and list `Browse Types <Browse Type>`_.
+This command allows to create, delete and list `Browse Type`_ models.
 Since Browse Types are always associated with a Product Type the first
 argument is always the name of a Product Type. The sub-commands are in detail:
 
@@ -213,7 +226,7 @@ argument is always the name of a Product Type. The sub-commands are in detail:
 ``masktype``
 ~~~~~~~~~~~~
 
-This command allows to create, delete and list `Mask Types <Mask Type>`_.
+This command allows to create, delete and list `Mask Type`_ models.
 Since Mask Types are always associated with a Product Type the first
 argument is always the name of a Product Type. The sub-commands are in detail:
 
@@ -227,8 +240,8 @@ argument is always the name of a Product Type. The sub-commands are in detail:
 ``collectiontype``
 ~~~~~~~~~~~~~~~~~~
 
-This command manages `Collection Types <Collection Type>`_ using the
-following sub-commands:
+This command manages `Collection Type`_ models using the following
+sub-commands:
 
 - ``create``: creates a new Collection Type. To set the allowed
   Coverage/Product Types use the ``--coverage-type`` and ``--product-type```
@@ -240,7 +253,7 @@ following sub-commands:
 ``grid``
 ~~~~~~~~
 
-This command allows to create and delete named `Grids <Grid>`_.
+This command allows to create and delete named `Grid Model`_ instances.
 
 - ``create``: this creates a Grid. The first two arguments are the name
   and coordinate reference system of the grid, then the ``--name``,
@@ -252,7 +265,8 @@ This command allows to create and delete named `Grids <Grid>`_.
 ``coverage``
 ~~~~~~~~~~~~
 
-This command allows the registration and deregistration of `Coverages <Coverage>`_.
+This command allows the registration and deregistration of `Coverage Model`_
+instances.
 
 - ``register``: this sub-command registers a coverage.
 
@@ -266,8 +280,8 @@ This command allows the registration and deregistration of `Coverages <Coverage>
     parameter also apply here.
   - ``--type``: specify the `Coverage Type`_ for this Coverage. By default no
     Coverage Type is used.
-  - ``--grid``: specify the named `Grid`_ to use. By default an anonymous Grid
-    is used.
+  - ``--grid``: specify the named `Grid Model`_ to use. By default an
+    anonymous Grid is used.
   - ``--size``: specifies the size of the Coverage. This overrides the size
     extracted from the metadata/data. Must specify the size for each axis of
     the Grid.
@@ -303,7 +317,7 @@ This command allows the registration and deregistration of `Coverages <Coverage>
 ``product``
 ~~~~~~~~~~~
 
-This command manages `Products <Product>`_.
+This command manages `Product Model`_ instances.
 
 - ``register``: this sub-command registers products.
 
@@ -352,7 +366,7 @@ This command manages `Products <Product>`_.
 ``browse``
 ~~~~~~~~~~
 
-This command allows to manage `Browses <Browse>`_ of a `Product`_.
+This command allows to manage `Browse Model`_ instances of a `Product Model`_.
 
 - ``register``: This sub-command registers a Browse to a Product.
   The required arguments are the Products identifier and the location.
@@ -365,7 +379,7 @@ This command allows to manage `Browses <Browse>`_ of a `Product`_.
 ``mask``
 ~~~~~~~~
 
-This command allows to manage `Masks <Mask>`_ of a `Product`_.
+This command allows to manage `Mask Model`_ instances of a `Product Model`_.
 
 - ``register``: registers a Mask for a Product.
   TODO
@@ -374,7 +388,7 @@ This command allows to manage `Masks <Mask>`_ of a `Product`_.
 ``collection``
 ~~~~~~~~~~~~~~
 
-This command manages `Collections <Collection>`_. As usual, it
+This command manages `Collection Model`_ instances. As usual, it
 uses sub-commands to allow fine control over the specific aspects
 and tasks of a collection.
 
@@ -384,8 +398,8 @@ and tasks of a collection.
   via the ``--set`` parmeter which is a pair of name and value.
   TODO: metadata fields to use
 - ``delete``: this sub-command deletes a Collection by its identifier.
-- ``insert``: with this sub-command one or more `Coverages <Coverage>`_
-  or `Products <Product>`_ can be inserted into the collection. This
+- ``insert``: with this sub-command one or more `Coverage Model`_ instances
+  or `Product Model`_ instances can be inserted into the collection. This
   command checks whether the to be inserted objects are of the allowed
   types when a Collection Type is set for this Collection.
 - ``exclude``: this command allows to remove one or more objects from a
@@ -404,13 +418,13 @@ and tasks of a collection.
 ``mosaic``
 ~~~~~~~~~~
 
-This command manages `Mosaics <Mosaic>`_ with a variety of sub-commands.
+This command manages `Mosaic Model`_ instances with a variety of sub-commands.
 
 - ``create``: creates a new Mosaic. An identifier is mandatory and both
-  a `Coverage Type`_ and a `Grid`_ must be specified using the ``--type``
+  a `Coverage Type`_ and a `Grid Model`_ must be specified using the ``--type``
   and ``--grid`` parameters respectively.
 - ``delete``: deletes a Mosaic via its identifier.
-- ``insert``: insert one or more `Coverages <Coverage>`_ into this Mosaic.
+- ``insert``: insert one or more `Coverage Model`_ instances into this Mosaic.
   The Coverage Type must be the same for all and the Mosaic.
 - ``exclude``: exclude one or more Coverages from the Mosaic.
 - ``refresh``:

@@ -23,8 +23,8 @@ Data Item
 ~~~~~~~~~
 
 This abstract model is used to reference files, which are either
-local, or residing on a _`Storage <Storage Model>`. Each concrete implementation
-of this abstract class has at least a reference to a Storage_,
+local, or residing on a `Storage Model`_. Each concrete implementation
+of this abstract class has at least a reference to a Storage,
 a location and an optional format specifier.
 
 The ``location`` is always relative to the specified storage.
@@ -56,6 +56,8 @@ Each storage can be given a name, which helps with management.
 A Storage can be linked to a `Storage Auth`_ model, which allows
 to specify authorization credentials.
 
+.. _default-storage-handlers:
+
 .. table:: Default storage handlers
 
     +---------------+-----------------------------------------------------------+
@@ -80,7 +82,7 @@ Storage Auth
 ~~~~~~~~~~~~
 
 The StorageAuth model stores authorization credentials. Similarly to the
-Storage_ model it is linked to a storage authorization handler class via its
+`Storage Model`_ it is linked to a storage authorization handler class via its
 ``storage_auth_type`` attribute. The handler actually performs the
 authorization with the stored credentials. A typical example is the keystone
 authorization used for the OpenStack Swift object storage.
@@ -148,7 +150,8 @@ When creating a storage, the name of the new storage and its URL are the only
 mandatory parameter to be passed. Additionally several options can be passed:
 
     * ``--type``: this is the string type of the storage. See the above table
-      `Default storage handlers`_ for the available ones.
+      :ref:`Default Storage Handlers <default-storage-handlers>` for the
+      available ones.
     * ``--parent``: if the storage type supports parent storages, this
       parameter can be used to specify the parent storage. This allows to
       nest storages, e.g a ZIP archive on a HTTP server.
