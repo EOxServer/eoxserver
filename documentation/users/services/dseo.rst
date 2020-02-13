@@ -88,3 +88,8 @@ parameters that are available with GetProduct requests.
     +---------------------------+-----------------------------------------------------------+----------------------------------+--------------------------------+
     | producturi                | Valid identifier of a registered Product                  |                                  | M                              |
     +---------------------------+-----------------------------------------------------------+----------------------------------+--------------------------------+
+
+This request downloads the product as a packaged file. If available,
+the Products referenced ``package`` is forwarded. Otherwise, all
+files of the Product and its referenced Coverages are packaged into
+a ZIP file which is then sent to the client.
