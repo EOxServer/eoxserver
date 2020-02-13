@@ -169,21 +169,3 @@ parameters that are available with GetCoverage requests.
 
 .. [1]  For WMS service version 1.3 the ``crs`` parameter must be used, for services
         versions below 1.3 the parameter name is ``srs``.
-
-.. [2]  Interpolation: (Note: Resampling options other than NEAREST can
-        dramatically slow down raster processing). The default (and fastest) is
-        NEAREST. Replaces the target pixel with its NEAREST Neighbor.
-        AVERAGE will compute the average pixel value of all pixels in the
-        region of the disk file being mapped to the output pixel (or possibly
-        just a sampling of them). Generally AVERAGE can be desirable for
-        reducing noise in dramatically downsampled data, and can give something
-        approximating anti-aliasing for black and white linework. BILINEAR will
-        compute a linear interpolation of the four pixels around the target
-        location. BILINEAR can be helpful when oversampling data to give a
-        smooth appearance.
-
-.. [3]  These parameters are only used in conjunction with GeoTIFF output. Thus
-        the format parameter must be either 'image/tiff' or the "native" format
-        of the coverage maps to GeoTIFF. The specificaiton of this encoding
-        extension can be found `here
-        <https://portal.opengeospatial.org/files/?artifact_id=54813>`_

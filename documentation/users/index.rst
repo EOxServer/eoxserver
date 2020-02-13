@@ -14,4 +14,4 @@ consuming the registered *EO Data* on the *User* side.
 
    backends
    coverages
-   services
+   services/index
