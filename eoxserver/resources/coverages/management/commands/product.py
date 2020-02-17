@@ -188,11 +188,21 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
                 'product will be printed to stdout.'
             )
         )
+        deregister_parser.add_argument(
+            '--all', '-a', action="store_true",
+            default=False, dest='all_products',
+            help='When this flag is set, all the products are selected to be derigesterd'
+        )
 
-        for parser in [deregister_parser, discover_parser]:
-            parser.add_argument(
-                'identifier', nargs=1,
+
+        deregister_parser.add_argument(
+                'identifier', default=None, nargs='?',
                 help='The identifier of the product to deregister.'
+            )
+
+        discover_parser.add_argument(
+                'identifier', default=None,
+                help='The identifier of the product to descover.'
             )
 
         discover_parser.add_argument(
@@ -214,7 +224,7 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
         if subcommand == "register":
             self.handle_register(*args, **kwargs)
         elif subcommand == "deregister":
-            self.handle_deregister(kwargs['identifier'][0])
+            self.handle_deregister(*args, **kwargs)
         elif subcommand == "discover":
             self.handle_discover(kwargs.pop('identifier')[0], *args, **kwargs)
 
@@ -272,13 +282,23 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
                 'Successfully registered product %r' % product.identifier
             )
 
-    def handle_deregister(self, identifier, *args, **kwargs):
+    def handle_deregister(self, identifier, all_products, *args, **kwargs):
         """ Handle the deregistration a product
         """
-        try:
-            models.Product.objects.get(identifier=identifier).delete()
-        except models.Product.DoesNotExist:
-            raise CommandError('No such Product %r' % identifier)
+        if not all_products and not identifier:
+            raise CommandError('please specify a product/s to remove')
+        else:
+            if all_products:
+                products = models.Product.objects.all()
+            elif identifier:
+                products = [models.Product.objects.get(identifier=identifier)]
+            for product in products:
+                try:
+                    product_id = product.identifier
+                    product.delete()
+                    self.print_msg('Successfully deregistered product %r' % product_id)
+                except models.Product.DoesNotExist:
+                    raise CommandError('No such Product %r' % identifier)
 
     def handle_discover(self, identifier, pattern, *args, **kwargs):
         try:
