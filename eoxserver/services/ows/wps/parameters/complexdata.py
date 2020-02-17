@@ -311,7 +311,7 @@ class CDFile(CDFileWrapper):
                 remove(name)
 
 
-class CDPermanentFile(CDFileWrapper):
+class CDPermanentFile(CDFile):
     """ Complex data permanent binary file.
         To be used to hold a generic binary (byte-stream) payload.
         NOTE: This class preserves the actual file.
@@ -329,10 +329,9 @@ class CDPermanentFile(CDFileWrapper):
                    HTTP header.
     """
 
-    def __init__(self, name, mode='r', buffering=-1, *args, **kwargs):
-        CDFileWrapper.__init__(
-            self, open(name, mode, buffering), *args, **kwargs
-        )
+    def __init__(self, *args, **kwargs):
+        kwargs['remove_file'] = False
+        CDFile.__init__(self, *args, **kwargs)
 
 #-------------------------------------------------------------------------------
 
