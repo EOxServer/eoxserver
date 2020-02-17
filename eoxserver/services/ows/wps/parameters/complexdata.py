@@ -224,15 +224,17 @@ class CDAsciiTextBuffer(CDByteBuffer):
     def write(self, data):
         if not isinstance(data, string_types):
             data = str(data)
-        StringIO.write(self, data.encode('ascii'))
+        CDByteBuffer.write(self, data.encode('ascii'))
 
     def read(self, size=None):
         if size is None:
-            data = StringIO.read(self)
+            data = CDByteBuffer.read(self)
         else:
-            data = StringIO.read(self, size)
-        if self.text_encoding is not None:
-            data = data.encode(self.text_encoding)
+            data = CDByteBuffer.read(self, size)
+        if self.text_encoding not in ('ascii', 'utf-8'): # ASCII is a subset of UTF-8
+            data = data.decode('ascii')
+            if self.text_encoding is not None:
+                data = data.encode(self.text_encoding)
         return data
 
 
