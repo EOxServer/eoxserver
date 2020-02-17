@@ -250,11 +250,13 @@ class CDFileWrapper(CDBase):
                    mime_type, encoding, and XML schema
         filename   optional raw output file-name set in the Content-Disposition
                    HTTP header.
+        text_encoding optional source text file encoding
     """
 
     def __init__(self, file_object, *args, **kwargs):
         CDBase.__init__(self, *args, **kwargs)
         self._file = file_object
+        self.text_encoding = kwargs.get('text_encoding', None)
 
     def __del__(self):
         if hasattr(self, "_file"):
@@ -499,7 +501,12 @@ class ComplexData(Parameter):
             if isinstance(data, (CDTextBuffer, CDAsciiTextBuffer)):
                 data.text_encoding = text_encoding
             else:
-                data = BytesIO(_rewind(data).read().encode(text_encoding))
+                source_text_encoding = getattr(data, 'text_encoding', None)
+                if source_text_encoding != text_encoding:
+                    data = _rewind(data).read()
+                    if source_text_encoding is not None:
+                        data = data.decode(source_text_encoding)
+                    data = BytesIO(data.encode(text_encoding))
             content_type = "%s; charset=%s" % (
                 format_.mime_type, text_encoding
             )
