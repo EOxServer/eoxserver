@@ -276,8 +276,8 @@ class CDFileWrapper(CDBase):
 
 
 class CDFile(CDFileWrapper):
-    """ Complex data binary file.
-        To be used to hold a generic binary (byte-stream) payload.
+    """ Complex data file.
+        To be used to hold a generic (binary or text) byte-stream payload.
         NOTE: The file allows you to specify whether the file is
               temporary (will be automatically removed - by default)
               or permanent (preserved after object destruction).
@@ -312,8 +312,8 @@ class CDFile(CDFileWrapper):
 
 
 class CDPermanentFile(CDFile):
-    """ Complex data permanent binary file.
-        To be used to hold a generic binary (byte-stream) payload.
+    """ Complex data permanent file.
+        To be used to hold a generic (binary or text) byte-stream payload.
         NOTE: This class preserves the actual file.
 
     Constructor parameters:
