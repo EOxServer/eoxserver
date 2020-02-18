@@ -158,11 +158,11 @@ parameters that are available with GetCoverage requests.
     | dim_range                 | Allows to specify a min/max value for each selected band  | ``0 1;0 1;0 5``                  | O                              |
     |                           | linearly interpolate values.                              |                                  |                                |
     +---------------------------+-----------------------------------------------------------+----------------------------------+--------------------------------+
-    | cql                       | TODO:                                                     |                                  | O                              |
-    |                           |                                                           |                                  |                                |
+    | cql                       | Allows to specify metadata filters. See the :ref:`CQL`    | ``cloudCover < 10``              | O                              |
+    |                           | documentation for usage.                                  |                                  |                                |
     +---------------------------+-----------------------------------------------------------+----------------------------------+--------------------------------+
-    | sortBy                    | TODO:                                                     |                                  | O                              |
-    |                           |                                                           |                                  |                                |
+    | sortBy                    | Allows to sort the images regarding a specific metadata   | ``cloudCover A``                 | O                              |
+    |                           | value. Can either be ascending or descending.             |                                  |                                |
     +---------------------------+-----------------------------------------------------------+----------------------------------+--------------------------------+
 
 
