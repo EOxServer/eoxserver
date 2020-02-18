@@ -1,3 +1,4 @@
+.. _CQL:
 
 Common Query Language (CQL)
 ===========================
