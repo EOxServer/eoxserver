@@ -68,7 +68,7 @@ class BaseRegistrator(object):
                  coverage_type_name=None, footprint_from_extent=False,
                  overrides=None, identifier_template=None,
                  highest_resolution=False, replace=False, cache=None,
-                 use_subdatasets=False):
+                 use_subdatasets=False, simplify_footprint_tolerance=None):
         """ Main registration method
 
             :param data_locations:
@@ -225,6 +225,13 @@ class BaseRegistrator(object):
                 retrieved_metadata['size']
             )
             retrieved_metadata['footprint'] = footprint
+
+        if simplify_footprint_tolerance is not None and \
+                retrieved_metadata.get('footprint'):
+            footprint = retrieved_metadata.get('footprint')
+            retrieved_metadata['footprint'] = footprint.simplify(
+                simplify_footprint_tolerance, preserve_topology=True
+            )
 
         coverage = self._create_coverage(
             identifier=identifier,
