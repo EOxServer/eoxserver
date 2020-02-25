@@ -33,6 +33,7 @@ from eoxserver.services.ows.wcs.interfaces import (
     PackageWriterInterface
 )
 
+
 class ZipPackageWriter(Component):
     implements(PackageWriterInterface)
 
@@ -42,7 +43,6 @@ class ZipPackageWriter(Component):
     def create_package(self, filename, format, params):
         compression = zipfile.ZIP_STORED
         if params.get("compression", "").upper() == "DEFLATED":
-            print compression
             compression = zipfile.ZIP_DEFLATED
         return zipfile.ZipFile(filename, "a", compression)
 
