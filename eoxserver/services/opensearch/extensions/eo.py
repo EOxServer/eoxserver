@@ -185,8 +185,6 @@ def parse_range(value, pattern, value_parser):
     if match:
         values = match.groupdict()
 
-        print (values)
-
         if values['simple']:
             return value_parser(values['simple'])
         elif values['list']:
