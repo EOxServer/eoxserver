@@ -53,8 +53,8 @@ ADMINS = (
 
 MANAGERS = ADMINS
 
-# Configure which database to use. Default is spatialite.
-db_type = os.environ.get('DB', 'postgis')
+# Configure which database to use.
+db_type = os.environ.get('DB')
 if db_type == 'postgis':
     DATABASES = {
         'default': {
