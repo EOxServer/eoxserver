@@ -112,6 +112,14 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             )
         )
         register_parser.add_argument(
+            '--simplify-footprint',
+            dest='simplify_footprint_tolerance', nargs='?',
+            default=None, type=float,
+            help=(
+                'Simplify the footprint. Optionally specify a tolerance value.'
+            )
+        )
+        register_parser.add_argument(
             "--identifier", "-i",
             dest="identifier", default=None,
             help="Override identifier."
@@ -215,6 +223,9 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             highest_resolution=kwargs['highest_resolution'],
             replace=kwargs['replace'],
             use_subdatasets=kwargs['use_subdatasets'],
+            simplify_footprint_tolerance=kwargs.get(
+                'simplify_footprint_tolerance'
+            ),
         )
 
         product_identifier = kwargs['product_identifier']

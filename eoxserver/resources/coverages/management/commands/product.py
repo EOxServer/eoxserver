@@ -69,6 +69,15 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
         )
 
         register_parser.add_argument(
+            '--simplify-footprint',
+            dest='simplify_footprint_tolerance', nargs='?',
+            default=None, type=float,
+            help=(
+                'Simplify the footprint. Optionally specify a tolerance value.'
+            )
+        )
+
+        register_parser.add_argument(
             '--begin-time', default=None, type=parse_iso8601,
             help='Override the begin time of the to-be registered product.'
         )
@@ -248,7 +257,10 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
                 discover_masks=kwargs['discover_masks'],
                 discover_browses=kwargs['discover_browses'],
                 discover_metadata=kwargs['discover_metadata'],
-                replace=kwargs['replace']
+                replace=kwargs['replace'],
+                simplify_footprint_tolerance=kwargs.get(
+                    'simplify_footprint_tolerance'
+                ),
             )
 
             for collection_identifier in kwargs['collection_identifiers']:
