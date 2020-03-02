@@ -624,8 +624,8 @@ class Coverage(object):
             product = coverage_model.parent_product
             if product.begin_time and product.end_time and product.footprint:
                 eo_metadata = EOMetadata(
-                    coverage_model.begin_time, coverage_model.end_time,
-                    coverage_model.footprint
+                    product.begin_time, product.end_time,
+                    product.footprint
                 )
 
         arraydata_locations = [
