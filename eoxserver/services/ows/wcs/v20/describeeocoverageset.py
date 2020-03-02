@@ -158,24 +158,23 @@ class WCS20DescribeEOCoverageSetHandler(object):
         else:
             dataset_series_qs = models.EOObject.objects.none()
 
-        # Also allow metadata queries on the parent product
-        parent_product_filters = None
+        # Allow metadata queries on coverage itself or on the
+        # parent product if available
+        parent_product_filters = []
         for key, value in filters.items():
-            # for prop in ['footprint', 'begin_time', 'end_time']:
-            # if key.startswith(prop):
             prop = key.partition('__')[0]
-            new_q = Q(**{
-                key: value
-            }) | Q(**{
-                '%s__isnull' % prop: True,
-                'coverage__parent_product__%s' % key: value
-            })
-
-            parent_product_filters = parent_product_filters & new_q if parent_product_filters else new_q
+            parent_product_filters.append(
+                Q(**{
+                    key: value
+                }) | Q(**{
+                    '%s__isnull' % prop: True,
+                    'coverage__parent_product__%s' % key: value
+                })
+            )
 
         # get a QuerySet for all Coverages, directly or indirectly referenced
         all_coverages_qs = models.EOObject.objects.filter(
-            parent_product_filters
+            *parent_product_filters
         ).filter(
             Q(  # directly referenced Coverages
                 identifier__in=[
