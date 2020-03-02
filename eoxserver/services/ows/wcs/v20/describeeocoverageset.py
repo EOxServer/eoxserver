@@ -132,6 +132,8 @@ class WCS20DescribeEOCoverageSetHandler(object):
             elif isinstance(eo_object, models.Coverage):
                 coverages.append(eo_object)
 
+        filters = subsets.get_filters(containment=containment)
+
         # get a QuerySet of all dataset series, directly or indirectly referenced
         all_dataset_series_qs = models.EOObject.objects.filter(
             Q(  # directly referenced Collections
@@ -147,7 +149,7 @@ class WCS20DescribeEOCoverageSetHandler(object):
             Q(  # Products within Collections
                 product__isnull=False,
                 product__collections__in=collections,
-                **subsets.get_filters(containment=containment)
+                **filters
             )
         )
 
@@ -156,9 +158,24 @@ class WCS20DescribeEOCoverageSetHandler(object):
         else:
             dataset_series_qs = models.EOObject.objects.none()
 
+        # Also allow metadata queries on the parent product
+        parent_product_filters = None
+        for key, value in filters.items():
+            # for prop in ['footprint', 'begin_time', 'end_time']:
+            # if key.startswith(prop):
+            prop = key.partition('__')[0]
+            new_q = Q(**{
+                key: value
+            }) | Q(**{
+                '%s__isnull' % prop: True,
+                'coverage__parent_product__%s' % key: value
+            })
+
+            parent_product_filters = parent_product_filters & new_q if parent_product_filters else new_q
+
         # get a QuerySet for all Coverages, directly or indirectly referenced
         all_coverages_qs = models.EOObject.objects.filter(
-            **subsets.get_filters(containment=containment)
+            parent_product_filters
         ).filter(
             Q(  # directly referenced Coverages
                 identifier__in=[
