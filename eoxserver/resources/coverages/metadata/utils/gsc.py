@@ -54,9 +54,9 @@ def parse_polygon_xml(elem):
         parse_ring(
             elem.xpath(
                 "gml:exterior/gml:LinearRing/gml:posList", namespaces=nsmap_gml
-            )[0].text.trim()
+            )[0].text.strip()
         ), *[
-            parse_ring(poslist_elem.text.trim())
+            parse_ring(poslist_elem.text.strip())
             for poslist_elem in elem.xpath(
                 "gml:interior/gml:LinearRing/gml:posList", namespaces=nsmap_gml
             )
