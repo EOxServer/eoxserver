@@ -625,7 +625,7 @@ class Coverage(object):
         if not end_time and model.parent_product:
             end_time = model.parent_product.end_time
         footprint = model.footprint
-        if not footprint and model.parent_product.footprint:
+        if not footprint and model.parent_product:
             footprint = model.parent_product.footprint
         eo_metadata = EOMetadata(begin_time, end_time, footprint)
 
