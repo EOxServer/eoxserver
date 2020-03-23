@@ -203,6 +203,8 @@ class WCS20DescribeEOCoverageSetHandler(object):
             )
         ).select_subclasses(models.Coverage, models.Mosaic)
 
+        all_coverages_qs = all_coverages_qs.order_by('identifier')
+
         # check if the CoverageDescriptions section is included. If not, use an
         # empty queryset
         if inc_cov_section:
