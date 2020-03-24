@@ -247,7 +247,13 @@ class TestDataTypeDuration(TestCase, BaseTestMixin):
             (u'PT0S', timedelta(0, 0, 0)),
             (u'P0Y', timedelta(0, 0, 0)),
         ]
-        self.parsed_rejected = [u'anything']
+        self.parsed_rejected = [
+            u'anything',
+            u'P1S',
+            u'P1H',
+            u'PT1Y',
+            u'PT1D',
+        ]
 
 
 class TestDataTypeDate(TestCase, BaseTestMixin):
