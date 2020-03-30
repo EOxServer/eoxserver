@@ -67,10 +67,10 @@ def parse_polygon_xml(elem):
 class GSCFormatDecoder(xml.Decoder):
     namespaces = nsmap
 
-    identifier = xml.Parameter("gsc:opt_metadata/gml:metaDataProperty/gsc:EarthObservationMetaData/eop:identifier/text()", type=str, num=1)
-    begin_time = xml.Parameter("gsc:opt_metadata/gml:validTime/gml:TimePeriod/gml:beginPosition/text()", type=parse_iso8601, num=1)
-    end_time = xml.Parameter("gsc:opt_metadata/gml:validTime/gml:TimePeriod/gml:endPosition/text()", type=parse_iso8601, num=1)
-    polygons = xml.Parameter("gsc:opt_metadata/gml:target/eop:Footprint/gml:multiExtentOf/gml:MultiSurface/gml:surfaceMembers/gml:Polygon", type=parse_polygon_xml, num="+")
+    identifier = xml.Parameter("(gsc:sar_metadata|gsc:opt_metadata)/gml:metaDataProperty/gsc:EarthObservationMetaData/eop:identifier/text()", type=str, num=1)
+    begin_time = xml.Parameter("(gsc:sar_metadata|gsc:opt_metadata)/gml:validTime/gml:TimePeriod/gml:beginPosition/text()", type=parse_iso8601, num=1)
+    end_time = xml.Parameter("(gsc:sar_metadata|gsc:opt_metadata)/gml:validTime/gml:TimePeriod/gml:endPosition/text()", type=parse_iso8601, num=1)
+    polygons = xml.Parameter("(gsc:sar_metadata|gsc:opt_metadata)/gml:target/eop:Footprint/gml:multiExtentOf/gml:MultiSurface/gml:surfaceMembers/gml:Polygon", type=parse_polygon_xml, num="+")
 
     @property
     def footprint(self):
