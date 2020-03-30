@@ -219,7 +219,7 @@ class LayerMapper(object):
                         )
                     ]
                 )
-            else :
+            else:
                 return MosaicLayer(
                     full_name, style,
                     RenderMosaic.from_model(eo_object), [
