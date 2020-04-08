@@ -151,7 +151,7 @@ class GetTimeDataProcess(Component):
             writer.writerow([
                 isoformat(starttime),
                 isoformat(endtime),
-                bbox.extent,
+                bbox.extent if not bbox.empty else '()',
                 identifier
             ])
 
