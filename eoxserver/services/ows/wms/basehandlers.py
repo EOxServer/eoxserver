@@ -239,9 +239,10 @@ def parse_transparent(value):
 
 
 def parse_range(value):
+    separator = getattr(settings, 'EOXS_WMS_DIM_RANGE_SEPARATOR', r'\s+')
     return [
         float(v)
-        for v in re.split(r'\s+', value.strip())
+        for v in re.split(separator, value.strip())
     ]
 
 
