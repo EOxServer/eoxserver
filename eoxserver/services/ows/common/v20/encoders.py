@@ -169,14 +169,28 @@ class OWS20Encoder(XMLEncoder):
                         OWS("HTTP", *methods)
                     ),
                     # apply default values as constraints
-                    *[
+                    *([
                         OWS("Constraint",
                             OWS("NoValues"),
                             OWS("DefaultValue", str(default)),
                             name=name
-                        ) for name, default
+                        )
+                        for name, default
                         in getattr(handler(), "constraints", {}).items()
-                    ],
+                    ] + [
+                        OWS("Parameter",
+                            OWS("AnyValue")
+                            if allowed_values is None else
+                            OWS("AllowedValues", *[
+                                OWS("Value", value)
+                                for value in allowed_values
+                            ]),
+                            name=name
+                        )
+                        for name, allowed_values
+                        in getattr(handler(), "additional_parameters", {}).items()
+                    ]),
+
                     name=handler.request
                 )
             )
