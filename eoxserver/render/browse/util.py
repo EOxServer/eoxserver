@@ -43,17 +43,34 @@ def warp_fields(coverages, field_name, bbox, crs, width, height):
                 )
 
     # # in_ds = gdal.open_with_env(location.path, location.env)
-    # out_ds = create_mem_ds(
-    #     width,
-    #     height,
-    #     in_ds.GetRasterBand(band_index).DataType
-    # )
-    # out_ds.SetGeoTransform([o_x, res_x, 0, o_y, 0, res_y])
-    # out_ds.SetProjection(osr.SpatialReference(crs).wkt)
+    #
+    #
+    #
+    #
+    #
+
 
     # gdal.Warp(out_ds, in_ds.GetRasterBand(band_index))
     return dst
 
 
-def stack_datasets(datasets):
-    pass
+def warp_fields_gdal(coverages, field_name, bbox, crs, width, height):
+    o_x = bbox[0]
+    o_y = bbox[3]
+    res_x = (bbox[2] - bbox[0]) / width
+    res_y = -(bbox[3] - bbox[1]) / height
+
+    out_ds = create_mem_ds(width, height, gdal.GDT_Float64)
+    out_ds.SetGeoTransform([o_x, res_x, 0, o_y, 0, res_y])
+    out_ds.SetProjection(osr.SpatialReference(crs).wkt)
+
+    for coverage in coverages:
+        location = coverage.get_location_for_field(field_name)
+        band_index = coverage.get_band_index_for_field(field_name)
+        with gdal.config_env(location.env):
+            gdal.BuildVRT(
+
+            )
+            in_ds = gdal.open_with_env(location.path, location.env)
+        gdal.ReprojectImage(in_ds, out_ds, options=[])
+

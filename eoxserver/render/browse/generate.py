@@ -314,17 +314,9 @@ def _generate_browse_complex(parsed_exprs, fields_and_coverages,
     fields_and_datasets = {}
     for field_name in field_names:
         coverages = fields_and_coverages[field_name]
-
-        field_data = warp_fields(coverages, field_name, bbox, crs, width, height)
-        # if len(field_datasets) == 1:
-        #     stacked_dataset = field_datasets[0]
-        # else:
-        #     # TODO stack outputs
-        #     stacked_dataset = stack_datasets(field_datasets[0])
-
-        # field_data = stacked_dataset # .read(1)
-
-        # .GetRasterBand(1).ReadAsArray()
+        field_data = warp_fields(
+            coverages, field_name, bbox, crs, width, height
+        )
         fields_and_datasets[field_name] = field_data
 
     out_filename = generator.generate('tif')
