@@ -81,11 +81,6 @@ class BaseRenderer(Component):
         bands = list(range_type)
 
         coverage_identifier = coverage.identifier
-        try:
-            models.identifier_validators[0](coverage_identifier)
-        except:
-            coverage_identifier = 'not-ncname'
-
 
         # create and configure layer
         layer = ms.layerObj()

@@ -235,10 +235,6 @@ class RectifiedCoverageMapServerRenderer(BaseRenderer):
         if params.version.startswith("2.0"):
             for key, value in params:
                 if key == 'coverageid':
-                    try:
-                        models.identifier_validators[0](value)
-                    except:
-                        value = 'not-ncname'
                     yield key, value
 
                 elif key == "interpolation":
