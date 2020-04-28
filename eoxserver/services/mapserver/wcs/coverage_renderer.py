@@ -119,6 +119,11 @@ class RectifiedCoverageMapServerRenderer(BaseRenderer):
         # create and configure map object
         map_ = self.create_map()
 
+        env = {}
+        for data_location in data_locations:
+            env.update(data_location.env)
+        ms.set_env(map_, env, False)
+
         # configure outputformat
         native_format = self.get_native_format(coverage, data_locations)
         if native_format and get_format_by_mime(native_format) is None:
@@ -230,11 +235,13 @@ class RectifiedCoverageMapServerRenderer(BaseRenderer):
         """ "Translate" parameters to be understandable by mapserver.
         """
 
-
-
         if params.version.startswith("2.0"):
             for key, value in params:
                 if key == 'coverageid':
+                    try:
+                        models.identifier_validators[0](value)
+                    except:
+                        value = 'not-ncname'
                     yield key, value
 
                 elif key == "interpolation":
