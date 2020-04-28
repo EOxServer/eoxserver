@@ -514,10 +514,11 @@ class BaseFeedResultFormat(object):
                 "%s?%s" % (
                     reverse("opensearch:search", kwargs={
                         "format_name": format if format else self.name
-                    })
-                ), urlencode(dict(
-                    uid=item.identifier
-                ))
+                    }),
+                    urlencode(dict(
+                        uid=item.identifier
+                    ))
+                )
             )
 
         return request.build_absolute_uri(
@@ -525,10 +526,11 @@ class BaseFeedResultFormat(object):
                 reverse("opensearch:collection:search", kwargs={
                     "collection_id": collection_id,
                     "format_name": format if format else self.name
-                })
-            ), urlencode(dict(
-                uid=item.identifier
-            ))
+                }),
+                urlencode(dict(
+                    uid=item.identifier
+                ))
+            )
         )
 
     def _create_download_link(self, request, product):
