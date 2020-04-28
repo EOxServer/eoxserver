@@ -510,21 +510,25 @@ class BaseFeedResultFormat(object):
 
     def _create_self_link(self, request, collection_id, item, format=None):
         if collection_id is None:
-            return "%s?uid=%s" % (
-                request.build_absolute_uri(
+            return request.build_absolute_uri(
+                "%s?%s" % (
                     reverse("opensearch:search", kwargs={
                         "format_name": format if format else self.name
                     })
-                ), item.identifier
+                ), urlencode(dict(
+                    uid=item.identifier
+                ))
             )
 
-        return "%s?uid=%s" % (
-            request.build_absolute_uri(
+        return request.build_absolute_uri(
+            "%s?%s" % (
                 reverse("opensearch:collection:search", kwargs={
                     "collection_id": collection_id,
                     "format_name": format if format else self.name
                 })
-            ), item.identifier
+            ), urlencode(dict(
+                uid=item.identifier
+            ))
         )
 
     def _create_download_link(self, request, product):
