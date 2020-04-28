@@ -13,8 +13,8 @@
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
-# The above copyright notice and this permission notice shall be included in all
-# copies of this Software or works derived from this Software.
+# The above copyright notice and this permission notice shall be included in
+# all copies of this Software or works derived from this Software.
 #
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -168,7 +168,8 @@ class BaseFeedResultFormat(object):
                 )
             ),
             ATOM("link",
-                rel="self", type=self.mimetype, href=request.build_absolute_uri()
+                rel="self", type=self.mimetype,
+                href=request.build_absolute_uri()
             ),
             ATOM("link",
                 rel="first", type=self.mimetype,
@@ -408,7 +409,9 @@ class BaseFeedResultFormat(object):
             extent = item.footprint.extent
             entries.append(
                 GEORSS("box",
-                    "%f %f %f %f" % (extent[1], extent[0], extent[3], extent[2])
+                    "%f %f %f %f" % (
+                        extent[1], extent[0], extent[3], extent[2]
+                    )
                 )
             )
             entries.append(
@@ -458,12 +461,12 @@ class BaseFeedResultFormat(object):
                         request="GetMap",
                         layers=item.identifier,
                         format="image/png",
-                        TRANSPARENT="true"
+                        TRANSPARENT="true",
                         width=int(size * fx),
                         height=int(size * fy),
                         CRS="EPSG:4326",
                         STYLES="",
-                        BBOX="%f,%f,%f,%f" % miny, minx, maxy, maxx
+                        BBOX="%f,%f,%f,%f" % (miny, minx, maxy, maxx)
                     ))
                 )
             )
