@@ -512,10 +512,11 @@ class CollectionMetadata(models.Model):
 # ==============================================================================
 
 
+@python_2_unicode_compatible
 class AbstractCommonValue(models.Model):
     value = models.CharField(max_length=256, db_index=True, unique=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.value
 
     class Meta:
