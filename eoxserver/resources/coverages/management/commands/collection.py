@@ -220,7 +220,7 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
 
         for eo_object in objects:
             try:
-                models.collection_exclude_object(collection, eo_object)
+                models.collection_exclude_eo_object(collection, eo_object)
             except Exception as e:
                 raise CommandError(
                     "Could not exclude object %r from collection %r. "
