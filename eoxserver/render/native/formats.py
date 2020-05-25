@@ -1,10 +1,10 @@
-# ------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
 #
-# ------------------------------------------------------------------------------
-# Copyright (C) 2017 EOX IT Services GmbH
+# -----------------------------------------------------------------------------
+# Copyright (C) 2020 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -23,13 +23,26 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-# ------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
-DEFAULT_EOXS_MAP_RENDERER = (
-    "eoxserver.render.mapserver.map_renderer.MapserverMapRenderer"
-)
+from django.conf import settings
+from django.template.loader import render_to_string
 
-DEFAULT_EOXS_FEATURE_INFO_RENDERER = (
-    "eoxserver.render.native.feature_info_renderer.FeatureInfoRenderer"
-)
+
+DEFAULT_EOXS_FEATURE_INFO_HTML_TEMPLATE = ''
+
+
+class HTMLTemplateFeatureInfoFormat(object):
+    mime_type = 'text/html'
+
+    def render(self, objects):
+        template_name = getattr(
+            settings,
+            'EOXS_FEATURE_INFO_HTML_TEMPLATE',
+            DEFAULT_EOXS_FEATURE_INFO_HTML_TEMPLATE
+        )
+
+        return render_to_string(template_name, context={
+            'objects': objects
+        })

@@ -13,8 +13,8 @@
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
-# The above copyright notice and this permission notice shall be included in all
-# copies of this Software or works derived from this Software.
+# The above copyright notice and this permission notice shall be included in
+# all copies of this Software or works derived from this Software.
 #
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -26,7 +26,9 @@
 # ------------------------------------------------------------------------------
 
 from eoxserver.services.ows.wms.basehandlers import (
-    WMSBaseGetCapabilitiesHandler, WMSBaseGetMapHandler, WMSBaseGetMapDecoder
+    WMSBaseGetCapabilitiesHandler, WMSBaseGetMapHandler,
+    WMSBaseGetFeatureInfoHandler,
+    WMSBaseGetMapDecoder, WMSGetFeatureInfoDecoder
 )
 
 from eoxserver.services.ows.wms.v11.encoders import WMS11Encoder
@@ -47,4 +49,13 @@ class WMS11GetMapHandler(WMSBaseGetMapHandler):
 
 
 class WMS11GetMapDecoder(WMSBaseGetMapDecoder):
+    pass
+
+
+class WMS11GetFeatureInfoHandler(WMSBaseGetFeatureInfoHandler):
+    def get_decoder(self, request):
+        return WMS11GetFeatureInfoDecoder(request.GET)
+
+
+class WMS11GetFeatureInfoDecoder(WMSGetFeatureInfoDecoder):
     pass

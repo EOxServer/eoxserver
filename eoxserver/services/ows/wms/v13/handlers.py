@@ -30,7 +30,8 @@ from eoxserver.resources.coverages import crss
 from eoxserver.services.ows.wms.util import parse_bbox
 from eoxserver.services.ows.wms.exceptions import InvalidCRS
 from eoxserver.services.ows.wms.basehandlers import (
-    WMSBaseGetCapabilitiesHandler, WMSBaseGetMapHandler, WMSBaseGetMapDecoder
+    WMSBaseGetCapabilitiesHandler, WMSBaseGetMapHandler,
+    WMSBaseGetMapDecoder, WMSGetFeatureInfoDecoder
 )
 from eoxserver.services.ows.wms.v13.encoders import WMS13Encoder
 
@@ -50,7 +51,7 @@ class WMS13GetMapHandler(WMSBaseGetMapHandler):
         return WMS13GetMapDecoder(request.GET)
 
 
-class WMS13GetMapDecoder(WMSBaseGetMapDecoder):
+class WMS13BBoxDecoderMixIn(object):
     _bbox = kvp.Parameter('bbox', type=parse_bbox, num=1)
 
     @property
@@ -73,3 +74,13 @@ class WMS13GetMapDecoder(WMSBaseGetMapDecoder):
     crs = kvp.Parameter(num=1)
 
     srs = property(lambda self: self.crs)
+
+
+class WMS13GetMapDecoder(WMS13BBoxDecoderMixIn, WMSBaseGetMapDecoder):
+    pass
+
+
+class WMS13GetFeatureInfoDecoder(WMS13BBoxDecoderMixIn,
+                                 WMSGetFeatureInfoDecoder):
+    pixel_column = kvp.Parameter('i', type=int, num=1)
+    pixel_row = kvp.Parameter('j', type=int, num=1)

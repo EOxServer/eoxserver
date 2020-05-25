@@ -13,8 +13,8 @@
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
-# The above copyright notice and this permission notice shall be included in all
-# copies of this Software or works derived from this Software.
+# The above copyright notice and this permission notice shall be included in
+# all copies of this Software or works derived from this Software.
 #
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -172,8 +172,8 @@ class OutlinedCoveragesLayer(Layer):
 
 
 class MosaicLayer(Layer):
-    def __init__(self, name, style, mosaic, coverages, bands, wavelengths, time,
-                 elevation, ranges):
+    def __init__(self, name, style, mosaic, coverages, bands, wavelengths,
+                 time, elevation, ranges):
         super(MosaicLayer, self).__init__(name, style)
         self._mosaic = mosaic
         self._coverages = coverages
