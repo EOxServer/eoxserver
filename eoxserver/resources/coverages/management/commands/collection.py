@@ -81,11 +81,25 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
                 'to insert'
             )
         )
+        insert_parser.add_argument(
+            '--use-extent', action='store_true', default=False,
+            help=(
+                'Whether to simply collection the bounding box of the '
+                'footprint as the collections footprint'
+            )
+        )
         exclude_parser.add_argument(
             'object_identifiers', nargs='+',
             help=(
                 'The identifiers of the objects (Product or Coverage) '
                 'to exclude'
+            )
+        )
+        exclude_parser.add_argument(
+            '--use-extent', action='store_true', default=False,
+            help=(
+                'Whether to simply collection the bounding box of the '
+                'footprint as the collections footprint'
             )
         )
 
