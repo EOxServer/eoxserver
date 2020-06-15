@@ -427,6 +427,7 @@ following parameters when searching for datasets:
     |                             | bounding box/circle) and the                              |                                  |
     |                             | searched datasets geometry. This parameter allows the     |                                  |
     |                             | following values:                                         |                                  |
+    |                             |                                                           |                                  |
     |                             | - "intersects" (default): the passed geometry has to      |                                  |
     |                             |   intersect with the datasets geometry                    |                                  |
     |                             | - "contains": the passed geometry has to fully enclose    |                                  |
@@ -447,6 +448,7 @@ following parameters when searching for datasets:
     | timerel (time:relation)     | The temporal relation between the passed interval and the |   timerel=equals                 |
     |                             | datasets time intervals. This parameter allows the        |                                  |
     |                             | following values:                                         |                                  |
+    |                             |                                                           |                                  |
     |                             | - "intersects": the given interval has to somehow         |                                  |
     |                             |   intersect with the datasets time span.                  |                                  |
     |                             | - "during": the given interval has to enclose the         |                                  |

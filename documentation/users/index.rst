@@ -12,6 +12,7 @@ consuming the registered *EO Data* on the *User* side.
 .. toctree::
    :maxdepth: 3
 
+   basics
    installation
    instance
    backends

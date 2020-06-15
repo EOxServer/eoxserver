@@ -10,13 +10,13 @@ Creation
 
 An instance can be created in multiple ways. The easiest way is to run the
 ``eoxserver-instance.py`` script, that available through the EOxServer Python
-package, which has to be installed first. See the `Installation`_ for more
+package, which has to be installed first. See the :ref:`Installation` for more
 details.
 
 
 Another option is to use the ``django-admin`` command to start a new Django
 project, that will later be enhanced to be a fully functioning EOxServer. See
-next section `Configuration`_ for what
+next section :ref:`Configuration` for what can be configured.
 
 
 Configuration
@@ -30,7 +30,7 @@ These files are first and foremost the ``settings.py`` and ``urls.py`` files,
 but also the ``wsgi.py`` and ``manage.py`` to a lesser degree.
 
 EOxServer uses the ``settings.py`` file to configure some of its internal
-functions. Please see the section `XXX`_ for the available sections and their
+functions. Please see the next section for the available sections and their
 effect.
 
 Please see the Django Documentation for a coverage of the configuration
@@ -481,49 +481,3 @@ their respective configuration keys are as follows:
   maxsize=2048
     The maximum size for each dimension in WCS GetCoverage responses. All sizes
     above will result in exception reports.
-
-.. [webclient]
-.. -----------
-
-.. The following configuration options affect the behavior of the :ref:`Webclient
-.. interface <webclient>`.
-
-.. ::
-
-..     preview_service
-..     outline_service
-
-.. The service type for the outline and the preview layer in the webclient map.
-.. One of `wms` (default) or `wmts`.
-
-.. ::
-
-..     preview_url
-..     outline_url
-
-.. The URL of the preview and outline service. Defaults to the vaule of the
-.. `services.owscommon.http_service_url` configuration option.
-
-
-.. .. _config-testing:
-
-.. [testing]
-.. ---------
-
-.. These configuration options are used within the context of the :ref:`Autotest
-.. instance <Autotest>`.
-
-.. ::
-
-..     binary_raster_comparison_enabled
-
-.. Enable/disable the binary comparison of rasters in test runs. If disabled these
-.. tests will be skipped. By default this feature is activated but might be turned
-.. off in order to prevent test failures originating on platform differences.
-
-.. ::
-
-..     rasdaman_enabled
-
-.. Enable/disable rasdaman test cases. If disabled these tests will be skipped.
-.. Defaults to `false`.
