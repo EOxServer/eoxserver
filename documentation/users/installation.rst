@@ -38,6 +38,21 @@ the minimal required software to run EOxServer.
   +-----------+------------------+---------------------------------------------+
 
 
+When all non-python dependencies are installed, EOxServer can be installed
+using the ``pip`` (or sometimes ``pip3``) utility.
+
+::
+
+    # pip3 install -U eoxserver
+
+In the default setting, this also fetches all Python package dependencies. The
+``-U`` switch denotes that if EOxServer is already installed, it will be
+upgraded to the latest version.
+
+If not otherwise packaged (like with Docker, see below), it is preferred to use
+a virtual environment
+
+
 Using Docker images
 -------------------
 
@@ -81,7 +96,44 @@ tools like Docker Compose can help to keep static and runtime
 configuration manageable.
 
 Consider the following ``docker-compose.yml`` file:
+
+.. code-block:: yaml
+
+    version: "3.6"
+    services:
+      database:
+        image: mdillon/postgis:10
+        volumes:
+          - database-data:/var/lib/postgresql/data
+        environment:
+          POSTGRES_USER: "user"
+          POSTGRES_PASSWORD: "pw"
+          POSTGRES_DB: "dbms"
+      eoxserver:
+        image: eoxa/eoxserver
+        environment:
+          DB_USER: "user"
+          DB_PW: "pw"
+          DB_HOST: database
+          DB_PORT: 5432
+          DB_NAME: "dbms"
+          XML_CATALOG_FILES: /opt/schemas/catalog.xml
+        ports:
+          - "8800:8000"
+
+    volumes:
+      database-data:
+
+This Docker Compose file can now be used to manage the database and EOxServer
+in a single step. The following command starts the services in the Compose
+file.
+
 ::
 
+    docker-compose up
 
+The benefit of this approach is that with Docker Compose the services can
+resolve the other services by their names without having to deal with manual
+connection or hassling with IP addresses.
 
+For production deployment, Docker Swarm is recommended instead.

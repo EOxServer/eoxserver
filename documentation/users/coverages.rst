@@ -1,17 +1,22 @@
 Coverages
 =========
 
-This document
+This document describes the data model layout of the coverages, the internal
+structure of earth observation products, collections and data files. It also
+shows how these models can be interacted with via the command line interfaces.
 
 Data model
 ----------
 
+The data model is loosely based on the OGC coverages data models, especially
+with the EO Application Profile for WCS 2.0.
+
 Coverage Type
 ~~~~~~~~~~~~~
 
-The coverage type describes the internal structure of coverages of a
-specific type. The coverage type is comprised of a list of field types
-that define the structure and metadata of a specific field of Data
+The coverage type describes the internal structure of coverages of a specific
+type. The coverage type is comprised of a list of field types that define the
+structure and metadata of a specific field of Data
 
 TODO: ref SWE field
 
@@ -21,58 +26,57 @@ The coverage type has a unique name to allow its identification.
 Product Type
 ~~~~~~~~~~~~
 
-The product type model allows to define the structure of products by
-limiting the coverage types each coverage is allowed to have for
-products of this product type.
+The product type model allows to define the structure of products by limiting
+the coverage types each coverage is allowed to have for products of this
+product type.
 
 Additionally, each Product Type can be associated with a number of
-`Browse Type`_ and `Mask Type`_ that
-define the masks and browses that products of that type are allowed to have.
+`Browse Type`_ and `Mask Type`_ that define the masks and browses that products
+of that type are allowed to have.
 
 
 Browse Type
 ...........
 
-A browse type defines a typical visual representation of a product.
-For this purpose, it allows to define expression, scaling ranges and
-nodata values to generate that representation (browse).
+A browse type defines a typical visual representation of a product. For this
+purpose, it allows to define expression, scaling ranges and nodata values to
+generate that representation (browse).
 
-A browse type can either define a single output band (grey),
-three output bands (RGB) or four output bands (RGBA).
+A browse type can either define a single output band (grey), three output bands
+(RGB) or four output bands (RGBA).
 
-Expressions must follow Python syntax rules but can only contain
-simple arithmetic expressions. All identifiers must be names of
-field types that are linked to coverage types in the list of
-allowed coverage types of the referenced product type.
+Expressions must follow Python syntax rules but can only contain simple
+arithmetic expressions. All identifiers must be names of field types that are
+linked to coverage types in the list of allowed coverage types of the
+referenced product type.
 
 
 Mask Type
 .........
 
-These type models define what polygon masks can be linked to
-products of that product type and whether the masks define areas
-of validity or invalidity.
+These type models define what polygon masks can be linked to products of that
+product type and whether the masks define areas of validity or invalidity.
 
 
 Collection Type
 ~~~~~~~~~~~~~~~
 
-These type models allow to define the shape of collections by allowing
-to limit the product types and coverage types of product and coverages
-that can be added to collections of their respective collection types.
+These type models allow to define the shape of collections by allowing to limit
+the product types and coverage types of product and coverages that can be added
+to collections of their respective collection types.
 
 
 EOObject
 ~~~~~~~~
 
 This is the base model class for uniquely identifier geospatial objects.
-EOObject provides the fields ``identifier`` (mandatory and unique),
-the ``footprint`` (its geometry) and its temporal distribution:
-``begin_time`` and ``end_time``.
+EOObject provides the fields ``identifier`` (mandatory and unique), the
+``footprint`` (its geometry) and its temporal distribution: ``begin_time`` and
+``end_time``.
 
-All objects inheriting from EOObject share a common pool of identifier.
-Thus, it is, for example, not possible for a collection to have the same
-identifier as a product or coverage.
+All objects inheriting from EOObject share a common pool of identifier. Thus,
+it is, for example, not possible for a collection to have the same identifier
+as a product or coverage.
 
 
 .. _Grid Model:
@@ -80,16 +84,16 @@ identifier as a product or coverage.
 Grid
 ~~~~
 
-A grid defines a regularly spaced grid comprised of up to four axes.
-Each axis can either be of spatial, temporal, evelation or other type.
-For each defined axis, the regular offset value must be specified.
+A grid defines a regularly spaced grid comprised of up to four axes. Each axis
+can either be of spatial, temporal, evelation or other type. For each defined
+axis, the regular offset value must be specified.
 
 Each grid is associated with a coordinate reference system.
 
 A grid can be named, making it easier to manage.
 
-A grid does *not* provide an actual location or area, this information
-can only be obtained with a Grid Fixture in conjunction with a grid.
+A grid does *not* provide an actual location or area, this information can only
+be obtained with a Grid Fixture in conjunction with a grid.
 
 
 .. _Mosaic Model:
@@ -97,10 +101,9 @@ can only be obtained with a Grid Fixture in conjunction with a grid.
 Mosaic
 ~~~~~~
 
-This model is a collection of homogenenous coverages, all sharing the
-same coverage type and grid. This allows to access the mosaic as if it
-were a single coverage by combinig the data from all its comprising
-elements.
+This model is a collection of homogenenous coverages, all sharing the same
+coverage type and grid. This allows to access the mosaic as if it were a single
+coverage by combinig the data from all its comprising elements.
 
 
 .. _Coverage Model:
@@ -108,14 +111,10 @@ elements.
 Coverage
 ~~~~~~~~
 
-A coverage is an n-dimensional raster data set comprised of several
-fields.
+A coverage is an n-dimensional raster data set comprised of several fields.
 
-A coverage is linked to at least one ArrayDataItem, a reference to
-the actual raster data.
-
-
-
+A coverage is linked to at least one ArrayDataItem, a reference to the actual
+raster data.
 
 TODO: rel OGC coverage
 
@@ -125,30 +124,24 @@ TODO: rel OGC coverage
 Product
 ~~~~~~~
 
-A product is a sort of collection of geospatially and temporally
-very close objects.
+A product is a sort of collection of geospatially and temporally very close
+objects.
 
 
-A product can combine multiple coverages which cover the same are
-but cannot be combined to a single coverage because of different
-resolutions.
+A product can combine multiple coverages which cover the same are but cannot be
+combined to a single coverage because of different resolutions.
 
-In some cases, coverages are not necessary at all, and just provide
-data items for a binary download and browses for previewing.
-
-
-
-
+In some cases, coverages are not necessary at all, and just provide data items
+for a binary download and browses for previewing.
 
 .. _Browse Model:
 
 Browse
 ......
 
-A browse is always associated with a product and serves as a
-preview to the actual data. Browses are materialized files
-that are either pre-generated or can be generated from the
-coverage data.
+A browse is always associated with a product and serves as a preview to the
+actual data. Browses are materialized files that are either pre-generated or
+can be generated from the coverage data.
 
 
 .. _Mask Model:
@@ -156,8 +149,8 @@ coverage data.
 Mask
 ....
 
-Masks allow to specify regions in products for some kind of
-flag for example validity. Each mask is linked to a `Mask Type`_.
+Masks allow to specify regions in products for some kind of flag for example
+validity. Each mask is linked to a `Mask Type`_.
 
 
 .. _Collection Model:
@@ -165,21 +158,20 @@ flag for example validity. Each mask is linked to a `Mask Type`_.
 Collection
 ~~~~~~~~~~
 
-Multiple coverages and products can be grouped in a collection.
-This relationship is many-to-many, so each product/coverage can
-be inserted into multiple collections.
+Multiple coverages and products can be grouped in a collection. This
+relationship is many-to-many, so each product/coverage can be inserted into
+multiple collections.
 
-When a collection is linked to a `Collection Type`_ only Products
-and Coverages whose types are of the set of allowed
-coverage/product types can be inserted.
+When a collection is linked to a `Collection Type`_ only Products and Coverages
+whose types are of the set of allowed coverage/product types can be inserted.
 
 
 Command Line Interfaces
 -----------------------
 
-The following command line interfaces can be executed via the
-``manage.py`` utility of the instance. All commands are related
-to one of the models above and use sub-commands for specific tasks.
+The following command line interfaces can be executed via the ``manage.py``
+utility of the instance. All commands are related to one of the models above
+and use sub-commands for specific tasks.
 
 
 ``coveragetype``
@@ -199,8 +191,8 @@ currently available ones. This command has four sub-commands:
 ``producttype``
 ~~~~~~~~~~~~~~~
 
-This command manages `Product Type`_ models. It provides the
-following sub-commands:
+This command manages `Product Type`_ models. It provides the following
+sub-commands:
 
 - ``create``: creates a new Product Type. It allows to specify the
   allowed coverage types using the ``--coverage-type`` parameter.
@@ -216,9 +208,9 @@ following sub-commands:
 ``browsetype``
 ~~~~~~~~~~~~~~
 
-This command allows to create, delete and list `Browse Type`_ models.
-Since Browse Types are always associated with a Product Type the first
-argument is always the name of a Product Type. The sub-commands are in detail:
+This command allows to create, delete and list `Browse Type`_ models. Since
+Browse Types are always associated with a Product Type the first argument is
+always the name of a Product Type. The sub-commands are in detail:
 
 - ``create``: creates a new Browse Type for a Product Type. Allows to specify
   its expression, range and nodata value for each output band respectively.
@@ -229,9 +221,9 @@ argument is always the name of a Product Type. The sub-commands are in detail:
 ``masktype``
 ~~~~~~~~~~~~
 
-This command allows to create, delete and list `Mask Type`_ models.
-Since Mask Types are always associated with a Product Type the first
-argument is always the name of a Product Type. The sub-commands are in detail:
+This command allows to create, delete and list `Mask Type`_ models. Since Mask
+Types are always associated with a Product Type the first argument is always
+the name of a Product Type. The sub-commands are in detail:
 
 - ``create``: creates a new Mask Type for a Product Type. When the
   ``--validity`` flag is set, the masks if this type are used to mask in
@@ -432,5 +424,3 @@ This command manages `Mosaic Model`_ instances with a variety of sub-commands.
 - ``exclude``: exclude one or more Coverages from the Mosaic.
 - ``refresh``:
 - ``purge``:
-
-

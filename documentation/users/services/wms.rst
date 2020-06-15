@@ -162,7 +162,8 @@ parameters that are available with GetCoverage requests.
     |                           | documentation for usage.                                  |                                  |                                |
     +---------------------------+-----------------------------------------------------------+----------------------------------+--------------------------------+
     | sortBy                    | Allows to sort the images regarding a specific metadata   | ``cloudCover A``                 | O                              |
-    |                           | value. Can either be ascending or descending.             |                                  |                                |
+    |                           | value. Can either be ascending or descending using ``A``  |                                  |                                |
+    |                           | or ``D``                                                  |                                  |                                |
     +---------------------------+-----------------------------------------------------------+----------------------------------+--------------------------------+
 
 
