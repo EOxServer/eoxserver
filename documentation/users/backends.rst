@@ -136,75 +136,120 @@ The following management commands provide facilities to manage the model
 instances related to the data backend.
 
 
-``storageauth``
-~~~~~~~~~~~~~~~
+storageauth
+  This command provides two subcommands to ``create`` and ``delete`` Storage
+  Auths.
 
-This command provides two subcommands to ``create`` and ``delete`` Storage
-Auths. The ``create`` subcommand must be provided with ``name`` and ``URL``
-parameters. To distinguish what type the new Storage Auth shall be, the
-``--type`` parameter must be passed. Additionally, multiple access parameters
-can be passed using the ``--parameter`` option.
+  create
+    This sub-command allows to create a new Storage Auth. It requires the
+    following arguments and supports the following options.
 
-TODO: list available parameters
+    name
+      the name of the Storage Auth to be created for internal reference
+    url
+      the URL of the Storage Auth
 
-The following example shows the creation of a keystone Storage Auth. The
-credentials are passed in as environment variables.
-::
+    --type, -t
+      the type of the Storage Auth
+    --parameter, -p
+      an additional parameter to set in the Storage Auth. Can be specified
+      multiple times.
+    --check
+      check if the access to the Storage Auth actually works. Raises an error
+      if not.
 
-    python manage.py storageauth create auth-cloud-ovh "${OS_AUTH_URL_SHORT}" \
-        --type keystone \
-        -p auth-version "${ST_AUTH_VERSION}" \
-        -p identity-api-version="${ST_AUTH_VERSION}" \
-        -p username "${OS_USERNAME}" \
-        -p password "${OS_PASSWORD}" \
-        -p tenant-name "${OS_TENANT_NAME}" \
-        -p tenant-id "${OS_TENANT_ID}" \
-        -p region-name "${OS_REGION_NAME}"
+    The following example shows the creation of a keystone Storage Auth. The
+    credentials are passed in as environment variables.
+
+    .. code-block:: bash
+
+        python manage.py storageauth create auth-cloud-ovh "${OS_AUTH_URL_SHORT}" \
+            --type keystone \
+            -p auth-version "${ST_AUTH_VERSION}" \
+            -p identity-api-version="${ST_AUTH_VERSION}" \
+            -p username "${OS_USERNAME}" \
+            -p password "${OS_PASSWORD}" \
+            -p tenant-name "${OS_TENANT_NAME}" \
+            -p tenant-id "${OS_TENANT_ID}" \
+            -p region-name "${OS_REGION_NAME}"
+
+  delete
+    To delete a Storage Auth, the subcommand ``delete`` with the Storage
+    Auth name must be passed. The following example deletes the previously
+    created Storage Auth from above.
+
+    .. code-block:: bash
+
+        python manage.py storageauth delete auth-cloud-ovh
 
 
-To delete a Storage Auth, the subcommand ``delete`` with the Storage Auth name
-must be passed. The following example deletes the previously created Storage
-Auth from above.
-::
-
-    python manage.py storageauth delete auth-cloud-ovh
+storage
+  This command allows to manage storages. The subcommands ``create``,
+  ``delete`` allow to create new storages and delete no longer required ones.
 
 
-``storage``
-~~~~~~~~~~~
+  create
+    This sub-command creates a new storage. The following parameters and
+    options can be passed.
 
-This command allows to manage storages. The subcommands ``create``, ``delete``
-allow to create new storages and delete no longer required ones.
+    name
+      the storages name for internal reference
+    url
+      the location reference. The actual meaning may change according to the
+      storage type.
 
-When creating a storage, the name of the new storage and its URL are the only
-mandatory parameter to be passed. Additionally several options can be passed:
-
-    * ``--type``: this is the string type of the storage. See the above table
-      :ref:`Default Storage Handlers <default-storage-handlers>` for the
-      available ones.
-    * ``--parent``: if the storage type supports parent storages, this
+    --type
+      this is the string type of the storage. See the above
+      table :ref:`Default Storage Handlers <default-storage-handlers>` for
+      the available ones.
+    --parent
+      if the storage type supports parent storages, this
       parameter can be used to specify the parent storage. This allows to
       nest storages, e.g a ZIP archive on a HTTP server.
-    * ``--storage-auth``: this parameter must be used for storage types
-      that require additional authorization, such as OpenStack swift storages.
+    --storage-auth
+      this parameter must be used for storage types
+      that require additional authorization, such as OpenStack swift
+      storages.
       Use the name of the Storage Auth as a value of this parameter.
 
-The following example creates an OpenStack swift storage, linked to the Storage
-Auth created above.
-::
+    The following example creates an OpenStack swift storage, linked to the
+    Storage Auth created above.
 
-    python manage.py storage create \
-        MySwiftContainer container \
-        --type swift \
-        --storage-auth auth-cloud-ovh
+    .. code-block:: bash
 
-To delete a storage, the ``delete`` command must be invoked with the storage
-name:
-::
+        python manage.py storage create \
+            MySwiftContainer container \
+            --type swift \
+            --storage-auth auth-cloud-ovh
 
-    python manage.py storage delete MySwiftContainer
+  delete
+    This sub-command deletes a previously created storage.
+
+    name
+      the name of the storage to delete
+
+    .. code-block:: bash
+
+        python manage.py storage delete MySwiftContainer
 
 
-The two additional subcommands ``env`` and ``list`` allow to inspect the access
-credentials and the contents of a specific storage respectively.
+  env
+    This sub-command lists environment variables necessary to access the
+    storage.
 
+    name
+      the name of the storage to list the environment variables for
+
+    --path
+      a path on the storage to list variables for
+
+  list
+    A sub-command to list filenames on a storage
+
+    name
+      the name of the storage to list files on
+
+    --pattern
+      a file glob pattern to filter the returned filenames
+    --path
+      a path on the storage to limit the file search
