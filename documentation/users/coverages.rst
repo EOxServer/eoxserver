@@ -47,9 +47,7 @@ Coverage Type
 
 The coverage type describes the internal structure of coverages of a specific
 type. The coverage type is comprised of a list of field types that define the
-structure and metadata of a specific field of Data
-
-TODO: ref SWE field
+structure and metadata of a specific field of Data, called the Field Type.
 
 The coverage type has a unique name to allow its identification.
 
@@ -205,253 +203,558 @@ utility of the instance. All commands are related to one of the models above
 and use sub-commands for specific tasks.
 
 
-``coveragetype``
-~~~~~~~~~~~~~~~~
+coveragetype
+  This command manages `Coverage Type`_ models and allows to inspect the
+  currently available ones.
 
-This command manages `Coverage Type`_ models and allows to inspect the
-currently available ones. This command has four sub-commands:
+  create
+    Creates a new Coverage Type with specifications from the parameters.
 
-- ``create``: creates a new Coverage Type with specifications
-  from the parameters.
-- ``import``: imports one or more Coverage Type definition from JSON files.
-  TODO: show definitition, example
-- ``delete``: deletes a Coverage Type by its name.
-- ``list``: lists the stored Coverage Types
+    name
+      the name of the Coverage type to create
 
+    --field-type
+      add a new field type to the definition. Must be the five parameters:
+      ``identifier``, ``description``, ``definition``, ``unit-of-measure``,
+      and ``wavelength``. Can be used multiple times to add more than one
+      field.
 
-``producttype``
-~~~~~~~~~~~~~~~
+    TODO: example
 
-This command manages `Product Type`_ models. It provides the following
-sub-commands:
+  import
+    imports one or more Coverage Type definition from JSON files.
 
-- ``create``: creates a new Product Type. It allows to specify the
-  allowed coverage types using the ``--coverage-type`` parameter.
-  Also, rudimentary `Browse Type`_ instances and
-  `Mask Type`_ instances can be created as well using the
-  ``--browse-type`` and ``--mask-type`` parameters respectively.
-  For both an own command (`browsetype`_ and `masktype`_) exists that
-  allows for more options if needed.
-- ``delete``: deletes a Product Type by name.
-- ``list``: lists all available Product Types.
+    locations*
+      a list of filenames to import definitions from
 
+    --in, -i
+      read from ``stdin`` instead from a file
 
-``browsetype``
-~~~~~~~~~~~~~~
+    TODO: show definitition, example
 
-This command allows to create, delete and list `Browse Type`_ models. Since
-Browse Types are always associated with a Product Type the first argument is
-always the name of a Product Type. The sub-commands are in detail:
+  delete
+    deletes a Coverage Type
 
-- ``create``: creates a new Browse Type for a Product Type. Allows to specify
-  its expression, range and nodata value for each output band respectively.
-- ``delete``: deletes a no longer needed Browse Type.
-- ``list``: lists all Browse Types for a given Product Type.
+    name
+      the name of the Coverage Type to delete
 
+    --force, -f
+      delete the Coverage Type, even if it is still in use. This cascades and
+      deletes all Coverages of that type as well.
 
-``masktype``
-~~~~~~~~~~~~
+  list
+    lists the stored Coverage Types
 
-This command allows to create, delete and list `Mask Type`_ models. Since Mask
-Types are always associated with a Product Type the first argument is always
-the name of a Product Type. The sub-commands are in detail:
-
-- ``create``: creates a new Mask Type for a Product Type. When the
-  ``--validity`` flag is set, the masks if this type are used to mask in
-  values, whereas otherwise to mask out areas.
-- ``delete``: deletes a no longer needed Mask Type.
-- ``list``: lists all Mask Types for a given Product Type.
+    --no-detail
+      disable the printing of details of the coverage type.
 
 
-``collectiontype``
-~~~~~~~~~~~~~~~~~~
+producttype
+  This command manages `Product Type`_ models. It provides the following
+  sub-commands:
 
-This command manages `Collection Type`_ models using the following
-sub-commands:
+  create
+    creates a new Product Type.
 
-- ``create``: creates a new Collection Type. To set the allowed
-  Coverage/Product Types use the ``--coverage-type`` and ``--product-type```
-  parameters.
-- ``delete``: deletes a Collection Type by name.
-- ``list``: lists all available Collection Types
+    name
+      the name of the Product Type to create
 
+    --coverage-type
+      the Coverage Type name to add to this product type. Can be specified
+      multiple times.
+    --mask-type
+      the name of a to be created mask type.
+    --validity-mask-type
+      the name of a to be created validity mask type.
+    --browse-type
+      the name of a to be created Browse type. It is recommended to use
+      ``browsetype create`` instead.
 
-``grid``
-~~~~~~~~
+  delete
+    deletes a Product Type
 
-This command allows to create and delete named `Grid Model`_ instances.
+    name
+      the name of the Product Type to delete
 
-- ``create``: this creates a Grid. The first two arguments are the name
-  and coordinate reference system of the grid, then the ``--name``,
-  ``--type``, and ``--offset`` parameters can be repeated up to 4 times
-  to define that many axes.
-- ``delete``: deletes a Grid by name.
+  list
+    lists all available Product Types
 
-
-``coverage``
-~~~~~~~~~~~~
-
-This command allows the registration and deregistration of `Coverage Model`_
-instances.
-
-- ``register``: this sub-command registers a coverage.
-
-  - ``--data``: this specifies a location for raster data. Multiple values
-    can be used to denote that the data resides on a storage. If used in that
-    way the first value can also be the name of a named storage.
-    This parameter can be used multiple times, when the raster data is split
-    into multiple files.
-  - ``--meta-data``: similarly to the ``--data`` parameter, this parameter
-    denotes a reference to meta-data. The same rules as for the ``--data``
-    parameter also apply here.
-  - ``--type``: specify the `Coverage Type`_ for this Coverage. By default no
-    Coverage Type is used.
-  - ``--grid``: specify the named `Grid Model`_ to use. By default an
-    anonymous Grid is used.
-  - ``--size``: specifies the size of the Coverage. This overrides the size
-    extracted from the metadata/data. Must specify the size for each axis of
-    the Grid.
-  - ``--origin``: overrides the origin of the Coverage. Must provide a value
-    for each axis of the Grid.
-  - ``--footprint``: overrides the geographical footprint of the Coverage.
-    Must be a valid WKT geometry.
-  - ``--footprint-from-extent``: The footprint polygon shall be calculated
-    from the Coverages extent.
-  - ``--identifier``: override the Coverages identifier.
-  - ``--identifier-template``: allows the construction of the final identifier
-    from a template. Substitution values are passed in from the extracted
-    metadata. e.g: ``{identifer}__B01``.
-  - ``--begin-time``: override the begin timestamp of the Coverage. Must be a
-    valid ISO 8601 datetime string.
-  - ``--end-time``: override the end timestamp of the Coverage. Must be a
-    valid ISO 8601 datetime string.
-  - ``--product``: specify the Product identifier this Coverage shall be
-    associated with. The Product must already be registered.
-  - ``--collection``: specify the Collection identifier this Coverage shall be
-    inserted into. The Collection must already exist.
-  - ``--replace``: replace an already existing Coverage with the same
-    identifier.
-  - ``--print-identifier``: this switch prints the final identifier (after
-    metadata extraction and potential templating) to stdout upon successful
-    registration.
-
-- ``deregister``: this sub-command de-registers the Coverage with the provided
-  identifier. This will update all Collections metadata (footprint, begin-/end
-  time) unless the ``--not-refresh-collections`` switch is set.
+    --no-detail
+      disable the printing of details of the product type.
 
 
-``product``
-~~~~~~~~~~~
+browsetype
+  This command allows to create, delete and list `Browse Type`_ models. Since
+  Browse Types are always associated with a Product Type the first argument is
+  always the name of a Product Type.
 
-This command manages `Product Model`_ instances.
+  create
+    creates a new Browse Type for a Product Type. Valid field names for the
+    ``--red``, ``--green``, ``--blue``, and ``--alpha`` parameters are the
+    names from the field names of the linked Coverage Types of the associated
+    Product Type.
 
-- ``register``: this sub-command registers products.
+    product_type_name
+      the Product Type to create the Browse Type for
+    [browse_type_name]
+      the name of the Browse Type. Can be omitted, to define the default Browse
+      Type.
 
-  - ``--metadata-file``: adds a metadata file to the product. As with file
-    links for Coverages, the product file can be located on a storage. For
-    these cases, multiple values can be used to specify the chain of
-    locations.
-  - ``--footprint``: overrides the geographical footprint of the Coverage.
-    Must be a valid WKT geometry.
-  - ``--identifier``: override the Product identifier.
-  - ``--identifier-template``: allows the construction of the final identifier
-    from a template. Substitution values are passed in from the extracted
-    metadata. e.g: ``{identifer}__B01``.
-  - ``--begin-time``: override the begin timestamp of the Coverage. Must be a
-    valid ISO 8601 datetime string.
-  - ``--end-time``: override the end timestamp of the Coverage. Must be a
-    valid ISO 8601 datetime string.
-  - ``--set``: sets a specific metadata value for that product. This
-    parameter always uses two values: the name of the parameter key
-    and its value.
-    TODO: possible metadata keys to set
-  - ``--type``: specify the `Product Type`_ for this Product. By default no
-    Product Type is used.
-  - ``--mask``: specify a mask file to be added to this product. Must be
-    two values: the masks name and its file location.
-  - ``--mask-geomety``: specify a mask using its geometry directly. Must be
-    two values: the masks name and its WKT geometry representation.
-  - ``--no-extended-metadata``:
-  - ``--no-masks``:
-  - ``--no-browses``:
-  - ``--no-metadata``:
-  - ``--package``: specify the main data package for this Product.
-  - ``--collection``: specify the Collection identifier this Product shall be
-    inserted into. The Collection must already exist.
-  - ``--replace``: replace an already existing Product with the same
-    identifier.
-  - ``--print-identifier``: this switch prints the final identifier (after
-    metadata extraction and potential templating) to stdout upon successful
-    registration.
+    --red, --grey, -r
+      the field name or mathemathical expression to use as the red output band
+      (or grey, if used for a single band output).
+    --green, -g
+      the field name or mathemathical expression to use as the green output
+      band.
+    --blue, -b
+      the field name or mathemathical expression to use as the blue output
+      band.
+    --alpha, -a
+      the field name or mathemathical expression to use as the green output
+      band.
+    --red-range, --grey-range
+      the low and high border of values to apply a linear stretch for the red
+      output band.
+    --green-range
+      the low and high border of values to apply a linear stretch for the green
+      output band.
+    --blue-range
+      the low and high border of values to apply a linear stretch for the blue
+      output band.
+    --alpha-range
+      the low and high border of values to apply a linear stretch for the alpha
+      output band.
+    --red-nodata, --alpha-nodata
+      the nodata value for the red output band. This is applied after the
+      stretch and will result in transparent pixels for this value.
+    --green-nodata
+      the nodata value for the green output band. This is applied after the
+      stretch and will result in transparent pixels for this value.
+    --blue-nodata
+      the nodata value for the blue output band. This is applied after the
+      stretch and will result in transparent pixels for this value.
+    --alpha-nodata
+      the nodata value for the alpha output band. This is applied after the
+      stretch and will result in transparent pixels for this value.
 
-- ``deregister``: deregisters a Product via its identifier.
-- ``discover``: print the contents of the main package file of a Product.
-  Optionally a glob can be supplied to filter the files.
+  delete
+    deletes a no longer needed Browse Type.
 
+    product_type_name
+      the Product Type to delete the Browse Type from
+    [browse_type_name]
+      the name of the Browse Type to delete
 
-``browse``
-~~~~~~~~~~
+  list
+    lists all Browse Types for a given Product Type.
 
-This command allows to manage `Browse Model`_ instances of a `Product Model`_.
-
-- ``register``: This sub-command registers a Browse to a Product.
-  The required arguments are the Products identifier and the location.
-  As with other data items, the location can be of multiple parts, when
-  the location is relative to a storage.
-- ``generate``: TODO
-- ``deregister``: TODO
-
-
-``mask``
-~~~~~~~~
-
-This command allows to manage `Mask Model`_ instances of a `Product Model`_.
-
-- ``register``: registers a Mask for a Product.
-  TODO
+    product_type_name
+      the Product Type to list the Browse Types for
 
 
-``collection``
-~~~~~~~~~~~~~~
+masktype
+  This command allows to create, delete and list `Mask Type`_ models. Since
+  Mask Types are always associated with a Product Type the first argument is
+  always the name of a Product Type. The sub-commands are in detail:
 
-This command manages `Collection Model`_ instances. As usual, it
-uses sub-commands to allow fine control over the specific aspects
-and tasks of a collection.
+  create
+    creates a new Mask Type for a Product Type
 
-- ``create``: creates a new collection. Must be provided with an
-  identifier. Additionally, it can be of a specific `Collection Type`_
-  using the ``--type`` parameter. Collection metadata ca be specified
-  via the ``--set`` parmeter which is a pair of name and value.
-  TODO: metadata fields to use
-- ``delete``: this sub-command deletes a Collection by its identifier.
-- ``insert``: with this sub-command one or more `Coverage Model`_ instances
-  or `Product Model`_ instances can be inserted into the collection. This
-  command checks whether the to be inserted objects are of the allowed
-  types when a Collection Type is set for this Collection.
-- ``exclude``: this command allows to remove one or more objects from a
-  collection.
-- ``purge``: this command purges all Coverages and Products from this
-  collection, leaving it effectively empty.
-  TODO: not yet implemented
-- ``summary``: collects metadata from all entailed Products and
-  Coverages to generate a summary that is stored in the Collection.
-  This allows a quick overview of the metadata ranges and specific
-  values of all objects in the collection. With the ``--no-coverages``
-  or ``--no-products`` the collecting of metadata for that specific
-  object type can be disabled.
+    product_type_name
+      the Product Type to create the Mask Type for
+    mask_type_name
+      the Mask Type name to create
+
+    --validity
+      whether this mask denotes valid or invalid values. By default, it uses
+      invalidity.
+
+  delete
+    deletes a Mask Type.
+
+    product_type_name
+      the Product Type to delete the Mask Type from
+    mask_type_name
+      the Mask Type name to delete
+
+  list
+    lists all Mask Types for a given Product Type.
+
+    product_type_name
+      the Product Type to list the Mask Type of
 
 
-``mosaic``
-~~~~~~~~~~
+collectiontype
+  This command manages `Collection Type`_ models using the following
+  sub-commands:
 
-This command manages `Mosaic Model`_ instances with a variety of sub-commands.
+  create
+    creates a new Collection Type.
 
-- ``create``: creates a new Mosaic. An identifier is mandatory and both
-  a `Coverage Type`_ and a `Grid Model`_ must be specified using the ``--type``
-  and ``--grid`` parameters respectively.
-- ``delete``: deletes a Mosaic via its identifier.
-- ``insert``: insert one or more `Coverage Model`_ instances into this Mosaic.
-  The Coverage Type must be the same for all and the Mosaic.
-- ``exclude``: exclude one or more Coverages from the Mosaic.
-- ``refresh``:
-- ``purge``:
+    name
+      the name of the Collection Type
+
+    --coverage-type, -c
+      the name of an existing Coverage Type, that shall be linked to this
+      Collection Type. Only Coverages can be inserted into Collection when
+      the Coverages Type is part of the Collections Type.
+
+    --product-type, -p
+      the name of an existing Product Type, that shall be linked to this
+      Collection Type. Only Products can be inserted into Collection when
+      the Product Type is part of the Collections Type.
+
+  delete
+    deletes a Collection Type.
+
+    name
+      the name of the Collection Type to delete
+
+    --force, -f
+      forces the deletion of all still existing Collections using this
+      Collection Type.
+
+  list
+    lists all available Collection Types.
+
+    --no-detail
+      Disable the printing of details of the Collection types.
+
+
+grid
+  This command allows to create and delete named `Grid Model`_ instances.
+
+  create
+    this creates a Grid.
+
+    name
+      the name of the Grid to create
+    coordinate_reference_system
+      the definition of the coordinate reference system. Either an integer
+      (the EPSG code), or the URL, WKT or XML definiton.
+
+    The following parameters can be used up to four times in order to define
+    multiple axes.
+
+    --name, --axis-name, -n
+      the name of the n-th axis to add to the Grid.
+    --type, --axis-type, -t
+      the type of the n-th axis to add to the Grid.
+    --offset, --axis-offset, -o
+      the fixed axis offset step of the n-th axis to add to the Grid.
+
+  delete
+    deletes a Grid.
+
+    name
+      the name of the Grid to delete.
+
+
+coverage
+  this command allows the registration and deregistration of `Coverage Model`_
+  instances.
+
+  register
+    this sub-command registers a Coverage.
+
+    --data, -d
+      this specifies a location for raster data. Multiple values can be used to
+      denote that the data resides on a storage. If used in that way the first
+      value can also be the name of a named storage.
+      This parameter can be used multiple times, when the raster data is split
+      into multiple files.
+    --meta-data, -m
+      similarly to the ``--data`` parameter, this parameter denotes a reference
+      to meta-data. The same rules as for the ``--data`` parameter also apply
+      here.
+    --type, --coverage-type, -t
+      specify the `Coverage Type`_ for this Coverage. By default no Coverage
+      Type is used.
+    --grid, -g
+      specify the named `Grid Model`_ to use. By default an anonymous Grid is
+      used with the CRS of the raster data files.
+    --size, -s
+      specifies the size of the Coverage. This overrides the size extracted
+      from the metadata/data. Must specify the size for each axis of the Grid.
+    --origin, -o
+      overrides the origin of the Coverage. Must provide a value for each axis
+      of the Grid.
+    --footprint, -f
+      overrides the geographical footprint of the Coverage. Must be a valid WKT
+      geometry.
+    --footprint-from-extent
+      The footprint polygon shall be calculated from the Coverages extent.
+    --identifier, -i
+      override the Coverages identifier.
+    --identifier-template
+      allows the construction of the final identifier from a template.
+      Substitution values are passed in from the extracted metadata. e.g:
+      ``{identifer}__B01``.
+    --begin-time, -b
+      override the begin timestamp of the Coverage. Must be a valid ISO 8601
+      datetime string.
+    --end-time, -e
+      override the end timestamp of the Coverage. Must be a valid ISO 8601
+      datetime string.
+    --product, --product-identifier, -p
+      specify the Product identifier this Coverage shall be associated with.
+      The Product must already be registered.
+    --collection, --collection-identifier, -c
+      specify the Collection identifier this Coverage shall be inserted into.
+      The Collection must already exist.
+    --replace, -r
+      replace an already existing Coverage with the same identifier.
+    --use-subdatasets, --subdatasets
+      specify to interpret colons in the filename as subdataset specifiers.
+    --print-identifier
+      this switch prints the final identifier (after metadata extraction and
+      potential templating) to stdout upon successful registration.
+
+  deregister
+    this sub-command de-registers the Coverage with the provided identifier.
+
+    identifier
+      the Coverages identifier
+
+    --not-refresh-collections
+      this command will update all Collections metadata (footprint, begin-/end
+      time) unless this switch is set.
+
+
+product
+  this command manages `Product Model`_ instances.
+
+  register
+    this sub-command registers products.
+
+    --identifier, -i
+      override the Product identifier.
+    --identifier-template
+      allows the construction of the final identifier
+      from a template. Substitution values are passed in from the extracted
+      metadata. e.g: ``{identifer}__B01``.
+    --footprint
+      overrides the geographical footprint of the Product. Must be a valid WKT
+      geometry.
+    --begin-time
+      override the begin timestamp of the Product. Must be a valid ISO 8601
+      datetime string.
+    --end-time
+      override the end timestamp of the Product. Must be a valid ISO 8601
+      datetime string.
+    --set, -s
+      sets a specific metadata value for that product. This
+      parameter always uses two values: the name of the parameter key
+      and its value.
+      TODO: possible metadata keys to set
+    --metadata-file
+      adds a metadata file to the product. As with file
+      links for Coverages, the product file can be located on a storage. For
+      these cases, multiple values can be used to specify the chain of
+      locations.
+    --type, --product-type, -t
+      specify the `Product Type`_ for this Product. By default no Product Type
+      is used.
+    --mask, -m
+      specify a mask file to be added to this product. Must be two values:
+      the masks name and its file location.
+    --mask-geomety, -g
+      specify a mask using its geometry directly. Must be two values: the masks
+      name and its WKT geometry representation.
+    --no-extended-metadata
+      when this flag is set, only the basic metadata (identifier, footprint,
+      begin- and end-time) is stored.
+    --no-masks
+      when this flag is set, no masks will be discovered.
+    --no-browses
+      when this flag is set, no browses will be discovered.
+    --no-metadata
+      when this flag is set, no metadata files will be discovered.
+    --package
+      specify the main data package for this Product.
+    --collection, --collection-identifier, -c
+      specify the Collection identifier this Product shall be inserted into.
+      The Collection must already exist.
+    --replace
+      replace an already existing Product with the same identifier.
+    --print-identifier
+      this switch prints the final identifier (after metadata extraction and
+      potential templating) to stdout upon successful registration.
+
+  deregister
+    deregisters a Product.
+
+    identifier
+      the identifier of the Product to deregister.
+
+  discover
+    print the contents of the main package file of a Product.
+
+    identifier
+      the identifier of the Product to discover.
+
+    [pattern]
+      a filename glob pattern to filter the resulting filenames
+
+
+browse
+  this command allows to manage `Browse Model`_ instances of a `Product
+  Model`_.
+
+  register
+    this sub-command registers a Browse to a Product.
+
+    identifier
+      the Product identifier to register the Browse for.
+    location
+      the storage location of the Browse.
+
+    --type
+      the Browse Type name of that Browse.
+
+  generate
+    TODO
+
+  deregister
+    TODO
+
+
+mask
+  this command allows to manage `Mask Model`_ instances of a `Product Model`_.
+
+  register
+    registers a Mask for a Product.
+
+    identifier
+      the Product identifier to register the Mask for.
+
+    --type
+      the Mask Type name of that Mask.
+    --location
+      the storage location of the Mask.
+    --geometry
+      the inline WKT geometry for the mask.
+
+  deregister_parser
+    deregisters a Mask from a Product
+
+    identifier
+      the Product identifier to deregister the Mask from.
+
+
+collection
+  this command manages `Collection Model`_ instances. As usual, it
+  uses sub-commands to allow fine control over the specific aspects
+  and tasks of a Collection.
+
+  create
+    creates a new Collection.
+
+    identifier
+      the identifier for the new Collection.
+
+    --type, -t
+      specify a Collection Type for this new Collection.
+    --grid, -g
+      specify a Grid for this Collection.
+    --set, -s
+      set or override Collection metadata.
+      TODO: what keys?
+
+  delete
+    this sub-command deletes a Collection.
+
+    identifier
+      the identifier of the Collection to delete
+
+  insert
+    with this sub-command one or more `Coverage Model`_ instances
+    or `Product Model`_ instances can be inserted into the collection. This
+    command checks whether the to be inserted objects are of the allowed
+    types when a Collection Type is set for this Collection.
+
+    identifier
+      the identifier of the Collection to insert objects into.
+
+    object_identifiers+
+      the list of object identifiers (either Products or Coverages) to insert
+      into the Collection.
+
+  exclude
+    this command allows to remove one or more objects from a collection.
+
+    identifier
+      the identifier of the Collection to exclude objects from.
+
+    object_identifiers+
+      the list of object identifiers (either Products or Coverages) to exclude
+      from the Collection.
+
+  purge
+    this command purges all Coverages and Products from this Collection,
+    leaving it effectively empty.
+
+    TODO: not yet implemented
+
+  summary
+    collects metadata from all entailed Products and Coverages to generate a
+    summary that is stored in the Collection.
+    This allows a quick overview of the metadata ranges and specific
+    values of all objects in the collection.
+
+    identifier
+      the Collection identifier to generate the summary for
+
+    --products/--no-products
+      whether or not to generate a Product metadata summary.
+    --coverages/--no-coverages
+      whether or not to generate a Coverage metadata summary.
+
+
+mosaic
+  this command manages `Mosaic Model`_ instances with a variety of
+  sub-commands.
+
+  create
+    creates a new Mosaic.
+
+    identifier
+      the identifier of the Mosaic to create.
+
+    --type, -t
+      the Coverage Type name for the Mosaic to create.
+    --grid, -g
+      the Grid to use for the Mosaic.
+
+  delete
+    deletes a Mosaic.
+
+    identifier
+      the identifier of the Mosaic to delete.
+
+  insert
+    insert one or more Coverages into the Mosaic.
+
+    identifier
+      the identifier of the Mosaic to insert Coverages into.
+
+    coverage_identifiers+
+      the Coverage identifiers to insert into the Mosaic.
+
+  exclude
+    exclude one or more Coverages from the Mosaic.
+
+    identifier
+      the identifier of the Mosaic to exclude Coverages from.
+
+    coverage_identifiers+
+      the Coverage identifiers to exclude from the Mosaic.
+
+  refresh
+    refresh the summary metadata of the Mosaic.
+
+    identifier
+      the identifier of the Mosaic to generate the metadata.
+
+  purge
+    TODO not implemented
