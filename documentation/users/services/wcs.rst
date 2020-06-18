@@ -31,6 +31,12 @@
 Web Coverage Service (WCS)
 ==========================
 
+    A Web Coverage Service (WCS) offers multi-dimensional coverage data for
+    access over the Internet.
+
+The standard can be obtained from the `Open Geospatial Consortiums homepage
+<https://www.ogc.org/standards/wcs>`_.
+
 The following tables provide an overview over the available WCS request
 parameters for each operation supported by EOxServer.
 

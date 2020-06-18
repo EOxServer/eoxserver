@@ -8,12 +8,12 @@
   #-----------------------------------------------------------------------------
   # Copyright (C) 2012 EOX IT Services GmbH
   #
-  # Permission is hereby granted, free of charge, to any person obtaining a copy
-  # of this software and associated documentation files (the "Software"), to
-  # deal in the Software without restriction, including without limitation the
-  # rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
-  # sell copies of the Software, and to permit persons to whom the Software is
-  # furnished to do so, subject to the following conditions:
+  # Permission is hereby granted, free of charge, to any person obtaining a
+  # copy of this software and associated documentation files (the "Software"),
+  # to deal in the Software without restriction, including without limitation
+  # the rights to use, copy, modify, merge, publish, distribute, sublicense,
+  # and/or sell copies of the Software, and to permit persons to whom the
+  # Software is furnished to do so, subject to the following conditions:
   #
   # The above copyright notice and this permission notice shall be included in
   # all copies of this Software or works derived from this Software.
@@ -23,8 +23,8 @@
   # FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
   # AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
   # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
-  # IN THE SOFTWARE.
+  # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+  # DEALINGS IN THE SOFTWARE.
   #-----------------------------------------------------------------------------
 
 
@@ -73,8 +73,8 @@ The format registry configuration is split in two parts (files):
       up automatically during the EOxServer installation) defining the default
       baseline set of formats
       (``<instal.path>/eoxserver/conf/default_formats.conf``).
-    * per-instance (optional) format configuration allowing customization of the
-      format registry (``<instance path>/conf/formats.conf``).
+    * per-instance (optional) format configuration allowing customization of
+      the format registry (``<instance path>/conf/formats.conf``).
 
 In case of conflicting format definitions, the per-instance configuration takes
 precedence. Both formats' configuration files share the same text file format.
@@ -88,8 +88,9 @@ then a comma separated list of the following text fields::
 The mime type is used as the primary key and thus any repeated MIME-type will
 rewrite the previous format definition(s) using this MIME-type.
 The driver field should be in format ``GDAL/<GDAL driver name>``. To list
-available drivers provided by your GDAL installation use the following command::
+available drivers provided by your GDAL installation use the following command:
 
+::
     gdalinfo --formats
 
 The ``GDAL`` prefix is used as place-holder to allow future use of additional
@@ -120,9 +121,9 @@ path>/conf/eoxserver.conf``) in the section ``serices.ows.wcs``::
     [services.ows.wcs]
     supported_formats=<MIME type>[,<MIME type>[,<MIME type> ... ]]
 
-The supported WCS formats are specified as a comma-separated list of MIME-types.
-The listed MIME-types must be defined in the format registry otherwise they will
-be ignored. Read-only file formats will also be ignored.
+The supported WCS formats are specified as a comma-separated list of
+MIME-types. The listed MIME-types must be defined in the format registry
+otherwise they will be ignored. Read-only file formats will also be ignored.
 
 The supported formats are announced through the WCS ``Capabilities`` and
 ``CoverageDescription`` (the output may vary based on the WCS version used).
@@ -164,12 +165,12 @@ The list of the file formats supported by the *Web Map Service's* (WMS)
     [services.ows.wms]
     supported_formats=<MIME type>[,<MIME type>[,<MIME type> ... ]]
 
-The supported WMS formats are specified as a comma-separated list of MIME-types.
-The listed MIME-types must be defined in the format registry otherwise they will
-be ignored. The read-only file formats will be ignored.
+The supported WMS formats are specified as a comma-separated list of
+MIME-types. The listed MIME-types must be defined in the format registry
+otherwise they will be ignored. The read-only file formats will be ignored.
 
-The supported formats are announced through the WMS ``Capabilities`` (the output
-may vary based on the WMS version used).
+The supported formats are announced through the WMS ``Capabilities`` (the
+output may vary based on the WMS version used).
 
 References
 ----------

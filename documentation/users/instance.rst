@@ -1,9 +1,40 @@
+.. Instance
+  #-----------------------------------------------------------------------------
+  # $Id$
+  #
+  # Project: EOxServer <http://eoxserver.org>
+  # Authors: Martin Paces <martin.paces@eox.at>
+  #
+  #-----------------------------------------------------------------------------
+  # Copyright (C) 2020 EOX IT Services GmbH
+  #
+  # Permission is hereby granted, free of charge, to any person obtaining a
+  # copy of this software and associated documentation files (the "Software"),
+  # to deal in the Software without restriction, including without limitation
+  # the rights to use, copy, modify, merge, publish, distribute, sublicense,
+  # and/or sell copies of the Software, and to permit persons to whom the
+  # Software is furnished to do so, subject to the following conditions:
+  #
+  # The above copyright notice and this permission notice shall be included in
+  # all copies of this Software or works derived from this Software.
+  #
+  # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  # FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  # AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+  # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+  # DEALINGS IN THE SOFTWARE.
+  #-----------------------------------------------------------------------------
+
 Instance
 ========
 
 EOxServer can only be used in an instantiated Django project. This instance
 incorporates the whole configuration necessary to run the web application. With
 this approach it is possible to deploy more than one web application per host.
+
+.. _InstanceCreation:
 
 Creation
 --------
@@ -18,6 +49,7 @@ Another option is to use the ``django-admin`` command to start a new Django
 project, that will later be enhanced to be a fully functioning EOxServer. See
 next section :ref:`Configuration` for what can be configured.
 
+.. _InstanceConfiguration:
 
 Configuration
 -------------
@@ -37,8 +69,30 @@ Please see the Django Documentation for a coverage of the configuration
 capabilities.
 
 
-EOxServer configurations in settings.py
----------------------------------------
+Configurations in settings.py
+-----------------------------
+
+These settings are used by Django directly, but are usually necessary do adapt:
+
+PROJECT_DIR
+  Absolute path to the instance directory.
+
+DATABASES
+  The database connection details. EOxServer requires a spatially enabled
+  database backend. Both Spatialite and PostGIS are tested and known to work.
+
+LOGGING
+  what and how logs are prcessed and stored. EOxServer provides a
+  very basic configuration that stores logfiles in the instace directory, but
+  they will probably not be suitable for every instance.
+
+You can also customize further settings, for a complete reference please refer
+to the `Django settings overview
+<https://docs.djangoproject.com/en/2.2/topics/settings/>`_.
+
+Please especially consider the setting of the `TIME_ZONE
+<https://docs.djangoproject.com/en/2.2/ref/settings/#std:setting-TIME_ZONE>`_
+parameter and read the Notes provided in the ``settings.py`` file.
 
 The following settings can be used to configure various parts of EOxServer.
 
@@ -481,3 +535,31 @@ their respective configuration keys are as follows:
   maxsize=2048
     The maximum size for each dimension in WCS GetCoverage responses. All sizes
     above will result in exception reports.
+
+.. _InstanceSetup:
+
+Setup
+-----
+
+When your instance is configured, several steps need to be taken in order to
+set up the application. First off, the configured database needs to be
+migrated. This is achieved using the `migrate
+<https://docs.djangoproject.com/en/2.2/ref/django-admin/#django-admin-migrate>`_
+command. The following command performs the necessary migrations:
+
+.. code-block:: bash
+
+    python manage.py migrate
+
+Migration performs various steps depending on the necessity. For example it
+creates a database schema if it is not already present. If there already is a
+database schema, it is inspected to see whether it needs to be updated. If yes
+both the schema and the data already in the database will be updated.
+
+Finally all the static files need to be collected at the location configured
+by ``STATIC_ROOT`` in ``settings.py`` by using the following command from
+within your instance:
+
+.. code-block:: bash
+
+    python manage.py collectstatic

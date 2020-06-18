@@ -15,6 +15,10 @@ consuming the registered *EO Data* on the *User* side.
    basics
    installation
    instance
+   formats
+   crss
    backends
    coverages
    services/index
+   operations/index
+   presentations

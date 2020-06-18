@@ -50,8 +50,8 @@ In EOxServer, `Time
 <http://www.opensearch.org/Specifications/OpenSearch/Extensions/Time/1.0/Draft_1>`_ and
 `Geo <http://www.opensearch.org/Specifications/OpenSearch/Extensions/Geo/1.0/Draft_2>`_
 extensions are implemented to limit the spatio-temporal scope of the search.
-Additionally, `EO <https://docs.opengeospatial.org/is/13-026r8/13-026r8.html>`_ extension
-is implemented to support most of the required and recommended
+Additionally, `EO <https://docs.opengeospatial.org/is/13-026r8/13-026r8.html>`_
+extension is implemented to support most of the required and recommended
 best practices of the `CEOS OpenSearch Best Practice Document
 <https://earthdata.nasa.gov/files/CEOS_OpenSearch_Best_Practice_Doc-v.1.0.1_Jun2015.pdf>`_.
 
@@ -59,15 +59,15 @@ Setup
 -----
 
 To enable the OpenSearch interface in the EOxServer instance, the ``urls.py``
-has to be adjusted and the following line added::
+has to be adjusted and the following line added:
 
-    from django.conf.urls import patterns, include, url
-    ...
-    from eoxserver.services.opensearch.urls import urlpatterns as opensearch
+.. code-block:: python
 
-    urlpatterns = patterns('',
+    from django.urls import include, re_path
+
+    urlpatterns = [
         ...
-        url(r'^opensearch/', include(opensearch)),
+        re_path(r'^opensearch/', include('eoxserver.services.opensearch.urls')),
         ...
     )
 
@@ -77,6 +77,10 @@ interface to the users.
 Additionally, the the string ``"eoxserver.services.opensearch.**"`` has to be
 added to the ``COMPONENTS`` of the ``settings.py`` file.
 
+The ``EOXS_OPENSEARCH_FORMATS``, ``EOXS_OPENSEARCH_EXTENSIONS``,
+``EOXS_OPENSEARCH_SUMMARY_TEMPLATE``, and ``EOXS_OPENSEARCH_RECORD_MODEL``
+settings in the ``settings.py`` alter the behavior of the service. The details
+can be found in the `instance configuration section <InstanceConfiguration>`_.
 
 Usage
 -----
@@ -98,7 +102,7 @@ Collection Search
 
 To get the description of the OpenSearch service running in your instance, you
 have to access the URL previously specified in the ``urlpatterns``. In the
-:doc:`autotest instance <../developers/autotest>`, this looks like this::
+:doc:`autotest instance <../../developers/autotest>`, this looks like this::
 
     $ curl http://localhost/opensearch/
     <?xml version='1.0' encoding='iso-8859-1'?>
@@ -457,6 +461,9 @@ following parameters when searching for datasets:
     |                             |   overlap with the datasets time span.                    |                                  |
     |                             | - "equals": the given interval has to exactly match the   |                                  |
     |                             |   datasets time span.                                     |                                  |
+    +-----------------------------+-----------------------------------------------------------+----------------------------------+
+    | cql                         | This parameter allows to perform more complex queries     |   For more information see the   |
+    |                             | using the Common Query Language (CQL).                    |   `CQL Documentation <CQL>`_.    |
     +-----------------------------+-----------------------------------------------------------+----------------------------------+
 
 .. note::

@@ -29,6 +29,18 @@
 Web Map Service (WMS)
 =====================
 
+    The OpenGIS® Web Map Service Interface Standard (WMS) provides a simple
+    HTTP interface for requesting geo-registered map images from one or more
+    distributed geospatial databases. A WMS request defines the geographic
+    layer(s) and area of interest to be processed. The response to the request
+    is one or more geo-registered map images (returned as JPEG, PNG, etc) that
+    can be displayed in a browser application. The interface also supports the
+    ability to specify whether the returned images should be transparent so
+    that layers from multiple servers can be combined or not.
+
+The standard can be obtained from the `Open Geospatial Consortiums homepage
+<https://www.ogc.org/standards/wms>`_.
+
 The following tables provide an overview over the available WMS request
 parameters for each operation supported by EOxServer.
 
@@ -66,11 +78,11 @@ parameters that are available with Capabilities requests.
 GetMap
 ------
 
-Table: ":ref:`table_wms_request_parameters_getcoverage`" below lists all
-parameters that are available with GetCoverage requests.
+Table: ":ref:`table_wms_request_parameters_getmap`" below lists all
+parameters that are available with GetMap requests.
 
-.. _table_wms_request_parameters_getcoverage:
-.. table:: WMS GetCoverage Request Parameters
+.. _table_wms_request_parameters_getmap:
+.. table:: WMS GetMap Request Parameters
 
     +---------------------------+-----------------------------------------------------------+----------------------------------+--------------------------------+
     | Parameter                 | Description / Subparameter                                | Allowed value(s) / Example       | Mandatory (M) / Optional (O)   |
@@ -92,6 +104,7 @@ parameters that are available with GetCoverage requests.
     |                           | plus a postfix as show in the list below:                 |                                  |                                |
     |                           |                                                           |                                  |                                |
     |                           | - all:                                                    |                                  |                                |
+    |                           |                                                           |                                  |                                |
     |                           |   - ``<no-postfix>``: the default rendering of the object |                                  |                                |
     |                           |   - ``outlines``: the objects footprint as a rendered     |                                  |                                |
     |                           |     geometry                                              |                                  |                                |
@@ -99,6 +112,7 @@ parameters that are available with GetCoverage requests.
     |                           |     overlayed with the objects rendered footprint.        |                                  |                                |
     |                           |                                                           |                                  |                                |
     |                           | - ``Collection``/``Product``:                             |                                  |                                |
+    |                           |                                                           |                                  |                                |
     |                           |   - ``<mask-name>``: the rendered mask geometries for all |                                  |                                |
     |                           |     products in that collection or that single product.   |                                  |                                |
     |                           |   - ``masked_<mask-name>``: the default rendering of each |                                  |                                |
@@ -132,6 +146,7 @@ parameters that are available with GetCoverage requests.
     | bbox                      | The bounding box of the output map. Depending on the      |   12,17,14,17.4                  | M                              |
     |                           | service version and the coordinate reference system, the  |                                  |                                |
     |                           | axis order might change. The following rules apply:       |                                  |                                |
+    |                           |                                                           |                                  |                                |
     |                           | - for service version 1.3 the axis order of the used CRS  |                                  |                                |
     |                           |   applies. For EPSG:4326, for example, the axis order is  |                                  |                                |
     |                           |   lat, lon, resulting in bounding boxes like              |                                  |                                |

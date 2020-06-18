@@ -6,17 +6,18 @@ Common Query Language (CQL)
 This document describes the basic syntax of the common query language.
 CQL is the query language defined the `Catalogue Service specification (CSW)
 <http://docs.opengeospatial.org/is/12-168r6/12-168r6.html>`_. CQL
-support in EOxServer is realized using the external `pycql <https://pycql.readthedocs.io/>`_
-package.
-
+support in EOxServer is realized using the external `pycql
+<https://pycql.readthedocs.io/>`_ package.
 
 This document is based upon the `(E)CQL documentation of GeoServer
 <https://docs.geoserver.org/latest/en/user/filter/ecql_reference.html>`_
 with adapations wherever needed.
 
+
 Syntax Specification
 --------------------
 
+This chapter shows the syntax to define CQL queries.
 
 Condition
 ~~~~~~~~~

@@ -29,6 +29,11 @@
 Download Service for Earth Observation Products (DSEO)
 ======================================================
 
+The Download Service for Earth Observation Products is an OGC best practice
+document to allow the download of earth observation products.
+The document can be obtained from the `Open Geospatial Consortiums homepage
+<https://portal.opengeospatial.org/files/?artifact_id=55210>`_.
+
 The following tables provide an overview over the available DSEO request
 parameters for each operation supported by EOxServer.
 
