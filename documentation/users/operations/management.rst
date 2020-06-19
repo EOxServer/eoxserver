@@ -300,5 +300,61 @@ Data registration
 Products and Coverages can be ingested using the command line interface as
 well.
 
+In our example, we assume that our data files are structured in the following
+way:
 
+ - all files reside on a Swift object storage, the one established in the
+   `Setup`_ section.
+ - all acquisitions are stored as ZIP containers, which include the raster
+   data, vector masks and metadata in GSC format.
+ - the raster data are comprised of one TIFF file per band, one each for red,
+   green, blue, and near infrared with their file suffix indicating their
+   semantics.
 
+The first step is to register the Product itself. This is done by referencing
+the ZIP container itself.
+
+.. code-block:: bash
+
+    product_identifier=$(
+        python manage.py product register \
+            --type PL00 \
+            --collection Collection \
+            --meta-data my-storage path/to/package.zip metadata.gsc \
+            --package my-storage path/to/package.zip \
+            --print-identifier
+    )
+
+The management command prints the identifier of the registered coverage, which
+is stored in a bash variable. It can be used to associated the Coverages to the
+product. Using the ``--collection`` parameter, the Product is automatically put
+into the Collection created earlier.
+
+The next step is to register a Coverage and associate it with the Product.
+
+.. code-block:: bash
+
+    python manage.py coverage register \
+        --type RGBNir \
+        --product ${product_identifier} \
+        --identifier "${product_identifier}_coverage" \
+        --meta-data my-storage path/to/package.zip metadata.gsc \
+        --data my-storage path/to/package.zip red.tif \
+        --data my-storage path/to/package.zip green.tif \
+        --data my-storage path/to/package.zip blue.tif \
+        --data my-storage path/to/package.zip nir.tif
+
+Data access
+-----------
+
+Now that the first product and its coverage are successfully registered, the
+services can already be used.
+
+WMS
+~~~
+
+WCS
+~~~
+
+OpenSearch
+~~~~~~~~~~
