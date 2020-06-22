@@ -429,5 +429,67 @@ For more details about CQL and all available metadata fields refer to the
 WCS
 ~~~
 
+WCS in EOxServer uses a more straight-forward mapping of EO object types to
+WCS data model types. As EOxServer makes use of the EO Application Profile
+it maps Mosaics and Coverages to Rectified Stitched Mosaics and
+Rectified/Referenceable Datasets respectively and Collections and Products to
+Dataset Series.
+
+.. table:: WCS EO Object type mapping
+
+    +---------------+-------------------------------------------+
+    | Object type   | EO-WCS data model type                    |
+    +===============+===========================================+
+    | Coverage      | Rectified Dataset/Referenceable Dataset   |
+    |               | (depending on whether or not a Grid is    |
+    |               | used).                                    |
+    +---------------+-------------------------------------------+
+    | Product       | DatasetSeries                             |
+    +---------------+-------------------------------------------+
+    | Mosaic        | RectifiedStitchedMosaic                   |
+    +---------------+-------------------------------------------+
+    | Collection    | DatasetSeries                             |
+    +---------------+-------------------------------------------+
+
+
+For our example this means that a typical client will fist investigate the
+WCS capabilities document to find out what Dataset Series are available, as
+listing a very large amount of Coverages is not feasible. In our example, the
+``Collection`` is listed as Dataset Series.
+
+To explore it further, ``DescribeEOCoverageSet`` request with spatio-temporal
+subsets can be used to get the contents of the Dataset Series. This will list
+the entailed Products as sub Dataset Series and the Coverages as their
+respective EO Coverage type.
+
+All Coverages of interest can be downloaded using ``GetCoverage`` requests.
+
 OpenSearch
 ~~~~~~~~~~
+
+The access to the indexed objects via OpenSearch uses the two-step search
+principle: the root URL of OpenSearch returns with the general OpenSearch
+description document (OSDD), detailing the available search patterns using
+URL templates. Each template is associated with a result format in which the
+search results are rendered. The first step is to search for advertised
+Collections.
+
+For our example, this will return our single ``Collection`` encoded in the
+chosen result format. This also includes
+
+.. table:: OpenSearch URL endpoints
+
+    +---------------------------------------------------+-----------------------------------------------------------+
+    | URL                                               | Semantic                                                  |
+    +===================================================+===========================================================+
+    | ``opensearch``                                    | The root OSDD file.                                       |
+    +---------------------------------------------------+-----------------------------------------------------------+
+    | ``opensearch/<format>``                           | The collection search step                                |
+    +---------------------------------------------------+-----------------------------------------------------------+
+    | ``opensearch/<format>``                           | The search for collections using the specified format     |
+    +---------------------------------------------------+-----------------------------------------------------------+
+    | ``opensearch/collections/Collection``             | The OSDD file specific to the ``Collection``              |
+    +---------------------------------------------------+-----------------------------------------------------------+
+    | ``opensearch/collections/Collection/<format>``    | The search for items in our ``Collection`` in that format |
+    +---------------------------------------------------+-----------------------------------------------------------+
+
