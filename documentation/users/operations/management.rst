@@ -42,7 +42,7 @@ is not part of the this guide.
 This guide will use a practical example of real high resolution RGB + near
 infrared satellite imagery from the SPOT mission to show how to set up an
 operational service. To add a little more complexity, the data type is 16 bit
-unsigned integer, which is common for many eartch observation instruments.
+unsigned integer, which is common for many earth observation instruments.
 
 Setup
 -----
@@ -344,14 +344,87 @@ The next step is to register a Coverage and associate it with the Product.
         --data my-storage path/to/package.zip blue.tif \
         --data my-storage path/to/package.zip nir.tif
 
+For the data access let us define that the Product identifier is ``Product-A``
+this the Coverages identifier is ``Product-A_coverage``.
+
 Data access
 -----------
 
-Now that the first product and its coverage are successfully registered, the
+Now that the first Product and its Coverage are successfully registered, the
 services can already be used.
 
 WMS
 ~~~
+
+Via WMS it is possible to get rendered maps from the stored Products and
+Coverages. The table for `Layer Mapping <table_wms_layer_mapping>`_ is imporant
+here. From that we can deduct various map layers that are available for access.
+
+For production services it is typical to provide access to thounsands of earth
+observation Products, thus rendering individual Product access impractical for
+visual browsing. Typically, it is more convenient to access the Collection
+instead using the area and time of interest and optionally additional metadata
+filters.
+
+This results in a catalog of the following available layers:
+
+ - ``Collection``: the most basic rendering of the Collection. In our example
+   the we created four Browse Type definitions: ``TRUE_COLOR``,
+   ``FALSE_COLOR``, ``NDVI`` and an unnamed default one which had the same
+   parameters as ``TRUE_COLOR``. This means, that the default rendering is
+   a true color representation of the Products.
+ - ``Collection__outlines``: this renders the outlines of the Products as
+   geometries.
+ - ``Collection__outlined``: this is a combination of the previous two layers:
+   each Product is rendered in ``TRUE_COLOR`` with its outlines highlighted.
+ - ``Collection__TRUE_COLOR``, ``Collection__FALSE_COLOR``,
+   ``Collection__NDVI``: these are the browse visualizations with the
+   definintions from earlier.
+ - ``Collection__validity``: this renders the Products vector masks as colored
+   geometries.
+ - ``Collection__masked_validity``: this renders the default visualization
+   (true color) but applies each Products validity mask.
+
+
+The following list shows all of these rendering options with an example product
+
+.. table:: WMS Collection Layers
+
+    +-----------------------------------+---------------------------------------------------+
+    | Layer                             | Example image                                     |
+    +===================================+===================================================+
+    | ``Collection``/                   | .. figure:: images/product_true_color.png         |
+    | ``Collection__TRUE_COLOR``        |                                                   |
+    +-----------------------------------+---------------------------------------------------+
+    | ``Collection__FALSE_COLOR``       | .. figure:: images/product_false_color.png        |
+    +-----------------------------------+---------------------------------------------------+
+    | ``Collection__NDVI``              | .. figure:: images/product_ndvi.png               |
+    +-----------------------------------+---------------------------------------------------+
+    | ``Collection__outlines``          | .. figure:: images/product_outlines.png           |
+    +-----------------------------------+---------------------------------------------------+
+    | ``Collection__outlined``          | .. figure:: images/product_outlined.png           |
+    +-----------------------------------+---------------------------------------------------+
+    | ``Collection__validity``          | .. figure:: images/product_validity.png           |
+    +-----------------------------------+---------------------------------------------------+
+    | ``Collection__masked_validity``   | .. figure:: images/product_masked_validity.png    |
+    +-----------------------------------+---------------------------------------------------+
+
+It is possible to filter the objects using their metadata. This happens
+already with the mandatory ``bbox``: only objects that intersect with that
+bounding box are further processed and rendered to the output map. One other
+such parameter is the ``time`` parameter. It allows to specify a time instant
+or a time range to include objects.
+
+It is, however, also possible to filter upon any other metadata of a Product
+as well. This can be used, for example, to only render images below a threshold
+of cloud coverage, to generate a mosaic of almost cloud free images. The
+parameter to use is the ``cql`` one. For our example, we would append
+``&cql=cloudCover <= 5`` to only include images with less or equal than 5%
+cloud coverage. For this to work, the metadata of the Products needs to be
+indexed upon registration. This is done in the process of metadata reading.
+
+For more details about CQL and all available metadata fields refer to the
+`CQL <CQL> `_ documentation.
 
 WCS
 ~~~

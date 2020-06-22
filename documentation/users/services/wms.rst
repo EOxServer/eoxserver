@@ -181,7 +181,82 @@ parameters that are available with GetMap requests.
     |                           | or ``D``                                                  |                                  |                                |
     +---------------------------+-----------------------------------------------------------+----------------------------------+--------------------------------+
 
-
-
 .. [1]  For WMS service version 1.3 the ``crs`` parameter must be used, for services
         versions below 1.3 the parameter name is ``srs``.
+
+
+Layer Mapping
+-------------
+
+Various objects in EOxServer generate exposed layers to be requested by clients
+via WMS.
+
+.. _table_wms_layer_mapping:
+.. table:: WMS Layer Mapping
+
+    +---------------------------+-------------------------------+---------------------------------------------+---------------------------------------------+-------------------+
+    | Base Object               | Suffix                        | Description                                 | Style                                       | Advertised [2]    |
+    +===========================+===============================+=============================================+=============================================+===================+
+    | Coverage                  | --                            | Renders the coverage as a map. This is the  | When the coverage only has a single field,  | no                |
+    |                           |                               | most basic for of rendering and             | or only one is selected via ``dim_bands``,  |                   |
+    |                           |                               | ``dim_bands`` and ``dim_range`` will likey  | then the name of a color scale can be passed|                   |
+    |                           |                               | need to be used to achieve representative   | to colorize the otherwise greyscale image.  |                   |
+    |                           |                               | result.                                     |                                             |                   |
+    +---------------------------+-------------------------------+---------------------------------------------+---------------------------------------------+-------------------+
+    | Mosaic                    | --                            | This behaves exactly like with Coverages    | Same as above.                              | yes               |
+    |                           |                               | but applies the rendering to all contained  |                                             |                   |
+    |                           |                               | Coverages.                                  |                                             |                   |
+    +---------------------------+-------------------------------+---------------------------------------------+---------------------------------------------+-------------------+
+    | Product                   | --                            | Renders the Products default Browse or      |                                             | no                |
+    |                           |                               | using the defaults Browse Type to           |                                             |                   |
+    |                           |                               | dynamically render a browse.                |                                             |                   |
+    +---------------------------+-------------------------------+---------------------------------------------+---------------------------------------------+-------------------+
+    | Coverage/Product          | ``outlines``                  | Renders the footprint of the                | Defines the color of the rendered geometry. | no                |
+    |                           |                               | Coverage/Product as a colorized geometry.   |                                             |                   |
+    +---------------------------+-------------------------------+---------------------------------------------+---------------------------------------------+-------------------+
+    | Mosaic/Collection         | ``outlines``                  | Renders the footprint of all contained      | Defines the color of the rendered geometry. | yes               |
+    |                           |                               | Coverages or Products as a colorized        |                                             |                   |
+    |                           |                               | geometry.                                   |                                             |                   |
+    +---------------------------+-------------------------------+---------------------------------------------+---------------------------------------------+-------------------+
+    | Coverage/Product          | ``outlined``                  | Renders the Coverage/Product in its default | Defines the color of the rendered geometry. | no                |
+    |                           |                               | way (as with no prefix) but overlays it     |                                             |                   |
+    |                           |                               | with the footprint geometry (as with        |                                             |                   |
+    |                           |                               | ``outlines`` suffix)                        |                                             |                   |
+    +---------------------------+-------------------------------+---------------------------------------------+---------------------------------------------+-------------------+
+    | Mosaic/Collection         | ``outlined``                  | Renders the Mosaic/Collection in its        | Defines the color of the rendered geometry. | yes               |
+    |                           |                               | default way (as with no prefix) but each    |                                             |                   |
+    |                           |                               | included Coverage/Product rendering is      |                                             |                   |
+    |                           |                               | overlayed with the footprint geometry (as   |                                             |                   |
+    |                           |                               | with the ``outlines`` suffix).              |                                             |                   |
+    +---------------------------+-------------------------------+---------------------------------------------+---------------------------------------------+-------------------+
+    | Product                   | ``<Browse Type Name>``        | Renders the Products Browse of that Browse  |                                             | no                |
+    |                           |                               | Type if available or uses the Browse Type   |                                             |                   |
+    |                           |                               | to dynamically render a Browse.             |                                             |                   |
+    +---------------------------+-------------------------------+---------------------------------------------+---------------------------------------------+-------------------+
+    | Product                   | ``<Mask Type Name>``          | Renders the Mask of the Product of that     | Defines the color of the geometry.          | no                |
+    |                           |                               | Mask Type as a rasterized vector layer.     |                                             |                   |
+    +---------------------------+-------------------------------+---------------------------------------------+---------------------------------------------+-------------------+
+    | Product                   | ``masked_<Mask Type Name>``   | Use the default rendering of the product    |                                             | no                |
+    |                           |                               | and apply the Mask of the specified Mask    |                                             |                   |
+    |                           |                               | Type.                                       |                                             |                   |
+    +---------------------------+-------------------------------+---------------------------------------------+---------------------------------------------+-------------------+
+    | Collection                | --                            | Renders all Products in the Collection with |                                             |                   |
+    |                           |                               | their default Browse (or dynamically using  |                                             |                   |
+    |                           |                               | the default Browse Type).                   |                                             |                   |
+    +---------------------------+-------------------------------+---------------------------------------------+---------------------------------------------+-------------------+
+    | Collection                | ``<Browse Type Name>``        | Renders all contained Products using the    |                                             |                   |
+    |                           |                               | Browse of that Browse Type or dynamically   |                                             |                   |
+    |                           |                               | generated Browse of that Browse Type.       |                                             |                   |
+    +---------------------------+-------------------------------+---------------------------------------------+---------------------------------------------+-------------------+
+    | Collection                | ``<Mask Type Name>``          | Renders all Masks of the contained Products |                                             |                   |
+    |                           |                               | as colorized geometries.                    |                                             |                   |
+    +---------------------------+-------------------------------+---------------------------------------------+---------------------------------------------+-------------------+
+    | Collection                | ``masked_<Mask Type Name>``   | Renders all contained Browses using their   |                                             |                   |
+    |                           |                               | default Browse or a dynamically generated   |                                             |                   |
+    |                           |                               | Browse of the default Browse Type and       |                                             |                   |
+    |                           |                               | individually apply the Mask of that Mask    |                                             |                   |
+    |                           |                               | Type.                                       |                                             |                   |
+    +---------------------------+-------------------------------+---------------------------------------------+---------------------------------------------+-------------------+
+
+.. [2]  Whether or not this layer is by default advertised in GetCapabilities
+        documents. This can be overridden by setting the objects visibility.
