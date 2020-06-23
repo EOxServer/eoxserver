@@ -8,14 +8,14 @@
   #          Fabian Schindler <fabian.schindler@eox.at>
   #
   #-----------------------------------------------------------------------------
-  # Copyright (C) 2011 EOX IT Services GmbH
+  # Copyright (C) 2013 EOX IT Services GmbH
   #
-  # Permission is hereby granted, free of charge, to any person obtaining a copy
-  # of this software and associated documentation files (the "Software"), to
-  # deal in the Software without restriction, including without limitation the
-  # rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
-  # sell copies of the Software, and to permit persons to whom the Software is
-  # furnished to do so, subject to the following conditions:
+  # Permission is hereby granted, free of charge, to any person obtaining a
+  # copy of this software and associated documentation files (the "Software"),
+  # to deal in the Software without restriction, including without limitation
+  # the rights to use, copy, modify, merge, publish, distribute, sublicense,
+  # and/or sell copies of the Software, and to permit persons to whom the
+  # Software is furnished to do so, subject to the following conditions:
   #
   # The above copyright notice and this permission notice shall be included in
   # all copies of this Software or works derived from this Software.
@@ -25,8 +25,8 @@
   # FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
   # AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
   # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
-  # IN THE SOFTWARE.
+  # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+  # DEALINGS IN THE SOFTWARE.
   #-----------------------------------------------------------------------------
 
 .. _webclient:
@@ -55,10 +55,10 @@ instances ``settings.py`` and ``urls.py``.
 
 First off, the ``eoxserver.webclient`` has to be inserted in the ``INSTALLED_APPS``
 option of your ``settings.py``. As the interface also requires several static
-files like style-sheets and script files, the option ``STATIC_URL`` has to be set
-to a path the webserver is able to serve, for example ``/static/``. The static
-media files are located under ``path/to/eoxserver/webclient/static`` and can be
-collected via the `collectstatic command
+files like style-sheets and script files, the option ``STATIC_URL`` has to be
+set to a path the webserver is able to serve, for example ``/static/``. The
+static media files are located under ``path/to/eoxserver/webclient/static`` and
+can be collected via the `collectstatic command
 <https://docs.djangoproject.com/en/1.8/ref/contrib/staticfiles/#collectstatic>`_.
 
 To finally enable the webclient, a proper URL scheme has to be set up in
@@ -66,21 +66,24 @@ To finally enable the webclient, a proper URL scheme has to be set up in
 on the URL ``www.yourdomain.com/client``.
 ::
 
-    urlpatterns = patterns('',
+    from django.urls import include, re_path
+
+    urlpatterns = [
         ...
-        url(r'^client/', include("eoxserver.webclient.urls")),
+        re_path(r'^client/', include('eoxserver.webclient.urls')),
         ...
-    )
+    ]
 
 Using the webclient interface
 -----------------------------
 
 The webclient interface can be accessed via the given URL in `urls.py` as
-described in the instructions above, whereas the URL `www.yourdomain.com/client` would
-open an index view, displaying links to the webclient for every dataset series
-registered in the system. To view the webclient for a specific dataset series,
-use this URL: `www.yourdomain.com/client/<EOID>` where `<EOID>` is the EO-ID of
-the dataset series you want to inspect.
+described in the instructions above, whereas the URL
+`www.yourdomain.com/client` wouldopen an index view, displaying links to the
+webclient for every dataset series registered in the system. To view the
+webclient for a specific dataset series, use this URL:
+`www.yourdomain.com/client/<EOID>` where `<EOID>` is the EO-ID of the dataset
+series you want to inspect.
 
 .. _fig_webclient_autotest:
 .. figure:: images/webclient_autotest.png

@@ -685,11 +685,11 @@ To do the opposite do the following:
 collection purge
 ~~~~~~~~~~~~~~~~~~~~~
 
-To quickly remove the contents of a single collection from the database, the 
+To quickly remove the contents of a single collection from the database, the
 ``collection purge`` command can be used. This command deregisters all
 contained datasets of a collection. When the ``--recursive`` option is set, all
 contained sub-collections are purged aswell.
-Using the ``--delete`` option, the purged collections themselves are deleted too. 
+Using the ``--delete`` option, the purged collections themselves are deleted too.
 
 .. _id check:
 
@@ -728,7 +728,7 @@ will be limited to the specified coverage-types only::
     python manage.py coveragetype list --details [<range-type-name> ...]
 
 The sub-command ``coveragetype export`` can be used to export coveragetypes.
-Following example prints a Coverage type,the output is directly saved to a file 
+Following example prints a Coverage type,the output is directly saved to a file
 named ``rangetypes.json`` by using the ``-o``::
 
     python manage.py coveragetype export -o rangetypes.json

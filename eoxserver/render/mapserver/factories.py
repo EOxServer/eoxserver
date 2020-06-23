@@ -13,8 +13,8 @@
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
-# The above copyright notice and this permission notice shall be included in all
-# copies of this Software or works derived from this Software.
+# The above copyright notice and this permission notice shall be included in
+# all copies of this Software or works derived from this Software.
 #
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -143,13 +143,17 @@ class CoverageLayerFactoryMixIn(object):
 
                 # TODO: env?
                 reftools.create_rectified_vrt(
-                    field_locations[0][1].path, vrt_path, order=1, max_error=10,
+                    field_locations[0][1].path, vrt_path,
+                    order=1, max_error=10,
                     resolution=(resx, -resy), srid=srid
                 )
                 data = vrt_path
 
         elif num_locations > 1:
-            if len(set(field_location[1].path for field_location in field_locations)) == 1:
+            paths_set = set(
+                field_location[1].path for field_location in field_locations
+            )
+            if len(paths_set) == 1:
                 location = field_locations[0][1]
                 data = location.path
                 ms.set_env(map_obj, location.env, True)
@@ -163,11 +167,14 @@ class CoverageLayerFactoryMixIn(object):
             sr = coverage.grid.spatial_reference
         else:
             map_extent = map_obj.extent
-            extent = (map_extent.minx, map_extent.miny, map_extent.maxx, map_extent.maxy)
+            extent = (
+                map_extent.minx, map_extent.miny,
+                map_extent.maxx, map_extent.maxy
+            )
             sr = osr.SpatialReference(map_obj.getProjection())
 
         layer_objs = _create_raster_layer_objs(
-            map_obj,extent, sr, data, filename_generator
+            map_obj, extent, sr, data, filename_generator
         )
 
         for i, layer_obj in enumerate(layer_objs):
@@ -311,9 +318,11 @@ class MosaicLayerFactory(CoverageLayerFactoryMixIn, BaseMapServerLayerFactory):
 # TODO: combine BrowseLayerFactory with OutlinedBrowseLayerFactory, as they are
 # very similar
 
+
 class BrowseLayerMixIn(object):
-    def make_browse_layer_generator(self, map_obj, browses, map_, filename_generator,
-                                    group_name, ranges, style):
+    def make_browse_layer_generator(self, map_obj, browses, map_,
+                                    filename_generator, group_name, ranges,
+                                    style):
         for browse in browses:
             if isinstance(browse, GeneratedBrowse):
                 creation_info, filename_generator, reset_info = generate_browse(

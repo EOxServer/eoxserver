@@ -1,5 +1,12 @@
 # Documentation HowTo
 
+## Rebuilding API-Documentation
+
+```sh
+rm apidoc/*rst
+sphinx-apidoc -o apidoc/ -M -f -a .. eoxserver
+```
+
 ## Generate Sphinx documentation
 
 ### UNIX

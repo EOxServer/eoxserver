@@ -82,7 +82,7 @@ class MetadataMixIn(object):
         self.setMetaData(key, value)
 
     def setMetaData(self, key_or_params, value=None, namespace=None):
-        """ Convenvience method to allow setting multiple metadata values with 
+        """ Convenvience method to allow setting multiple metadata values with
             one call and optionally setting a 'namespace' for each entry.
         """
         if value is None:
@@ -100,9 +100,13 @@ class MetadataMixIn(object):
             return super(MetadataMixIn, self).setMetaData(key, value)
 
 
-class Map(MetadataMixIn, mapObj):
-    def dispatch(self, request):
-        return dispatch(self, request)
+# print('XAJSOANS')
+
+# import mapscript
+# print(dir(mapscript.mapObj))
+# class Map(MetadataMixIn, mapObj):
+#     def dispatch(self, request):
+#         return dispatch(self, request)
 
 
 def dispatch(map_, request):
@@ -255,7 +259,7 @@ def gdalconst_to_imagemode_string(const):
 
 
 def setMetaData(obj, key_or_params, value=None, namespace=None):
-    """ Convenvience function to allow setting multiple metadata values with 
+    """ Convenvience function to allow setting multiple metadata values with
         one call and optionally setting a 'namespace' for each entry.
     """
     if value is None:

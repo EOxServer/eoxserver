@@ -9,14 +9,14 @@
   #          Marko Locher <marko.locher@eox.at>
   #
   #-----------------------------------------------------------------------------
-  # Copyright (C) 2011 EOX IT Services GmbH
+  # Copyright (C) 2013 EOX IT Services GmbH
   #
-  # Permission is hereby granted, free of charge, to any person obtaining a copy
-  # of this software and associated documentation files (the "Software"), to
-  # deal in the Software without restriction, including without limitation the
-  # rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
-  # sell copies of the Software, and to permit persons to whom the Software is
-  # furnished to do so, subject to the following conditions:
+  # Permission is hereby granted, free of charge, to any person obtaining a
+  # copy of this software and associated documentation files (the "Software"),
+  # to deal in the Software without restriction, including without limitation
+  # the rights to use, copy, modify, merge, publish, distribute, sublicense,
+  # and/or sell copies of the Software, and to permit persons to whom the
+  # Software is furnished to do so, subject to the following conditions:
   #
   # The above copyright notice and this permission notice shall be included in
   # all copies of this Software or works derived from this Software.
@@ -25,9 +25,9 @@
   # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
   # FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
   # AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
-  # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
-  # IN THE SOFTWARE.
+  # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+  # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+  # DEALINGS IN THE SOFTWARE.
   #-----------------------------------------------------------------------------
 
 .. index::
@@ -42,20 +42,20 @@ Installation on CentOS
     :depth: 3
     :backlinks: top
 
-This section describes specific installation procedure for EOxServer 
-on `CentOS <http://www.centos.org/>`_ GNU/Linux based operating systems. 
+This section describes specific installation procedure for EOxServer
+on `CentOS <http://www.centos.org/>`_ GNU/Linux based operating systems.
 In this example, a raw CentOS 6.4 minimal image is used.
 
 This guide is assumed (but not tested) to be applicable also for equivalent
 versions of the prominent North American Enterprise Linux and its clones.
 
-.. seealso:: 
+.. seealso::
 
     * :ref:`Installation`
             generic installation procedure for GNU/Linux operating systems.
-    * :ref:`InstanceCreation` 
+    * :ref:`InstanceCreation`
             to configure an instance of EOxServer after successful installation.
-    * :ref:`OperationalInstallation` 
+    * :ref:`OperationalInstallation`
             to configure an operational EOxServer installation.
 
 Prerequisites
@@ -89,13 +89,13 @@ Linux) <http://fedoraproject.org/wiki/EPEL>`_ again via a simple `yum` command::
 
     sudo yum install epel-release
 
-Finally EOxServer is available from the yum repository at `packages.eox.at 
-<http://packages.eox.at>`_. This repository offers current versions of 
-packages like `MapServer <http://mapserver.org/>`_ as well as custom built 
-ones with extra drivers enabled like `GDAL <http://gdal.org/>`_ and/or with 
-patches applied like `libxml2 <http://xmlsoft.org/>`_. It is not mandatory 
-to use this repository as detailed below but it is highly recommended in 
-order for all features of EOxServer to work correctly. The repository is 
+Finally EOxServer is available from the yum repository at `packages.eox.at
+<http://packages.eox.at>`_. This repository offers current versions of
+packages like `MapServer <http://mapserver.org/>`_ as well as custom built
+ones with extra drivers enabled like `GDAL <http://gdal.org/>`_ and/or with
+patches applied like `libxml2 <http://xmlsoft.org/>`_. It is not mandatory
+to use this repository as detailed below but it is highly recommended in
+order for all features of EOxServer to work correctly. The repository is
 again easily added via a single `yum` command::
 
     sudo rpm -Uvh http://yum.packages.eox.at/el/eox-release-6-2.noarch.rpm
@@ -108,22 +108,22 @@ again easily added via a single `yum` command::
 Installing EOxServer
 ~~~~~~~~~~~~~~~~~~~~
 
-Once the RPM repositories are configured EOxServer and all its dependencies 
+Once the RPM repositories are configured EOxServer and all its dependencies
 are installed via a single command::
 
     sudo yum install EOxServer
 
-To update EOxServer simply run the above command again or update the whole 
+To update EOxServer simply run the above command again or update the whole
 system with::
 
     sudo yum update
 
-Please carefully follow the :ref:`migration/update procedure <Migration>` 
-corresponding to your version numbers for any configured EOxServer instances 
+Please carefully follow the :ref:`migration/update procedure <Migration>`
+corresponding to your version numbers for any configured EOxServer instances
 in case of a major version upgrade.
 
-Further packages may be required if additional features (e.g: a full DBMS) 
-are desired. The following command for example installs all packages needed 
+Further packages may be required if additional features (e.g: a full DBMS)
+are desired. The following command for example installs all packages needed
 when using SQLite::
 
     sudo yum install sqlite libspatialite python-pysqlite python-pyspatialite
@@ -136,9 +136,9 @@ To run EOxServer behind the Apache web server requires the installation of this
 web server::
 
     sudo yum install httpd mod_wsgi
-    
+
 Now that EOxServer is properly installed the next step is to :ref:`create and
-configure a service instance <InstanceCreation>`. 
+configure a service instance <InstanceCreation>`.
 
 .. _CentOSInstallation_pip:
 
@@ -148,7 +148,7 @@ Alternate installation method using *pip*
 Required Software Packages
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The installation via pip builds EOxServer from its source. Thus there are 
+The installation via pip builds EOxServer from its source. Thus there are
 some additional packages required which can be installed using::
 
     sudo yum install gdal gdal-python gdal-devel mapserver mapserver-python \
@@ -158,8 +158,8 @@ some additional packages required which can be installed using::
 Installing EOxServer
 ~~~~~~~~~~~~~~~~~~~~
 
-For the installation of Python packages `pip <http://www.pip-installer.org/>`_ 
-is used, which itself was installed in the previous step. It automatically 
+For the installation of Python packages `pip <http://www.pip-installer.org/>`_
+is used, which itself was installed in the previous step. It automatically
 resolves and installs all dependencies. So a simple::
 
     sudo pip-python install eoxserver
@@ -171,25 +171,25 @@ switch to your pip command::
 
   sudo pip-python install --upgrade eoxserver
 
-Please don't forget to follow the update procedure for any configured 
+Please don't forget to follow the update procedure for any configured
 EOxServer instances in case of a major version upgrade.
 
 Now that EOxServer is properly installed the next step is to :ref:`create and
-configure a service instance <InstanceCreation>`. 
+configure a service instance <InstanceCreation>`.
 
 
 Special *pysqlite* considerations
 ---------------------------------
 
-When used with `spatialite <http://www.gaia-gis.it/spatialite/>`_ EOxServer 
-also requires `pysqlite <http://code.google.com/p/pysqlite/>`_ and 
-`pyspatialite` which can be either installed as RPMs from `packages.eox.at 
-<http://packages.eox.at>`_ (see :ref:`centos-installing-eoxserver-yum` 
+When used with `spatialite <http://www.gaia-gis.it/spatialite/>`_ EOxServer
+also requires `pysqlite <http://code.google.com/p/pysqlite/>`_ and
+`pyspatialite` which can be either installed as RPMs from `packages.eox.at
+<http://packages.eox.at>`_ (see :ref:`centos-installing-eoxserver-yum`
 above) or from source.
 
-If installing from source please make sure to adjust the 
-`SQLITE_OMIT_LOAD_EXTENSION` parameter in ``setup.cfg`` which is set by 
-default but not allowed for EOxServer. The following provides a complete 
+If installing from source please make sure to adjust the
+`SQLITE_OMIT_LOAD_EXTENSION` parameter in ``setup.cfg`` which is set by
+default but not allowed for EOxServer. The following provides a complete
 installation procedure::
 
     sudo yum install libspatialite-devel geos-devel proj-devel
@@ -200,8 +200,8 @@ installation procedure::
     sed -e '/^define=SQLITE_OMIT_LOAD_EXTENSION$/d' -i setup.cfg
     sudo python setup.py install
 
-If the installation is rerun the ``--upgrade`` respectively the ``--force`` 
-flag have to be added to the ``pip-python`` and ``python`` commands in order 
+If the installation is rerun the ``--upgrade`` respectively the ``--force``
+flag have to be added to the ``pip-python`` and ``python`` commands in order
 to actually redo the installation::
 
     sudo pip-python install --upgrade pyspatialite

@@ -17,12 +17,13 @@ from django.conf import settings
 
 settings.configure(DEBUG=True, )
 
-from eoxserver import get_version
-
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 sys.path.append(os.path.abspath('..'))
+
+
+from eoxserver import get_version
 
 # -- General configuration -----------------------------------------------------
 
@@ -215,6 +216,6 @@ latex_show_urls = 'footnote'
 
 # Links to external projects.
 intersphinx_mapping = {
-    'django': ('https://docs.djangoproject.com/en/1.8/', 'http://docs.djangoproject.com/en/1.8/_objects/'),
-    'python': ('http://docs.python.org/2.7', None),
+    'django': ('https://docs.djangoproject.com/en/2.2/', 'http://docs.djangoproject.com/en/2.2/_objects/'),
+    'python': ('http://docs.python.org/3.6', None),
 }

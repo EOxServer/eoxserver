@@ -89,7 +89,7 @@ Every EOxServer instance has various configuration files:
 
 * ``settings.py`` - `template
   <https://github.com/EOxServer/eoxserver/blob/0.4/eoxserver/instance_template/project_name/settings.py>`__
-* `urls.py`` - `template
+* ``urls.py`` - `template
   <https://github.com/EOxServer/eoxserver/blob/0.4/eoxserver/instance_template/project_name/urls.py>`__
 * ``conf/eoxserver.conf`` - `template
   <https://github.com/EOxServer/eoxserver/blob/0.4/eoxserver/instance_template/project_name/conf/eoxserver.conf>`__
@@ -120,7 +120,7 @@ to the `Django settings overview
 <https://docs.djangoproject.com/en/1.11/topics/settings/>`_.
 
 Please especially consider the setting of the `TIME_ZONE
-<https://docs.djangoproject.com/en/1.11/ref/settings/#std:setting-TIME_ZONE>`_
+<https://docs.djangoproject.com/en/2.2/ref/settings/#std:setting-TIME_ZONE>`_
 parameter and read the Notes provided in the ``settings.py`` file.
 
 The file ``conf/eoxserver.conf`` contains EOxServer specific settings. Please
@@ -240,15 +240,6 @@ The deployment procedure consists of the following:
             Allow from all
     </Directory>
 
-* If using EOxServer < 0.3 customize ``wsgi.py`` in your EOxServer instance
-  and add::
-
-    import sys
-
-    path = "<absolute path to instance dir>"
-    if path not in sys.path:
-        sys.path.append(path)
-
 * Restart the Web Server
 
 As a general good idea the number of threads can be limited using the
@@ -290,7 +281,7 @@ EOxServer provides a specific command and a subcommand to insert coverages into 
 called ``coverage register``. It is invoked from command line from your
 instance base folder::
 
-    python manage.py coverage register --data DATAFILES --coverage-type COVERAGETYPE    
+    python manage.py coverage register --data DATAFILES --coverage-type COVERAGETYPE
 
 The mandatory parameter ``--data`` is a path to a file containing the raster
 data for the coverage to be inserted. If the file resides in a package (a ZIP or
