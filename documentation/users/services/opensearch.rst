@@ -1,4 +1,4 @@
-.. opensearch
+.. OpenSearch
   #-----------------------------------------------------------------------------
   #
   # Project: EOxServer <http://eoxserver.org>

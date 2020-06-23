@@ -353,8 +353,8 @@ Data access
 Now that the first Product and its Coverage are successfully registered, the
 services can already be used.
 
-WMS
-~~~
+:ref:`wms`
+~~~~~~~~~~
 
 Via WMS it is possible to get rendered maps from the stored Products and
 Coverages. The table for `Layer Mapping <table_wms_layer_mapping>`_ is imporant
@@ -426,8 +426,8 @@ indexed upon registration. This is done in the process of metadata reading.
 For more details about CQL and all available metadata fields refer to the
 `CQL <CQL> `_ documentation.
 
-WCS
-~~~
+:ref:`wcs`
+~~~~~~~~~~
 
 WCS in EOxServer uses a more straight-forward mapping of EO object types to
 WCS data model types. As EOxServer makes use of the EO Application Profile
@@ -464,8 +464,8 @@ respective EO Coverage type.
 
 All Coverages of interest can be downloaded using ``GetCoverage`` requests.
 
-OpenSearch
-~~~~~~~~~~
+:ref:`opensearch`
+~~~~~~~~~~~~~~~~~
 
 The access to the indexed objects via OpenSearch uses the two-step search
 principle: the root URL of OpenSearch returns with the general OpenSearch

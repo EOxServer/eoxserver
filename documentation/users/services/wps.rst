@@ -26,9 +26,10 @@
   # DEALINGS IN THE SOFTWARE.
   #-----------------------------------------------------------------------------
 
+.. _wps:
 
-Web Processing Service
-======================
+Web Processing Service (WPS)
+============================
 
     The OpenGIS® Web Processing Service (WPS) Interface Standard provides rules
     for standardizing how inputs and outputs (requests and responses) for
