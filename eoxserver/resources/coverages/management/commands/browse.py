@@ -92,12 +92,4 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
     def handle_deregister(self, identifier, **kwargs):
         """ Handle the deregistration a browse image
         """
-        # try:
-        #     models.Coverage.objects.get(identifier=identifier).delete()
-        #     print(
-        #         'Successfully deregistered browse (%r) for product %r'
-        #         % (type_name, identifier)
-        #     )
-        # except models.Coverage.DoesNotExist:
-        #     raise CommandError('No such Coverage %r' % identifier)
         raise NotImplementedError
