@@ -85,7 +85,7 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
 
         list_parser.add_argument(
             '--no-detail', action="store_false", default=True, dest='detail',
-            help="Disable the printing of details of the product type."
+            help="Disable the printing of details of the coverage type."
         )
 
     @transaction.atomic
