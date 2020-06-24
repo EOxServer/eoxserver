@@ -13,8 +13,8 @@
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
-# The above copyright notice and this permission notice shall be included in all
-# copies of this Software or works derived from this Software.
+# The above copyright notice and this permission notice shall be included in
+# all copies of this Software or works derived from this Software.
 #
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -29,6 +29,7 @@ import sys
 from itertools import chain
 
 from django.core.management.base import CommandError, BaseCommand
+from django.db.models import Q
 
 from eoxserver.resources.coverages import models
 from eoxserver.resources.coverages.management.commands import (
@@ -52,7 +53,8 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
 
         list_parser.add_argument(
             'identifiers', nargs='*',
-            help='Optional. The identifiers of the objects to check for existence.'
+            help=('Optional. The identifiers of the objects to check for '
+                  'existence.')
         )
         list_parser.add_argument(
             '-t', '--type', dest="type_name", default="EOObject",
@@ -68,6 +70,12 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             dest="suppress_type", action="store_true", default=False,
             help=("Optional. Supress the output of the type. By default, the "
                   "type is also printed after the identifier.")
+        )
+        list_parser.add_argument(
+            '-c', '--collection',
+            dest="collections", action="append", default=None,
+            help=("Optional. Specify a collection that objects must be part "
+                  "of. Can be specified multiple times.")
         )
 
     def handle(self, subcommand, *args, **kwargs):
@@ -102,13 +110,20 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
         if used:
             sys.exit(1)
 
-    def handle_list(self, identifiers, type_name, suppress_type, **kwargs):
+    def handle_list(self, identifiers, type_name, suppress_type, collections,
+                    **kwargs):
         eo_objects = self.get_queryset(type_name)
         if type_name == 'EOObject':
             eo_objects = eo_objects.select_subclasses()
 
         if identifiers:
             eo_objects = eo_objects.filter(identifier__in=identifiers)
+
+        if collections:
+            eo_objects = eo_objects.filter(
+                Q(coverage__collections__identifier__in=collections)
+                | Q(product__collections__identifier__in=collections)
+            )
 
         for eo_object in eo_objects:
             self.print_object(eo_object, kwargs["recursive"], suppress_type)

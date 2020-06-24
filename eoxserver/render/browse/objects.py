@@ -195,8 +195,9 @@ class GeneratedBrowse(Browse):
         return self._field_list
 
     @classmethod
-    def from_coverage_models(cls, band_expressions_and_ranges, fields_and_coverage_models,
-                             field_names, product_model):
+    def from_coverage_models(cls, band_expressions_and_ranges,
+                             fields_and_coverage_models,
+                             product_model):
 
         band_expressions, ranges = zip(*band_expressions_and_ranges)
 
@@ -216,7 +217,7 @@ class GeneratedBrowse(Browse):
                 fields_and_coverages[field_name][0].range_type.get_field(
                     field_name
                 )
-                for field_name in field_names
+                for field_name in fields_and_coverages.keys()
             ],
             product_model.footprint
         )

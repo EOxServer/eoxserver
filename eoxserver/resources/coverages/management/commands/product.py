@@ -13,8 +13,8 @@
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
-# The above copyright notice and this permission notice shall be included in all
-# copies of this Software or works derived from this Software.
+# The above copyright notice and this permission notice shall be included in
+# all copies of this Software or works derived from this Software.
 #
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -37,7 +37,9 @@ from eoxserver.resources.coverages import models
 from eoxserver.resources.coverages.management.commands import (
     CommandOutputMixIn, SubParserMixIn
 )
-from eoxserver.resources.coverages.registration.product import ProductRegistrator
+from eoxserver.resources.coverages.registration.product import (
+    ProductRegistrator
+)
 from eoxserver.resources.coverages.registration.exceptions import (
     RegistrationError
 )
@@ -66,6 +68,15 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
         register_parser.add_argument(
             '--footprint', default=None,
             help='Override the footprint of the to-be registered product.'
+        )
+
+        register_parser.add_argument(
+            '--simplify-footprint',
+            dest='simplify_footprint_tolerance', nargs='?',
+            default=None, type=float,
+            help=(
+                'Simplify the footprint. Optionally specify a tolerance value.'
+            )
         )
 
         register_parser.add_argument(
@@ -115,12 +126,12 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
         )
 
         register_parser.add_argument(
-            '--mask-geometry', '-g', dest='mask_geometries', default=[], action='append',
-            nargs=2,
+            '--mask-geometry', '-g', dest='mask_geometries', default=[],
+            action='append', nargs=2,
             help=(
                 'Add a mask to associate with the product. List of items, '
-                'first one is the mask name, second is the mask geometry in WKT. '
-                'Can be specified multiple times.'
+                'first one is the mask name, second is the mask geometry in '
+                'WKT. Can be specified multiple times.'
             )
         )
 
@@ -248,7 +259,10 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
                 discover_masks=kwargs['discover_masks'],
                 discover_browses=kwargs['discover_browses'],
                 discover_metadata=kwargs['discover_metadata'],
-                replace=kwargs['replace']
+                replace=kwargs['replace'],
+                simplify_footprint_tolerance=kwargs.get(
+                    'simplify_footprint_tolerance'
+                ),
             )
 
             for collection_identifier in kwargs['collection_identifiers']:
@@ -277,6 +291,9 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
         """
         try:
             models.Product.objects.get(identifier=identifier).delete()
+            self.print_msg(
+                'Successfully deregistered product %r' % identifier
+            )
         except models.Product.DoesNotExist:
             raise CommandError('No such Product %r' % identifier)
 

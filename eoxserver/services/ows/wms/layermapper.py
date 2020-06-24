@@ -94,10 +94,10 @@ class LayerMapper(object):
                     default=Value(False),
                     output_field=BooleanField()
                 )
-            ).distinct('name').values_list('name', 'is_gray')
-            mask_type_names = mask_type_qs.distinct('name').values_list(
+            ).values_list('name', 'is_gray').distinct()
+            mask_type_names = mask_type_qs.values_list(
                 'name', flat=True
-            )
+            ).distinct()
 
             sub_layers = [
                 LayerDescription(
@@ -219,7 +219,7 @@ class LayerMapper(object):
                         )
                     ]
                 )
-            else :
+            else:
                 return MosaicLayer(
                     full_name, style,
                     RenderMosaic.from_model(eo_object), [
@@ -244,7 +244,7 @@ class LayerMapper(object):
                     # generated browse
                     if bands or wavelengths:
                         browse = _generate_browse_from_bands(
-                            product, bands, wavelengths
+                            product, bands, wavelengths, ranges
                         )
                         if browse:
                             browses.append(browse)
@@ -368,7 +368,7 @@ class LayerMapper(object):
                         masked_browses.append(
                             MaskedBrowse(
                                 browse=_generate_browse_from_bands(
-                                    product, bands, wavelengths
+                                    product, bands, wavelengths, ranges
                                 ),
                                 mask=Mask.from_model(mask, mask_type)
                             )
@@ -644,17 +644,15 @@ def _generate_browse_from_browse_type(product, browse_type):
     # only return a browse instance if coverages were found
     if coverages:
         return GeneratedBrowse.from_coverage_models(
-            band_expressions, fields_and_coverages, field_names, product
+            band_expressions, fields_and_coverages, product
         )
     return None
 
 
-def _generate_browse_from_bands(product, bands, wavelengths):
+def _generate_browse_from_bands(product, bands, wavelengths, ranges):
     assert len(bands or wavelengths or []) in (1, 3, 4)
-
     if bands:
         coverages, fields_and_coverages = _lookup_coverages(product, bands)
-
     # TODO: implement with wavelengths
     # elif wavelengths:
     #     fields_and_coverages = [
@@ -668,11 +666,10 @@ def _generate_browse_from_bands(product, bands, wavelengths):
     #         )
     #         for wavelength in wavelengths
     #     ]
-
     # only return a browse instance if coverages were found
     if coverages:
         return GeneratedBrowse.from_coverage_models(
-            bands, fields_and_coverages, product
+            zip(bands, ranges or [(None, None)] * len(bands)), fields_and_coverages, product
         )
     return None
 

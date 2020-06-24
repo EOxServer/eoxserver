@@ -98,9 +98,11 @@ RE_ISO_8601 = re.compile(
     r"(?:(?P<years>\d+(\.\d+)?)Y)?"
     r"(?:(?P<months>\d+(\.\d+)?)M)?"
     r"(?:(?P<days>\d+(\.\d+)?)D)?"
-    r"T?(?:(?P<hours>\d+(\.\d+)?)H)?"
+    r"(T"
+    r"(?:(?P<hours>\d+(\.\d+)?)H)?"
     r"(?:(?P<minutes>\d+(\.\d+)?)M)?"
-    r"(?:(?P<seconds>\d+(\.\d+)?)S)?$"
+    r"(?:(?P<seconds>\d+(\.\d+)?)S)?"
+    r")?$"
 )
 
 

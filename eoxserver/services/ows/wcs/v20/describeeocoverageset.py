@@ -132,6 +132,8 @@ class WCS20DescribeEOCoverageSetHandler(object):
             elif isinstance(eo_object, models.Coverage):
                 coverages.append(eo_object)
 
+        filters = subsets.get_filters(containment=containment)
+
         # get a QuerySet of all dataset series, directly or indirectly referenced
         all_dataset_series_qs = models.EOObject.objects.filter(
             Q(  # directly referenced Collections
@@ -147,7 +149,7 @@ class WCS20DescribeEOCoverageSetHandler(object):
             Q(  # Products within Collections
                 product__isnull=False,
                 product__collections__in=collections,
-                **subsets.get_filters(containment=containment)
+                **filters
             )
         )
 
@@ -156,9 +158,23 @@ class WCS20DescribeEOCoverageSetHandler(object):
         else:
             dataset_series_qs = models.EOObject.objects.none()
 
+        # Allow metadata queries on coverage itself or on the
+        # parent product if available
+        parent_product_filters = []
+        for key, value in filters.items():
+            prop = key.partition('__')[0]
+            parent_product_filters.append(
+                Q(**{
+                    key: value
+                }) | Q(**{
+                    '%s__isnull' % prop: True,
+                    'coverage__parent_product__%s' % key: value
+                })
+            )
+
         # get a QuerySet for all Coverages, directly or indirectly referenced
         all_coverages_qs = models.EOObject.objects.filter(
-            **subsets.get_filters(containment=containment)
+            *parent_product_filters
         ).filter(
             Q(  # directly referenced Coverages
                 identifier__in=[
@@ -186,6 +202,8 @@ class WCS20DescribeEOCoverageSetHandler(object):
                 mosaic__collections__in=collections
             )
         ).select_subclasses(models.Coverage, models.Mosaic)
+
+        all_coverages_qs = all_coverages_qs.order_by('identifier')
 
         # check if the CoverageDescriptions section is included. If not, use an
         # empty queryset

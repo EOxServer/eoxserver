@@ -49,7 +49,8 @@ class ProductRegistrator(base.BaseRegistrator):
     def register(self, metadata_locations, mask_locations, package_path,
                  overrides, identifier_template=None, type_name=None,
                  extended_metadata=True, discover_masks=True,
-                 discover_browses=True, discover_metadata=True, replace=False):
+                 discover_browses=True, discover_metadata=True, replace=False,
+                 simplify_footprint_tolerance=None):
         product_type = None
         if type_name:
             product_type = models.ProductType.objects.get(name=type_name)
@@ -129,6 +130,11 @@ class ProductRegistrator(base.BaseRegistrator):
         if identifier_template:
             identifier = identifier_template.format(metadata)
             metadata['identifier'] = identifier
+
+        if simplify_footprint_tolerance is not None and footprint:
+            footprint = footprint.simplify(
+                simplify_footprint_tolerance, preserve_topology=True
+            )
 
         replaced = False
         if replace:

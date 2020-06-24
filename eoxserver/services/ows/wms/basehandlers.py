@@ -350,10 +350,15 @@ def parse_transparent(value):
     raise ValueError("Invalid value for 'transparent' parameter.")
 
 
-def parse_range(value):
+def parse_ranges(value):
+    ranges_separator = getattr(settings, 'EOXS_WMS_DIM_RANGES_SEPARATOR', r',')
+    range_separator = getattr(settings, 'EOXS_WMS_DIM_RANGE_SEPARATOR', r'\s+')
     return [
-        float(v)
-        for v in re.split(r'\s+', value.strip())
+        [
+            float(v)
+            for v in re.split(range_separator, rng.strip())
+        ]
+        for rng in re.split(ranges_separator, value)
     ]
 
 
@@ -379,7 +384,7 @@ class WMSBaseGetMapDecoder(kvp.Decoder):
     elevation = kvp.Parameter(type=float, num="?")
     dim_bands = kvp.Parameter(type=typelist(int_or_str, ","), num="?")
     dim_wavelengths = kvp.Parameter(type=typelist(float, ","), num="?")
-    dim_range = kvp.Parameter(type=typelist(parse_range, ','), num="?")
+    dim_range = kvp.Parameter(type=parse_ranges, num="?")
 
     cql = kvp.Parameter(num="?")
 

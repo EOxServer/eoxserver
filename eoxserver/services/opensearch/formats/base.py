@@ -13,8 +13,8 @@
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
-# The above copyright notice and this permission notice shall be included in all
-# copies of this Software or works derived from this Software.
+# The above copyright notice and this permission notice shall be included in
+# all copies of this Software or works derived from this Software.
 #
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -34,6 +34,7 @@ try:
     from django.core.urlresolvers import reverse
 except ImportError:
     from django.urls import reverse
+from django.utils.http import urlencode
 
 from eoxserver.contrib import ogr, vsi
 from eoxserver.core.util.timetools import isoformat
@@ -167,7 +168,8 @@ class BaseFeedResultFormat(object):
                 )
             ),
             ATOM("link",
-                rel="self", type=self.mimetype, href=request.build_absolute_uri()
+                rel="self", type=self.mimetype,
+                href=request.build_absolute_uri()
             ),
             ATOM("link",
                 rel="first", type=self.mimetype,
@@ -299,7 +301,8 @@ class BaseFeedResultFormat(object):
                 wcs_offering = OWC("offering",
                     OWC("operation",
                         code="GetCapabilities", method="GET",
-                        type="application/xml", href=request.build_absolute_uri(
+                        type="application/xml",
+                        href=request.build_absolute_uri(
                             "%s?service=WCS&version=2.0.1"
                             "&request=GetCapabilities"
                             % reverse("ows")
@@ -406,7 +409,9 @@ class BaseFeedResultFormat(object):
             extent = item.footprint.extent
             entries.append(
                 GEORSS("box",
-                    "%f %f %f %f" % (extent[1], extent[0], extent[3], extent[2])
+                    "%f %f %f %f" % (
+                        extent[1], extent[0], extent[3], extent[2]
+                    )
                 )
             )
             entries.append(
@@ -421,8 +426,13 @@ class BaseFeedResultFormat(object):
 
     def _create_wms_capabilities_link(self, request, item):
         return request.build_absolute_uri(
-            "%s?service=WMS&request=GetCapabilities"
-            "&cql=identifier='%s'" % (reverse("ows"), item.identifier)
+            "%s?%s" % (
+                reverse("ows"), urlencode(dict(
+                    service="WMS",
+                    request="GetCapabilities",
+                    cql="identifier='%s'" % item.identifier,
+                ))
+            )
         )
 
     def _create_map_link(self, request, item, size):
@@ -444,53 +454,83 @@ class BaseFeedResultFormat(object):
                 fx = (maxx - minx) / (maxy - miny)
 
             return request.build_absolute_uri(
-                "%s?service=WMS&version=1.3.0&request=GetMap"
-                "&layers=%s&format=image/png&TRANSPARENT=true"
-                "&width=%d&height=%d&CRS=EPSG:4326&STYLES="
-                "&BBOX=%f,%f,%f,%f"
-                "" % (
-                    reverse("ows"), item.identifier,
-                    int(size * fx), int(size * fy),
-                    miny, minx, maxy, maxx
+                "%s?%s" % (
+                    reverse("ows"), urlencode(dict(
+                        service="WMS",
+                        version="1.3.0",
+                        request="GetMap",
+                        layers=item.identifier,
+                        format="image/png",
+                        TRANSPARENT="true",
+                        width=int(size * fx),
+                        height=int(size * fy),
+                        CRS="EPSG:4326",
+                        STYLES="",
+                        BBOX="%f,%f,%f,%f" % (miny, minx, maxy, maxx)
+                    ))
                 )
             )
         return None
 
     def _create_coverage_link(self, request, coverage):
         return request.build_absolute_uri(
-            "%s?service=WCS&version=2.0.1&request=GetCoverage"
-            "&coverageId=%s" % (reverse("ows"), coverage.identifier)
+            "%s?%s" % (
+                reverse("ows"), urlencode(dict(
+                    service="WCS",
+                    version="2.0.1",
+                    request="GetCoverage",
+                    coverageId=coverage.identifier,
+                ))
+            )
         )
 
     def _create_coverage_description_link(self, request, coverage):
         return request.build_absolute_uri(
-            "%s?service=WCS&version=2.0.1&request=DescribeCoverage"
-            "&coverageId=%s" % (reverse("ows"), coverage.identifier)
+            "%s?%s" % (
+                reverse("ows"), urlencode(dict(
+                    service="WCS",
+                    version="2.0.1",
+                    request="DescribeCoverage",
+                    coverageId=coverage.identifier,
+                ))
+            )
         )
 
     def _create_eo_coverage_set_description(self, request, eo_object):
         return request.build_absolute_uri(
-            "%s?service=WCS&version=2.0.1&request=DescribeEOCoverageSet"
-            "&eoId=%s" % (reverse("ows"), eo_object.identifier)
+            "%s?%s" % (
+                reverse("ows"), urlencode(dict(
+                    service="WCS",
+                    version="2.0.1",
+                    request="DescribeEOCoverageSet",
+                    eoId=eo_object.identifier,
+                ))
+            )
         )
 
     def _create_self_link(self, request, collection_id, item, format=None):
         if collection_id is None:
-            return "%s?uid=%s" % (
-                request.build_absolute_uri(
+            return request.build_absolute_uri(
+                "%s?%s" % (
                     reverse("opensearch:search", kwargs={
                         "format_name": format if format else self.name
-                    })
-                ), item.identifier
+                    }),
+                    urlencode(dict(
+                        uid=item.identifier
+                    ))
+                )
             )
 
-        return "%s?uid=%s" % (
-            request.build_absolute_uri(
+        return request.build_absolute_uri(
+            "%s?%s" % (
                 reverse("opensearch:collection:search", kwargs={
                     "collection_id": collection_id,
                     "format_name": format if format else self.name
-                })
-            ), item.identifier
+                }),
+                urlencode(dict(
+                    uid=item.identifier
+                ))
+            )
         )
 
     def _create_download_link(self, request, product):
@@ -500,8 +540,13 @@ class BaseFeedResultFormat(object):
                 return package.url
 
         return request.build_absolute_uri(
-            "%s?service=DSEO&version=1.0.0&request=GetProduct&ProductURI=%s" % (
-                reverse("ows"), product.identifier
+            "%s?%s" % (
+                reverse("ows"), urlencode(dict(
+                    service="DSEO",
+                    version="1.0.0",
+                    request="GetProduct",
+                    ProductURI=product.identifier,
+                ))
             )
         )
 

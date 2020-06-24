@@ -13,8 +13,8 @@
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
-# The above copyright notice and this permission notice shall be included in all
-# copies of this Software or works derived from this Software.
+# The above copyright notice and this permission notice shall be included in
+# all copies of this Software or works derived from this Software.
 #
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -76,12 +76,30 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
         # common arguments for insertion/exclusion
         insert_parser.add_argument(
             'object_identifiers', nargs='+',
-            help='The identifiers of the objects (Product or Coverage) to insert'
+            help=(
+                'The identifiers of the objects (Product or Coverage) '
+                'to insert'
+            )
+        )
+        insert_parser.add_argument(
+            '--use-extent', action='store_true', default=False,
+            help=(
+                'Whether to simply collection the bounding box of the '
+                'footprint as the collections footprint'
+            )
         )
         exclude_parser.add_argument(
             'object_identifiers', nargs='+',
             help=(
-                'The identifiers of the objects (Product or Coverage) to exclude'
+                'The identifiers of the objects (Product or Coverage) '
+                'to exclude'
+            )
+        )
+        exclude_parser.add_argument(
+            '--use-extent', action='store_true', default=False,
+            help=(
+                'Whether to simply collection the bounding box of the '
+                'footprint as the collections footprint'
             )
         )
 
@@ -152,11 +170,14 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             collection_type=collection_type, grid=grid
         )
 
+        print('Successfully created collection %r' % identifier)
+
     def handle_delete(self, identifier, **kwargs):
         """ Handle the deletion of a collection
         """
         collection = self.get_collection(identifier)
         collection.delete()
+        print('Successfully deleted collection %r' % identifier)
 
     def handle_insert(self, identifier, object_identifiers, **kwargs):
         """ Handle the insertion of arbitrary objects into a collection
@@ -187,6 +208,11 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
                     % (eo_object.identifier, collection.identifier, e)
                 )
 
+            print(
+                'Successfully inserted object %r into collection %r'
+                % (eo_object.identifier, collection.identifier)
+            )
+
     def handle_exclude(self, identifier, object_identifiers, **kwargs):
         """ Handle the exclusion of arbitrary objects from a collection
         """
@@ -208,7 +234,7 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
 
         for eo_object in objects:
             try:
-                models.collection_exclude_object(collection, eo_object)
+                models.collection_exclude_eo_object(collection, eo_object)
             except Exception as e:
                 raise CommandError(
                     "Could not exclude object %r from collection %r. "
@@ -216,8 +242,18 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
                     % (eo_object.identifier, collection.identifier, e)
                 )
 
+            print(
+                'Successfully excluded object %r from collection %r'
+                % (eo_object.identifier, collection.identifier)
+            )
+
     def handle_purge(self, identifier, **kwargs):
-        pass
+        # TODO: implement
+        raise CommandError(
+            "Could not exclude purge collection %r: not implemented"
+            % identifier
+        )
+        print('Successfully purged collection %r' % identifier)
 
     def handle_summary(self, identifier, product_summary, coverage_summary,
                        **kwargs):
@@ -225,6 +261,7 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             self.get_collection(identifier),
             False, False, False, product_summary, coverage_summary
         )
+        print('Successfully collected metadata for collection %r' % identifier)
 
     def get_collection(self, identifier):
         """ Helper method to get a collection by identifier or raise a

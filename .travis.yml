@@ -4,11 +4,11 @@ env:
 # - OS=centos PY=py2 DB=postgis DJANGO="1.11.26" PYTHON=python
 # - OS=centos PY=py2 DB=spatialite DJANGO="1.11.26 PYTHON=python"
 - OS=ubuntu PY=py2 DB=postgis DJANGO="1.11.26" PYTHON=python PIP=pip
-- OS=ubuntu PY=py2 DB=spatialite DJANGO="1.11.26" PYTHON=python PIP=pip
+# - OS=ubuntu PY=py2 DB=spatialite DJANGO="1.11.26" PYTHON=python PIP=pip
 - OS=ubuntu PY=py3 DB=postgis DJANGO="1.11.26" PYTHON=python3 PIP=pip3
-- OS=ubuntu PY=py3 DB=spatialite DJANGO="1.11.26" PYTHON=python3 PIP=pip3
-- OS=ubuntu PY=py3 DB=postgis DJANGO="2.2.7" PYTHON=python3 PIP=pip3
-- OS=ubuntu PY=py3 DB=spatialite DJANGO="2.2.7" PYTHON=python3 PIP=pip3
+# - OS=ubuntu PY=py3 DB=spatialite DJANGO="1.11.26" PYTHON=python3 PIP=pip3
+- OS=ubuntu PY=py3 DB=postgis DJANGO="2.2.9" PYTHON=python3 PIP=pip3
+- OS=ubuntu PY=py3 DB=spatialite DJANGO="2.2.9" PYTHON=python3 PIP=pip3 LATEST=TRUE
 
 services:
 - docker
@@ -21,13 +21,18 @@ before_install:
 - curl -L https://github.com/docker/compose/releases/download/1.24.0/docker-compose-`uname -s`-`uname -m` > docker-compose
 - chmod +x docker-compose
 - sudo mv docker-compose /usr/local/bin
-- docker build -t eox-a/eoxserver:$OS-$PY-django$DJANGO -t eoxserver --build-arg DJANGO=$DJANGO -f docker/$OS/$PY/Dockerfile .
+- docker build -t eoxserver --build-arg DJANGO=$DJANGO -f docker/$OS/$PY/Dockerfile .
+- if [[ "$LATEST" == "TRUE" ]] ; then docker tag eoxserver eoxa/eoxserver:latest; fi
+- if [[ "$LATEST" == "TRUE" && ! -z "$TRAVIS_TAG" ]] ; then docker tag eoxserver eoxa/eoxserver:$TRAVIS_TAG; fi
+- if [[ "$LATEST" == "TRUE" && "$TRAVIS_BRANCH" == "master" ]] ; then docker tag eoxserver eoxa/eoxserver:master; fi
+- if [[ ! -z "$TRAVIS_TAG" ]] ; then docker tag eoxserver eoxa/eoxserver:$TRAVIS_TAG-$OS-$PY-django$DJANGO; fi
 
 script:
 - cd autotest
+- echo "DB=${DB}" >> eoxserver.env
+- docker-compose config
 - docker-compose up -d
 - docker-compose ps
-- docker-compose exec autotest bash -c 'apt-get install -y postgresql-client; until PGPASSWORD=${DB_PW} psql "${DB_NAME}" -h "${DB_HOST}" -U "${DB_USER}" -c "\q"; do >&2 echo "Database is unavailable - sleeping"; sleep 5; done'
 - docker-compose exec autotest $PIP install scipy
 - docker-compose exec autotest $PYTHON -m eoxserver.services.ows.wps.test_data_types
 - docker-compose exec autotest $PYTHON -m eoxserver.services.ows.wps.test_allowed_values
@@ -59,6 +64,7 @@ deploy:
     secure: RvD9qeo90sOI+/hQs0V1wMvxfJBBXz4rUXvjcxP65m90koXN+ALV2YRLmlZElca72BsIFfzNcw6nvOr6TGNEMEgWxoJ+e62N4vCz5leQ0guPV76gS4mrxWWRwmXLmEdfp/EPrs84JSU9gAsSSHYrvJJjzfg6VZMQOLNa+vE8dPk=
   file_glob: true
   file: ./dist/*
+  skip_cleanup: true
   draft: true
   on:
     repo: EOxServer/eoxserver
@@ -70,3 +76,16 @@ deploy:
   on:
     repo: EOxServer/eoxserver
     tags: true
+  skip_existing: true
+  distributions: "sdist bdist_wheel"
+
+- provider: script
+  script: echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin && docker push eoxa/eoxserver
+  on:
+    tags: true
+
+- provider: script
+  script: echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin && docker push eoxa/eoxserver:master
+  on:
+    branch: master
+    condition: $LATEST = "TRUE"

@@ -13,8 +13,8 @@
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
-# The above copyright notice and this permission notice shall be included in all
-# copies of this Software or works derived from this Software.
+# The above copyright notice and this permission notice shall be included in
+# all copies of this Software or works derived from this Software.
 #
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -27,11 +27,11 @@
 
 import re
 
-from django.db.models import ForeignKey, Q
+from django.db.models import ForeignKey
 from django.contrib.gis.geos import Polygon
 from django.contrib.gis.gdal import SpatialReference, CoordTransform
+from django.utils.six import string_types
 
-from eoxserver.backends import models as backends
 from eoxserver.backends.access import vsi_open
 from eoxserver.backends.util import resolve_storage
 from eoxserver.resources.coverages import models
@@ -41,10 +41,11 @@ from eoxserver.resources.coverages.metadata.coverage_formats import (
 from eoxserver.resources.coverages.registration.exceptions import (
     RegistrationError
 )
-from django.utils.six import string_types
+
 
 class RegistrationReport(object):
-    def __init__(self, coverage, replaced, metadata_parsers, retrieved_metadata):
+    def __init__(self, coverage, replaced, metadata_parsers,
+                 retrieved_metadata):
         self.coverage = coverage
         self.replaced = replaced
         self.metadata_parsers = metadata_parsers
@@ -67,7 +68,7 @@ class BaseRegistrator(object):
                  coverage_type_name=None, footprint_from_extent=False,
                  overrides=None, identifier_template=None,
                  highest_resolution=False, replace=False, cache=None,
-                 use_subdatasets=False):
+                 use_subdatasets=False, simplify_footprint_tolerance=None):
         """ Main registration method
 
             :param data_locations:
@@ -150,7 +151,8 @@ class BaseRegistrator(object):
         # check the coverage type for expected amount of fields
         if coverage_type:
             num_fields = coverage_type.field_types.count()
-            if len(arraydata_items) != 1 and len(arraydata_items) != num_fields:
+            if len(arraydata_items) != 1 \
+                    and len(arraydata_items) != num_fields:
                 raise RegistrationError(
                     'Invalid number of data files specified. Expected 1 or %d '
                     'got %d.'
@@ -224,6 +226,13 @@ class BaseRegistrator(object):
             )
             retrieved_metadata['footprint'] = footprint
 
+        if simplify_footprint_tolerance is not None and \
+                retrieved_metadata.get('footprint'):
+            footprint = retrieved_metadata.get('footprint')
+            retrieved_metadata['footprint'] = footprint.simplify(
+                simplify_footprint_tolerance, preserve_topology=True
+            )
+
         coverage = self._create_coverage(
             identifier=identifier,
             footprint=retrieved_metadata.get('footprint'),
@@ -239,8 +248,8 @@ class BaseRegistrator(object):
             metadata_items=metadata_items,
         )
 
-        # when we replaced the coverage, re-insert the newly created coverage to
-        # the collections and/or product
+        # when we replaced the coverage, re-insert the newly created coverage
+        # to the collections and/or product
         for collection in collections:
             models.collection_insert_eo_object(collection, coverage)
 
@@ -273,7 +282,8 @@ class BaseRegistrator(object):
                     return reader, values
             return None
 
-    def _read_metadata_from_data(self, data_item, retrieved_metadata, cache, highest_resolution):
+    def _read_metadata_from_data(self, data_item, retrieved_metadata, cache,
+                                 highest_resolution):
         "Interface method to be overridden in subclasses"
         raise NotImplementedError
 
@@ -301,8 +311,8 @@ class BaseRegistrator(object):
         return footprint
 
     def _create_coverage(self, identifier, footprint, begin_time, end_time,
-                         size, origin, grid, coverage_type_name, arraydata_items,
-                         metadata_items):
+                         size, origin, grid, coverage_type_name,
+                         arraydata_items, metadata_items):
 
         coverage_type = None
         if coverage_type_name:
@@ -422,6 +432,12 @@ class BaseRegistrator(object):
                 for axis_type in axis_types
             ]
 
+            for name, offset in zip(axis_names, axis_offsets):
+                if offset == 0:
+                    raise RegistrationError(
+                        'Invalid offset for axis %s: %s.' % (name, offset)
+                    )
+
             # unwrap axis types, offsets, names
             (type_1, type_2, type_3, type_4) = axis_types
             (offset_1, offset_2, offset_3, offset_4) = axis_offsets
@@ -474,29 +490,13 @@ class BaseRegistrator(object):
                 )
         return grid
 
-    # def resolve_storage(self, storage_paths):
-    #     if not storage_paths:
-    #         return None
-
-    #     first = storage_paths[0]
-    #     try:
-    #         parent = backends.Storage.objects.get(Q(name=first) | Q(url=first))
-    #     except backends.Storage.DoesNotExist:
-    #         parent = backends.Storage.objects.create(url=first)
-
-    #     for storage_path in storage_paths[1:]:
-    #         parent = backends.Storage.objects.create(
-    #             parent=parent, url=storage_path
-    #         )
-    #     return parent
-
 
 def is_common_value(field):
     try:
         if isinstance(field, ForeignKey):
             field.related_model._meta.get_field('value')
             return True
-    except:
+    except Exception:
         pass
     return False
 

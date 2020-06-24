@@ -156,6 +156,13 @@ class WCS20GetCapabilitiesSectionsDatasetSeriesSummaryTestCase(testbase.XMLTestC
         params = "service=WCS&version=2.0.1&request=GetCapabilities&sections=DatasetSeriesSummary"
         return (params, "kvp")
 
+
+@tag('wcs', 'wcs20')
+class WCS20GetCapabilitiesCQLTestCase(testbase.XMLTestCase):
+    def getRequest(self):
+        params = "service=WCS&version=2.0.1&request=GetCapabilities&cql=identifier='mosaic_MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_RGB_reduced'"
+        return (params, "kvp")
+
 #===============================================================================
 # WCS 2.0 DescribeCoverage
 #===============================================================================

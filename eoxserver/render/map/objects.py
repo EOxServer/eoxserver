@@ -412,7 +412,7 @@ class LayerDescription(object):
 
     @property
     def title(self):
-        return self._title
+        return self._title or self.name
 
     @classmethod
     def from_coverage(cls, coverage, styles):

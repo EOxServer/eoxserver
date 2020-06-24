@@ -187,7 +187,7 @@ class KeystoneStorageAuthHandler(BaseStorageAuthHandler):
                 user=self.parameters.get('username'),
                 key=self.parameters.get('password'),
                 os_options=os_options,
-            ))).hexdigest()
+            )).encode('utf-8')).hexdigest()
 
             token_key = 'keystone_auth_token_%s' % base_key
             url_key = 'keystone_storage_url_%s' % base_key

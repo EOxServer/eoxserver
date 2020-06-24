@@ -47,7 +47,7 @@ def is_landsat8_l1_metadata_file(path):
 def is_landsat8_l1_metadata_content(content):
     """ Checks whether the referenced file is a Landsat 8 metadata file """
     try:
-        f = StringIO(content)
+        f = StringIO(content.decode())
         f.seek(0)
         return next(f).strip() == "GROUP = L1_METADATA_FILE"
     except (ValueError, StopIteration):
@@ -66,14 +66,14 @@ def parse_landsat8_l1_metadata_file(path):
 
 def parse_landsat8_l1_metadata_content(content):
     """ Parses a Landsat 8 metadata file to a nested dict representation"""
-    f = StringIO(content)
+    f = StringIO(content.decode())
     f.seek(0)
     _, _ = _parse_line(next(f))
     return _parse_group(f)
 
 
 def _read_lines(f):
-    return f.read().split('\n')
+    return f.read().split(b'\n')
 
 
 def _parse_group(iterator):

@@ -125,7 +125,7 @@ class GeoExtension(object):
 
 
 def parse_bbox(raw):
-    values = map(float, raw.split(","))
+    values = list(map(float, raw.split(",")))
     if len(values) != 4:
         raise ValueError("Invalid number of coordinates in 'bbox'.")
 

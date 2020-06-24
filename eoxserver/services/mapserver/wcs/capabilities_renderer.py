@@ -121,16 +121,19 @@ class MapServerWCSCapabilitiesRenderer(BaseRenderer):
         request.setParameter("version", params.version)
         raw_result = map_.dispatch(request)
         result = result_set_from_raw_data(raw_result)
-         # load XML using lxml
-        # find and exclude <metadataLink> nodes if present
-        # re-encode
-
         xml_result = etree.fromstring(result[0].data)
 
         for elem in xml_result.xpath('//*[local-name() = "metadataLink"]'):
             elem.getparent().remove(elem)
 
-        xml_result_data =  etree.tostring(xml_result, pretty_print=True, encoding='UTF-8', xml_declaration=True)
-        
+        # Add CQL parameter to GetCapabilities operation
+        for elem in xml_result.xpath('//*[local-name() = "Operation"][@name = "GetCapabilities"]'):
+            ows = elem.nsmap['ows']
+            param = etree.SubElement(elem, '{%s}Parameter' % ows)
+            param.attrib['name'] = 'cql'
+            etree.SubElement(param, '{%s}AnyValue' % ows)
+
+        xml_result_data = etree.tostring(xml_result, pretty_print=True, encoding='UTF-8', xml_declaration=True)
+
         result[0] = ResultBuffer(xml_result_data, result[0].content_type)
         return result
