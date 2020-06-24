@@ -100,13 +100,9 @@ class MetadataMixIn(object):
             return super(MetadataMixIn, self).setMetaData(key, value)
 
 
-# print('XAJSOANS')
-
-# import mapscript
-# print(dir(mapscript.mapObj))
-# class Map(MetadataMixIn, mapObj):
-#     def dispatch(self, request):
-#         return dispatch(self, request)
+class Map(MetadataMixIn, mapObj):
+    def dispatch(self, request):
+        return dispatch(self, request)
 
 
 def dispatch(map_, request):
