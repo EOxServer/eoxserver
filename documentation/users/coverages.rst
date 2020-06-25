@@ -202,6 +202,7 @@ The following command line interfaces can be executed via the ``manage.py``
 utility of the instance. All commands are related to one of the models above
 and use sub-commands for specific tasks.
 
+.. _cmd-coveragetype:
 
 coveragetype
   This command manages `Coverage Type`_ models and allows to inspect the
@@ -248,6 +249,7 @@ coveragetype
     --no-detail
       disable the printing of details of the coverage type.
 
+.. _cmd-producttype:
 
 producttype
   This command manages `Product Type`_ models. It provides the following
@@ -282,6 +284,7 @@ producttype
     --no-detail
       disable the printing of details of the product type.
 
+.. _cmd-browsetype:
 
 browsetype
   This command allows to create, delete and list `Browse Type`_ models. Since
@@ -351,6 +354,7 @@ browsetype
     product_type_name
       the Product Type to list the Browse Types for
 
+.. _cmd-masktype:
 
 masktype
   This command allows to create, delete and list `Mask Type`_ models. Since
@@ -383,6 +387,7 @@ masktype
     product_type_name
       the Product Type to list the Mask Type of
 
+.. _cmd-collectiontype:
 
 collectiontype
   This command manages `Collection Type`_ models using the following
@@ -420,6 +425,7 @@ collectiontype
     --no-detail
       Disable the printing of details of the Collection types.
 
+.. _cmd-grid:
 
 grid
   This command allows to create and delete named `Grid Model`_ instances.
@@ -449,6 +455,7 @@ grid
     name
       the name of the Grid to delete.
 
+.. _cmd-coverage:
 
 coverage
   this command allows the registration and deregistration of `Coverage Model`_
@@ -520,6 +527,7 @@ coverage
       this command will update all Collections metadata (footprint, begin-/end
       time) unless this switch is set.
 
+.. _cmd-product:
 
 product
   this command manages `Product Model`_ instances.
@@ -596,6 +604,7 @@ product
     [pattern]
       a filename glob pattern to filter the resulting filenames
 
+.. _cmd-browse:
 
 browse
   this command allows to manage `Browse Model`_ instances of a `Product
@@ -618,6 +627,7 @@ browse
   deregister
     TODO
 
+.. _cmd-mask:
 
 mask
   this command allows to manage `Mask Model`_ instances of a `Product Model`_.
@@ -641,6 +651,7 @@ mask
     identifier
       the Product identifier to deregister the Mask from.
 
+.. _cmd-collection:
 
 collection
   this command manages `Collection Model`_ instances. As usual, it
@@ -710,6 +721,7 @@ collection
     --coverages/--no-coverages
       whether or not to generate a Coverage metadata summary.
 
+.. _cmd-mosaic:
 
 mosaic
   this command manages `Mosaic Model`_ instances with a variety of
@@ -758,3 +770,71 @@ mosaic
 
   purge
     TODO not implemented
+
+.. _cmd-id:
+
+id
+  this command allows to introspect the contents of the instances database.
+
+  check
+    this subcommand allows to check whether or not an object is registered. The
+    return value of this command indicates whether such an object exists.
+
+    identifiers+
+      the identifier(s) to check for existence.
+
+    --type, -t
+      limit the check to the given object type (i.e: ``Coverage``,
+      ``Product``, ``Collection``, or ``Mosaic``). By default the search is for
+      any ``EOObject``.
+
+  list
+    this command lists the contents of the database and prints the objects on
+    on the terminal. Filters can be applied to limit the search.
+
+    identifiers*
+      limit the output to the given identifiers.
+
+    --type, -t
+      limit the listing to the given object type (i.e: ``Coverage``,
+      ``Product``, ``Collection``, or ``Mosaic``). By default the search is for
+      any ``EOObject``.
+    --recursive, -r
+      do a recursive lookup into the given collections.
+    --suppress-type, -s
+      when printing an object, suppress the type and only print the identifier
+    --collection, -c
+      limit the search to this collection only. Can be passed multiple times to
+      search across multiple collections.
+
+.. _cmd-mapcache:
+
+mapcache
+  this command allows to generate an index database to be used for mapcache
+  time dimensions.
+
+  sync
+    this sub-command synchronizes a mapcache index database. The output will be
+    written to the ``<collection-name>.sqlite`` files for each available
+    collection in the current working directory.
+
+    The schema of the database will be the following:
+
+    .. code-block:: sql
+
+        CREATE TABLE "time" (
+            "start_time" timestamp with time zone NOT NULL,
+            "end_time" timestamp with time zone NOT NULL,
+            "minx" double precision NOT NULL,
+            "miny" double precision NOT NULL,
+            "maxx" double precision NOT NULL,
+            "maxy" double precision NOT NULL
+        )
+
+    --force, -f
+      force the re-generation of the index files.
+    --unique-times, -u
+      force unique time entries. This combines the extent of all objects with
+      overlapping time spans.
+    --no-index
+      this flag prohibits the creation of an internal database index.
