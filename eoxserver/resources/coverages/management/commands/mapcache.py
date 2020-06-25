@@ -1,9 +1,9 @@
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 #
 # Project: ngEO Browse Server <http://ngeo.eox.at>
 # Authors: Stephan Meissl <stephan.meissl@eox.at>
 #
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Copyright (C) 2018 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -23,7 +23,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 import logging
 from os import remove
@@ -44,11 +44,13 @@ from eoxserver.resources.coverages.management.commands import (
 
 logger = logging.getLogger(__name__)
 
+
 def decoder(conv_func):
     """
     Convert bytestrings from Python's sqlite3 interface to a regular string.
     """
     return lambda s: conv_func(s.decode())
+
 
 dbapi2.register_converter("bool", b'1'.__eq__)
 dbapi2.register_converter("time", decoder(parse_time))
@@ -132,7 +134,8 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
 
             if index:
                 conn.execute(
-                    'CREATE INDEX time_idx ON time (start_time, end_time, minx, miny, maxx, maxy)'
+                    'CREATE INDEX time_idx ON time '
+                    '(start_time, end_time, minx, miny, maxx, maxy)'
                 )
 
             conn.commit()
@@ -163,7 +166,10 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
 
             if not unique_times:
                 time_intervals = (
-                    (product['begin_time'], product['end_time']) + product['extent']
+                    (
+                        product['begin_time'],
+                        product['end_time']
+                    ) + product['extent']
                     for product in products_qs
                 )
             else:
@@ -179,7 +185,9 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
                 ).order_by(
                     'begin_time', 'end_time'
                 )
-                logger.info("Number unique times: %s" % unique_times_qs.count())
+                logger.info(
+                    "Number unique times: %s" % unique_times_qs.count()
+                )
 
                 logger.info("Iterating through unique times")
                 time_intervals = []
@@ -209,7 +217,8 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
                     else:
                         for time in time_qs:
                             # decode extent from the above hack
-                            minx_tmp, miny_tmp, maxx_tmp, maxy_tmp = time['extent']
+                            minx_tmp, miny_tmp, maxx_tmp, maxy_tmp = \
+                                time['extent']
                             # change one extent to ]0,360] if difference gets
                             # smaller
                             if minx is not None and maxx is not None:
