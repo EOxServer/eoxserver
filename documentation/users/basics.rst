@@ -108,13 +108,6 @@ The EOxServer documentation consists of the
 Furthermore, you can consult the inline documentation in the source code
 e.g. in the `Source Browser <https://github.com/EOxServer/eoxserver>`_.
 
-Demonstration Services
-~~~~~~~~~~~~~~~~~~~~~~
-
-There is a demonstration service available on the EOxServer site. You can reach
-it under http://eoxserver.org/demo_stable/ows. For some sample calls to
-different OGC Web Services, see :doc:`demonstration`.
-
 Data Model
 ----------
 
