@@ -34,10 +34,9 @@ Management
 
 This chapter deals with the operational management of an EOxServer instance. It
 is assumed, that EOxServer is installed, an instance is created and configured.
-For more information please refer to the `installation <Installation>`_,
-`instance creation <InstanceCreation>`_, and `configuration
-<InstanceConfiguration>`_ sections respectively. Also, data preprocessing
-is not part of the this guide.
+For more information please refer to the :ref:`Installation`,
+:ref:`InstanceCreation`, and :ref:`InstanceConfiguration` sections
+respectively. Also, data preprocessing is not part of the this guide.
 
 This guide will use a practical example of real high resolution RGB + near
 infrared satellite imagery from the SPOT mission to show how to set up an
@@ -143,11 +142,9 @@ type and to provide some extra metadata. The contents are stored in the file
 This definition can now be loaded in the services using the ``coveragetype
 import`` command:
 
-
 .. code-block:: bash
 
     python manage.py coveragetype loaddata rgbnir.json
-
 
 Now that the Coverage type is registered, it can be used to create one or
 multiple Product types. This takes the rather abstract Coverage type and
@@ -423,8 +420,8 @@ parameter to use is the ``cql`` one. For our example, we would append
 cloud coverage. For this to work, the metadata of the Products needs to be
 indexed upon registration. This is done in the process of metadata reading.
 
-For more details about CQL and all available metadata fields refer to the
-`CQL <CQL> `_ documentation.
+For more details about CQL and all available metadata fields refer to
+the `CQL <CQL>`_ documentation.
 
 :ref:`wcs`
 ~~~~~~~~~~

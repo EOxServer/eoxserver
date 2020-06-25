@@ -38,6 +38,6 @@ deployment of EOxServer.
 .. toctree::
    :maxdepth: 3
 
-   oprational_install
+   operational_install
    centos_installation
    management
