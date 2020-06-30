@@ -21,4 +21,3 @@ consuming the registered *EO Data* on the *User* side.
    coverages
    services/index
    operations/index
-   presentations
