@@ -122,7 +122,7 @@ class RectifiedCoverageMapServerRenderer(BaseRenderer):
         env = {}
         for data_location in data_locations:
             env.update(data_location.env)
-        ms.set_env(map_, env, False)
+        gdal.set_env(env, False)
 
         # configure outputformat
         native_format = self.get_native_format(coverage, data_locations)
