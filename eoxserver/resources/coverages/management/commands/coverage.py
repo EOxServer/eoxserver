@@ -171,14 +171,22 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             default=False, action='store_true',
             help=(
                 'When this flag is set, only the identifier of the registered '
-                'product will be printed to stdout.'
+                'coverage will be printed to stdout.'
             )
         )
 
         deregister_parser.add_argument(
-            'identifier', nargs=1,
-            help='The identifier of the coverage to derigster'
+            '--all', '-a', action="store_true",
+            default=False, dest='all_coverages',
+            help='When this flag is set, all the coverage are selected to be deregisterd'
         )
+
+
+        deregister_parser.add_argument(
+                'identifier', default=None, nargs='?',
+                help='The identifier of the coverage to deregister.'
+            )
+
         deregister_parser.add_argument(
             '--not-refresh-collections', dest='not_refresh_collections',
             default=False, action='store_true',
@@ -195,9 +203,7 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
         if subcommand == "register":
             self.handle_register(*args, **kwargs)
         elif subcommand == "deregister":
-            self.handle_deregister(
-                kwargs.pop('identifier')[0], *args, **kwargs
-            )
+            self.handle_deregister(*args, **kwargs)
 
     def handle_register(self, coverage_type_name,
                         data_locations, metadata_locations,
@@ -265,36 +271,43 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
                 pprint(report.metadata_parsers)
                 pprint(report.retrieved_metadata)
 
-    def handle_deregister(self, identifier, not_refresh_collections, **kwargs):
+    def handle_deregister(self, identifier, not_refresh_collections, all_coverages, **kwargs):
         """ Handle the deregistration a coverage
         """
-        try:
-            coverage = models.Coverage.objects.get(identifier=identifier)
-            collections = list(coverage.collections.all())
-            mosaics = list(coverage.mosaics.all())
-            grid = coverage.grid
+        if not all_coverages and not identifier:
+            raise CommandError('please specify a coverage/s to remove')
+        else:
+            if all_coverages:
+                coverages = models.Coverage.objects.all()
+            elif identifier:
+                coverages = [models.Coverage.objects.get(identifier=identifier)]
+            for coverage in coverages:
+                try:
+                    collections = list(coverage.collections.all())
+                    mosaics = list(coverage.mosaics.all())
+                    grid = coverage.grid
 
-            if not not_refresh_collections:
-                for collection in collections:
-                    models.collection_exclude_eo_object(collection, coverage)
+                    if not not_refresh_collections:
+                        for collection in collections:
+                            models.collection_exclude_eo_object(collection, coverage)
 
-                for mosaic in mosaics:
-                    models.mosaic_exclude_coverage(mosaic, coverage)
+                        for mosaic in mosaics:
+                            models.mosaic_exclude_coverage(mosaic, coverage)
+                    coverage_id = coverage.identifier
+                    coverage.delete()
 
-            coverage.delete()
+                    grid_used = models.EOObject.objects.filter(
+                        Q(coverage__grid=grid) | Q(mosaic__grid=grid),
+                    ).exists()
 
-            grid_used = models.EOObject.objects.filter(
-                Q(coverage__grid=grid) | Q(mosaic__grid=grid),
-            ).exists()
+                    # clean up grid as well, if it is not referenced anymore
+                    # but saving named (user defined) grids
+                    if grid and not grid.name and not grid_used:
+                        grid.delete()
 
-            # clean up grid as well, if it is not referenced anymore
-            # but saving named (user defined) grids
-            if grid and not grid.name and not grid_used:
-                grid.delete()
+                    self.print_msg(
+                        'Successfully deregistered coverage %s' % coverage_id
+                    )
 
-            self.print_msg(
-                'Successfully deregistered coverage %s' % identifier
-            )
-
-        except models.Coverage.DoesNotExist:
-            raise CommandError('No such Coverage %r' % identifier)
+                except models.Coverage.DoesNotExist:
+                    raise CommandError('No such Coverage %r' % identifier)
