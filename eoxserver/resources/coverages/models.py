@@ -512,10 +512,11 @@ class CollectionMetadata(models.Model):
 # ==============================================================================
 
 
+@python_2_unicode_compatible
 class AbstractCommonValue(models.Model):
     value = models.CharField(max_length=256, db_index=True, unique=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.value
 
     class Meta:
@@ -712,7 +713,7 @@ def cast_eo_object(eo_object):
     return eo_object
 
 
-def collection_insert_eo_object(collection, eo_object):
+def collection_insert_eo_object(collection, eo_object, use_extent=False):
     """ Inserts an EOObject (either a Product or Coverage) into a collection.
         When an EOObject is passed, it is downcast to its actual type. An error
         is raised when an object of the wrong type is passed.
@@ -770,10 +771,16 @@ def collection_insert_eo_object(collection, eo_object):
         collection.coverages.add(eo_object)
 
     if eo_object.footprint:
+        footprint = eo_object.footprint
+        if use_extent:
+            footprint = Polygon.from_bbox(footprint.extent)
+
         if collection.footprint:
-            collection.footprint = collection.footprint.union(
-                eo_object.footprint
-            )
+            collection.footprint = collection.footprint.union(footprint)
+            if use_extent:
+                collection.footprint = Polygon.from_bbox(
+                    collection.footprint.extent
+                )
         else:
             collection.footprint = eo_object.footprint
 
@@ -793,7 +800,7 @@ def collection_insert_eo_object(collection, eo_object):
     collection.save()
 
 
-def collection_exclude_eo_object(collection, eo_object):
+def collection_exclude_eo_object(collection, eo_object, use_extent=False):
     """ Exclude an EOObject (either Product or Coverage) from the collection.
     """
     eo_object = cast_eo_object(eo_object)
@@ -809,14 +816,16 @@ def collection_exclude_eo_object(collection, eo_object):
     elif isinstance(eo_object, Coverage):
         collection.coverages.remove(eo_object)
 
-    collection_collect_metadata(collection,
+    collection_collect_metadata(
+        collection,
         eo_object.footprint is not None,
         eo_object.begin_time and eo_object.begin_time == collection.begin_time,
         eo_object.end_time and eo_object.end_time == collection.end_time,
-        False
+        use_extent=use_extent
     )
     collection.full_clean()
     collection.save()
+
 
 def collection_collect_metadata(collection, collect_footprint=True,
                                 collect_begin_time=True, collect_end_time=True,
@@ -1011,11 +1020,7 @@ def mosaic_recalc_metadata(mosaic):
     """ Recalculates axis origins and time/footprint metadata
         for the given mosaic model. Does not save the model.
     """
-    values = mosaic.coverages.aggregate(
-        begin_time=Min('begin_time'),
-        end_time=Max('end_time'),
-        footprint=Union('footprint'),
-    )
+    values = mosaic.coverages.aggregate(begin_time=Min('begin_time'),end_time=Max('end_time'),footprint=Union('footprint'),)
     mosaic.begin_time = values['begin_time']
     mosaic.end_time = values['end_time']
     mosaic.footprint = values['footprint']

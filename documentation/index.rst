@@ -22,7 +22,7 @@
   # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
   # FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
   # AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
+  # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
   # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
   # IN THE SOFTWARE.
   #-----------------------------------------------------------------------------
@@ -41,20 +41,20 @@ Observation (EO) data and metadata.
 EOxServer implements the `OGC <http://www.opengeospatial.org/>`_
 Implementation Specifications EO-WCS and EO-WMS on top of
 `MapServer's <http://mapserver.org>`_
-`WCS <http://www.opengeospatial.org/standards/wcs>`_ and 
+`WCS <http://www.opengeospatial.org/standards/wcs>`_ and
 `WMS <http://www.opengeospatial.org/standards/wms>`_ implementations.
 
-EOxServer is released under the 
-:ref:`EOxServer Open License <EOxServer Open License>` a MIT-style 
-license and written in `Python <http://www.python.org/>`_ and entirely based on 
-Open Source software including `MapServer <http://mapserver.org>`_, 
-`Django/GeoDjango <https://www.djangoproject.com>`_, 
-`GDAL <http://www.gdal.org>`_, 
-`SpatiaLite <http://www.gaia-gis.it/spatialite/>`_, or 
-`PostGIS <http://postgis.refractions.net/>`_, and 
+EOxServer is released under the
+:ref:`EOxServer Open License <EOxServer Open License>` a MIT-style
+license and written in `Python <http://www.python.org/>`_ and entirely based on
+Open Source software including `MapServer <http://mapserver.org>`_,
+`Django/GeoDjango <https://www.djangoproject.com>`_,
+`GDAL <http://www.gdal.org>`_,
+`SpatiaLite <http://www.gaia-gis.it/spatialite/>`_, or
+`PostGIS <http://postgis.refractions.net/>`_, and
 `PROJ.4 <http://trac.osgeo.org/proj/>`_.
 
-Here you find the documentation for users and developers of EOxServer 
+Here you find the documentation for users and developers of EOxServer
 written in English.
 
 .. toctree::
@@ -62,7 +62,6 @@ written in English.
 
    users/index
    developers/index
-   rfc/index
    release_notes/index
    apidoc/modules
    copyright

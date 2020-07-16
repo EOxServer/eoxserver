@@ -47,6 +47,7 @@ except ImportError:
     from io import BytesIO
 import cgi
 from unittest import SkipTest, skipIf
+import glob
 
 from django.test import Client, TransactionTestCase
 from django.conf import settings
@@ -241,39 +242,52 @@ class OWSTestCase(TransactionTestCase):
         Helper function for the basic XML tree comparison to be used by
         `testXMLComparison`.
         """
-        expected_path = os.path.join(
+        expected_path_basename = os.path.join(
             self.getExpectedFileDir(), self.getExpectedFileName(suffix)
         )
         response_path = os.path.join(
             self.getResponseFileDir(), self.getResponseFileName(suffix)
         )
 
+        expected_paths = glob.glob(expected_path_basename + '*')
+
         # store the XML response
         if response is None:
             response = self.prepareXMLData(self.getXMLData())
 
         # check that the expected XML response exists
-        if not os.path.isfile(expected_path):
+        if not expected_paths:
             if isinstance(response, binary_type):
                 response = response.decode()
             with open(response_path, 'w') as f:
                 f.write(response)
 
             self.skipTest(
-                "Missing the expected XML response '%s'." % expected_path
+                "Missing the expected XML response '%s'."
+                % expected_path_basename
             )
 
-        # perform the actual comparison
-        try:
-            xmlCompareFiles(expected_path, BytesIO(response))
-        except Exception as e:
+        fails = []
+        for expected_path in expected_paths:
+            # perform the actual comparison
+            try:
+                xmlCompareFiles(expected_path, BytesIO(response))
+                break
+            except Exception as e:
+                fails.append(e)
+        else:
             with open(response_path, 'w') as f:
                 if isinstance(response, binary_type):
                     response = response.decode()
                 f.write(response)
+            reasons = ', '.join([
+                str(e) for e in fails
+            ])
             self.fail(
-                "Response returned in '%s' is not equal to expected response "
-                "in '%s'. REASON: %s " % (response_path, expected_path, str(e))
+                "Response returned in '%s' is not equal to expected "
+                "response(s) in '%s'. REASON(S): %s " % (
+                    response_path, ', '.join(expected_paths), reasons
+                )
             )
 
     def _testBinaryComparison(self, file_type, data=None):
@@ -445,7 +459,7 @@ class StatisticsMixIn(object):
     @tag('stastics')
     @skipIf(not HAVE_SCIPY, "scipy modoule is not installed")
     def testBandStatistics(self):
-        for band in range( self.res_ds.RasterCount ):          
+        for band in range( self.res_ds.RasterCount ):
             band += 1
             if band:
                 exp_band = self.exp_ds.GetRasterBand(band)
@@ -1215,7 +1229,7 @@ class WPS10XMLComparison(XMLTestCase):
         expected_path= os.path.join(
             self.getExpectedFileDir(), self.getExpectedFileName('xml')
         )
-        
+
         expectedString= self.parse(expected_path)
         expected_doc = etree.fromstring(expectedString)
         # replace the encoded data so it compare other nodes in the xml files

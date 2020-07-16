@@ -89,6 +89,11 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             type_name=type_name,
         )
 
+        print(
+            'Successfully registered mask %r for product %r'
+            % (type_name, identifier)
+        )
+
     def handle_deregister(self, identifier, type_name, **kwargs):
         """ Handle the deregistration a browse image
         """

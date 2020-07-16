@@ -51,6 +51,13 @@ class WCS11GetCapabilitiesEmptyTestCase(testbase.XMLTestCase):
         return (params, "kvp")
 
 @tag('wcs', 'wcs11')
+class WCS11GetCapabilitiesCQLTestCase(testbase.XMLTestCase):
+    def getRequest(self):
+        params = "service=WCS&version=1.1.2&request=GetCapabilities&cql=identifier='mosaic_MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_RGB_reduced'"
+        return (params, "kvp")
+
+
+@tag('wcs', 'wcs11')
 class WCS11DescribeCoverageDatasetTestCase(testbase.XMLTestCase):
     def getRequest(self):
         params = "service=WCS&version=1.1.2&request=DescribeCoverage&identifier=mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced"

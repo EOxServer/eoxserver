@@ -201,10 +201,10 @@ class LiteralData(Parameter):
             _value = self._dtype.parse(raw_value)
             _value = self.strip_uom(_value, uom or self.default_uom)
             _value = self._allowed_values.verify(_value)
-            
+
             return _value
         except (ValueError, TypeError) as exc:
-            
+
             raise ValueError(
                 "Input parsing error: '%s' (raw value '%s')" % (exc, raw_value)
             )

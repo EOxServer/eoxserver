@@ -94,7 +94,7 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
 
             if value is None:
                 key, _, value = key.partition('=')
-            
+
             return key.replace('-', '_'), value
 
         parameters = dict(
@@ -110,7 +110,7 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
         )
         storage_auth.full_clean()
         storage_auth.save()
-        
+
         if check:
             handler = get_handler_for_model(storage_auth)
             # TODO perform check

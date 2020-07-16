@@ -13,8 +13,8 @@
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
-# The above copyright notice and this permission notice shall be included in all
-# copies of this Software or works derived from this Software.
+# The above copyright notice and this permission notice shall be included in
+# all copies of this Software or works derived from this Software.
 #
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -139,7 +139,9 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
         """
 
         try:
-            product_type = models.ProductType.objects.get(name=product_type_name)
+            product_type = models.ProductType.objects.get(
+                name=product_type_name
+            )
         except models.ProductType.DoesNotExist:
             raise CommandError(
                 'Product type %r does not exist' % product_type_name
@@ -187,7 +189,9 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
         """
 
         try:
-            product_type = models.ProductType.objects.get(name=product_type_name)
+            product_type = models.ProductType.objects.get(
+                name=product_type_name
+            )
         except models.ProductType.DoesNotExist:
             raise CommandError('No such product type %r' % product_type_name)
 
@@ -210,7 +214,9 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
         """ Handle the listing of browse types
         """
         try:
-            product_type = models.ProductType.objects.get(name=product_type_name)
+            product_type = models.ProductType.objects.get(
+                name=product_type_name
+            )
         except models.ProductType.DoesNotExist:
             raise CommandError('No such product type %r' % product_type_name)
 

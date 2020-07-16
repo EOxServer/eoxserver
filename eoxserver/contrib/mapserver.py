@@ -82,7 +82,7 @@ class MetadataMixIn(object):
         self.setMetaData(key, value)
 
     def setMetaData(self, key_or_params, value=None, namespace=None):
-        """ Convenvience method to allow setting multiple metadata values with 
+        """ Convenvience method to allow setting multiple metadata values with
             one call and optionally setting a 'namespace' for each entry.
         """
         if value is None:
@@ -255,7 +255,7 @@ def gdalconst_to_imagemode_string(const):
 
 
 def setMetaData(obj, key_or_params, value=None, namespace=None):
-    """ Convenvience function to allow setting multiple metadata values with 
+    """ Convenvience function to allow setting multiple metadata values with
         one call and optionally setting a 'namespace' for each entry.
     """
     if value is None:

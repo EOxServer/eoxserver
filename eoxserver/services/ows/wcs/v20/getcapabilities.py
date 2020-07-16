@@ -1,9 +1,9 @@
-#-------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
 #
-#-------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Copyright (C) 2011 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -13,8 +13,8 @@
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
-# The above copyright notice and this permission notice shall be included in all
-# copies of this Software or works derived from this Software.
+# The above copyright notice and this permission notice shall be included in
+# all copies of this Software or works derived from this Software.
 #
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -23,18 +23,13 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 from django.db.models import Q
 
-from eoxserver.core import Component, implements
 from eoxserver.core.decoders import xml, kvp, typelist, lower
 from eoxserver.resources.coverages import models
 from eoxserver.render.coverage.objects import from_model
-from eoxserver.services.ows.interfaces import (
-    ServiceHandlerInterface, GetServiceHandlerInterface,
-    PostServiceHandlerInterface, VersionNegotiationInterface
-)
 from eoxserver.services.ows.wcs.basehandlers import (
     WCSGetCapabilitiesHandlerBase
 )
@@ -42,16 +37,17 @@ from eoxserver.services.ows.wcs.v20.util import nsmap, SectionsMixIn
 from eoxserver.services.ows.wcs.v20.parameters import (
     WCS20CapabilitiesRenderParams
 )
+from eoxserver.services.ecql import parse, to_filter
+from eoxserver.services import filters
 
 
-class WCS20GetCapabilitiesHandler(WCSGetCapabilitiesHandlerBase, Component):
-    implements(ServiceHandlerInterface)
-    implements(GetServiceHandlerInterface)
-    implements(PostServiceHandlerInterface)
-    implements(VersionNegotiationInterface)
-
+class WCS20GetCapabilitiesHandler(WCSGetCapabilitiesHandlerBase):
     versions = ("2.0.0", "2.0.1")
     methods = ['GET', 'POST']
+
+    additional_parameters = {
+        'cql': None
+    }
 
     def get_decoder(self, request):
         if request.method == "GET":
@@ -71,10 +67,25 @@ class WCS20GetCapabilitiesHandler(WCSGetCapabilitiesHandlerBase, Component):
         )
 
         if inc_coverages:
-            qs = models.EOObject.objects.filter(
-                service_visibility__service='wcs',
-                service_visibility__visibility=True
-            ).order_by('id').select_subclasses(models.Coverage, models.Mosaic)
+            cql_text = decoder.cql
+            if cql_text:
+                qs = models.EOObject.objects.all()
+                mapping, mapping_choices = filters.get_field_mapping_for_model(
+                    models.Coverage  # TODO: allow mapping to Mosaic as-well?
+                )
+                ast = parse(cql_text)
+                filter_expressions = to_filter(ast, mapping, mapping_choices)
+                qs = qs.filter(filter_expressions)
+
+            else:
+                qs = models.EOObject.objects.filter(
+                    service_visibility__service='wcs',
+                    service_visibility__visibility=True
+                )
+
+            qs = qs.order_by('id').select_subclasses(
+                models.Coverage, models.Mosaic
+            )
 
             coverages = [
                 from_model(coverage)
@@ -84,6 +95,16 @@ class WCS20GetCapabilitiesHandler(WCSGetCapabilitiesHandlerBase, Component):
             coverages = []
 
         if inc_dataset_series:
+            cql_text = decoder.datasetseriescql
+            if cql_text:
+                qs = models.EOObject.objects.all()
+                mapping, mapping_choices = filters.get_field_mapping_for_model(
+                    qs.model  # TODO: mapping to Collection/Product would be better
+                )
+                ast = parse(cql_text)
+                filter_expressions = to_filter(ast, mapping, mapping_choices)
+                qs = qs.filter(filter_expressions)
+
             dataset_series_qs = models.EOObject.objects.filter(
                 Q(
                     product__isnull=False,
@@ -123,6 +144,8 @@ class WCS20GetCapabilitiesKVPDecoder(kvp.Decoder, SectionsMixIn):
     acceptversions      = kvp.Parameter(type=typelist(str, ","), num="?")
     acceptformats       = kvp.Parameter(type=typelist(str, ","), num="?", default=["text/xml"])
     acceptlanguages     = kvp.Parameter(type=typelist(str, ","), num="?")
+    cql                 = kvp.Parameter(num="?")
+    datasetseriescql    = kvp.Parameter(num="?")
 
 
 class WCS20GetCapabilitiesXMLDecoder(xml.Decoder, SectionsMixIn):
@@ -131,5 +154,9 @@ class WCS20GetCapabilitiesXMLDecoder(xml.Decoder, SectionsMixIn):
     acceptversions      = xml.Parameter("ows:AcceptVersions/ows:Version/text()", num="*")
     acceptformats       = xml.Parameter("ows:AcceptFormats/ows:OutputFormat/text()", num="*", default=["text/xml"])
     acceptlanguages     = xml.Parameter("ows:AcceptLanguages/ows:Language/text()", num="*")
+
+    # TODO: find suitable place in XML to pass CQL queries
+    cql                 = None
+    datasetseriescql    = None
 
     namespaces = nsmap

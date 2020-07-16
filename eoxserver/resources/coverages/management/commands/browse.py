@@ -13,8 +13,8 @@
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
-# The above copyright notice and this permission notice shall be included in all
-# copies of this Software or works derived from this Software.
+# The above copyright notice and this permission notice shall be included in
+# all copies of this Software or works derived from this Software.
 #
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -79,6 +79,10 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             location=location,
             type_name=type_name
         )
+        print(
+            'Successfully registered browse (%r) for product %r'
+            % (type_name, identifier)
+        )
 
     def handle_generate(self, identifier, **kwargs):
         """ Handle the generation of a new browse image
@@ -88,8 +92,4 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
     def handle_deregister(self, identifier, **kwargs):
         """ Handle the deregistration a browse image
         """
-        try:
-            models.Coverage.objects.get(identifier=identifier).delete()
-        except models.Coverage.DoesNotExist:
-            raise CommandError('No such Coverage %r' % identifier)
         raise NotImplementedError

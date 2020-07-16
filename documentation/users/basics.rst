@@ -9,12 +9,12 @@
   #-----------------------------------------------------------------------------
   # Copyright (C) 2011 EOX IT Services GmbH
   #
-  # Permission is hereby granted, free of charge, to any person obtaining a copy
-  # of this software and associated documentation files (the "Software"), to
-  # deal in the Software without restriction, including without limitation the
-  # rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
-  # sell copies of the Software, and to permit persons to whom the Software is
-  # furnished to do so, subject to the following conditions:
+  # Permission is hereby granted, free of charge, to any person obtaining a
+  # copy of this software and associated documentation files (the "Software"),
+  # to deal in the Software without restriction, including without limitation
+  # the rights to use, copy, modify, merge, publish, distribute, sublicense,
+  # and/or sell copies of the Software, and to permit persons to whom the
+  # Software is furnished to do so, subject to the following conditions:
   #
   # The above copyright notice and this permission notice shall be included in
   # all copies of this Software or works derived from this Software.
@@ -23,9 +23,9 @@
   # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
   # FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
   # AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
-  # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
-  # IN THE SOFTWARE.
+  # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+  # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+  # DEALINGS IN THE SOFTWARE.
   #-----------------------------------------------------------------------------
 
 .. _EOxServer Basics:
@@ -43,14 +43,15 @@ Introduction
 What is EOxServer?
 ~~~~~~~~~~~~~~~~~~
 
-EOxServer is an open source software for registering, processing, and publishing
-Earth Observation (EO) data via different Web Services. EOxServer is written in
-Python and relies on widely-used libraries for geospatial data manipulation.
+EOxServer is an open source software for registering, processing, and
+publishing Earth Observation (EO) data via different Web Services. EOxServer is
+written in Python and relies on widely-used libraries for geospatial data
+manipulation.
 
 The core concept of the EOxServer data model is the one of a coverage. In this
 context, a coverage is a mapping from a domain set (a geographic region of the
 Earth described by its coordinates) to a range set. For original EO data,
-the range set usually consists of measurements of some physical quantity 
+the range set usually consists of measurements of some physical quantity
 (e.g. radiation for optical instruments).
 
 The EOxServer service model is designed to deliver (representations of) EO data
@@ -107,13 +108,6 @@ The EOxServer documentation consists of the
 Furthermore, you can consult the inline documentation in the source code
 e.g. in the `Source Browser <https://github.com/EOxServer/eoxserver>`_.
 
-Demonstration Services
-~~~~~~~~~~~~~~~~~~~~~~
-
-There is a demonstration service available on the EOxServer site. You can reach
-it under http://eoxserver.org/demo_stable/ows. For some sample calls to
-different OGC Web Services, see :doc:`demonstration`.
-
 Data Model
 ----------
 
@@ -130,8 +124,8 @@ that is out of scope of EOxServer at the moment).
 
 The data EOxServer originally was designed for is satellite imagery. So the
 domain set is the extent of the area that was scanned by the respective sensor,
-and the range set contains its measurements, e.g. the radiation of a spectrum of
-wavelengths (optical data).
+and the range set contains its measurements, e.g. the radiation of a spectrum
+of wavelengths (optical data).
 
 In the language of the OGC Abstract Specification ortho-rectified data
 corresponds to "rectified grid coverages", whereas data in
@@ -154,6 +148,8 @@ Observation metadata. At the moment, EOxServer supports a limited subset of
 metadata items, such as the identifier of the Earth Observation product, the
 acquisition time and the acquisistion footprint.
 
+The data model is described in more detail in the :doc:`coverages` section.
+
 Service Model
 -------------
 
@@ -161,6 +157,9 @@ Earth Observation data are published by EOxServer using different OGC Web
 Services. The OGC specifies open standard interfaces for the exchange of
 geospatial data that shall ensure interoperability and universal access to
 geodata.
+
+The following sectino gives an overview of the provided services, the full
+description can be found in the :doc:`services/index` chapter.
 
 Web Coverage Service
 ~~~~~~~~~~~~~~~~~~~~
@@ -185,12 +184,12 @@ The WCS 2.0 EO-AP (EO-WCS) adds an additional operation:
 
 * DescribeEOCoverageSet - returns an XML document describing (a subset of) the
   datasets contained in a Rectified Stitched Mosaic or Dataset Series
-  
-For detailed lists of supported parameters for each of the operations see 
+
+For detailed lists of supported parameters for each of the operations see
 :ref:`EO-WCS Request Parameters` .
 
-In addition, EOxServer supports the WCS 1.1 Transaction operation which provides
-an interface to ingest coverages and metadata into an existing server.
+In addition, EOxServer supports the WCS 1.1 Transaction operation which
+provides an interface to ingest coverages and metadata into an existing server.
 
 Web Map Service
 ~~~~~~~~~~~~~~~
@@ -217,9 +216,10 @@ For certain WMS 1.3 layers, there is also a third operation available
 Every coverage (Rectified Dataset, Referenceable Dataset or Rectified Stitched
 Mosaic) is mapped to a WMS layer. Furthermore, Dataset Series are mapped to
 WMS layers as well. In WMS 1.3 a "bands" layer is appended for each coverage
-that allows to select and view a subset of the coverage bands only. Furthermore,
-queryable "outlines" layers are added for Rectified Stitched Mosaics and Dataset
-Series which show the footprints of the Datasets they contain.
+that allows to select and view a subset of the coverage bands only.
+Furthermore, queryable "outlines" layers are added for Rectified Stitched
+Mosaics and Dataset Series which show the footprints of the Datasets they
+contain.
 
 Web Processing Service
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -233,9 +233,3 @@ The WPS server provides three operations:
 * GetCapabilities - returns an XML document describing the available processes
 * DescribeProcess - returns an XML document describing a specific process
 * Execute - allows to invoke a process
-
-.. TODO: Security Architecture
-    Security Architecture
-    ---------------------
-    
-    ...

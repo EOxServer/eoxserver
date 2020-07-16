@@ -13,12 +13,19 @@
 #   - DJANGO_USER, DJANGO_MAIL, DJANGO_PASSWORD: when set, these credentials will be
 #       used to create a superuser to be used for the Django Admin. By default, no user is
 #       created
-#   - INIT_SCRIPTS: if set to a path to a script, that script will be executed once
-#       when the instance is set up
+#   - COLLECT_STATIC: if set to "true" (the default), static files will be collected
+#       upon initialization
+#   - PREINIT_SCRIPTS: if set, the list of commands that will be executed before
+#       the instance is initialized
+#   - INIT_SCRIPTS: if set, the list of commands that will be executed once
+#       when the instance is initialized
+#   - STARTUP_SCRIPTS: if set, the list of commands that will be executed before
+#       the command is run
 
 # select python interpreter
 PYTHON=$(which python3 || which python)
 INSTANCE_DIR=${INSTANCE_DIR:-"/opt/instance"}
+COLLECT_STATIC=${COLLECT_STATIC:-"true"}
 
 # wait for the database connection before continuing
 if [ "${DB:-postgis}" = "postgis" ] ; then
@@ -31,14 +38,24 @@ fi
 # check if the instance dir exists. if not, this triggers the creation of a new instance
 if [ ! -d "${INSTANCE_DIR}" ]; then
   mkdir -p "${INSTANCE_DIR}"
+
+  # allow to specify pre-initialization scripts
+  if [ ! -z "${PREINIT_SCRIPTS}" ] ; then
+    for f in ${PREINIT_SCRIPTS} ; do
+      source $f
+    done
+  fi
+
   eoxserver-instance.py "${INSTANCE_NAME}" "${INSTANCE_DIR}"
   cd "${INSTANCE_DIR}"
 
   # create the database schema
   $PYTHON manage.py migrate --noinput
 
-  # collect static files
-  $PYTHON manage.py collectstatic --noinput
+  # collect static files if required
+  if [ "${COLLECT_STATIC}" = "true" ] ; then
+    $PYTHON manage.py collectstatic --noinput
+  fi
 
   # if all credentials are passed, create a django superuser
   if [[ ! -z "$DJANGO_USER" && ! -z "$DJANGO_MAIL" && ! -z "$DJANGO_PASSWORD" ]] ; then
@@ -51,6 +68,13 @@ if [ ! -d "${INSTANCE_DIR}" ]; then
       source $f
     done
   fi
+fi
+
+# allow to specify startup scripts, that will be called every time in the entry point
+if [ ! -z "${STARTUP_SCRIPTS}" ] ; then
+  for f in ${STARTUP_SCRIPTS} ; do
+    source $f
+  done
 fi
 
 cd "${INSTANCE_DIR}"

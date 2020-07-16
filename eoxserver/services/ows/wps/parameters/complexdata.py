@@ -224,15 +224,17 @@ class CDAsciiTextBuffer(CDByteBuffer):
     def write(self, data):
         if not isinstance(data, string_types):
             data = str(data)
-        StringIO.write(self, data.encode('ascii'))
+        CDByteBuffer.write(self, data.encode('ascii'))
 
     def read(self, size=None):
         if size is None:
-            data = StringIO.read(self)
+            data = CDByteBuffer.read(self)
         else:
-            data = StringIO.read(self, size)
-        if self.text_encoding is not None:
-            data = data.encode(self.text_encoding)
+            data = CDByteBuffer.read(self, size)
+        if self.text_encoding not in ('ascii', 'utf-8'): # ASCII is a subset of UTF-8
+            data = data.decode('ascii')
+            if self.text_encoding is not None:
+                data = data.encode(self.text_encoding)
         return data
 
 
@@ -248,11 +250,13 @@ class CDFileWrapper(CDBase):
                    mime_type, encoding, and XML schema
         filename   optional raw output file-name set in the Content-Disposition
                    HTTP header.
+        text_encoding optional source text file encoding
     """
 
     def __init__(self, file_object, *args, **kwargs):
         CDBase.__init__(self, *args, **kwargs)
         self._file = file_object
+        self.text_encoding = kwargs.get('text_encoding', None)
 
     def __del__(self):
         if hasattr(self, "_file"):
@@ -272,8 +276,8 @@ class CDFileWrapper(CDBase):
 
 
 class CDFile(CDFileWrapper):
-    """ Complex data binary file.
-        To be used to hold a generic binary (byte-stream) payload.
+    """ Complex data file.
+        To be used to hold a generic (binary or text) byte-stream payload.
         NOTE: The file allows you to specify whether the file is
               temporary (will be automatically removed - by default)
               or permanent (preserved after object destruction).
@@ -307,9 +311,9 @@ class CDFile(CDFileWrapper):
                 remove(name)
 
 
-class CDPermanentFile(CDFileWrapper):
-    """ Complex data permanent binary file.
-        To be used to hold a generic binary (byte-stream) payload.
+class CDPermanentFile(CDFile):
+    """ Complex data permanent file.
+        To be used to hold a generic (binary or text) byte-stream payload.
         NOTE: This class preserves the actual file.
 
     Constructor parameters:
@@ -325,10 +329,9 @@ class CDPermanentFile(CDFileWrapper):
                    HTTP header.
     """
 
-    def __init__(self, name, mode='r', buffering=-1, *args, **kwargs):
-        CDFileWrapper.__init__(
-            self, open(name, mode, buffering), *args, **kwargs
-        )
+    def __init__(self, *args, **kwargs):
+        kwargs['remove_file'] = False
+        CDFile.__init__(self, *args, **kwargs)
 
 #-------------------------------------------------------------------------------
 
@@ -497,7 +500,12 @@ class ComplexData(Parameter):
             if isinstance(data, (CDTextBuffer, CDAsciiTextBuffer)):
                 data.text_encoding = text_encoding
             else:
-                data = BytesIO(_rewind(data).read().encode(text_encoding))
+                source_text_encoding = getattr(data, 'text_encoding', None)
+                if source_text_encoding != text_encoding:
+                    data = _rewind(data).read()
+                    if source_text_encoding is not None:
+                        data = data.decode(source_text_encoding)
+                    data = BytesIO(data.encode(text_encoding))
             content_type = "%s; charset=%s" % (
                 format_.mime_type, text_encoding
             )
