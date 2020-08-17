@@ -54,7 +54,7 @@ class GSCFormatExtendedDecoder(xml.Decoder):
     modification_date = xml.Parameter("(gsc:sar_metadata|gsc:opt_metadata)/gml:metaDataProperty/gsc:EarthObservationMetaData/eop:modificationDate/text()", type=str, num="?") # last modification in catalog
     processing_date = xml.Parameter("(gsc:sar_metadata|gsc:opt_metadata)/gml:metaDataProperty/gsc:EarthObservationMetaData/eop:processing/eop:ProcessingInformation/eop:processingDate/text()", type=str, num="?")
     sensor_mode = xml.Parameter("(gsc:sar_metadata|gsc:opt_metadata)/gml:using/eop:EarthObservationEquipment/eop:sensor/eop:Sensor/eop:operationalMode/text()", type=str, num="?")
-    archiving_center =  xml.Parameter("(gsc:sar_metadata|gsc:opt_metadata)/gml:metaDataProperty/gsc:EarthObservationMetaData/eop:archivedIn/eop:ArchivingInformation/eop:archivingCenter/text()", type=str, num="?")
+    archiving_center = xml.Parameter("(gsc:sar_metadata|gsc:opt_metadata)/gml:metaDataProperty/gsc:EarthObservationMetaData/eop:archivedIn/eop:ArchivingInformation/eop:archivingCenter/text()", type=str, num="?")
     processing_mode = xml.Parameter("(gsc:sar_metadata|gsc:opt_metadata)/gml:metaDataProperty/gsc:EarthObservationMetaData/eop:processing/eop:ProcessingInformation/eop:processingMode/text()", type=str, num="?")
     # acquisition type metadata
     
@@ -62,9 +62,9 @@ class GSCFormatExtendedDecoder(xml.Decoder):
     acquisition_sub_type = xml.Parameter("(gsc:sar_metadata|gsc:opt_metadata)/gml:metaDataProperty/gsc:EarthObservationMetaData/eop:acquisitionSubType/text()", type=str, num="?")
     start_time_from_ascending_node = xml.Parameter("(gsc:sar_metadata|gsc:opt_metadata)/gml:using/eop:EarthObservationEquipment/eop:acquisitionParameters/eop:Acquisition/eop:startTimeFromAscendingNode/text()", type=str, num="?")
     completion_time_from_ascending_node = xml.Parameter("(gsc:sar_metadata|gsc:opt_metadata)/gml:using/eop:EarthObservationEquipment/eop:acquisitionParameters/eop:Acquisition/eop:completionTimeFromAscendingNode/text()", type=str, num="?")
-    illumination_azimuth_angle = xml.Parameter("(gsc:sar_metadata|gsc:opt_metadata)/gml:using/eop:EarthObservationEquipment/eop:acquisitionParameters/eop:Acquisition/eop:illuminationAzimuthAngle/text()", type=float, num="?")
-    illumination_zenith_angle = xml.Parameter("(gsc:sar_metadata|gsc:opt_metadata)/gml:using/eop:EarthObservationEquipment/eop:acquisitionParameters/eop:Acquisition/eop:illuminationZenithAngle/text()", type=float, num="?")
-    illumination_elevation_angle = xml.Parameter("(gsc:sar_metadata|gsc:opt_metadata)/gml:using/eop:EarthObservationEquipment/eop:acquisitionParameters/eop:Acquisition/eop:illuminationElevationAngle/text()", type=float, num="?")
+    illumination_azimuth_angle = xml.Parameter("(gsc:sar_metadata|gsc:opt_metadata)/gml:using/eop:EarthObservationEquipment/eop:acquisitionParameters/(eop|opt):Acquisition/(eop|opt):illuminationAzimuthAngle/text()", type=float, num="?")
+    illumination_zenith_angle = xml.Parameter("(gsc:sar_metadata|gsc:opt_metadata)/gml:using/eop:EarthObservationEquipment/eop:acquisitionParameters/(eop|opt):Acquisition/(eop|opt):illuminationZenithAngle/text()", type=float, num="?")
+    illumination_elevation_angle = xml.Parameter("(gsc:sar_metadata|gsc:opt_metadata)/gml:using/eop:EarthObservationEquipment/eop:acquisitionParameters/(eop|opt):Acquisition/(eop|opt):illuminationElevationAngle/text()", type=float, num="?")
     polarisation_mode = xml.Parameter("(gsc:sar_metadata|gsc:opt_metadata)/gml:using/eop:EarthObservationEquipment/eop:acquisitionParameters/sar:Acquisition/sar:polarisationMode/text()", type=str, num="?")
     polarization_channels = xml.Parameter("(gsc:sar_metadata|gsc:opt_metadata)/gml:using/eop:EarthObservationEquipment/eop:acquisitionParameters/sar:Acquisition/sar:polarisationChannels/text()", type=str, num="?")
     antenna_look_direction = xml.Parameter("(gsc:sar_metadata|gsc:opt_metadata)/gml:using/eop:EarthObservationEquipment/eop:acquisitionParameters/sar:Acquisition/sar:antennaLookDirection/text()", type=str, num="?")
