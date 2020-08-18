@@ -197,5 +197,7 @@ class EOOMExtraMetadataDecoder(EOOMNamespaceMixIn, xml.Decoder):
     antenna_look_direction = xml.Parameter("om:procedure/eop:EarthObservationEquipment/eop:acquisitionParameters/sar:Acquisition/sar:antennaLookDirection/text()", type=str, num="?")
     minimum_incidence_angle = xml.Parameter("om:procedure/eop:EarthObservationEquipment/eop:acquisitionParameters/sar:Acquisition/sar:minimumIncidenceAngle/text()", type=float, num="?")
     maximum_incidence_angle = xml.Parameter("om:procedure/eop:EarthObservationEquipment/eop:acquisitionParameters/sar:Acquisition/sar:maximumIncidenceAngle/text()", type=float, num="?")
+    across_track_incidence_angle = xml.Parameter("om:procedure/eop:EarthObservationEquipment/eop:acquisitionParameters/opt:Acquisition/eop:acrossTrackIncidenceAngle/text()", type=float, num="?")
+    along_track_incidence_angle = xml.Parameter("om:procedure/eop:EarthObservationEquipment/eop:acquisitionParameters/opt:Acquisition/eop:alongTrackIncidenceAngle/text()", type=float, num="?")
     doppler_frequency = xml.Parameter("om:procedure/eop:EarthObservationEquipment/eop:acquisitionParameters/sar:Acquisition/sar:dopplerFrequency/text()", type=float, num="?")
     incidence_angle_variation = xml.Parameter("om:procedure/eop:EarthObservationEquipment/eop:acquisitionParameters/sar:Acquisition/sar:incidenceAngleVariation/text()", type=float, num="?")
