@@ -506,6 +506,8 @@ class MetadataFormatTests(GeometryMixIn, TestCase):
               'lowest_location': None,
               'maximum_incidence_angle': None,
               'minimum_incidence_angle': None,
+              'across_track_incidence_angle': None,
+              'along_track_incidence_angle': None,
               'modification_date': None,
               'polarisation_mode': None,
               'polarization_channels': None,

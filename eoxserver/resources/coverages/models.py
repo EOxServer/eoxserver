@@ -668,6 +668,8 @@ class ProductMetadata(models.Model):
     antenna_look_direction = models.PositiveSmallIntegerField(choices=ANTENNA_LOOK_DIRECTION_CHOICES, **optional_indexed)
     minimum_incidence_angle = models.FloatField(**optional_indexed)
     maximum_incidence_angle = models.FloatField(**optional_indexed)
+    across_track_incidence_angle = models.FloatField(**optional_indexed)
+    along_track_incidence_angle = models.FloatField(**optional_indexed)
     # for SAR acquisitions
     doppler_frequency = models.FloatField(**optional_indexed)
     incidence_angle_variation = models.FloatField(**optional_indexed)
