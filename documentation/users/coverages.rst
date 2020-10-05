@@ -527,6 +527,9 @@ coverage
       this command will update all Collections metadata (footprint, begin-/end
       time) unless this switch is set.
 
+    --all, -a
+      When this flag is set, all the Coverages are selected to be derigesterd.
+
 .. _cmd-product:
 
 product
@@ -594,6 +597,9 @@ product
 
     identifier
       the identifier of the Product to deregister.
+      
+    --all, -a
+      When this flag is set, all the Coverages are selected to be derigesterd.
 
   discover
     print the contents of the main package file of a Product.
@@ -677,6 +683,9 @@ collection
 
     identifier
       the identifier of the Collection to delete
+     
+    --all, -a
+      When this flag is set, all the collections are selected to be derigesterd.
 
   insert
     with this sub-command one or more `Coverage Model`_ instances
