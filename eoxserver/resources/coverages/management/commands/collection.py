@@ -50,7 +50,8 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             purge_parser, summary_parser
         ]
 
-        # identifier is a common argument (except for delete it is optional - if --all is tagged -)
+        # identifier is a common argument (except for delete it is optional,
+        # if --all is tagged)
         for parser in parsers:
             parser.add_argument(
                 'identifier', nargs=1, help='The collection identifier'
@@ -75,9 +76,11 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
         delete_parser.add_argument(
             '--all', '-a', action="store_true",
             default=False, dest='all_collections',
-            help='When this flag is set, all the collections are selected to be derigesterd'
+            help=(
+                'When this flag is set, all the collections are '
+                'selected to be derigesterd'
+            )
         )
-
 
         delete_parser.add_argument(
                 'identifier', default=None, nargs='?',
@@ -181,7 +184,7 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
 
         print('Successfully created collection %r' % identifier)
 
-    def handle_delete(self, identifier, all_collections,*args, **kwargs):
+    def handle_delete(self, identifier, all_collections, *args, **kwargs):
         """ Handle the deletion of a collection
         """
         if not all_collections and not identifier:
@@ -195,9 +198,12 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
                 try:
                     collection_id = collection.identifier
                     collection.delete()
-                    self.print_msg('Successfully deregistered collection %r' % collection_id)
+                    self.print_msg(
+                        'Successfully deregistered collection %r'
+                        % collection_id
+                    )
                 except models.Collection.DoesNotExist:
-                    raise CommandError('No such Collection %r' % identifier)    
+                    raise CommandError('No such Collection %r' % identifier)
 
     def handle_insert(self, identifier, object_identifiers, **kwargs):
         """ Handle the insertion of arbitrary objects into a collection
@@ -220,7 +226,9 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
 
         for eo_object in objects:
             try:
-                models.collection_insert_eo_object(collection, eo_object)
+                models.collection_insert_eo_object(
+                    collection, eo_object, kwargs.get('use_extent', False)
+                )
             except Exception as e:
                 raise CommandError(
                     "Could not insert object %r into collection %r. "
@@ -254,7 +262,9 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
 
         for eo_object in objects:
             try:
-                models.collection_exclude_eo_object(collection, eo_object)
+                models.collection_exclude_eo_object(
+                    collection, eo_object, kwargs.get('use_extent', False)
+                )
             except Exception as e:
                 raise CommandError(
                     "Could not exclude object %r from collection %r. "
