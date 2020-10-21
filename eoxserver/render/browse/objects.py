@@ -29,7 +29,7 @@ from django.contrib.gis.geos import Polygon
 from django.contrib.gis.gdal import SpatialReference, CoordTransform, DataSource
 
 from eoxserver.contrib import gdal
-from eoxserver.backends.access import get_vsi_path, get_vsi_env
+from eoxserver.backends.access import get_vsi_path, get_vsi_env, gdal_open
 from eoxserver.render.coverage.objects import Coverage
 
 
@@ -103,7 +103,7 @@ class Browse(object):
             browse_model.max_x, browse_model.max_y
         )
 
-        ds = gdal.Open(filename)
+        ds = gdal_open(browse_model)
         mode = _get_ds_mode(ds)
         ds = None
 
