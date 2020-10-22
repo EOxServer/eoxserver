@@ -130,6 +130,9 @@ def parse_expression(band_expression):
 
 
 def parent_walk(node, depth=0):
+    if depth == 0:
+        yield None, node
+
     for child in ast.iter_child_nodes(node):
         yield node, child
         for child, ancestor in parent_walk(child, depth+1):
@@ -215,88 +218,88 @@ def generate_browse(band_expressions, fields_and_coverages,
     """
     generator = generator or FilenameGenerator('/vsimem/{uuid}.vrt')
 
-    out_band_filenames = []
+    # out_band_filenames = []
 
     parsed_expressions = [
         parse_expression(band_expression)
         for band_expression in band_expressions
     ]
 
-    is_simple = all(isinstance(expr, _ast.Name) for expr in parsed_expressions)
+    # is_simple = all(isinstance(expr, _ast.Name) for expr in parsed_expressions)
 
-    if not is_simple:
-        return _generate_browse_complex(
-            parsed_expressions, fields_and_coverages,
-            width, height, bbox, crs, generator
-        ), generator, True
+    # if not is_simple:
+    return _generate_browse_complex(
+        parsed_expressions, fields_and_coverages,
+        width, height, bbox, crs, generator
+    ), generator, True
 
-    single_filename, env, bands = single_file_and_indices(
-        band_expressions, fields_and_coverages
-    )
+    # single_filename, env, bands = single_file_and_indices(
+    #     band_expressions, fields_and_coverages
+    # )
 
-    # for single files, we make a shortcut and just return it and the used
-    # bands
-    if single_filename:
-        return (
-            BrowseCreationInfo(single_filename, env, bands),
-            generator, False
-        )
+    # # for single files, we make a shortcut and just return it and the used
+    # # bands
+    # if single_filename:
+    #     return (
+    #         BrowseCreationInfo(single_filename, env, bands),
+    #         generator, False
+    #     )
 
-    # iterate over the input band expressions
-    for band_expression in band_expressions:
-        fields = extract_fields(band_expression)
+    # # iterate over the input band expressions
+    # for band_expression in band_expressions:
+    #     fields = extract_fields(band_expression)
 
-        selected_filenames = []
+    #     selected_filenames = []
 
-        # iterate over all fields that the output band shall be comprised of
-        for field in fields:
-            coverages = fields_and_coverages[field]
+    #     # iterate over all fields that the output band shall be comprised of
+    #     for field in fields:
+    #         coverages = fields_and_coverages[field]
 
-            # iterate over all coverages for that field to select the single
-            # field
-            for coverage in coverages:
-                location = coverage.get_location_for_field(field)
-                orig_filename = location.path
-                orig_band_index = coverage.get_band_index_for_field(field)
+    #         # iterate over all coverages for that field to select the single
+    #         # field
+    #         for coverage in coverages:
+    #             location = coverage.get_location_for_field(field)
+    #             orig_filename = location.path
+    #             orig_band_index = coverage.get_band_index_for_field(field)
 
-                # only make a VRT to select the band if band count for the
-                # dataset > 1
-                if location.field_count == 1:
-                    selected_filename = orig_filename
-                else:
-                    selected_filename = generator.generate()
-                    vrt.select_bands(
-                        orig_filename, location.env,
-                        [orig_band_index], selected_filename
-                    )
+    #             # only make a VRT to select the band if band count for the
+    #             # dataset > 1
+    #             if location.field_count == 1:
+    #                 selected_filename = orig_filename
+    #             else:
+    #                 selected_filename = generator.generate()
+    #                 vrt.select_bands(
+    #                     orig_filename, location.env,
+    #                     [orig_band_index], selected_filename
+    #                 )
 
-                selected_filenames.append(selected_filename)
+    #             selected_filenames.append(selected_filename)
 
-        # if only a single file is required to generate the output band, return
-        # it.
-        if len(selected_filenames) == 1:
-            out_band_filename = selected_filenames[0]
+    #     # if only a single file is required to generate the output band, return
+    #     # it.
+    #     if len(selected_filenames) == 1:
+    #         out_band_filename = selected_filenames[0]
 
-        # otherwise mosaic all the input bands to form a composite image
-        else:
-            out_band_filename = generator.generate()
-            vrt.mosaic(selected_filenames, out_band_filename)
+    #     # otherwise mosaic all the input bands to form a composite image
+    #     else:
+    #         out_band_filename = generator.generate()
+    #         vrt.mosaic(selected_filenames, out_band_filename)
 
-        out_band_filenames.append(out_band_filename)
+    #     out_band_filenames.append(out_band_filename)
 
-    # make shortcut here, when we only have one band, just return it
-    if len(out_band_filenames) == 1:
-        return (
-            BrowseCreationInfo(out_band_filenames[0], None), generator, False
-        )
+    # # make shortcut here, when we only have one band, just return it
+    # if len(out_band_filenames) == 1:
+    #     return (
+    #         BrowseCreationInfo(out_band_filenames[0], None), generator, False
+    #     )
 
-    # return the stacked bands as a VRT
-    else:
-        stacked_filename = generator.generate()
-        vrt.stack_bands(out_band_filenames, stacked_filename)
-        return (
-            BrowseCreationInfo(stacked_filename, None), generator, False
-        )
+    # # return the stacked bands as a VRT
+    # else:
+    #     stacked_filename = generator.generate()
+    #     vrt.stack_bands(out_band_filenames, env or location.env, stacked_filename)
+    #     return (
+    #         BrowseCreationInfo(stacked_filename, None), generator, False
+    #     )
 
 
 def _generate_browse_complex(parsed_exprs, fields_and_coverages,

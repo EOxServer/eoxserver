@@ -447,11 +447,12 @@ def select_bands(filename, env, band_indices, save=None):
     return out_ds
 
 
-def stack_bands(filenames, save=None):
-    datasets = [
-        gdal.OpenShared(filename)
-        for filename in filenames
-    ]
+def stack_bands(filenames, env, save=None):
+    with gdal.config_env(env):
+        datasets = [
+            gdal.OpenShared(filename)
+            for filename in filenames
+        ]
 
     first = datasets[0]
     proj, (o_x, o_y), _, (res_x, res_y), (size_x, size_y) = \
