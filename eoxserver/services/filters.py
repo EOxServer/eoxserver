@@ -13,8 +13,8 @@
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
-# The above copyright notice and this permission notice shall be included in all
-# copies of this Software or works derived from this Software.
+# The above copyright notice and this permission notice shall be included in
+# all copies of this Software or works derived from this Software.
 #
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -26,9 +26,9 @@
 # ------------------------------------------------------------------------------
 
 
-try: 
+try:
     from operator import and_, or_, add, sub, mul, div
-except ImportError :
+except ImportError:
     from operator import and_, or_, add, sub, mul, truediv as div
 from datetime import datetime, timedelta
 
@@ -70,7 +70,15 @@ def combine(sub_filters, combinator="AND"):
 
     assert combinator in ("AND", "OR")
     op = and_ if combinator == "AND" else or_
-    return reduce(lambda acc, q: op(acc, q) if acc else q, sub_filters)
+
+    out = None
+    for sub_filter in sub_filters:
+        if out is None:
+            out = sub_filter
+        else:
+            out = op(out, sub_filter)
+
+    return out
 
 
 def negate(sub_filter):
@@ -83,6 +91,7 @@ def negate(sub_filter):
     """
     assert isinstance(sub_filter, Q)
     return ~sub_filter
+
 
 OP_TO_COMP = {
     "<": "lt",
@@ -101,8 +110,8 @@ def compare(lhs, rhs, op, mapping_choices=None):
         :param rhs: the filter expression
         :param op: a string denoting the operation. one of ``"<"``, ``"<="``,
                    ``">"``, ``">="``, ``"<>"``, ``"="``
-        :param mapping_choices: a dict to lookup potential choices for a certain
-                                field.
+        :param mapping_choices: a dict to lookup potential choices for a
+                                certain field.
         :type lhs: :class:`django.db.models.F`
         :type rhs: :class:`django.db.models.F`
         :return: a comparison expression object
@@ -161,8 +170,8 @@ def like(lhs, rhs, case=False, not_=False, mapping_choices=None):
         :param case: whether the lookup shall be done case sensitively or not
         :param not_: whether the range shall be inclusive (the default) or
                      exclusive
-        :param mapping_choices: a dict to lookup potential choices for a certain
-                                field.
+        :param mapping_choices: a dict to lookup potential choices for a
+                                certain field.
         :type lhs: :class:`django.db.models.F`
         :type rhs: str
         :return: a comparison expression object
@@ -247,8 +256,8 @@ def contains(lhs, items, not_=False, mapping_choices=None):
         :param items: a list of choices
         :param not_: whether the range shall be inclusive (the default) or
                      exclusive
-        :param mapping_choices: a dict to lookup potential choices for a certain
-                                field.
+        :param mapping_choices: a dict to lookup potential choices for a
+                                certain field.
         :type lhs: :class:`django.db.models.F`
         :type items: list
         :return: a comparison expression object
@@ -295,8 +304,8 @@ def temporal(lhs, time_or_period, op):
 
         :param lhs: the field to compare
         :param time_or_period: the time instant or time span to use as a filter
-        :param op: the comparison operation. one of "BEFORE", "BEFORE OR DURING",
-                   "DURING", "DURING OR AFTER", "AFTER".
+        :param op: the comparison operation. one of "BEFORE", "BEFORE OR
+                   DURING", "DURING", "DURING OR AFTER", "AFTER".
         :type lhs: :class:`django.db.models.F`
         :type time_or_period: :class:`datetime.datetime` or a tuple of two
                               datetimes or a tuple of one datetime and one
@@ -510,15 +519,19 @@ OP_TO_FUNC = {
 def arithmetic(lhs, rhs, op):
     """ Create an arithmetic filter
 
-        :param lhs: left hand side of the arithmetic expression. either a scalar
-                    or a field lookup or another type of expression
+        :param lhs: left hand side of the arithmetic expression. either a
+                    scalar or a field lookup or another type of expression
         :param rhs: same as `lhs`
         :param op: the arithmetic operation. one of "+", "-", "*", "/"
         :rtype: :class:`django.db.models.F`
     """
 
-    assert isinstance(lhs, ARITHMETIC_TYPES), '%r is not a compatible type' % lhs
-    assert isinstance(rhs, ARITHMETIC_TYPES), '%r is not a compatible type' % rhs
+    assert isinstance(lhs, ARITHMETIC_TYPES), (
+        '%r is not a compatible type' % lhs
+    )
+    assert isinstance(rhs, ARITHMETIC_TYPES), (
+        '%r is not a compatible type' % rhs
+    )
     assert op in OP_TO_FUNC
     func = OP_TO_FUNC[op]
     return func(lhs, rhs)
@@ -531,8 +544,8 @@ def get_field_mapping_for_model(model_class, strict=False):
         :param strict: Whether only the related metadata attributes shall be
                        included or the basic ones as-well
         :returns: two dictionaries: the mapping dict, mapping from metadata
-                  filter name to the database field lookup and a dict to map the
-                  field lookup to the potential choices.
+                  filter name to the database field lookup and a dict to map
+                  the field lookup to the potential choices.
     """
     mapping = OrderedDict()
     mapping_choices = {}
@@ -576,7 +589,7 @@ def _is_common_value(field):
         if isinstance(field, ForeignKey):
             field.related_model._meta.get_field('value')
             return True
-    except:
+    except Exception:
         pass
     return False
 
