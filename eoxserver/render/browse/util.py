@@ -10,9 +10,6 @@ def create_mem_ds(width, height, data_type):
 
 
 def warp_fields(coverages, field_name, bbox, crs, width, height):
-    import logging
-    logger = logging.getLogger(__name__)
-    logger.info(f'{coverages} {field_name} {bbox} {crs} {width} {height}')
     driver = gdal.GetDriverByName('MEM')
     out_ds = driver.Create(
         '',
