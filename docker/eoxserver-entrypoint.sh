@@ -57,9 +57,10 @@ if [ ! -d "${INSTANCE_DIR}" ]; then
     $PYTHON manage.py collectstatic --noinput
   fi
 
-  # if all credentials are passed, create a django superuser
+  # if all credentials are passed, create a django superuser if it does not exist yet
   if [[ ! -z "$DJANGO_USER" && ! -z "$DJANGO_MAIL" && ! -z "$DJANGO_PASSWORD" ]] ; then
-    $PYTHON manage.py shell -c "from django.contrib.auth.models import User; User.objects.create_superuser('${DJANGO_USER}', '${DJANGO_MAIL}', '${DJANGO_PASSWORD}')"
+    $PYTHON manage.py shell -c "from django.contrib.auth.models import User; User.objects.filter(username='${DJANGO_USER}').exists() or \
+    User.objects.create_superuser('${DJANGO_USER}', '${DJANGO_MAIL}', '${DJANGO_PASSWORD}')"
   fi
 
   # loop over potential initialization scripts
