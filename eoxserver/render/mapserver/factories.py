@@ -219,7 +219,10 @@ class CoverageLayerFactoryMixIn(object):
                     range_ = _get_range(field)
 
                 for layer_obj in layer_objs:
-                    layer_obj.setProcessingKey("SCALE_%d" % i, "%s,%s" % range_)
+                    layer_obj.setProcessingKey(
+                        "SCALE_%d" % i,
+                        "%s,%s" % range_
+                    )
                     layer_obj.offsite = ms.colorObj(0, 0, 0)
 
         else:
@@ -232,7 +235,8 @@ class CoverageLayerFactoryMixIn(object):
             vsi.unlink(filename)
 
 
-class CoverageLayerFactory(CoverageLayerFactoryMixIn, BaseMapServerLayerFactory):
+class CoverageLayerFactory(CoverageLayerFactoryMixIn,
+                           BaseMapServerLayerFactory):
     handled_layer_types = [CoverageLayer, CoveragesLayer]
 
     def create(self, map_obj, layer):
@@ -259,15 +263,20 @@ class CoverageLayerFactory(CoverageLayerFactoryMixIn, BaseMapServerLayerFactory)
             self.destroy_coverage_layer(coverage_layer)
 
 
-class OutlinedCoverageLayerFactory(CoverageLayerFactoryMixIn, BaseMapServerLayerFactory):
+class OutlinedCoverageLayerFactory(CoverageLayerFactoryMixIn,
+                                   BaseMapServerLayerFactory):
     handled_layer_types = [OutlinedCoveragesLayer]
 
     def create(self, map_obj, layer):
         coverages = layer.coverages
         style = layer.style
 
-        raster_style = style if style and style in COLOR_SCALES else "blackwhite"
-        vector_style = style if style and style in BASE_COLORS else "red"
+        raster_style = (
+            style if style and style in COLOR_SCALES else "blackwhite"
+        )
+        vector_style = (
+            style if style and style in BASE_COLORS else "red"
+        )
 
         coverage_layers = []
 
@@ -325,14 +334,15 @@ class BrowseLayerMixIn(object):
                                     style):
         for browse in browses:
             if isinstance(browse, GeneratedBrowse):
-                creation_info, filename_generator, reset_info = generate_browse(
-                    browse.band_expressions,
-                    browse.fields_and_coverages,
-                    map_.width, map_.height,
-                    map_.bbox,
-                    map_.crs,
-                    filename_generator
-                )
+                creation_info, filename_generator, reset_info = \
+                    generate_browse(
+                        browse.band_expressions,
+                        browse.fields_and_coverages,
+                        map_.width, map_.height,
+                        map_.bbox,
+                        map_.crs,
+                        filename_generator
+                    )
                 layer_objs = _create_raster_layer_objs(
                     map_obj, browse.extent, browse.spatial_reference,
                     creation_info.filename, filename_generator
@@ -351,7 +361,10 @@ class BrowseLayerMixIn(object):
                     if reset_info:
                         sr = osr.SpatialReference(map_.crs)
                         extent = map_.bbox
-                        layer_obj.setMetaData("wms_extent", "%f %f %f %f" % extent)
+                        layer_obj.setMetaData(
+                            "wms_extent",
+                            "%f %f %f %f" % extent
+                        )
                         layer_obj.setExtent(*extent)
 
                         if sr.srid is not None:
@@ -378,7 +391,10 @@ class BrowseLayerMixIn(object):
                         )
 
                 else:
-                    for i, (field, field_range) in enumerate(zip(browse.field_list, browse.ranges), start=1):
+                    browse_iter = enumerate(
+                        zip(browse.field_list, browse.ranges), start=1
+                    )
+                    for i, (field, field_range) in browse_iter:
                         if ranges:
                             if len(ranges) == 1:
                                 range_ = ranges[0]
@@ -390,7 +406,8 @@ class BrowseLayerMixIn(object):
                             range_ = _get_range(field)
 
                         for layer_obj in layer_objs:
-                            layer_obj.setProcessingKey("SCALE_%d" % i,
+                            layer_obj.setProcessingKey(
+                                "SCALE_%d" % i,
                                 "%s,%s" % tuple(range_)
                             )
 
@@ -406,7 +423,9 @@ class BrowseLayerMixIn(object):
                 # TODO: figure out why and deal with it?
                 continue
             else:
-                raise TypeError('Type %s is not supported', type(browse).__name__)
+                raise TypeError(
+                    'Type %s is not supported', type(browse).__name__
+                )
 
             for layer_obj in layer_objs:
                 layer_obj.group = group_name
@@ -414,7 +433,8 @@ class BrowseLayerMixIn(object):
             yield browse, layer_objs
 
 
-class BrowseLayerFactory(CoverageLayerFactoryMixIn, BrowseLayerMixIn, BaseMapServerLayerFactory):
+class BrowseLayerFactory(CoverageLayerFactoryMixIn, BrowseLayerMixIn,
+                         BaseMapServerLayerFactory):
     handled_layer_types = [BrowseLayer]
 
     def create(self, map_obj, layer):
@@ -450,8 +470,12 @@ class OutlinedBrowseLayerFactory(BrowseLayerMixIn, BaseMapServerLayerFactory):
         ranges = layer.ranges
         style = layer.style
 
-        raster_style = style if style and style in COLOR_SCALES else "blackwhite"
-        vector_style = style if style and style in BASE_COLORS else "red"
+        raster_style = (
+            style if style and style in COLOR_SCALES else "blackwhite"
+        )
+        vector_style = (
+            style if style and style in BASE_COLORS else "red"
+        )
 
         generator = self.make_browse_layer_generator(
             map_obj, reversed(layer.browses), layer.map, filename_generator,
@@ -604,7 +628,8 @@ class OutlinesLayerFactory(BaseMapServerLayerFactory):
 # ------------------------------------------------------------------------------
 
 
-def _create_raster_layer_objs(map_obj, extent, sr, data, filename_generator, resample=None):
+def _create_raster_layer_objs(map_obj, extent, sr, data, filename_generator,
+                              resample=None):
     layer_obj = ms.layerObj(map_obj)
     layer_obj.type = ms.MS_LAYER_RASTER
     layer_obj.status = ms.MS_ON
@@ -726,8 +751,11 @@ def _build_vrt(size, field_locations):
     return path
 
 
-def _create_raster_style(name, layer, minvalue=0, maxvalue=255, nil_values=None):
+def _create_raster_style(name, layer, minvalue=0, maxvalue=255,
+                         nil_values=None):
     colors = COLOR_SCALES[name]
+
+    nil_values = nil_values or []
 
     if nil_values:
         offsite = ms.colorObj(*OFFSITE_COLORS.get(name, (0, 0, 0)))
@@ -745,14 +773,36 @@ def _create_raster_style(name, layer, minvalue=0, maxvalue=255, nil_values=None)
             cls.insertStyle(style)
             layer.insertClass(cls)
 
-    # Create style for values below range
-    cls = ms.classObj()
-    cls.setExpression("([pixel] <= %s)" % (minvalue))
-    cls.group = name
-    style = ms.styleObj()
-    style.color = ms.colorObj(*colors[0][1])
-    cls.insertStyle(style)
-    layer.insertClass(cls)
+    low_nil_values = [
+        nil_value for nil_value in nil_values
+        if nil_value <= minvalue
+    ]
+    high_nil_values = [
+        nil_value for nil_value in nil_values
+        if nil_value >= maxvalue
+    ]
+
+    # Create style for values below range, but make sure to not collide
+    # with nil-values
+    if low_nil_values:
+        low_nil = max(low_nil_values)
+        cls = ms.classObj()
+        cls.setExpression(
+            "([pixel] <= %s AND [pixel] > %s)" % (minvalue, low_nil)
+        )
+        cls.group = name
+        style = ms.styleObj()
+        style.color = ms.colorObj(*colors[0][1])
+        cls.insertStyle(style)
+        layer.insertClass(cls)
+    else:
+        cls = ms.classObj()
+        cls.setExpression("([pixel] <= %s)" % (minvalue))
+        cls.group = name
+        style = ms.styleObj()
+        style.color = ms.colorObj(*colors[0][1])
+        cls.insertStyle(style)
+        layer.insertClass(cls)
 
     interval = (maxvalue - minvalue)
     for prev_item, next_item in pairwise_iterative(colors):
@@ -761,7 +811,8 @@ def _create_raster_style(name, layer, minvalue=0, maxvalue=255, nil_values=None)
 
         cls = ms.classObj()
         cls.setExpression("([pixel] >= %s AND [pixel] < %s)" % (
-            (minvalue + prev_perc * interval), (minvalue + next_perc * interval)
+            (minvalue + prev_perc * interval),
+            (minvalue + next_perc * interval)
         ))
         cls.group = name
 
@@ -774,15 +825,28 @@ def _create_raster_style(name, layer, minvalue=0, maxvalue=255, nil_values=None)
         cls.insertStyle(style)
         layer.insertClass(cls)
 
-    # Create style for values above range
-    cls = ms.classObj()
-    cls.setExpression("([pixel] > %s)" % (maxvalue))
-    cls.group = name
-    style = ms.styleObj()
-    style.color = ms.colorObj(*colors[-1][1])
-    cls.insertStyle(style)
-    layer.insertClass(cls)
-    layer.classgroup = name
+    # Create style for values above range, but make sure to not collide with
+    # nil-values
+    if high_nil_values:
+        high_nil = min(high_nil_values)
+        cls = ms.classObj()
+        cls.setExpression(
+            "([pixel] > %s AND [pixel] < %s)" % (maxvalue, high_nil)
+        )
+        cls.group = name
+        style = ms.styleObj()
+        style.color = ms.colorObj(*colors[0][1])
+        cls.insertStyle(style)
+        layer.insertClass(cls)
+    else:
+        cls = ms.classObj()
+        cls.setExpression("([pixel] > %s)" % (maxvalue))
+        cls.group = name
+        style = ms.styleObj()
+        style.color = ms.colorObj(*colors[-1][1])
+        cls.insertStyle(style)
+        layer.insertClass(cls)
+        layer.classgroup = name
 
 
 def _get_range(field, range_=None):
