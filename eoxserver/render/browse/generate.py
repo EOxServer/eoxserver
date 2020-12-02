@@ -225,27 +225,33 @@ def generate_browse(band_expressions, fields_and_coverages,
         for band_expression in band_expressions
     ]
 
-    # is_simple = all(isinstance(expr, _ast.Name) for expr in parsed_expressions)
+    is_simple = all(isinstance(expr, _ast.Name) for expr in parsed_expressions)
 
-    # if not is_simple:
-    return _generate_browse_complex(
-        parsed_expressions, fields_and_coverages,
-        width, height, bbox, crs, generator
-    ), generator, True
+    if not is_simple:
+        return _generate_browse_complex(
+            parsed_expressions, fields_and_coverages,
+            width, height, bbox, crs, generator
+        ), generator, True
 
-    # single_filename, env, bands = single_file_and_indices(
-    #     band_expressions, fields_and_coverages
-    # )
+    single_filename, env, bands = single_file_and_indices(
+        band_expressions, fields_and_coverages
+    )
 
-    # # for single files, we make a shortcut and just return it and the used
-    # # bands
-    # if single_filename:
-    #     return (
-    #         BrowseCreationInfo(single_filename, env, bands),
-    #         generator, False
-    #     )
+    # for single files, we make a shortcut and just return it and the used
+    # bands
+    if single_filename:
+        return (
+            BrowseCreationInfo(single_filename, env, bands),
+            generator, False
+        )
 
-    # # iterate over the input band expressions
+    else:
+        return _generate_browse_complex(
+            parsed_expressions, fields_and_coverages,
+            width, height, bbox, crs, generator
+        ), generator, True
+
+    # iterate over the input band expressions
     # for band_expression in band_expressions:
     #     fields = extract_fields(band_expression)
 
