@@ -1,0 +1,77 @@
+name: CI
+on: push
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+        - os: ubuntu
+          python: py2
+          db: postgis
+          django: "1.11.26"
+          python_bin: python
+          pip_bin: pip
+        - os: ubuntu
+          python: py3
+          db: postgis
+          django: "1.11.26"
+          python_bin: python3
+          pip_bin: pip3
+        - os: ubuntu
+          python: py3
+          db: postgis
+          django: "2.2.9"
+          python_bin: python3
+          pip_bin: pip3
+        - os: ubuntu
+          python: py3
+          db: spatialite
+          django: "2.2.9"
+          python_bin: python3
+          pip_bin: pip3
+          latest: true
+    steps:
+      - uses: actions/checkout@v2
+      - name: Build the eoxserver docker image
+        run: |
+          docker build -t eoxserver --build-arg DJANGO=${{ matrix.django }} -f docker/${{ matrix.os }}/${{ matrix.python }}/Dockerfile .
+          if [[ ${{ matrix.latest }} ]] ; then docker tag eoxserver eoxa/eoxserver:latest ; fi
+      - name: Run the actual tests
+        run: |
+          cd autotest
+          echo "DB=${{ matrix.db }}" >> eoxserver.env
+          docker-compose config
+          docker-compose up -d
+          docker-compose ps
+          docker-compose exec autotest ${{ matrix.pip_bin }} install scipy
+          docker-compose exec autotest ${{ matrix.python_bin }} -m eoxserver.services.ows.wps.test_data_types
+          docker-compose exec autotest ${{ matrix.python_bin }} -m eoxserver.services.ows.wps.test_allowed_values
+          docker-compose exec autotest ${{ matrix.python_bin }} manage.py test --pythonpath=../eoxserver/ eoxserver.core -v2
+          docker-compose exec autotest ${{ matrix.python_bin }} manage.py test --pythonpath=../eoxserver/ eoxserver.backends -v2
+          docker-compose exec autotest ${{ matrix.python_bin }} manage.py test --pythonpath=../eoxserver/ eoxserver.services -v2
+          docker-compose exec autotest ${{ matrix.python_bin }} manage.py test --pythonpath=../eoxserver/ eoxserver.resources.coverages -v2
+          docker-compose exec autotest ${{ matrix.python_bin }} manage.py test autotest_services --tag wcs20 -v2
+          docker-compose exec autotest ${{ matrix.python_bin }} manage.py test autotest_services --tag wcs11 -v2
+          docker-compose exec autotest ${{ matrix.python_bin }} manage.py test autotest_services --tag wcs10 -v2
+          docker-compose exec autotest ${{ matrix.python_bin }} manage.py test autotest_services --tag wms -v2
+          docker-compose exec autotest ${{ matrix.python_bin }} manage.py test autotest_services --tag wps -v2
+          docker-compose exec autotest ${{ matrix.python_bin }} manage.py test autotest_services --tag opensearch -v2
+          cd ..
+      # - name: Publish to Docker Hub Registry
+      #   uses: elgohr/Publish-Docker-Github-Action@master
+      #   with:
+      #     name: eoxa/eoxserver
+      #     username: ${{ secrets.DOCKER_USERNAME }}
+      #     password: ${{ secrets.DOCKER_PASSWORD }}
+      #   if: ${{ matrix.latest }}
+      # TODO: figure out webhook
+      # - name: action-slack
+      #   uses: 8398a7/action-slack@v3.8.0
+      #   with:
+      #     status: ${{ job.status }}
+      #     fields: repo,message,commit,author,action,eventName,ref,workflow,job,took
+      #   env:
+      #     SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+      #   if: always()
