@@ -37,7 +37,7 @@ jobs:
       - name: Build the eoxserver docker image
         run: |
           docker build -t eoxserver --build-arg DJANGO=${{ matrix.django }} -f docker/${{ matrix.os }}/${{ matrix.python }}/Dockerfile .
-          if [[ ${{ matrix.latest }} ]] ; then docker tag eoxserver eoxa/eoxserver:latest ; fi
+          # if [[ ${{ matrix.latest }} ]] ; then docker tag eoxserver eoxa/eoxserver:latest ; fi
       - name: Run the actual tests
         run: |
           cd autotest
@@ -67,11 +67,11 @@ jobs:
       #     password: ${{ secrets.DOCKER_PASSWORD }}
       #   if: ${{ matrix.latest }}
       # TODO: figure out webhook
-      # - name: action-slack
-      #   uses: 8398a7/action-slack@v3.8.0
-      #   with:
-      #     status: ${{ job.status }}
-      #     fields: repo,message,commit,author,action,eventName,ref,workflow,job,took
-      #   env:
-      #     SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-      #   if: always()
+      - name: action-slack
+        uses: 8398a7/action-slack@v3.8.0
+        with:
+          status: ${{ job.status }}
+          fields: repo,message,commit,author,action,eventName,ref,workflow,job,took
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        if: always()
