@@ -1,15 +1,49 @@
+# ------------------------------------------------------------------------------
+#
+# Project: EOxServer <http://eoxserver.org>
+# Authors: Fabian Schindler <fabian.schindler@eox.at>
+#
+# ------------------------------------------------------------------------------
+# Copyright (C) 2020 EOX IT Services GmbH
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies of this Software or works derived from this Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+# ------------------------------------------------------------------------------
+
 import json
+from urllib.parse import urlparse
+
 from django.contrib.gis.geos import GEOSGeometry
 from django.db.models import Q
 
+from eoxserver.contrib import osr
 from eoxserver.core.util.timetools import parse_iso8601
 from eoxserver.backends import models as backends
+from eoxserver.backends.access import gdal_open
 from eoxserver.resources.coverages import models
 from eoxserver.resources.coverages.registration.exceptions import (
     RegistrationError
 )
 from eoxserver.resources.coverages.registration.product import create_metadata
 from eoxserver.resources.coverages.registration.base import get_grid
+from eoxserver.resources.coverages.metadata.coverage_formats import (
+    get_reader_by_test
+)
 
 
 def register_stac_product(stac_item, product_type_name=None, storage=None,
@@ -122,10 +156,21 @@ def register_stac_product(stac_item, product_type_name=None, storage=None,
             continue
 
         band_names = [band['name'] for band in bands]
-        coverage_type = models.CoverageType.objects.get(*[
-            Q(field_type__name=band_name)
-            for band_name in band_names
-        ])
+        coverage_type = models.CoverageType.objects.get(
+            Q(allowed_product_types=product_type),
+            *[
+                Q(field_type__name=band_name)
+                for band_name in band_names
+            ]
+        )
+        coverage_id = '%s_%s' % (identifier, asset_name)
+
+        # create the storage item
+        arraydata_item = models.ArrayDataItem(
+            location=urlparse(asset['href']).path,
+            storage=storage,
+            band_count=len(bands),
+        )
 
         coverage_footprint = footprint
         if 'proj:geometry' in asset:
@@ -133,7 +178,7 @@ def register_stac_product(stac_item, product_type_name=None, storage=None,
                 json.dumps(asset['proj:geometry'])
             )
 
-        # TODO get/create Grid
+        # get/create Grid
         grid_def = None
         size = None
         origin = None
@@ -150,42 +195,54 @@ def register_stac_product(stac_item, product_type_name=None, storage=None,
             origin = [transform[transform[0], transform[3]]]
 
         if epsg and transform:
+            sr = osr.SpatialReference(epsg)
+            axis_names = ['x', 'y'] if sr.IsProjected() else ['long', 'lat']
             grid_def = {
                 'coordinate_reference_system': epsg,
-                'axis_names': ['lon', 'lat'],
-                'axis_types': [0, 0],
+                'axis_names': axis_names,
+                'axis_types': ['spatial', 'spatial'],
                 'axis_offsets': [transform[1], transform[5]],
             }
 
         if not grid_def or not size or not origin:
-            pass # TODO: fetch from data files
+            ds = gdal_open(arraydata_item)
+            reader = get_reader_by_test(ds)
+            if not reader:
+                raise RegistrationError(
+                    'Failed to get metadata reader for coverage'
+                )
+            values = reader.read(ds)
+            grid_def = values['grid']
+            size = values['size']
+            origin = values['origin']
 
-        grid, _ = models.Grid.objects.get_or_create(
-            coordinate_reference_system=epsg,
-            axis_1_name=axis_names, # TODO
-            axis_2_name=axis_names, # TODO
-            axis_3_name=None,
-            axis_4_name=None,
-            axis_1_type=0,
-            axis_2_type=0,
-            axis_3_type=None,
-            axis_4_type=None,
-            axis_1_offset=transform[1],
-            axis_2_offset=transform[5],
-            axis_3_offset=None,
-            axis_4_offset=None,
-        )
+        grid = get_grid(grid_def)
 
+        if models.Coverage.objects.filter(identifier=coverage_id).exists():
+            if replace:
+                models.Coverage.objects.filter(identifier=coverage_id).delete()
+            else:
+                raise RegistrationError(
+                    'Coverage %s already exists' % coverage_id
+                )
 
-        models.Coverage.objects.create(
-            identifier='%s_%s' % (identifier, asset_name),
+        coverage = models.Coverage.objects.create(
+            identifier=coverage_id,
             footprint=coverage_footprint,
             begin_time=start_time,
             end_time=end_time,
             grid=grid,
+            axis_1_origin=origin[0],
+            axis_2_origin=origin[1],
+            axis_1_size=size[0],
+            axis_2_size=size[1],
             coverage_type=coverage_type,
             product=product,
         )
+
+        arraydata_item.coverage = coverage
+        arraydata_item.full_clean()
+        arraydata_item.save()
 
 
 def create_product_type_from_stac_collection(stac_collection,
