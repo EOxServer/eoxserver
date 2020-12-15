@@ -13,22 +13,22 @@ jobs:
           django: "1.11.26"
           python_bin: python
           pip_bin: pip
+        # - os: ubuntu
+        #   python: py3
+        #   db: postgis
+        #   django: "1.11.26"
+        #   python_bin: python3
+        #   pip_bin: pip3
         - os: ubuntu
           python: py3
           db: postgis
-          django: "1.11.26"
-          python_bin: python3
-          pip_bin: pip3
-        - os: ubuntu
-          python: py3
-          db: postgis
-          django: "2.2.9"
+          django: "2.2.17"
           python_bin: python3
           pip_bin: pip3
         - os: ubuntu
           python: py3
           db: spatialite
-          django: "2.2.9"
+          django: "2.2.17"
           python_bin: python3
           pip_bin: pip3
           latest: true
