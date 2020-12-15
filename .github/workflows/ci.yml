@@ -41,6 +41,8 @@ jobs:
       - name: Run the actual tests
         env:
           COMPOSE_INTERACTIVE_NO_CLI: 1
+          DEBIAN_FRONTEND: noninteractive
+          DEBCONF_NONINTERACTIVE_SEEN: true
         run: |
           cd autotest
           echo "DB=${{ matrix.db }}" >> eoxserver.env
