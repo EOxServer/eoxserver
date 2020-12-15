@@ -1,6 +1,7 @@
 FROM ubuntu:20.04
 
 ARG DJANGO=2.2.7
+ARG TZ=UTC
 
 ENV INSTANCE_NAME=instance
 
@@ -23,6 +24,7 @@ ENV INIT_SCRIPTS=''
 ENV GUNICORN_CMD_ARGS "--config /opt/eoxserver/gunicorn.conf.py ${INSTANCE_NAME}.wsgi:application"
 
 # install OS dependency packages
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 RUN apt-get update \
   && apt-get install -y \
     python3 \
