@@ -74,7 +74,7 @@ jobs:
       - name: Upload logs when failed
         uses: 'actions/upload-artifact@v2'
         with:
-          name: logs ${{ matrix.python }} ${{ db }} ${{ django }}
+          name: logs ${{ matrix.python }} ${{ matrix.db }} ${{ matrix.django }}
           path: autotest/autotest/logs/*.log
           retention-days: 5
         if: ${{ failure() }}
