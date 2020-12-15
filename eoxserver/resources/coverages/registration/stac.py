@@ -9,6 +9,7 @@ from eoxserver.resources.coverages.registration.exceptions import (
     RegistrationError
 )
 from eoxserver.resources.coverages.registration.product import create_metadata
+from eoxserver.resources.coverages.registration.base import get_grid
 
 
 def register_stac_product(stac_item, product_type_name=None, storage=None,
@@ -117,14 +118,71 @@ def register_stac_product(stac_item, product_type_name=None, storage=None,
 
     for asset_name, asset in assets.items():
         bands = assets.get('eo:bands')
-        if bands:
-            band_names = [band['name'] for band in bands]
-            coverage_type = models.CoverageType.objects.get(*[
-                Q(field_type__name=band_name)
-                for band_name in band_names
-            ])
+        if not bands:
+            continue
+
+        band_names = [band['name'] for band in bands]
+        coverage_type = models.CoverageType.objects.get(*[
+            Q(field_type__name=band_name)
+            for band_name in band_names
+        ])
+
+        coverage_footprint = footprint
+        if 'proj:geometry' in asset:
+            coverage_footprint = GEOSGeometry(
+                json.dumps(asset['proj:geometry'])
+            )
+
+        # TODO get/create Grid
+        grid_def = None
+        size = None
+        origin = None
+
+        shape = asset.get('proj:shape') or properties.get('proj:shape')
+        transform = asset.get('proj:transform') or \
+            properties.get('proj:transform')
+        epsg = asset.get('proj:epsg') or properties.get('proj:epsg')
+
+        if shape:
+            size = shape
+
+        if transform:
+            origin = [transform[transform[0], transform[3]]]
+
+        if epsg and transform:
+            grid_def = {
+                'coordinate_reference_system': epsg,
+                'axis_names': ['lon', 'lat'],
+                'axis_types': [0, 0],
+                'axis_offsets': [transform[1], transform[5]],
+            }
+
+        if not grid_def or not size or not origin:
+            pass # TODO: fetch from data files
+
+        grid, _ = models.Grid.objects.get_or_create(
+            coordinate_reference_system=epsg,
+            axis_1_name=axis_names, # TODO
+            axis_2_name=axis_names, # TODO
+            axis_3_name=None,
+            axis_4_name=None,
+            axis_1_type=0,
+            axis_2_type=0,
+            axis_3_type=None,
+            axis_4_type=None,
+            axis_1_offset=transform[1],
+            axis_2_offset=transform[5],
+            axis_3_offset=None,
+            axis_4_offset=None,
+        )
+
 
         models.Coverage.objects.create(
+            identifier='%s_%s' % (identifier, asset_name),
+            footprint=coverage_footprint,
+            begin_time=start_time,
+            end_time=end_time,
+            grid=grid,
             coverage_type=coverage_type,
             product=product,
         )
