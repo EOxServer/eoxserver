@@ -4,7 +4,7 @@ jobs:
   run:
     runs-on: ubuntu-latest
     strategy:
-      fail-fast: true
+      fail-fast: false
       matrix:
         include:
         - os: ubuntu
@@ -39,6 +39,8 @@ jobs:
           docker build -t eoxserver --build-arg DJANGO=${{ matrix.django }} -f docker/${{ matrix.os }}/${{ matrix.python }}/Dockerfile .
           # if [[ ${{ matrix.latest }} ]] ; then docker tag eoxserver eoxa/eoxserver:latest ; fi
       - name: Run the actual tests
+        env:
+          COMPOSE_INTERACTIVE_NO_CLI: 1
         run: |
           cd autotest
           echo "DB=${{ matrix.db }}" >> eoxserver.env
