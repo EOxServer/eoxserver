@@ -9,7 +9,7 @@ services:
       POSTGRES_PASSWORD: "pw"
       POSTGRES_DB: "dbms"
   autotest:
-    image: eoxserver
+    image: eoxa/eoxserver
     env_file:
       - ./eoxserver.env
     volumes:
