@@ -1,6 +1,6 @@
 FROM centos:7
 
-ARG DJANGO=1.11
+ARG DJANGO=1.11.26
 
 # install OS dependency packages
 RUN rpm -Uvh http://yum.packages.eox.at/el/eox-release-7-0.noarch.rpm \
