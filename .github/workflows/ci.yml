@@ -35,14 +35,15 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Build the eoxserver docker image
+        env:
+          DEBIAN_FRONTEND: noninteractive
+          DEBCONF_NONINTERACTIVE_SEEN: "true"
         run: |
           docker build -t eoxserver --build-arg DJANGO=${{ matrix.django }} -f docker/${{ matrix.os }}/${{ matrix.python }}/Dockerfile .
           # if [[ ${{ matrix.latest }} ]] ; then docker tag eoxserver eoxa/eoxserver:latest ; fi
       - name: Run the actual tests
         env:
           COMPOSE_INTERACTIVE_NO_CLI: 1
-          DEBIAN_FRONTEND: noninteractive
-          DEBCONF_NONINTERACTIVE_SEEN: true
         run: |
           cd autotest
           echo "DB=${{ matrix.db }}" >> eoxserver.env
