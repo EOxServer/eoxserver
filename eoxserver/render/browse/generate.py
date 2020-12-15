@@ -107,7 +107,7 @@ ALLOWED_NODE_TYPES = (
     _ast.Div,
     _ast.Add,
     _ast.Sub,
-    _ast.Num,
+    _ast.Num if hasattr(_ast, 'Num') else _ast.Constant,
 
     _ast.BitAnd,
     _ast.BitOr,
@@ -435,5 +435,8 @@ def _evaluate_expression(expr, fields_and_datasets, generator):
         logger.info("%s, %s, %s" % (expr.func.id, np.min(res), np.max(res)))
         return res
 
-    elif isinstance(expr, _ast.Num):
+    elif hasattr(_ast, 'Num') and isinstance(expr, _ast.Num):
         return expr.n
+
+    elif hasattr(_ast, 'Constant') and isinstance(expr, _ast.Constant):
+        return expr.value
