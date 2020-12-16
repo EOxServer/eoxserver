@@ -108,7 +108,7 @@ jobs:
           # TODO: --all-tags does not seem to work with the version on github-actions
           # docker push --all-tags eoxa/eoxserver
           # only push when there is something to push
-          [ ! -z "$(docker image ls eoxa/eoxserver -q)" ] && docker push eoxa/eoxserver
+          [ ! -z "$(docker image ls eoxa/eoxserver -q)" ] && docker push eoxa/eoxserver || true
         if: success()
 
       # build a Python package and publish it on pypi
