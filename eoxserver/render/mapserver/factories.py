@@ -59,6 +59,9 @@ from eoxserver.resources.coverages.dateline import (
 )
 from eoxserver.processing.gdal import reftools
 
+import logging
+logger = logging.getLogger(__name__)
+
 
 class BaseMapServerLayerFactory(object):
     handled_layer_types = []
@@ -139,13 +142,13 @@ class CoverageLayerFactoryMixIn(object):
                 resx = (e.maxx - e.minx) / map_obj.width
                 resy = (e.maxy - e.miny) / map_obj.height
 
-                srid = osr.SpatialReference(map_obj.getProjection()).srid
+                wkt = osr.SpatialReference(map_obj.getProjection()).wkt
 
                 # TODO: env?
                 reftools.create_rectified_vrt(
                     field_locations[0][1].path, vrt_path,
                     order=1, max_error=10,
-                    resolution=(resx, -resy), srid=srid
+                    resolution=(resx, -resy), srid_or_wkt=wkt
                 )
                 data = vrt_path
 
@@ -846,7 +849,6 @@ def _create_raster_style(name, layer, minvalue=0, maxvalue=255,
         style.color = ms.colorObj(*colors[-1][1])
         cls.insertStyle(style)
         layer.insertClass(cls)
-        layer.classgroup = name
 
 
 def _get_range(field, range_=None):

@@ -31,7 +31,6 @@
 
 
 import os
-import sys
 from uuid import uuid4
 from functools import wraps
 

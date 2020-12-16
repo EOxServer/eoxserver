@@ -487,14 +487,14 @@ class RectifiedGridCoverageTestCase(WCSBinaryComparison, GDALDatasetTestCase):
 
     @tag('extent')
     def testExtent(self):
-        EPSILON = 1e-8
-
+        exp_resolution = resolution_from_ds(self.exp_ds)
+        epsilon = exp_resolution[0]/10
         res_extent = extent_from_ds(self.res_ds)
         exp_extent = extent_from_ds(self.exp_ds)
 
         if not max([
                 abs(res_extent[i] - exp_extent[i]) for i in range(0, 4)
-            ]) < EPSILON:
+            ]) < epsilon:
             self.fail("Extent does not match %s != %s" % (
                 res_extent, exp_extent
             ))
