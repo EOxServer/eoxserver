@@ -159,11 +159,15 @@ jobs:
           asset_content_type: application/tar+gzip
         if: success() && matrix.latest && startsWith(steps.branch_name.outputs.SOURCE_TAG, 'release-')
 
+  note:
+    runs-on: ubuntu-20.04
+    needs: run
+    steps:
       # send Slack notifications to the eox organization
       - name: action-slack
         uses: 8398a7/action-slack@v3.8.0
         with:
-          status: ${{ job.status }}
+          status: ${{ needs.run.status }}
           fields: repo,message,commit,author,action,eventName,ref,workflow,job,took
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
