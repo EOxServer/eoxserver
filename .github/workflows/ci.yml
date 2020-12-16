@@ -134,7 +134,6 @@ jobs:
           draft: true
         if: success() && matrix.latest && startsWith(steps.branch_name.outputs.SOURCE_TAG, 'release-')
       - name: Upload Release Asset Wheel
-        id: upload-release-asset
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -145,7 +144,6 @@ jobs:
           asset_content_type: application/x-wheel+zip
         if: success() && matrix.latest && startsWith(steps.branch_name.outputs.SOURCE_TAG, 'release-')
       - name: Upload Release Asset Source Dist
-        id: upload-release-asset
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
