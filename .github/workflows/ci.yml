@@ -105,7 +105,9 @@ jobs:
         if: success() && startsWith(steps.branch_name.outputs.SOURCE_TAG, 'release-')
       - name: Push docker images
         run: |
-          docker push --all-tags eoxa/eoxserver
+          # TODO: --all-tags does not seem to work with the version on github-actions
+          # docker push --all-tags eoxa/eoxserver
+          docker push eoxa/eoxserver
         if: success()
 
       # build a Python package and publish it on pypi
