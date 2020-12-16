@@ -114,6 +114,7 @@ jobs:
       - name: Build Python package
         id: build_python_release
         run: |
+          apt-get install -y python3-wheel
           python setup.py sdist bdist_wheel
           echo ::set-output name=WHEEL_FILE::$(ls dist/*.whl)
           echo ::set-output name=SRC_DIST_FILE::$(ls dist/*.tar.gz)
