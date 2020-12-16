@@ -13,8 +13,8 @@
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
-# The above copyright notice and this permission notice shall be included in all
-# copies of this Software or works derived from this Software.
+# The above copyright notice and this permission notice shall be included in
+# all copies of this Software or works derived from this Software.
 #
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -102,9 +102,8 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
         elif subcommand == "env":
             self.handle_env(name, *args, **kwargs)
 
-
-    def handle_create(self, name, url, type_name, parent_name, storage_auth_name,
-                      **kwargs):
+    def handle_create(self, name, url, type_name, parent_name,
+                      storage_auth_name, **kwargs):
         """ Handle the creation of a new storage.
         """
         url = url[0]
@@ -129,10 +128,14 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             try:
                 parent = backends.Storage.objects.get(name=parent_name)
             except backends.Storage.DoesNotExist:
-                raise CommandError('No such storage with name %r' % parent_name)
+                raise CommandError(
+                    'No such storage with name %r' % parent_name
+                )
 
         if storage_auth_name:
-            storage_auth = backends.StorageAuth.objects.get(name=storage_auth_name)
+            storage_auth = backends.StorageAuth.objects.get(
+                name=storage_auth_name
+            )
         else:
             storage_auth = None
 
@@ -163,7 +166,9 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
         )
 
     def handle_list(self, name, paths=None, pattern=None, **kwargs):
-        storage, path = resolve_storage_and_path([name] + paths or [], save=False)
+        storage, path = resolve_storage_and_path(
+            [name] + paths or [], save=False
+        )
         files = vsi_list_storage(storage, path, pattern)
         for filename in files:
             print(filename)

@@ -599,7 +599,7 @@ def rect_from_subset(path_or_ds, srid, minx, miny, maxx, maxy,
     return Rect(minx, miny, size_x, size_y)
 
 
-def create_rectified_vrt(path_or_ds, vrt_path, srid=None,
+def create_rectified_vrt(path_or_ds, vrt_path, srid_or_wkt=None,
                          resample=0, memory_limit=0.0,
                          max_error=APPROX_ERR_TOL, method=METHOD_GCP, order=0,
                          size=None, resolution=None):
@@ -627,11 +627,13 @@ def create_rectified_vrt(path_or_ds, vrt_path, srid=None,
     ds = _open_ds(path_or_ds)
     ptr = C.c_void_p(int(ds.this))
 
-    if srid:
+    if isinstance(srid_or_wkt, int):
         srs = osr.SpatialReference()
-        srs.ImportFromEPSG(srid)
+        srs.ImportFromEPSG(srid_or_wkt)
         wkt = srs.ExportToWkt()
         srs = None
+    elif isinstance(srid_or_wkt, str):
+        wkt = srid_or_wkt
     else:
         wkt = ds.GetGCPProjection()
 
@@ -707,7 +709,7 @@ def create_rectified_vrt(path_or_ds, vrt_path, srid=None,
     # GDALSetProjection(vrt_ds, wkt)
     if isinstance(vrt_path, str):
        vrt_path = b(vrt_path)
-        
+
     GDALSetDescription(vrt_ds, vrt_path)
     GDALClose(vrt_ds)
     # GDALDestroyWarpOptions(options)

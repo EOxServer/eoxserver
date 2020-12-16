@@ -1,9 +1,9 @@
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
 #
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Copyright (C) 2013 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -13,8 +13,8 @@
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
-# The above copyright notice and this permission notice shall be included in all
-# copies of this Software or works derived from this Software.
+# The above copyright notice and this permission notice shall be included in
+# all copies of this Software or works derived from this Software.
 #
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -23,12 +23,15 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 import contextlib
 import time
 import logging
-from cgi import escape
+try:
+    from cgi import escape
+except ImportError:
+    from html import escape
 import tempfile
 import os
 
@@ -281,7 +284,8 @@ def set_env(map_obj, env, fail_on_override=False, return_old=False):
     for key, value in env.items():
         if fail_on_override or return_old:
             old_value = map_obj.getConfigOption(str(key))
-            if fail_on_override and old_value is not None and old_value != value:
+            if fail_on_override and old_value is not None \
+                    and old_value != value:
                 raise Exception(
                     'Would override previous value of %s: %s with %s'
                     % (key, old_value, value)
@@ -299,4 +303,3 @@ def config_env(map_obj, env, fail_on_override=False, reset_old=True):
     yield
     if reset_old:
         set_env(old_env, False, False)
-
