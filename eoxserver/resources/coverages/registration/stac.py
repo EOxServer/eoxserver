@@ -30,6 +30,7 @@ from urllib.parse import urlparse
 
 from django.contrib.gis.geos import GEOSGeometry
 from django.db.models import Q
+from django.db import transaction
 
 from eoxserver.contrib import osr
 from eoxserver.core.util.timetools import parse_iso8601
@@ -46,7 +47,52 @@ from eoxserver.resources.coverages.metadata.coverage_formats import (
 )
 
 
-def register_stac_product(stac_item, product_type_name=None, storage=None,
+def get_product_type_name(stac_item):
+    """ Create a ProductType name from a STAC Items metadata
+    """
+
+    properties = stac_item['properties']
+    assets = stac_item['assets']
+
+    parts = []
+
+    platform = properties.get('platform') or properties.get('eo:platform')
+    instruments = properties.get('instruments') or \
+        properties.get('eo:instruments')
+    constellation = properties.get('constellation') or \
+        properties.get('eo:constellation')
+    mission = properties.get('mission') or properties.get('eo:mission')
+
+    if platform:
+        parts.append(platform)
+
+    if instruments:
+        parts.extend(instruments)
+
+    if constellation:
+        parts.append(constellation)
+
+    if mission:
+        parts.append(mission)
+
+    bands = properties.get('eo:bands')
+    if not bands:
+        bands = []
+        for asset in asset.values():
+            bands.extend(asset.get('eo:bands'), [])
+
+    parts.extend([band['name'] for band in bands])
+
+    if not parts:
+        raise RegistrationError(
+            'Failed to generate Product type name from metadata'
+        )
+
+    return '_'.join(parts)
+
+
+@transaction.atomic
+def register_stac_product(stac_item, product_type=None, storage=None,
                           replace=False):
     """ Registers a single parsed STAC item as a Product. The
         product type to be used can be specified via the product_type_name
@@ -58,11 +104,15 @@ def register_stac_product(stac_item, product_type_name=None, storage=None,
     properties = stac_item['properties']
     assets = stac_item['assets']
 
-    if product_type_name:
-        product_type = models.ProductType.objects.get(name=product_type_name)
+    # fetch the product type by name, metadata or passed object
+    if isinstance(product_type, models.ProductType):
+        pass
+    if isinstance(product_type, str):
+        product_type = models.ProductType.objects.get(name=product_type)
     else:
-        # TODO: figure out product type
-        product_type = None
+        product_type = models.ProductType.objects.get(
+            name=get_product_type_name(stac_item)
+        )
 
     if isinstance(storage, str):
         storage = backends.Storage.objects.get(name=storage)
@@ -245,6 +295,7 @@ def register_stac_product(stac_item, product_type_name=None, storage=None,
         arraydata_item.save()
 
 
+@transaction.atomic
 def create_product_type_from_stac_collection(stac_collection,
                                              product_type_name=None):
     """
@@ -252,5 +303,54 @@ def create_product_type_from_stac_collection(stac_collection,
     pass
 
 
+@transaction.atomic
 def create_product_type_from_stac_item(stac_item, product_type_name=None):
-    pass
+    """ Creates a ProductType from a parsed STAC Item. Also creates all
+        related CoverageTypes and their interned FieldTypes.
+    """
+
+    if product_type_name is None:
+        product_type_name = get_product_type_name(stac_item)
+
+    properties = stac_item['properties']
+    assets = stac_item['assets']
+
+    # list of Asset ID + bands
+    bands_list = []
+
+    for asset_name, asset in assets.items():
+        if 'eo:bands' in asset:
+            bands_list.append(
+                (asset_name, asset['eo:bands'])
+            )
+
+    if not bands_list and 'eo:bands' in properties:
+        bands_list.extend([
+            (band['name'], [band])
+            for band in properties['eo:bands']
+        )
+
+    if not bands_list:
+        raise RegistrationError(
+            'Failed to extract band defintion from STAC Item'
+        )
+
+    # create product type itself
+    product_type = models.ProductType.objects.create(name=product_type_name)
+
+    # iterate over bands and create coverage types
+    for name, bands in bands_list:
+        coverage_type = models.CoverageType.objects.create(
+            name='%s_%s' % (product_type_name, name)
+        )
+        product_type.allowed_coverage_types.add(coverage_type)
+
+        for i, band in enumerate(bands):
+            models.FieldType.objects.create(
+                coverage_type=coverage_type,
+                index=i,
+                identifier=band['name'],
+                definition=band.get('common_name'),
+            )
+
+    return product_type
