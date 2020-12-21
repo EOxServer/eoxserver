@@ -597,7 +597,7 @@ product
 
     identifier
       the identifier of the Product to deregister.
-      
+
     --all, -a
       When this flag is set, all the Coverages are selected to be derigesterd.
 
@@ -683,7 +683,7 @@ collection
 
     identifier
       the identifier of the Collection to delete
-     
+
     --all, -a
       When this flag is set, all the collections are selected to be derigesterd.
 
@@ -847,3 +847,30 @@ mapcache
       overlapping time spans.
     --no-index
       this flag prohibits the creation of an internal database index.
+
+.. _cmd-stac:
+
+stac
+  This command allows to register Products and their related data from `STAC
+  Items`_.
+
+  register
+    this sub-command registers a STAC Item as a Product and its raster data as
+    Coverages.
+
+    --in, -i              Read the STAC Item from stdin instead from a file.
+    --type TYPE_NAME, --product-type TYPE_NAME, -t TYPE_NAME
+      The name of the product type to associate the product with. Optional.
+    --replace, -r
+      Optional. If the product with the given identifier already exists,
+      replace it. Without this flag, this would result in an error.
+
+  types
+    this sub-command extracts all the relevant information to generate Product
+    Types, Coverage Types and their related types to allow a subsequent
+    registration.
+
+    --in, -i
+      read the STAC Item from stdin instead from a file.
+    --type TYPE_NAME, --product-type TYPE_NAME, -t TYPE_NAME
+      the name of the new product type. Optional.

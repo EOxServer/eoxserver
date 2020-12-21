@@ -26,6 +26,7 @@
 # ------------------------------------------------------------------------------
 
 import json
+from os.path import isabs, join, dirname
 from urllib.parse import urlparse
 
 from django.contrib.gis.geos import GEOSGeometry
@@ -78,7 +79,7 @@ def get_product_type_name(stac_item):
     bands = properties.get('eo:bands')
     if not bands:
         bands = []
-        for asset in asset.values():
+        for asset in assets.values():
             bands.extend(asset.get('eo:bands'), [])
 
     parts.extend([band['name'] for band in bands])
@@ -92,7 +93,7 @@ def get_product_type_name(stac_item):
 
 
 @transaction.atomic
-def register_stac_product(stac_item, product_type=None, storage=None,
+def register_stac_product(location, stac_item, product_type=None, storage=None,
                           replace=False):
     """ Registers a single parsed STAC item as a Product. The
         product type to be used can be specified via the product_type_name
@@ -100,6 +101,13 @@ def register_stac_product(stac_item, product_type=None, storage=None,
     """
 
     identifier = stac_item['id']
+    replaced = False
+
+    if replace:
+        if models.Product.objects.filter(identifier=identifier).exists():
+            models.Product.objects.filter(identifier=identifier).delete()
+            replaced = True
+
     geometry = stac_item['geometry']
     properties = stac_item['properties']
     assets = stac_item['assets']
@@ -201,23 +209,33 @@ def register_stac_product(stac_item, product_type=None, storage=None,
     create_metadata(product, metadata)
 
     for asset_name, asset in assets.items():
-        bands = assets.get('eo:bands')
+        bands = asset.get('eo:bands')
         if not bands:
             continue
+
+        if not isinstance(bands, list):
+            bands = [bands]
 
         band_names = [band['name'] for band in bands]
         coverage_type = models.CoverageType.objects.get(
             Q(allowed_product_types=product_type),
             *[
-                Q(field_type__name=band_name)
+                Q(field_types__identifier=band_name)
                 for band_name in band_names
             ]
         )
         coverage_id = '%s_%s' % (identifier, asset_name)
 
         # create the storage item
+        parsed = urlparse(asset['href'])
+
+        if not isabs(parsed.path):
+            path = join(dirname(location), parsed.path)
+        else:
+            path = parsed.path
+
         arraydata_item = models.ArrayDataItem(
-            location=urlparse(asset['href']).path,
+            location=path,
             storage=storage,
             band_count=len(bands),
         )
@@ -287,12 +305,16 @@ def register_stac_product(stac_item, product_type=None, storage=None,
             axis_1_size=size[0],
             axis_2_size=size[1],
             coverage_type=coverage_type,
-            product=product,
+            parent_product=product,
         )
 
         arraydata_item.coverage = coverage
         arraydata_item.full_clean()
         arraydata_item.save()
+
+    # TODO: browses if possible
+
+    return (product, replaced)
 
 
 @transaction.atomic
@@ -321,11 +343,16 @@ def create_product_type_from_stac_item(stac_item, product_type_name=None):
     for asset_name, asset in assets.items():
         if 'eo:bands' in asset:
             bands_list.append(
-                (asset_name, asset['eo:bands'])
+                (
+                    asset_name,
+                    asset['eo:bands']
+                    if isinstance(asset['eo:bands'], list) else
+                    [asset['eo:bands']]
+                )
             )
 
     if not bands_list and 'eo:bands' in properties:
-        bands_list.extend([
+        bands_list.extend(
             (band['name'], [band])
             for band in properties['eo:bands']
         )
@@ -354,7 +381,7 @@ def create_product_type_from_stac_item(stac_item, product_type_name=None):
             )
 
     browse_defs = properties.get('brow:browses', {})
-    if browse_name, browse in browse_defs.items():
+    for browse_name, browse in browse_defs.items():
         browse_bands = browse.get('bands')
         range_ = browse.get('range')
         expression = browse.get('expression')

@@ -222,7 +222,8 @@ class ProductRegistrator(base.BaseRegistrator):
         with gdal.config_env(get_vsi_env(metadata_item.storage)):
             return component.read_product_metadata_file(path)
 
-def create_metadata(self, product, metadata_values):
+
+def create_metadata(product, metadata_values):
     value_items = [
         (convert_name(name), value)
         for name, value in metadata_values.items()
