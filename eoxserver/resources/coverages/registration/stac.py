@@ -326,13 +326,27 @@ def create_product_type_from_stac_collection(stac_collection,
 
 
 @transaction.atomic
-def create_product_type_from_stac_item(stac_item, product_type_name=None):
+def create_product_type_from_stac_item(stac_item, product_type_name=None,
+                                       ignore_existing=False):
     """ Creates a ProductType from a parsed STAC Item. Also creates all
         related CoverageTypes and their interned FieldTypes.
+
+        Returns the ProductType and a boolean, indicating whether it was
+        created or did already exist.
     """
 
     if product_type_name is None:
         product_type_name = get_product_type_name(stac_item)
+
+    existing = models.ProductType.objects.filter(
+        name=product_type_name
+    ).first()
+    if existing and ignore_existing:
+        return (existing, False)
+    elif existing:
+        raise RegistrationError(
+            'Product type %s already exists' % product_type_name
+        )
 
     properties = stac_item['properties']
     assets = stac_item['assets']
@@ -414,4 +428,4 @@ def create_product_type_from_stac_item(stac_item, product_type_name=None):
             **browse_def,
         )
 
-    return product_type
+    return (product_type, True)

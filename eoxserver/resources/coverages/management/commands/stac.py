@@ -84,6 +84,14 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
                 'The name of the new product type. Optional.'
             )
         )
+        register_parser.add_argument(
+            "--ignore-existing", "-i",
+            dest="ignore_existing", action="store_true", default=False,
+            help=(
+                "Optional. Ignore the case when a product type already "
+                "existed. Otherwise, an error is raised."
+            )
+        )
 
         # import_parser.add_argument(
         #     '--ignore-existing', action="store_true", default=False,
@@ -125,15 +133,22 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             )
         )
 
-    def handle_types(self, location, stdin, type_name,
+    def handle_types(self, location, stdin, type_name, ignore_existing,
                      *args, **kwargs):
         if stdin:
-            values = [json.load(sys.stdin)]
+            values = json.load(sys.stdin)
         else:
             with open(location[0]) as f:
                 values = json.load(f)
 
-        product_type = create_product_type_from_stac_item(values, type_name)
-        self.print_msg(
-            "Successfully created product type %s" % product_type.name
+        product_type, created = create_product_type_from_stac_item(
+            values, type_name, ignore_existing
         )
+        if created:
+            self.print_msg(
+                "Successfully created product type %s" % product_type.name
+            )
+        else:
+            self.print_msg(
+                "Product type %s already existed" % product_type.name
+            )
