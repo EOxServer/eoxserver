@@ -388,107 +388,111 @@ class BaseRegistrator(object):
         return self.metadata_keys - frozenset(retrieved_metadata.keys())
 
     def _get_grid(self, definition):
-        """ Get or create a grid according to our defintion
-        """
-        grid = None
-        if isinstance(definition, string_types):
-            try:
-                grid = models.Grid.objects.get(name=definition)
-            except models.Grid.DoesNotExist:
-                raise RegistrationError(
-                    'Grid %r does not exist' % definition
-                )
-        elif definition:
-            axis_names = definition.get('axis_names', [])
-            axis_types = definition['axis_types']
-            axis_offsets = definition['axis_offsets']
+        return get_grid(definition)
 
-            # check lengths and destructure
-            if len(axis_types) != len(axis_offsets):
-                raise RegistrationError('Dimensionality mismatch')
-            elif axis_names and len(axis_names) != len(axis_types):
-                raise RegistrationError('Dimensionality mismatch')
 
-            if len(axis_types) < 4:
-                axis_types = list(axis_types) + [None] * (4 - len(axis_types))
-            elif len(axis_types) > 4:
-                raise RegistrationError('Highest dimension number is 4.')
-
-            if len(axis_offsets) < 4:
-                axis_offsets = (
-                    list(axis_offsets) + [None] * (4 - len(axis_offsets))
-                )
-            elif len(axis_offsets) > 4:
-                raise RegistrationError('Highest dimension number is 4.')
-
-            # translate axis type name to ID
-            axis_type_names_to_id = {
-                name: id_
-                for id_, name in models.Grid.AXIS_TYPES
-            }
-
-            axis_types = [
-                axis_type_names_to_id[axis_type] if axis_type else None
-                for axis_type in axis_types
-            ]
-
-            for name, offset in zip(axis_names, axis_offsets):
-                if offset == 0:
-                    raise RegistrationError(
-                        'Invalid offset for axis %s: %s.' % (name, offset)
-                    )
-
-            # unwrap axis types, offsets, names
-            (type_1, type_2, type_3, type_4) = axis_types
-            (offset_1, offset_2, offset_3, offset_4) = axis_offsets
-
-            # TODO: use names like 'time', or 'x'/'y', etc
-            axis_names = axis_names or [
-                '%d' % i if i < len(axis_types) else None
-                for i in range(len(axis_types))
-            ]
-
-            (name_1, name_2, name_3, name_4) = (
-                axis_names + [None] * (4 - len(axis_names))
+def get_grid(definition):
+    """ Get or create a grid according to our defintion
+    """
+    grid = None
+    if isinstance(definition, string_types):
+        try:
+            grid = models.Grid.objects.get(name=definition)
+        except models.Grid.DoesNotExist:
+            raise RegistrationError(
+                'Grid %r does not exist' % definition
             )
+    elif definition:
+        axis_names = definition.get('axis_names', [])
+        axis_types = definition['axis_types']
+        axis_offsets = definition['axis_offsets']
 
-            try:
-                # try to find a suitable grid: with the given axis types,
-                # offsets and coordinate reference system
-                grid = models.Grid.objects.get(
-                    coordinate_reference_system=definition[
-                        'coordinate_reference_system'
-                    ],
-                    axis_1_type=type_1,
-                    axis_2_type=type_2,
-                    axis_3_type=type_3,
-                    axis_4_type=type_4,
-                    axis_1_offset=offset_1,
-                    axis_2_offset=offset_2,
-                    axis_3_offset=offset_3,
-                    axis_4_offset=offset_4,
+        # check lengths and destructure
+        if len(axis_types) != len(axis_offsets):
+            raise RegistrationError('Dimensionality mismatch')
+        elif axis_names and len(axis_names) != len(axis_types):
+            raise RegistrationError('Dimensionality mismatch')
+
+        if len(axis_types) < 4:
+            axis_types = list(axis_types) + [None] * (4 - len(axis_types))
+        elif len(axis_types) > 4:
+            raise RegistrationError('Highest dimension number is 4.')
+
+        if len(axis_offsets) < 4:
+            axis_offsets = (
+                list(axis_offsets) + [None] * (4 - len(axis_offsets))
+            )
+        elif len(axis_offsets) > 4:
+            raise RegistrationError('Highest dimension number is 4.')
+
+        # translate axis type name to ID
+        axis_type_names_to_id = {
+            name: id_
+            for id_, name in models.Grid.AXIS_TYPES
+        }
+
+        axis_types = [
+            axis_type_names_to_id[axis_type] if axis_type else None
+            for axis_type in axis_types
+        ]
+
+        for name, offset in zip(axis_names, axis_offsets):
+            if offset == 0:
+                raise RegistrationError(
+                    'Invalid offset for axis %s: %s.' % (name, offset)
                 )
-            except models.Grid.DoesNotExist:
-                # create a new grid from the given definition
-                grid = models.Grid.objects.create(
-                    coordinate_reference_system=definition[
-                        'coordinate_reference_system'
-                    ],
-                    axis_1_name=name_1,
-                    axis_2_name=name_2,
-                    axis_3_name=name_3,
-                    axis_4_name=name_4,
-                    axis_1_type=type_1,
-                    axis_2_type=type_2,
-                    axis_3_type=type_3,
-                    axis_4_type=type_4,
-                    axis_1_offset=offset_1,
-                    axis_2_offset=offset_2,
-                    axis_3_offset=offset_3,
-                    axis_4_offset=offset_4,
-                    resolution=definition.get('resolution')
-                )
-        return grid
+
+        # unwrap axis types, offsets, names
+        (type_1, type_2, type_3, type_4) = axis_types
+        (offset_1, offset_2, offset_3, offset_4) = axis_offsets
+
+        # TODO: use names like 'time', or 'x'/'y', etc
+        axis_names = axis_names or [
+            '%d' % i if i < len(axis_types) else None
+            for i in range(len(axis_types))
+        ]
+
+        (name_1, name_2, name_3, name_4) = (
+            axis_names + [None] * (4 - len(axis_names))
+        )
+
+        try:
+            # try to find a suitable grid: with the given axis types,
+            # offsets and coordinate reference system
+            grid = models.Grid.objects.get(
+                coordinate_reference_system=definition[
+                    'coordinate_reference_system'
+                ],
+                axis_1_type=type_1,
+                axis_2_type=type_2,
+                axis_3_type=type_3,
+                axis_4_type=type_4,
+                axis_1_offset=offset_1,
+                axis_2_offset=offset_2,
+                axis_3_offset=offset_3,
+                axis_4_offset=offset_4,
+            )
+        except models.Grid.DoesNotExist:
+            # create a new grid from the given definition
+            grid = models.Grid.objects.create(
+                coordinate_reference_system=definition[
+                    'coordinate_reference_system'
+                ],
+                axis_1_name=name_1,
+                axis_2_name=name_2,
+                axis_3_name=name_3,
+                axis_4_name=name_4,
+                axis_1_type=type_1,
+                axis_2_type=type_2,
+                axis_3_type=type_3,
+                axis_4_type=type_4,
+                axis_1_offset=offset_1,
+                axis_2_offset=offset_2,
+                axis_3_offset=offset_3,
+                axis_4_offset=offset_4,
+                resolution=definition.get('resolution')
+            )
+    return grid
 
 
 def is_common_value(field):
