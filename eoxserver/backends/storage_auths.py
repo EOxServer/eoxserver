@@ -26,6 +26,7 @@
 # ------------------------------------------------------------------------------
 
 import json
+import os
 
 from django.conf import settings
 from django.utils.module_loading import import_string
@@ -49,9 +50,9 @@ class S3StorageAuthHandler(BaseStorageAuthHandler):
 
     def get_vsi_env(self):
         return dict(
-            AWS_HTTPS='NO',
+            AWS_HTTPS=os.environ.get('AWS_HTTPS', 'NO'),
             AWS_S3_ENDPOINT=self.url,
-            AWS_VIRTUAL_HOSTING='FALSE',
+            AWS_VIRTUAL_HOSTING=os.environ.get('AWS_VIRTUAL_HOSTING', 'FALSE'),
             AWS_ACCESS_KEY_ID=self.parameters.get('ACCESS_KEY_ID'),
             AWS_SECRET_ACCESS_KEY=self.parameters.get('SECRET_ACCESS_KEY'),
         )
