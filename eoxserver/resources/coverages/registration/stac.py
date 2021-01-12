@@ -26,7 +26,7 @@
 # ------------------------------------------------------------------------------
 
 import json
-from os.path import isabs, join, dirname
+from os.path import isabs, join, dirname, normpath
 from urllib.parse import urlparse
 
 from django.contrib.gis.geos import GEOSGeometry
@@ -230,7 +230,7 @@ def register_stac_product(location, stac_item, product_type=None, storage=None,
         parsed = urlparse(asset['href'])
 
         if not isabs(parsed.path):
-            path = join(dirname(location), parsed.path)
+            path = normpath(join(dirname(location), parsed.path))
         else:
             path = parsed.path
 
