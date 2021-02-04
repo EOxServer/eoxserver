@@ -38,6 +38,7 @@ from eoxserver.core.util.timetools import parse_iso8601
 from eoxserver.backends import models as backends
 from eoxserver.backends.access import gdal_open
 from eoxserver.resources.coverages import models
+from eoxserver.resources.coverages.registration.registrators.gdal import GDALRegistrator
 from eoxserver.resources.coverages.registration.exceptions import (
     RegistrationError
 )
@@ -208,7 +209,10 @@ def register_stac_product(location, stac_item, product_type=None, storage=None,
     # actually create the metadata object
     create_metadata(product, metadata)
 
+    registrator = GDALRegistrator()
+
     for asset_name, asset in assets.items():
+        overrides = {}
         bands = asset.get('eo:bands')
         if not bands:
             continue
@@ -224,7 +228,7 @@ def register_stac_product(location, stac_item, product_type=None, storage=None,
                 for band_name in band_names
             ]
         )
-        coverage_id = '%s_%s' % (identifier, asset_name)
+        overrides['identifier'] = '%s_%s' % (identifier, asset_name)
 
         # create the storage item
         parsed = urlparse(asset['href'])
@@ -234,11 +238,11 @@ def register_stac_product(location, stac_item, product_type=None, storage=None,
         else:
             path = parsed.path
 
-        arraydata_item = models.ArrayDataItem(
-            location=path,
-            storage=storage,
-            band_count=len(bands),
-        )
+        # arraydata_item = models.ArrayDataItem(
+        #     location=path,
+        #     storage=storage,
+        #     band_count=len(bands),
+        # )
 
         coverage_footprint = footprint
         if 'proj:geometry' in asset:
@@ -246,10 +250,7 @@ def register_stac_product(location, stac_item, product_type=None, storage=None,
                 json.dumps(asset['proj:geometry'])
             )
 
-        # get/create Grid
-        grid_def = None
-        size = None
-        origin = None
+        overrides['footprint'] = coverage_footprint.wkt
 
         shape = asset.get('proj:shape') or properties.get('proj:shape')
         transform = asset.get('proj:transform') or \
@@ -257,10 +258,10 @@ def register_stac_product(location, stac_item, product_type=None, storage=None,
         epsg = asset.get('proj:epsg') or properties.get('proj:epsg')
 
         if shape:
-            size = shape
+            overrides['size'] = shape
 
         if transform:
-            origin = [transform[transform[0], transform[3]]]
+            overrides['origin'] = [transform[transform[0], transform[3]]]
 
         if epsg and transform:
             sr = osr.SpatialReference(epsg)
@@ -271,46 +272,56 @@ def register_stac_product(location, stac_item, product_type=None, storage=None,
                 'axis_types': ['spatial', 'spatial'],
                 'axis_offsets': [transform[1], transform[5]],
             }
+            overrides['grid'] = grid_def  # get_grid(grid_def)
 
-        if not grid_def or not size or not origin:
-            ds = gdal_open(arraydata_item)
-            reader = get_reader_by_test(ds)
-            if not reader:
-                raise RegistrationError(
-                    'Failed to get metadata reader for coverage'
-                )
-            values = reader.read(ds)
-            grid_def = values['grid']
-            size = values['size']
-            origin = values['origin']
+        # if not grid_def or not size or not origin:
+        #     ds = gdal_open(arraydata_item)
+        #     reader = get_reader_by_test(ds)
+        #     if not reader:
+        #         raise RegistrationError(
+        #             'Failed to get metadata reader for coverage'
+        #         )
+        #     values = reader.read(ds)
+        #     grid_def = values['grid']
+        #     size = values['size']
+        #     origin = values['origin']
 
-        grid = get_grid(grid_def)
-
-        if models.Coverage.objects.filter(identifier=coverage_id).exists():
-            if replace:
-                models.Coverage.objects.filter(identifier=coverage_id).delete()
-            else:
-                raise RegistrationError(
-                    'Coverage %s already exists' % coverage_id
-                )
-
-        coverage = models.Coverage.objects.create(
-            identifier=coverage_id,
-            footprint=coverage_footprint,
-            begin_time=start_time,
-            end_time=end_time,
-            grid=grid,
-            axis_1_origin=origin[0],
-            axis_2_origin=origin[1],
-            axis_1_size=size[0],
-            axis_2_size=size[1],
-            coverage_type=coverage_type,
-            parent_product=product,
+        registrator.register(
+            data_locations=[([storage.name] if storage else []) + [path]],
+            metadata_locations=[],
+            coverage_type_name=coverage_type.name,
+            footprint_from_extent=False,
+            overrides=overrides,
+            replace=replace,
         )
 
-        arraydata_item.coverage = coverage
-        arraydata_item.full_clean()
-        arraydata_item.save()
+        # grid = get_grid(grid_def)
+
+        # if models.Coverage.objects.filter(identifier=coverage_id).exists():
+        #     if replace:
+        #         models.Coverage.objects.filter(identifier=coverage_id).delete()
+        #     else:
+        #         raise RegistrationError(
+        #             'Coverage %s already exists' % coverage_id
+        #         )
+
+        # coverage = models.Coverage.objects.create(
+        #     identifier=coverage_id,
+        #     footprint=coverage_footprint,
+        #     begin_time=start_time,
+        #     end_time=end_time,
+        #     grid=grid,
+        #     axis_1_origin=origin[0],
+        #     axis_2_origin=origin[1],
+        #     axis_1_size=size[0],
+        #     axis_2_size=size[1],
+        #     coverage_type=coverage_type,
+        #     parent_product=product,
+        # )
+
+        # arraydata_item.coverage = coverage
+        # arraydata_item.full_clean()
+        # arraydata_item.save()
 
     # TODO: browses if possible
 
