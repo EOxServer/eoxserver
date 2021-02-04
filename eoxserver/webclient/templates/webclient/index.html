@@ -148,7 +148,7 @@
           ],
           "layers": [
           {% for layer in layers %}
-      {
+            {
                   "id": "{{ layer.identifier }}",
                   "displayName": "{% if layer.webclient_extra.display_name %}{{ layer.webclient_extra.display_name }}{% else %}{{ layer.identifier }}{% endif %}",
                   {% if layer.webclient_extra.color %}"displayColor":"{{ layer.webclient_extra.color }}",{% endif %}
@@ -182,15 +182,13 @@
                                 "value": "{{ layer.identifier }}",
                             },
                             {% for product_type in layer.collection_type.allowed_product_types.all %}
-                            
-                                {% for browse_type in product_type.browse_types.all %}
-                                {
-                                    "label": "{{ browse_type.name }}",
-                                    "value": "{{ layer.identifier }}__{{ browse_type.name }}",
-                                },
-                                {% endfor %}
+                            {% for browse_type in product_type.browse_types.all %}
+                            {
+                                "label": "{{ browse_type.name }}",
+                                "value": "{{ layer.identifier }}__{{ browse_type.name }}",
+                            },
                             {% endfor %}
-                           
+                            {% endfor %}
                         ]
                     }],
                   },
@@ -234,7 +232,7 @@
               }
           ]
       };
-      
+
           var app = new Application({
             config: config,
             container: document.getElementById('app'),
