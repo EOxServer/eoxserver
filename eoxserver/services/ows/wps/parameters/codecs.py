@@ -55,11 +55,12 @@ class CodecBase64(Codec):
     def encode(file_in, urlsafe=False, **opt):
         """ Encoding generator."""
         b64encode = urlsafe_b64encode if urlsafe else standard_b64encode
-        dlm = ""
-        for data in iter(lambda: file_in.read(57), ''):
+        dlm = b""
+
+        for data in iter(lambda: file_in.read(57), b''):
             yield dlm
             yield b64encode(data)
-            dlm = "\r\n"
+            dlm = b"\r\n"
 
     @staticmethod
     def decode(file_in, urlsafe=False, **opt):

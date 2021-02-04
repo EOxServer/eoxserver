@@ -4,8 +4,8 @@ EOxServer
 .. image:: https://travis-ci.org/EOxServer/eoxserver.svg?branch=master
    :target: https://travis-ci.org/EOxServer/eoxserver
 
-.. image:: https://jenkins.eox.at/buildStatus/icon?job=EOxServer_master
-   :target: https://jenkins.eox.at/job/EOxServer_master/
+.. image:: https://badge.fury.io/py/EOxServer.svg
+    :target: https://pypi.org/project/EOxServer/
 
 .. image:: https://readthedocs.org/projects/eoxserver/badge/?version=master
     :alt: Documentation Status

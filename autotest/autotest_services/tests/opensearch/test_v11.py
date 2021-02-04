@@ -1,7 +1,12 @@
 import json
 
 from django.test import TestCase, Client, tag
-from django.core.urlresolvers import reverse
+try:
+    from django.core.urlresolvers import reverse
+except ImportError:
+    from django.urls import reverse
+
+from django.utils.six import assertCountEqual
 
 from eoxserver.core.util.xmltools import etree, parse
 from eoxserver.contrib import gdal, ogr
@@ -11,8 +16,9 @@ NSMAP = {
     'atom': 'http://www.w3.org/2005/Atom'
 }
 
+
 @tag('opensearch')
-class BaseOpenSearchMixIn(object):
+class OpenSearchTestCase(TestCase):
     pass
 
 
@@ -95,22 +101,22 @@ class BaseSearchMixIn(object):
         pass
 
     def test_ids(self):
-        self.assertItemsEqual(self.expected_ids, self.get_ids(self.response))
+        self.assertCountEqual(self.expected_ids, self.get_ids(self.response))
 
 
-class CollectionSearchMixIn(BaseOpenSearchMixIn):
+class CollectionSearchMixIn(object):
     def test_links(self):
         if self.format_name in ("rss", "atom"):
             pass
 
 
-class RecordSearchMixIn(BaseOpenSearchMixIn):
+class RecordSearchMixIn(object):
     def test_links(self):
         if self.format_name in ("rss", "atom"):
             pass
 
 
-class SearchFullJSONTestCase(GeoJSONMixIn, RecordSearchMixIn, TestCase):
+class SearchFullJSONTestCase(GeoJSONMixIn, RecordSearchMixIn, OpenSearchTestCase):
     collection_id = "MER_FRS_1P_reduced_RGB"
     request = {}
     expected_ids = [
@@ -120,7 +126,7 @@ class SearchFullJSONTestCase(GeoJSONMixIn, RecordSearchMixIn, TestCase):
     ]
 
 
-class SearchFullTestAtomCase(AtomMixIn, RecordSearchMixIn, TestCase):
+class SearchFullTestAtomCase(AtomMixIn, RecordSearchMixIn, OpenSearchTestCase):
     collection_id = "MER_FRS_1P_reduced_RGB"
     request = {}
     expected_ids = [
@@ -130,7 +136,7 @@ class SearchFullTestAtomCase(AtomMixIn, RecordSearchMixIn, TestCase):
     ]
 
 
-class SearchFullRSSTestCase(RSSMixIn, RecordSearchMixIn, TestCase):
+class SearchFullRSSTestCase(RSSMixIn, RecordSearchMixIn, OpenSearchTestCase):
     collection_id = "MER_FRS_1P_reduced_RGB"
     request = {}
     expected_ids = [
@@ -140,7 +146,7 @@ class SearchFullRSSTestCase(RSSMixIn, RecordSearchMixIn, TestCase):
     ]
 
 
-class SearchFullKMLTestCase(KMLMixIn, RecordSearchMixIn, TestCase):
+class SearchFullKMLTestCase(KMLMixIn, RecordSearchMixIn, OpenSearchTestCase):
     collection_id = "MER_FRS_1P_reduced_RGB"
     request = {}
     expected_ids = [
@@ -150,7 +156,7 @@ class SearchFullKMLTestCase(KMLMixIn, RecordSearchMixIn, TestCase):
     ]
 
 
-class SearchCountJSONTestCase(GeoJSONMixIn, RecordSearchMixIn, TestCase):
+class SearchCountJSONTestCase(GeoJSONMixIn, RecordSearchMixIn, OpenSearchTestCase):
     collection_id = "MER_FRS_1P_reduced_RGB"
     request = {
         'count': '2'
@@ -161,7 +167,7 @@ class SearchCountJSONTestCase(GeoJSONMixIn, RecordSearchMixIn, TestCase):
     ]
 
 
-class SearchStartIndexJSONTestCase(GeoJSONMixIn, RecordSearchMixIn, TestCase):
+class SearchStartIndexJSONTestCase(GeoJSONMixIn, RecordSearchMixIn, OpenSearchTestCase):
     collection_id = "MER_FRS_1P_reduced_RGB"
     request = {
         'startIndex': '1'
@@ -172,7 +178,7 @@ class SearchStartIndexJSONTestCase(GeoJSONMixIn, RecordSearchMixIn, TestCase):
     ]
 
 
-class SearchStartIndexCountJSONTestCase(GeoJSONMixIn, RecordSearchMixIn, TestCase):
+class SearchStartIndexCountJSONTestCase(GeoJSONMixIn, RecordSearchMixIn, OpenSearchTestCase):
     collection_id = "MER_FRS_1P_reduced_RGB"
     request = {
         'startIndex': '1',
@@ -183,7 +189,7 @@ class SearchStartIndexCountJSONTestCase(GeoJSONMixIn, RecordSearchMixIn, TestCas
     ]
 
 
-class SearchTemporalStartJSONTestCase(GeoJSONMixIn, RecordSearchMixIn, TestCase):
+class SearchTemporalStartJSONTestCase(GeoJSONMixIn, RecordSearchMixIn, OpenSearchTestCase):
     collection_id = "MER_FRS_1P_reduced_RGB"
     request = {
         'start': '2006-08-30T10:09:49Z'
@@ -193,7 +199,7 @@ class SearchTemporalStartJSONTestCase(GeoJSONMixIn, RecordSearchMixIn, TestCase)
     ]
 
 
-class SearchTemporalEndJSONTestCase(GeoJSONMixIn, RecordSearchMixIn, TestCase):
+class SearchTemporalEndJSONTestCase(GeoJSONMixIn, RecordSearchMixIn, OpenSearchTestCase):
     collection_id = "MER_FRS_1P_reduced_RGB"
     request = {
         'end': '2006-08-30T10:09:48Z'
@@ -204,7 +210,7 @@ class SearchTemporalEndJSONTestCase(GeoJSONMixIn, RecordSearchMixIn, TestCase):
     ]
 
 
-class SearchTemporalStartEndJSONTestCase(GeoJSONMixIn, RecordSearchMixIn, TestCase):
+class SearchTemporalStartEndJSONTestCase(GeoJSONMixIn, RecordSearchMixIn, OpenSearchTestCase):
     collection_id = "MER_FRS_1P_reduced_RGB"
     request = {
         'start': '2006-08-18T09:09:29Z',

@@ -49,11 +49,13 @@ class UnsupportedObject(Exception):
 
 
 class NoSuchLayer(Exception):
-    pass
+    code = 'LayerNotDefined'
+    locator = 'layer'
 
 
 class NoSuchPrefix(NoSuchLayer):
-    pass
+    code = 'LayerNotDefined'
+    locator = 'layer'
 
 
 class LayerMapper(object):
@@ -92,10 +94,10 @@ class LayerMapper(object):
                     default=Value(False),
                     output_field=BooleanField()
                 )
-            ).distinct('name').values_list('name', 'is_gray')
-            mask_type_names = mask_type_qs.distinct('name').values_list(
+            ).values_list('name', 'is_gray').distinct()
+            mask_type_names = mask_type_qs.values_list(
                 'name', flat=True
-            )
+            ).distinct()
 
             sub_layers = [
                 LayerDescription(
@@ -139,8 +141,7 @@ class LayerMapper(object):
                         "%s%smasked_%s" % (
                             eo_object.identifier, self.suffix_separator,
                             mask_type_name
-                        ),
-                        styles=geometry_styles
+                        )
                     )
                 )
 
@@ -166,7 +167,8 @@ class LayerMapper(object):
         )
 
     def lookup_layer(self, layer_name, suffix, style, filters_expressions,
-                     sort_by, time, ranges, bands, wavelengths, elevation, zoom):
+                     sort_by, time, ranges, bands, wavelengths, elevation,
+                     zoom):
         """ Lookup the layer from the registered objects.
         """
         reader = LayerMapperConfigReader(get_eoxserver_config())
@@ -217,7 +219,7 @@ class LayerMapper(object):
                         )
                     ]
                 )
-            else :
+            else:
                 return MosaicLayer(
                     full_name, style,
                     RenderMosaic.from_model(eo_object), [
@@ -242,7 +244,7 @@ class LayerMapper(object):
                     # generated browse
                     if bands or wavelengths:
                         browse = _generate_browse_from_bands(
-                            product, bands, wavelengths
+                            product, bands, wavelengths, ranges
                         )
                         if browse:
                             browses.append(browse)
@@ -336,9 +338,9 @@ class LayerMapper(object):
                 )
                 footprints = []
                 masks = []
-                for product, browse, mask in product_browses_mask:
+                for product, browse, mask, mask_type in product_browses_mask:
                     footprints.append(product.footprint)
-                    masks.append(Mask.from_model(mask))
+                    masks.append(Mask.from_model(mask, mask_type))
 
                 return OutlinesLayer(
                     name=full_name, style=style, fill=None,
@@ -359,23 +361,25 @@ class LayerMapper(object):
                     eo_object, filters_expressions, sort_by, post_suffix,
                     limit=limit_products
                 )
-                for product, browse, mask in product_browses_mask:
+                for product, browse, mask, mask_type in product_browses_mask:
                     # When bands/wavelengths are specifically requested, make a
                     # generated browse
                     if bands or wavelengths:
                         masked_browses.append(
                             MaskedBrowse(
                                 browse=_generate_browse_from_bands(
-                                    product, bands, wavelengths
+                                    product, bands, wavelengths, ranges
                                 ),
-                                mask=Mask.from_model(mask)
+                                mask=Mask.from_model(mask, mask_type)
                             )
                         )
 
                     # When available use the default browse
                     elif browse:
                         masked_browses.append(
-                            MaskedBrowse.from_models(product, browse, mask)
+                            MaskedBrowse.from_models(
+                                product, browse, mask, mask_type
+                            )
                         )
 
                     # As fallback use the default browse type (with empty name)
@@ -390,20 +394,13 @@ class LayerMapper(object):
                                     browse=_generate_browse_from_browse_type(
                                         product, browse_type
                                     ),
-                                    mask=Mask.from_model(mask)
+                                    mask=Mask.from_model(mask, mask_type)
                                 )
                             )
 
                 return MaskedBrowseLayer(
                     name=full_name, style=style,
-                    masked_browses=[
-                        MaskedBrowse.from_models(product, browse, mask)
-                        for product, browse, mask in
-                        self.iter_products_browses_masks(
-                            eo_object, filters_expressions, sort_by, post_suffix,
-                            limit=limit_products
-                        )
-                    ]
+                    masked_browses=masked_browses
                 )
 
             else:
@@ -443,7 +440,7 @@ class LayerMapper(object):
                     return MaskLayer(
                         name=full_name, style=style,
                         masks=[
-                            Mask.from_model(mask_model)
+                            Mask.from_model(mask_model, mask_type)
                             for _, mask_model in self.iter_products_masks(
                                 eo_object, filters_expressions, sort_by, suffix,
                                 limit=limit_products
@@ -494,6 +491,10 @@ class LayerMapper(object):
                 '-' if sort_by[1] == 'DESC' else '',
                 sort_by[0]
             ))
+        else:
+            qs = qs.order_by(
+                '-begin_time', '-end_time', 'identifier'
+            )
 
         return qs
 
@@ -513,6 +514,10 @@ class LayerMapper(object):
                 '-' if sort_by[1] == 'DESC' else '',
                 sort_by[0]
             ))
+        else:
+            qs = qs.order_by(
+                '-begin_time', '-end_time', 'identifier'
+            )
 
         return qs
 
@@ -568,12 +573,16 @@ class LayerMapper(object):
         for product in products:
             if name:
                 mask = product.masks.filter(mask_type__name=name).first()
+                mask_type = models.MaskType.objects.filter(
+                    product_type=product.product_type, name=name
+                ).first()
             else:
                 mask = product.masks.filter(mask_type__isnull=True).first()
+                mask_type = None
 
             browse = product.browses.filter(browse_type__isnull=True).first()
 
-            yield (product, browse, mask)
+            yield (product, browse, mask, mask_type)
 
 
 class LayerMapperConfigReader(config.Reader):
@@ -635,17 +644,15 @@ def _generate_browse_from_browse_type(product, browse_type):
     # only return a browse instance if coverages were found
     if coverages:
         return GeneratedBrowse.from_coverage_models(
-            band_expressions, fields_and_coverages, field_names, product
+            band_expressions, fields_and_coverages, product
         )
     return None
 
 
-def _generate_browse_from_bands(product, bands, wavelengths):
+def _generate_browse_from_bands(product, bands, wavelengths, ranges):
     assert len(bands or wavelengths or []) in (1, 3, 4)
-
     if bands:
         coverages, fields_and_coverages = _lookup_coverages(product, bands)
-
     # TODO: implement with wavelengths
     # elif wavelengths:
     #     fields_and_coverages = [
@@ -659,11 +666,10 @@ def _generate_browse_from_bands(product, bands, wavelengths):
     #         )
     #         for wavelength in wavelengths
     #     ]
-
     # only return a browse instance if coverages were found
     if coverages:
         return GeneratedBrowse.from_coverage_models(
-            bands, fields_and_coverages, product
+            zip(bands, ranges or [(None, None)] * len(bands)), fields_and_coverages, product
         )
     return None
 

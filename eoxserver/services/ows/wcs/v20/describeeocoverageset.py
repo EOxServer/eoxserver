@@ -26,11 +26,11 @@
 #-------------------------------------------------------------------------------
 
 
-import sys
 import logging
 from itertools import chain
 
 from django.db.models import Q
+from django.utils.six import MAXSIZE
 
 from eoxserver.core.config import get_eoxserver_config
 from eoxserver.core.decoders import xml, kvp, typelist, enum
@@ -132,6 +132,8 @@ class WCS20DescribeEOCoverageSetHandler(object):
             elif isinstance(eo_object, models.Coverage):
                 coverages.append(eo_object)
 
+        filters = subsets.get_filters(containment=containment)
+
         # get a QuerySet of all dataset series, directly or indirectly referenced
         all_dataset_series_qs = models.EOObject.objects.filter(
             Q(  # directly referenced Collections
@@ -147,7 +149,7 @@ class WCS20DescribeEOCoverageSetHandler(object):
             Q(  # Products within Collections
                 product__isnull=False,
                 product__collections__in=collections,
-                **subsets.get_filters(containment=containment)
+                **filters
             )
         )
 
@@ -156,9 +158,23 @@ class WCS20DescribeEOCoverageSetHandler(object):
         else:
             dataset_series_qs = models.EOObject.objects.none()
 
+        # Allow metadata queries on coverage itself or on the
+        # parent product if available
+        parent_product_filters = []
+        for key, value in filters.items():
+            prop = key.partition('__')[0]
+            parent_product_filters.append(
+                Q(**{
+                    key: value
+                }) | Q(**{
+                    '%s__isnull' % prop: True,
+                    'coverage__parent_product__%s' % key: value
+                })
+            )
+
         # get a QuerySet for all Coverages, directly or indirectly referenced
         all_coverages_qs = models.EOObject.objects.filter(
-            **subsets.get_filters(containment=containment)
+            *parent_product_filters
         ).filter(
             Q(  # directly referenced Coverages
                 identifier__in=[
@@ -186,6 +202,8 @@ class WCS20DescribeEOCoverageSetHandler(object):
                 mosaic__collections__in=collections
             )
         ).select_subclasses(models.Coverage, models.Mosaic)
+
+        all_coverages_qs = all_coverages_qs.order_by('identifier')
 
         # check if the CoverageDescriptions section is included. If not, use an
         # empty queryset
@@ -241,7 +259,7 @@ class WCS20DescribeEOCoverageSetKVPDecoder(kvp.Decoder, SectionsMixIn):
     eo_ids      = kvp.Parameter("eoid", type=typelist(str, ","), num=1, locator="eoid")
     subsets     = kvp.Parameter("subset", type=parse_subset_kvp, num="*")
     containment = kvp.Parameter(type=containment_enum, num="?")
-    count       = kvp.Parameter(type=pos_int, num="?", default=sys.maxint)
+    count       = kvp.Parameter(type=pos_int, num="?", default=MAXSIZE)
     sections    = kvp.Parameter(type=typelist(sections_enum, ","), num="?")
 
 
@@ -249,7 +267,7 @@ class WCS20DescribeEOCoverageSetXMLDecoder(xml.Decoder, SectionsMixIn):
     eo_ids      = xml.Parameter("wcseo:eoId/text()", num="+", locator="eoid")
     subsets     = xml.Parameter("wcs:DimensionTrim", type=parse_subset_xml, num="*")
     containment = xml.Parameter("wcseo:containment/text()", type=containment_enum, locator="containment")
-    count       = xml.Parameter("@count", type=pos_int, num="?", default=sys.maxint, locator="count")
+    count       = xml.Parameter("@count", type=pos_int, num="?", default=MAXSIZE, locator="count")
     sections    = xml.Parameter("wcseo:sections/wcseo:section/text()", type=sections_enum, num="*", locator="sections")
 
     namespaces = nsmap

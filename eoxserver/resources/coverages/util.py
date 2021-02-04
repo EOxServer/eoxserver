@@ -35,6 +35,7 @@ from django.contrib.gis.db.models import Union
 from django.contrib.gis.geos import MultiPolygon, Polygon
 from django.utils.timezone import is_naive, make_aware, get_current_timezone
 from django.utils.dateparse import parse_datetime
+from django.utils.six import string_types
 
 from eoxserver.contrib import gdal
 
@@ -75,10 +76,10 @@ def collect_eo_metadata(qs, insert=None, exclude=None, bbox=False):
     )
 
     # workaround for Django 1.4 bug: aggregate times are strings
-    if isinstance(begin_time, basestring):
+    if isinstance(begin_time, string_types):
         begin_time = parse_datetime(begin_time)
 
-    if isinstance(end_time, basestring):
+    if isinstance(end_time, string_types):
         end_time = parse_datetime(end_time)
 
     if begin_time and is_naive(begin_time):

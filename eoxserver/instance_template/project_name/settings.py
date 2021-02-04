@@ -30,12 +30,13 @@
 Django settings for EOxServer's {{ project_name }} instance.
 
 For more information on this file, see
-https://docs.djangoproject.com/en/1.4/topics/settings/
+https://docs.djangoproject.com/en/1.11/topics/settings/
 
 For the full list of settings and their values, see
-https://docs.djangoproject.com/en/1.4/ref/settings/
+https://docs.djangoproject.com/en/1.11/ref/settings/
 """
 
+import os
 from os.path import join, abspath, dirname
 
 PROJECT_DIR = dirname(abspath(__file__))
@@ -52,19 +53,29 @@ ADMINS = (
 
 MANAGERS = ADMINS
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.contrib.gis.db.backends.spatialite',                  # Use 'spatialite' or change to 'postgis'.
-        'NAME': join(PROJECT_DIR, 'data/config.sqlite'),                        # Or path to database file if using spatialite.
-        #'TEST_NAME': join(PROJECT_DIR, 'data/test-config.sqlite'),             # Required for certain test cases, but slower!
-        'USER': '',                                                             # Not used with spatialite.
-        'PASSWORD': '',                                                         # Not used with spatialite.
-        'HOST': '',                                                             # Set to empty string for localhost. Not used with spatialite.
-        'PORT': '',                                                             # Set to empty string for default. Not used with spatialite.
+# Configure which database to use.
+db_type = os.environ.get('DB')
+if db_type == 'postgis':
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.contrib.gis.db.backends.postgis',
+            'HOST': os.environ['DB_HOST'],
+            'NAME': os.environ['DB_NAME'],
+            'USER': os.environ['DB_USER'],
+            'PASSWORD': os.environ['DB_PW'],
+        }
     }
-}
+elif db_type == 'spatialite':
+    spatialite_path = os.environ.get('SPATIALITE_PATH', 'data/config.sqlite')
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.contrib.gis.db.backends.spatialite',
+            'NAME': join(PROJECT_DIR, spatialite_path),
+        }
+    }
 
-SPATIALITE_SQL = join(PROJECT_DIR, 'data/init_spatialite-2.3.sql')
+    SPATIALITE_SQL = join(PROJECT_DIR, 'data/init_spatialite-2.3.sql')
+    SPATIALITE_LIBRARY_PATH = 'mod_spatialite.so'
 
 # Hosts/domain names that are valid for this site; required if DEBUG is False
 # See https://docs.djangoproject.com/en/1.5/ref/settings/#allowed-hosts
@@ -152,6 +163,19 @@ TEMPLATES = [
     },
 ]
 
+MIDDLEWARE = [
+    'django.middleware.security.SecurityMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.common.CommonMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    # 'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    # # For management of the per/request cache system.
+    # 'eoxserver.backends.middleware.BackendsCacheMiddleware',
+]
+
 MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -192,7 +216,6 @@ INSTALLED_APPS = (
     'eoxserver.core',
     'eoxserver.services',
     'eoxserver.resources.coverages',
-    'eoxserver.resources.processes',
     'eoxserver.backends',
     'eoxserver.testing',
     'eoxserver.webclient'

@@ -41,7 +41,10 @@ logger = logging.getLogger(__name__)
 
 # TODO: move this to render.map.exceptions
 class MapRenderError(Exception):
-    pass
+    def __init__(self, message, code=None, locator=None):
+        super(MapRenderError, self).__init__(message)
+        self.code = code
+        self.locator = locator
 
 
 class MapserverMapRenderer(object):
@@ -77,7 +80,11 @@ class MapserverMapRenderer(object):
         frmt = getFormatRegistry().getFormatByMIME(render_map.format)
 
         if not frmt:
-            raise MapRenderError('No such format %r' % render_map.format)
+            raise MapRenderError(
+                'No such format %r' % render_map.format,
+                code='InvalidFormat',
+                locator='format'
+            )
 
         outputformat_obj = ms.outputFormatObj(frmt.driver)
 
@@ -85,6 +92,15 @@ class MapserverMapRenderer(object):
             ms.MS_ON if render_map.transparent else ms.MS_OFF
         )
         outputformat_obj.mimetype = frmt.mimeType
+
+        if frmt.defaultExt:
+            if frmt.defaultExt.startswith('.'):
+                extension = frmt.defaultExt[1:]
+            else:
+                extension = frmt.defaultExt
+
+            outputformat_obj.extension = extension
+
         map_obj.setOutputFormat(outputformat_obj)
 
         #
@@ -104,7 +120,7 @@ class MapserverMapRenderer(object):
             with tempfile.NamedTemporaryFile() as f:
                 map_obj.save(f.name)
                 f.seek(0)
-                logger.debug(f.read())
+                logger.debug(f.read().decode('ascii'))
 
         try:
             # actually render the map
@@ -112,20 +128,30 @@ class MapserverMapRenderer(object):
 
             try:
                 image_bytes = image_obj.getBytes()
-            except:
+            except Exception:
                 tmp_name = '/vsimem/%s' % uuid4().hex
                 image_obj.save(tmp_name, map_obj)
                 with vsi.open(tmp_name) as f:
                     image_bytes = f.read()
                 vsi.unlink(tmp_name)
 
-            return image_bytes, outputformat_obj.mimetype
+            extension = outputformat_obj.extension
+            if extension:
+                if len(render_map.layers) == 1:
+                    filename = '%s.%s' % (
+                        render_map.layers[0].name, extension
+                    )
+                else:
+                    filename = 'map.%s' % extension
+            else:
+                filename = None
+
+            return image_bytes, outputformat_obj.mimetype, filename
 
         finally:
             # disconnect
             for layer, factory, data in layers_plus_factories_plus_data:
                 factory.destroy(map_obj, layer, data)
-
 
     def _get_layers_plus_factories(self, render_map):
         layers_plus_factories = []

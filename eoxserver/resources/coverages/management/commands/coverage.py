@@ -13,8 +13,8 @@
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
-# The above copyright notice and this permission notice shall be included in all
-# copies of this Software or works derived from this Software.
+# The above copyright notice and this permission notice shall be included in
+# all copies of this Software or works derived from this Software.
 #
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -68,7 +68,9 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
         register_parser.add_argument(
             '--type', '--coverage-type', '-t',
             dest='coverage_type_name', default=None,
-            help='The name of the coverage type to associate the coverage with.'
+            help=(
+                'The name of the coverage type to associate the coverage with.'
+            )
         )
         register_parser.add_argument(
             '--grid', '-g',
@@ -89,8 +91,8 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             dest="highest_resolution", action="store_true", default=False,
             help=(
                 "Optional. If the coverage is comprised of raster files of "
-                "different resolutions, the highest resolution is used, and all "
-                "raster files of a lower resolution will be resampled."
+                "different resolutions, the highest resolution is used, and "
+                "all raster files of a lower resolution will be resampled."
             )
         )
         register_parser.add_argument(
@@ -107,6 +109,14 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             help=(
                 "Create the footprint from the coverages extent, reprojected "
                 "to WGS 84"
+            )
+        )
+        register_parser.add_argument(
+            '--simplify-footprint',
+            dest='simplify_footprint_tolerance', nargs='?',
+            default=None, type=float,
+            help=(
+                'Simplify the footprint. Optionally specify a tolerance value.'
             )
         )
         register_parser.add_argument(
@@ -161,14 +171,22 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             default=False, action='store_true',
             help=(
                 'When this flag is set, only the identifier of the registered '
-                'product will be printed to stdout.'
+                'coverage will be printed to stdout.'
             )
         )
 
         deregister_parser.add_argument(
-            'identifier', nargs=1,
-            help='The identifier of the coverage to derigster'
+            '--all', '-a', action="store_true",
+            default=False, dest='all_coverages',
+            help='When this flag is set, all the coverage are selected to be deregisterd'
         )
+
+
+        deregister_parser.add_argument(
+                'identifier', default=None, nargs='?',
+                help='The identifier of the coverage to deregister.'
+            )
+
         deregister_parser.add_argument(
             '--not-refresh-collections', dest='not_refresh_collections',
             default=False, action='store_true',
@@ -185,7 +203,7 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
         if subcommand == "register":
             self.handle_register(*args, **kwargs)
         elif subcommand == "deregister":
-            self.handle_deregister(kwargs.pop('identifier')[0], *args, **kwargs)
+            self.handle_deregister(*args, **kwargs)
 
     def handle_register(self, coverage_type_name,
                         data_locations, metadata_locations,
@@ -211,6 +229,9 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             highest_resolution=kwargs['highest_resolution'],
             replace=kwargs['replace'],
             use_subdatasets=kwargs['use_subdatasets'],
+            simplify_footprint_tolerance=kwargs.get(
+                'simplify_footprint_tolerance'
+            ),
         )
 
         product_identifier = kwargs['product_identifier']
@@ -242,43 +263,51 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
 
         else:
             self.print_msg(
-                'Successfully registered coverage %s' % report.coverage.identifier
+                'Successfully registered coverage %s'
+                % report.coverage.identifier
             )
 
             if int(kwargs.get('verbosity', 0)) > 1:
                 pprint(report.metadata_parsers)
                 pprint(report.retrieved_metadata)
 
-    def handle_deregister(self, identifier, not_refresh_collections, **kwargs):
+    def handle_deregister(self, identifier, not_refresh_collections, all_coverages, **kwargs):
         """ Handle the deregistration a coverage
         """
-        try:
-            coverage = models.Coverage.objects.get(identifier=identifier)
-            collections = list(coverage.collections.all())
-            mosaics = list(coverage.mosaics.all())
-            grid = coverage.grid
+        if not all_coverages and not identifier:
+            raise CommandError('please specify a coverage/s to remove')
+        else:
+            if all_coverages:
+                coverages = models.Coverage.objects.all()
+            elif identifier:
+                coverages = [models.Coverage.objects.get(identifier=identifier)]
+            for coverage in coverages:
+                try:
+                    collections = list(coverage.collections.all())
+                    mosaics = list(coverage.mosaics.all())
+                    grid = coverage.grid
 
-            if not not_refresh_collections:
-                for collection in collections:
-                    models.collection_exclude_eo_object(collection, coverage)
+                    if not not_refresh_collections:
+                        for collection in collections:
+                            models.collection_exclude_eo_object(collection, coverage)
 
-                for mosaic in mosaics:
-                    models.mosaic_exclude_coverage(mosaic, coverage)
+                        for mosaic in mosaics:
+                            models.mosaic_exclude_coverage(mosaic, coverage)
+                    coverage_id = coverage.identifier
+                    coverage.delete()
 
-            coverage.delete()
+                    grid_used = models.EOObject.objects.filter(
+                        Q(coverage__grid=grid) | Q(mosaic__grid=grid),
+                    ).exists()
 
-            grid_used = models.EOObject.objects.filter(
-                Q(coverage__grid=grid) | Q(mosaic__grid=grid),
-            ).exists()
+                    # clean up grid as well, if it is not referenced anymore
+                    # but saving named (user defined) grids
+                    if grid and not grid.name and not grid_used:
+                        grid.delete()
 
-            # clean up grid as well, if it is not referenced anymore
-            # but saving named (user defined) grids
-            if grid and not grid.name and not grid_used:
-                grid.delete()
+                    self.print_msg(
+                        'Successfully deregistered coverage %s' % coverage_id
+                    )
 
-            self.print_msg(
-                'Successfully deregistered coverage %s' % identifier
-            )
-
-        except models.Coverage.DoesNotExist:
-            raise CommandError('No such Coverage %r' % identifier)
+                except models.Coverage.DoesNotExist:
+                    raise CommandError('No such Coverage %r' % identifier)

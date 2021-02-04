@@ -1,9 +1,9 @@
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
 #
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Copyright (C) 2019 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -13,8 +13,8 @@
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
-# The above copyright notice and this permission notice shall be included in all
-# copies of this Software or works derived from this Software.
+# The above copyright notice and this permission notice shall be included in
+# all copies of this Software or works derived from this Software.
 #
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -23,19 +23,19 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
-from itertools import zip_longest
+try:
+    from itertools import izip_longest
+except ImportError:
+    from itertools import zip_longest as izip_longest
 
 from lxml.builder import ElementMaker
 
 from eoxserver.core.util.xmltools import XMLEncoder, NameSpace, NameSpaceMap
-from eoxserver.core.util.timetools import isoformat
-from eoxserver.services.gml.v32.encoders import ns_gml
-from eoxserver.render.coverage.objects import IrregularAxis
 
 # namespace declarations
-ns_cis = NameSpace("http://www.opengis.net/gml/1.1", "gml")
+ns_cis = NameSpace("http://www.opengis.net/gml/1.1", "cis")
 ns_swe = NameSpace("http://www.opengis.net/swe/2.0", "swe")
 
 nsmap = NameSpaceMap(ns_cis, ns_swe)
@@ -44,8 +44,8 @@ nsmap = NameSpaceMap(ns_cis, ns_swe)
 CIS = ElementMaker(namespace=ns_cis.uri, nsmap=nsmap)
 SWE = ElementMaker(namespace=ns_swe.uri, nsmap=nsmap)
 
-class CIS11XMLEncoder(XMLEncoder):
 
+class CIS11XMLEncoder(XMLEncoder):
     def encode_axis_extent(self, axis, origin, size):
         if axis.regular:
             return CIS('axisExtent',
@@ -61,10 +61,11 @@ class CIS11XMLEncoder(XMLEncoder):
                 lowerBound=str(axis.positions[0]),
                 upperBound=str(axis.positions[-1]),
             )
+
     def encode_envelope(self, grid, origins, sizes):
         return CIS('envelope', *[
                 self.encode_axis_extent(axis, origin, size)
-                for axis, origin, size in zip_longest(grid, origins, sizes)
+                for axis, origin, size in izip_longest(grid, origins, sizes)
             ],
             axisLabels=' '.join(axis.name for axis in grid),
             srsName=grid.coordinate_reference_system,
@@ -98,10 +99,11 @@ class CIS11XMLEncoder(XMLEncoder):
                 self.encode_regular_axis(axis, origin, size)
                 if axis.regular else
                 self.encode_irregular_axis(axis)
-                for axis, origin, size in zip_longest(grid, origins, sizes)
+                for axis, origin, size in izip_longest(grid, origins, sizes)
             ] + [
                 CIS('gridLimits', *[
-                    CIS('indexAxis',
+                    CIS(
+                        'indexAxis',
                         axisLabel=label,
                         lowerBound="0",
                         upperBound=str(size),
@@ -154,8 +156,9 @@ class CIS11XMLEncoder(XMLEncoder):
     def encode_range_type(self, range_type):
         return CIS('rangeType',
             SWE('DataRecord', *[
-                self.encode_field(field) for field in range_type
-            ])
+                    self.encode_field(field) for field in range_type
+                ]
+            )
         )
 
     def encode_general_grid_coverage(self, coverage):

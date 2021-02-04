@@ -13,8 +13,8 @@
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
-# The above copyright notice and this permission notice shall be included in all
-# copies of this Software or works derived from this Software.
+# The above copyright notice and this permission notice shall be included in
+# all copies of this Software or works derived from this Software.
 #
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -61,6 +61,12 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             )
         )
         create_parser.add_argument(
+            '--validity-mask-type',
+            action='append', dest='validity_mask_type_names', default=[],
+            help=(
+            )
+        )
+        create_parser.add_argument(
             '--browse-type', '-b',
             action='append', dest='browse_type_names', default=[],
             help=(
@@ -79,7 +85,7 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
 
     @transaction.atomic
     def handle(self, subcommand, *args, **kwargs):
-        """ Dispatch sub-commands: create, delete.
+        """ Dispatch sub-commands: create, delete, list.
         """
         if subcommand == "create":
             self.handle_create(kwargs.pop('name')[0], *args, **kwargs)
@@ -89,7 +95,8 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             self.handle_list(*args, **kwargs)
 
     def handle_create(self, name, coverage_type_names, mask_type_names,
-                      browse_type_names, *args, **kwargs):
+                      validity_mask_type_names, browse_type_names,
+                      *args, **kwargs):
         """ Handle the creation of a new product type.
         """
 
@@ -109,6 +116,12 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
         for mask_type_name in mask_type_names:
             models.MaskType.objects.create(
                 name=mask_type_name, product_type=product_type
+            )
+
+        for mask_type_name in validity_mask_type_names:
+            models.MaskType.objects.create(
+                name=mask_type_name, product_type=product_type,
+                validity=True
             )
 
         for browse_type_name in browse_type_names:

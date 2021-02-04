@@ -49,14 +49,14 @@ class BaseTestMixin(object):
             try:
                 res = self.dtype.parse(src)
             except:
-                print "\n%s: input: %r" % (type(self).__name__, src)
+                print ("\n%s: input: %r" % (type(self).__name__, src))
                 raise
 
             try:
                 self.assertTrue(isinstance(res, type(dst)))
                 self.assertTrue(res == dst or (res != res and dst != dst))
             except:
-                print "\n%s: %r != %r" % (type(self).__name__, res, dst)
+                print ("\n%s: %r != %r" % (type(self).__name__, res, dst))
                 raise
 
     def testEncodeOK(self):
@@ -64,13 +64,13 @@ class BaseTestMixin(object):
             try:
                 res = self.dtype.encode(src)
             except:
-                print "\n%s: input: %r" % (type(self).__name__, src)
+                print ("\n%s: input: %r" % (type(self).__name__, src))
                 raise
             try:
                 self.assertTrue(isinstance(res, type(dst)))
                 self.assertTrue(res == dst)
             except:
-                print "\n%s: %r != %r" % (type(self).__name__, res, dst)
+                print ("\n%s: %r != %r" % (type(self).__name__, res, dst))
                 raise
 
     def testParseFail(self):
@@ -89,7 +89,7 @@ class TimeZoneTestMixin(object):
             try:
                 res = self.dtype.parse(src)
             except:
-                print "\n input: %r" % src
+                print ("\n input: %r" % src)
                 raise
             try:
                 if dst.tzinfo is None:
@@ -98,7 +98,7 @@ class TimeZoneTestMixin(object):
                     self.assertTrue(res.tzinfo is not None)
                     self.assertTrue(res.utcoffset() == dst.utcoffset())
             except:
-                print "\n%r != %r" % (res, dst)
+                print ("\n%r != %r" % (res, dst))
                 raise
 
 #------------------------------------------------------------------------------
@@ -160,7 +160,7 @@ class TestDataTypeInt(TestCase, BaseTestMixin):
             ('32145', 32145),
             (-1, -1),
             (u'4722366482869645213695', 0xFFFFFFFFFFFFFFFFFF),
-            ('-4722366482869645213695', -4722366482869645213695L),
+            ('-4722366482869645213695', -4722366482869645213695),
         ]
         self.parsed_rejected = [
             'nan',
@@ -247,7 +247,13 @@ class TestDataTypeDuration(TestCase, BaseTestMixin):
             (u'PT0S', timedelta(0, 0, 0)),
             (u'P0Y', timedelta(0, 0, 0)),
         ]
-        self.parsed_rejected = [u'anything']
+        self.parsed_rejected = [
+            u'anything',
+            u'P1S',
+            u'P1H',
+            u'PT1Y',
+            u'PT1D',
+        ]
 
 
 class TestDataTypeDate(TestCase, BaseTestMixin):

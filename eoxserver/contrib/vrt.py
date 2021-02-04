@@ -27,6 +27,7 @@
 
 import subprocess
 import math
+from django.utils.six import string_types
 
 from eoxserver.contrib import gdal, vsi, osr
 
@@ -53,8 +54,6 @@ class VRTBuilder(object):
                  vrt_filename=None):
         driver = get_vrt_driver()
         data_type = data_type if data_type is not None else gdal.GDT_Byte
-
-        print vrt_filename
         self._ds = driver.Create(
             vrt_filename or "", size_x, size_y, num_bands, data_type
         )
@@ -148,7 +147,7 @@ class VRTBuilder(object):
                          <eoxserver.core.util.rect.Rect>` specifying the target
                          area to contribute
         """
-        if isinstance(src, basestring):
+        if isinstance(src, string_types):
             pass
 
         else:
@@ -218,7 +217,7 @@ class VRTBuilder2(object):
                          <eoxserver.core.util.rect.Rect>` specifying the target
                          area to contribute
         """
-        if isinstance(src, basestring):
+        if isinstance(src, string_types):
             pass
 
         else:
@@ -448,11 +447,12 @@ def select_bands(filename, env, band_indices, save=None):
     return out_ds
 
 
-def stack_bands(filenames, save=None):
-    datasets = [
-        gdal.OpenShared(filename)
-        for filename in filenames
-    ]
+def stack_bands(filenames, env, save=None):
+    with gdal.config_env(env):
+        datasets = [
+            gdal.OpenShared(filename)
+            for filename in filenames
+        ]
 
     first = datasets[0]
     proj, (o_x, o_y), _, (res_x, res_y), (size_x, size_y) = \
@@ -496,4 +496,27 @@ def stack_bands(filenames, save=None):
 
             out_index += 1
 
+    return out_ds
+
+def with_extent(filename, extent, save=None):
+    """ Create a VRT and override the underlying files geolocation
+    """
+    src_ds = gdal.OpenShared(filename)
+    width, height = src_ds.RasterXSize, src_ds.RasterYSize
+    driver = gdal.GetDriverByName('VRT')
+    out_ds = driver.CreateCopy(save, src_ds)
+
+    x = extent[0]
+    y = extent[3]
+
+    resx = abs(extent[2] - extent[0]) / width
+    resy = abs(extent[3] - extent[1]) / height
+    out_ds.SetGeoTransform([
+        x,
+        resx,
+        0,
+        y,
+        0,
+        resy,
+    ])
     return out_ds

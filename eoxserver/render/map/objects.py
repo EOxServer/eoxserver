@@ -377,13 +377,14 @@ class LayerDescription(object):
     is_raster = False
 
     def __init__(self, name, bbox=None, dimensions=None, queryable=False,
-                 styles=None, sub_layers=None):
+                 styles=None, sub_layers=None, title=None):
         self._name = name
         self._bbox = bbox
         self._dimensions = dimensions if dimensions is not None else {}
         self._queryable = queryable
         self._styles = styles if styles is not None else []
         self._sub_layers = sub_layers if sub_layers is not None else []
+        self._title = title
 
     @property
     def name(self):
@@ -408,6 +409,10 @@ class LayerDescription(object):
     @property
     def sub_layers(self):
         return self._sub_layers
+
+    @property
+    def title(self):
+        return self._title or self.name
 
     @classmethod
     def from_coverage(cls, coverage, styles):

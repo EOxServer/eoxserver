@@ -1,9 +1,9 @@
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
 #
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Copyright (C) 2013 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -13,8 +13,8 @@
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
-# The above copyright notice and this permission notice shall be included in all
-# copies of this Software or works derived from this Software.
+# The above copyright notice and this permission notice shall be included in
+# all copies of this Software or works derived from this Software.
 #
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -23,12 +23,15 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 import contextlib
 import time
 import logging
-from cgi import escape
+try:
+    from cgi import escape
+except ImportError:
+    from html import escape
 import tempfile
 import os
 
@@ -52,10 +55,9 @@ else:
     msversion = msGetVersionInt()
 
 from lxml import etree
-
 from eoxserver.core.util.multiparttools import iterate
 from eoxserver.contrib import gdal
-
+from eoxserver.services.result import result_set_from_raw_data
 
 logger = logging.getLogger(__name__)
 
@@ -83,7 +85,7 @@ class MetadataMixIn(object):
         self.setMetaData(key, value)
 
     def setMetaData(self, key_or_params, value=None, namespace=None):
-        """ Convenvience method to allow setting multiple metadata values with 
+        """ Convenvience method to allow setting multiple metadata values with
             one call and optionally setting a 'namespace' for each entry.
         """
         if value is None:
@@ -132,7 +134,7 @@ def dispatch(map_, request):
         status = map_.OWSDispatch(request)
         te = time.time()
         logger.debug("MapServer: Dispatch took %f seconds." % (te - ts))
-    except Exception, e:
+    except Exception as e:
         raise MapServerException(str(e), "NoApplicableCode")
 
     raw_bytes = msIO_getStdoutBufferBytes()
@@ -146,8 +148,8 @@ def dispatch(map_, request):
 
         try:
             # try to parse the output as XML
-            _, data = iterate(raw_bytes).next()
-            tree = etree.fromstring(str(data))
+            result = result_set_from_raw_data(raw_bytes)
+            tree = etree.fromstring(result[0].data)
             exception_elem = tree.xpath("*[local-name() = 'Exception']|*[local-name() = 'ServiceException']")[0]
             locator = exception_elem.attrib.get("locator")
             code = exception_elem.attrib.get("exceptionCode")
@@ -256,7 +258,7 @@ def gdalconst_to_imagemode_string(const):
 
 
 def setMetaData(obj, key_or_params, value=None, namespace=None):
-    """ Convenvience function to allow setting multiple metadata values with 
+    """ Convenvience function to allow setting multiple metadata values with
         one call and optionally setting a 'namespace' for each entry.
     """
     if value is None:
@@ -282,7 +284,8 @@ def set_env(map_obj, env, fail_on_override=False, return_old=False):
     for key, value in env.items():
         if fail_on_override or return_old:
             old_value = map_obj.getConfigOption(str(key))
-            if fail_on_override and old_value is not None and old_value != value:
+            if fail_on_override and old_value is not None \
+                    and old_value != value:
                 raise Exception(
                     'Would override previous value of %s: %s with %s'
                     % (key, old_value, value)
@@ -300,4 +303,3 @@ def config_env(map_obj, env, fail_on_override=False, reset_old=True):
     yield
     if reset_old:
         set_env(old_env, False, False)
-

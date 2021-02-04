@@ -13,8 +13,8 @@
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
-# The above copyright notice and this permission notice shall be included in all
-# copies of this Software or works derived from this Software.
+# The above copyright notice and this permission notice shall be included in
+# all copies of this Software or works derived from this Software.
 #
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -49,7 +49,8 @@ class ProductRegistrator(base.BaseRegistrator):
     def register(self, metadata_locations, mask_locations, package_path,
                  overrides, identifier_template=None, type_name=None,
                  extended_metadata=True, discover_masks=True,
-                 discover_browses=True, discover_metadata=True, replace=False):
+                 discover_browses=True, discover_metadata=True, replace=False,
+                 simplify_footprint_tolerance=None):
         product_type = None
         if type_name:
             product_type = models.ProductType.objects.get(name=type_name)
@@ -130,6 +131,11 @@ class ProductRegistrator(base.BaseRegistrator):
             identifier = identifier_template.format(metadata)
             metadata['identifier'] = identifier
 
+        if simplify_footprint_tolerance is not None and footprint:
+            footprint = footprint.simplify(
+                simplify_footprint_tolerance, preserve_topology=True
+            )
+
         replaced = False
         if replace:
             try:
@@ -148,7 +154,7 @@ class ProductRegistrator(base.BaseRegistrator):
         )
 
         if extended_metadata and metadata:
-            self._create_metadata(product, metadata)
+            create_metadata(product, metadata)
 
         # register all masks
         for mask_handle in mask_locations:
@@ -216,22 +222,23 @@ class ProductRegistrator(base.BaseRegistrator):
         with gdal.config_env(get_vsi_env(metadata_item.storage)):
             return component.read_product_metadata_file(path)
 
-    def _create_metadata(self, product, metadata_values):
-        value_items = [
-            (convert_name(name), value)
-            for name, value in metadata_values.items()
-            if value is not None
-        ]
 
-        metadata_values = dict(
-            (name, convert_value(name, value, models.ProductMetadata))
-            for name, value in value_items
-            if value is not None and has_field(models.ProductMetadata, name)
-        )
+def create_metadata(product, metadata_values):
+    value_items = [
+        (convert_name(name), value)
+        for name, value in metadata_values.items()
+        if value is not None
+    ]
 
-        models.ProductMetadata.objects.create(
-            product=product, **metadata_values
-        )
+    metadata_values = dict(
+        (name, convert_value(name, value, models.ProductMetadata))
+        for name, value in value_items
+        if value is not None and has_field(models.ProductMetadata, name)
+    )
+
+    models.ProductMetadata.objects.create(
+        product=product, **metadata_values
+    )
 
 
 def is_common_value(field):

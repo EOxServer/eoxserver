@@ -73,7 +73,7 @@ def compute(data):
     rp_right[N-1] = math.pi
 
     for iy in range(0, n_lat):
-        print iy
+        print (iy)
 
         left = np.zeros(N)
         left[(N / 2 - n_lon[iy] / 2):(N / 2 + n_lon[iy] / 2)] = \
@@ -109,7 +109,7 @@ def reproject(ds, out_path):
     out_ds = driver.Create(out_path, size_x, size_y, 1, gdal.GDT_Byte)
 
     if out_ds is None:
-        print "Could not create output file '%s'." % out_path
+        print ("Could not create output file '%s'." % out_path)
     else:
         # set the geospatial metadata
         proj = get_projection_ref()
@@ -131,7 +131,7 @@ def run(args):
         dataset = gdal.Open(arg)
 
         if dataset is None:
-            print "Could not open file '%s'." % arg
+            print ("Could not open file '%s'." % arg)
         else:
 
             # determine the FAPAR subdataset
@@ -150,8 +150,8 @@ def run(args):
                 thread.start()
 
             else:
-                print "Could not open FAPAR subdataset '%s'." %\
-                    fapar_subdataset_name
+                print ("Could not open FAPAR subdataset '%s'." %\
+                    fapar_subdataset_name)
 
     for thread in threads:
         thread.join()

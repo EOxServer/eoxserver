@@ -35,6 +35,7 @@ from eoxserver.services.ows.wps.parameters import (
     Integer, Double, String, Duration, Date, Time, DateTime,
 )
 
+from django.utils.six import text_type
 #------------------------------------------------------------------------------
 
 class BaseTestMixin(object):
@@ -45,14 +46,14 @@ class BaseTestMixin(object):
                 self.assertTrue(self.domain.check(val))
                 self.assertTrue(val is self.domain.verify(val))
             except:
-                print "\n%s: value: %r" % (type(self).__name__, val)
+                print ("\n%s: value: %r" % (type(self).__name__, val))
                 raise
         for val in self.rejected:
             try:
                 self.assertFalse(self.domain.check(val))
                 self.assertRaises(ValueError, self.domain.verify, val)
             except:
-                print "\n%s: value: %r" % (type(self).__name__, val)
+                print ("\n%s: value: %r" % (type(self).__name__, val))
                 raise
 
 #------------------------------------------------------------------------------
@@ -125,7 +126,7 @@ class TestAllowedEnumString2(TestCase, BaseTestMixin):
 class TestAllowedEnumString3(TestCase, BaseTestMixin):
     def setUp(self):
         enum = ['John', 'James', 'Jeffrey', 'Jacob', 'Jerry']
-        self.domain = AllowedEnum(enum, dtype=unicode)
+        self.domain = AllowedEnum(enum, dtype=text_type)
         self.accepted = ['John', 'Jacob', 'Jerry']
         self.rejected = ['Alex', '']
 
@@ -188,18 +189,18 @@ class TestAllowedEnumDateTime2(TestCase, BaseTestMixin):
 
 class TestAllowedEnumDuration(TestCase, BaseTestMixin):
     def setUp(self):
-        vlist = ['P1Y', 'P26DT1M', 'P25M16S']
+        vlist = ['P1Y', 'P26DT1M', 'PT25M16S']
         self.domain = AllowedEnum(vlist, dtype=Duration)
         self.accepted = [vlist[1], Duration.parse(vlist[0])]
-        self.rejected = [Duration.parse('P7D15H8M')]
+        self.rejected = [Duration.parse('P7DT15H8M')]
 
 
 class TestAllowedEnumDuration2(TestCase, BaseTestMixin):
     def setUp(self):
-        vlist = ['P1Y', 'P26DT1M', 'P25M16S']
+        vlist = ['P1Y', 'P26DT1M', 'PT25M16S']
         self.domain = AllowedEnum(vlist, dtype=timedelta)
         self.accepted = [vlist[1], Duration.parse(vlist[0])]
-        self.rejected = [Duration.parse('P7D15H8M')]
+        self.rejected = [Duration.parse('P7DT15H8M')]
 
 #------------------------------------------------------------------------------
 
@@ -350,7 +351,7 @@ class TestAllowedRangeDuration(TestCase, BaseTestMixin):
             'P1M0DT30M',
         ]
         self.rejected = [
-            Duration.parse('-P2D18H'),
+            Duration.parse('-P2DT18H'),
             'P1Y',
         ]
 
@@ -429,10 +430,17 @@ class TestAllowedRangeDiscrDateTime(TestCase, BaseTestMixin):
             '2014-01-11T10:30Z',
         ]
 
-##------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
+
 
 class TestAllowedRangeCollectionFloat(TestCase, BaseTestMixin):
     def setUp(self):
+        try:
+            # Python 2
+            xrange
+        except NameError:
+            # Python 3, xrange is now named range
+            xrange = range
         self.domain = AllowedRangeCollection(
             AllowedRange(None, -5.0, 'open'),
             AllowedRange(6.0, None, spacing=3.0),
@@ -443,6 +451,7 @@ class TestAllowedRangeCollectionFloat(TestCase, BaseTestMixin):
         self.rejected = ['nan', '+inf', 7, 3, -0.5, -5]
 
 #------------------------------------------------------------------------------
+
 
 if __name__ == '__main__':
     main()

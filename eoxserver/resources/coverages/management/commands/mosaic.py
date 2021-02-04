@@ -122,6 +122,10 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             axis_1_size=0,
         )
 
+        self.print_msg(
+            'Successfully inserted created mosaic %s' % identifier
+        )
+
     def handle_delete(self, identifier, **kwargs):
         """ Handle the deletion of a mosaic
         """
@@ -138,6 +142,9 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
         if grid and not grid.name and not grid_used:
             grid.delete()
 
+        self.print_msg(
+            'Successfully deleted mosaic %s' % identifier
+        )
 
     def handle_insert(self, identifier, coverage_identifiers, **kwargs):
         """ Handle the insertion of coverages into a mosaic

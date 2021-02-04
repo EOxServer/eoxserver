@@ -25,7 +25,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
-
+from django.utils.six import string_types
 # global format selection registry
 _registry = {}
 
@@ -42,7 +42,7 @@ class FormatSelectionMetaclass(type):
     """ Metaclass for format selections
     """
     def __init__(cls, name, bases, dct):
-        if isinstance(dct["driver_name"], basestring):
+        if isinstance(dct["driver_name"], string_types):
             _registry[dct["driver_name"]] = cls
         super(FormatSelectionMetaclass, cls).__init__(name, bases, dct)
 

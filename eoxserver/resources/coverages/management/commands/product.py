@@ -13,8 +13,8 @@
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
-# The above copyright notice and this permission notice shall be included in all
-# copies of this Software or works derived from this Software.
+# The above copyright notice and this permission notice shall be included in
+# all copies of this Software or works derived from this Software.
 #
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -29,6 +29,7 @@ import re
 
 from django.core.management.base import CommandError, BaseCommand
 from django.db import transaction
+from django.contrib.gis.geos import GEOSGeometry
 
 from eoxserver.core.util.timetools import parse_iso8601
 from eoxserver.backends.storages import get_handler_class_for_model
@@ -36,7 +37,9 @@ from eoxserver.resources.coverages import models
 from eoxserver.resources.coverages.management.commands import (
     CommandOutputMixIn, SubParserMixIn
 )
-from eoxserver.resources.coverages.registration.product import ProductRegistrator
+from eoxserver.resources.coverages.registration.product import (
+    ProductRegistrator
+)
 from eoxserver.resources.coverages.registration.exceptions import (
     RegistrationError
 )
@@ -65,6 +68,15 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
         register_parser.add_argument(
             '--footprint', default=None,
             help='Override the footprint of the to-be registered product.'
+        )
+
+        register_parser.add_argument(
+            '--simplify-footprint',
+            dest='simplify_footprint_tolerance', nargs='?',
+            default=None, type=float,
+            help=(
+                'Simplify the footprint. Optionally specify a tolerance value.'
+            )
         )
 
         register_parser.add_argument(
@@ -110,6 +122,16 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
                 'Add a mask to associate with the product. List of items, '
                 'first one is the mask name, the rest is the location '
                 'definition. Can be specified multiple times.'
+            )
+        )
+
+        register_parser.add_argument(
+            '--mask-geometry', '-g', dest='mask_geometries', default=[],
+            action='append', nargs=2,
+            help=(
+                'Add a mask to associate with the product. List of items, '
+                'first one is the mask name, second is the mask geometry in '
+                'WKT. Can be specified multiple times.'
             )
         )
 
@@ -177,11 +199,21 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
                 'product will be printed to stdout.'
             )
         )
+        deregister_parser.add_argument(
+            '--all', '-a', action="store_true",
+            default=False, dest='all_products',
+            help='When this flag is set, all the products are selected to be derigesterd'
+        )
 
-        for parser in [deregister_parser, discover_parser]:
-            parser.add_argument(
-                'identifier', nargs=1,
+
+        deregister_parser.add_argument(
+                'identifier', default=None, nargs='?',
                 help='The identifier of the product to deregister.'
+            )
+
+        discover_parser.add_argument(
+                'identifier', default=None,
+                help='The identifier of the product to descover.'
             )
 
         discover_parser.add_argument(
@@ -203,7 +235,7 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
         if subcommand == "register":
             self.handle_register(*args, **kwargs)
         elif subcommand == "deregister":
-            self.handle_deregister(kwargs['identifier'][0])
+            self.handle_deregister(*args, **kwargs)
         elif subcommand == "discover":
             self.handle_discover(kwargs.pop('identifier')[0], *args, **kwargs)
 
@@ -221,9 +253,14 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             for name, value in kwargs['set_overrides']:
                 overrides[convert_name(name)] = value
 
+            mask_locations = kwargs['mask_locations'] + [
+                (name, GEOSGeometry(geom))
+                for name, geom in kwargs['mask_geometries']
+            ]
+
             product, replaced = ProductRegistrator().register(
                 metadata_locations=kwargs['metadata_locations'],
-                mask_locations=kwargs['mask_locations'],
+                mask_locations=mask_locations,
                 package_path=kwargs['package'],
                 overrides=overrides,
                 identifier_template=kwargs['identifier_template'],
@@ -232,7 +269,10 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
                 discover_masks=kwargs['discover_masks'],
                 discover_browses=kwargs['discover_browses'],
                 discover_metadata=kwargs['discover_metadata'],
-                replace=kwargs['replace']
+                replace=kwargs['replace'],
+                simplify_footprint_tolerance=kwargs.get(
+                    'simplify_footprint_tolerance'
+                ),
             )
 
             for collection_identifier in kwargs['collection_identifiers']:
@@ -256,13 +296,23 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
                 'Successfully registered product %r' % product.identifier
             )
 
-    def handle_deregister(self, identifier, *args, **kwargs):
+    def handle_deregister(self, identifier, all_products, *args, **kwargs):
         """ Handle the deregistration a product
         """
-        try:
-            models.Product.objects.get(identifier=identifier).delete()
-        except models.Product.DoesNotExist:
-            raise CommandError('No such Product %r' % identifier)
+        if not all_products and not identifier:
+            raise CommandError('please specify a product/s to remove')
+        else:
+            if all_products:
+                products = models.Product.objects.all()
+            elif identifier:
+                products = [models.Product.objects.get(identifier=identifier)]
+            for product in products:
+                try:
+                    product_id = product.identifier
+                    product.delete()
+                    self.print_msg('Successfully deregistered product %r' % product_id)
+                except models.Product.DoesNotExist:
+                    raise CommandError('No such Product %r' % identifier)
 
     def handle_discover(self, identifier, pattern, *args, **kwargs):
         try:

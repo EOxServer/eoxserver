@@ -13,8 +13,8 @@
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
-# The above copyright notice and this permission notice shall be included in all
-# copies of this Software or works derived from this Software.
+# The above copyright notice and this permission notice shall be included in
+# all copies of this Software or works derived from this Software.
 #
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -31,9 +31,7 @@ from django.core.management.base import CommandError, BaseCommand
 from django.db import transaction
 
 from eoxserver.backends import models as backends
-from eoxserver.backends.storage_auths import ( get_handler_for_model,
-    get_handler_by_test, get_handler_class_by_name
-)
+from eoxserver.backends.storage_auths import get_handler_for_model
 from eoxserver.resources.coverages.management.commands import (
     CommandOutputMixIn, SubParserMixIn
 )
@@ -60,7 +58,10 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
         )
         create_parser.add_argument(
             '--type', '-t', dest='type_name', default=None,
-            help='The storage auth type. Optional. Default is auto-detect the type.'
+            help=(
+                'The storage auth type. Optional. Default is auto-detect the '
+                'type.'
+            )
         )
         create_parser.add_argument(
             '--parameter', '-p', dest='parameters', default=None, nargs='+',
@@ -94,7 +95,7 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
 
             if value is None:
                 key, _, value = key.partition('=')
-            
+
             return key.replace('-', '_'), value
 
         parameters = dict(
@@ -110,9 +111,9 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
         )
         storage_auth.full_clean()
         storage_auth.save()
-        
+
         if check:
-            handler = get_handler_for_model(storage_auth)
+            _ = get_handler_for_model(storage_auth)
             # TODO perform check
 
         self.print_msg(

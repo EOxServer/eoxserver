@@ -30,10 +30,10 @@
 Django settings for EOxServer's autotest instance.
 
 For more information on this file, see
-https://docs.djangoproject.com/en/1.4/topics/settings/
+https://docs.djangoproject.com/en/1.11/topics/settings/
 
 For the full list of settings and their values, see
-https://docs.djangoproject.com/en/1.4/ref/settings/
+https://docs.djangoproject.com/en/1.11/ref/settings/
 """
 
 import os
@@ -43,16 +43,8 @@ from eoxserver.services.ows.wps.config import DEFAULT_EOXS_PROCESSES
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = 'tmp'
 
-# import django
-# django.setup()
-
 PROJECT_DIR = dirname(abspath(__file__))
 PROJECT_URL_PREFIX = ''
-
-#TODO
-#TEST_RUNNER = 'eoxserver.testing.core.EOxServerTestRunner'
-#TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
-#TEST_RUNNER = 'django.test.runner.DiscoverRunner'
 
 DEBUG = True
 
@@ -75,12 +67,16 @@ if db_type == 'postgis':
         }
     }
 elif db_type == 'spatialite':
+    spatialite_path = os.environ.get('SPATIALITE_PATH', 'data/config.sqlite')
     DATABASES = {
         'default': {
             'ENGINE': 'django.contrib.gis.db.backends.spatialite',
-            'NAME': join(PROJECT_DIR, 'data/config.sqlite'),
+            'NAME': join(PROJECT_DIR, spatialite_path),
         }
     }
+
+    SPATIALITE_SQL = join(PROJECT_DIR, 'data/init_spatialite-2.3.sql')
+    SPATIALITE_LIBRARY_PATH = 'mod_spatialite.so'
 
 # Use faster ramfs tablespace for testing in case of PostGIS e.g. in Jenkins
 # Configure via:
@@ -179,6 +175,19 @@ TEMPLATES = [
     },
 ]
 
+MIDDLEWARE = [
+    'django.middleware.security.SecurityMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.common.CommonMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    # 'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    # # For management of the per/request cache system.
+    # 'eoxserver.backends.middleware.BackendsCacheMiddleware',
+]
+
 MIDDLEWARE_CLASSES = (
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -214,7 +223,6 @@ INSTALLED_APPS = (
     'eoxserver.core',
     'eoxserver.services',
     'eoxserver.resources.coverages',
-    'eoxserver.resources.processes',
     'eoxserver.backends',
     'eoxserver.testing',
     'eoxserver.webclient',

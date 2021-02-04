@@ -13,8 +13,8 @@
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
-# The above copyright notice and this permission notice shall be included in all
-# copies of this Software or works derived from this Software.
+# The above copyright notice and this permission notice shall be included in
+# all copies of this Software or works derived from this Software.
 #
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -26,18 +26,36 @@
 # ------------------------------------------------------------------------------
 
 import json
-import hashlib
-import re
+import os
 
 from django.conf import settings
 from django.utils.module_loading import import_string
-from django.core.cache import caches, InvalidCacheBackendError
-from django.utils import timezone
 
 from eoxserver.backends.config import DEFAULT_EOXS_STORAGE_AUTH_HANDLERS
-from eoxserver.core.util.timetools import parse_iso8601
 
 STORAGE_AUTH_HANDLERS = None
+
+
+class BaseStorageAuthHandler(object):
+    def __init__(self, url, parameters):
+        self.url = url
+        self.parameters = parameters
+
+    def get_vsi_env(self):
+        raise NotImplementedError
+
+
+class S3StorageAuthHandler(BaseStorageAuthHandler):
+    name = 'S3'
+
+    def get_vsi_env(self):
+        return dict(
+            AWS_HTTPS=os.environ.get('AWS_HTTPS', 'NO'),
+            AWS_S3_ENDPOINT=self.url,
+            AWS_VIRTUAL_HOSTING=os.environ.get('AWS_VIRTUAL_HOSTING', 'FALSE'),
+            AWS_ACCESS_KEY_ID=self.parameters.get('ACCESS_KEY_ID'),
+            AWS_SECRET_ACCESS_KEY=self.parameters.get('SECRET_ACCESS_KEY'),
+        )
 
 
 def _setup_storage_auth_handlers():
@@ -46,9 +64,12 @@ def _setup_storage_auth_handlers():
     """
     global STORAGE_AUTH_HANDLERS
     specifiers = getattr(
-        settings, 'EOXS_STORAGE_AUTH_HANDLERS', DEFAULT_EOXS_STORAGE_AUTH_HANDLERS
+        settings, 'EOXS_STORAGE_AUTH_HANDLERS',
+        DEFAULT_EOXS_STORAGE_AUTH_HANDLERS
     )
-    STORAGE_AUTH_HANDLERS = [import_string(specifier) for specifier in specifiers]
+    STORAGE_AUTH_HANDLERS = [
+        import_string(specifier) for specifier in specifiers
+    ]
 
 
 def get_handlers():
@@ -59,7 +80,8 @@ def get_handlers():
 
 
 def get_handler_by_test(locator):
-    """ Test the given locator with the configured storage handlers and return the stora
+    """ Test the given locator with the configured storage handlers and return
+        the storage auth
     """
     if STORAGE_AUTH_HANDLERS is None:
         _setup_storage_auth_handlers()

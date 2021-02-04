@@ -27,10 +27,15 @@
 
 import os
 import os.path
-from cStringIO import StringIO
+try:
+    from io import StringIO
+except ImportError:
+    from cStringIO import StringIO
+
 from uuid import uuid4
 
 from django.http import HttpResponse
+from django.utils.six import b
 
 from eoxserver.core.util import multiparttools as mp
 
@@ -46,7 +51,7 @@ class ResultItem(object):
     """
 
     def __init__(self, content_type=None, filename=None, identifier=None):
-        self.content_type = content_type
+        self._content_type = content_type
         self.filename = filename
         self.identifier = identifier
 
@@ -62,6 +67,14 @@ class ResultItem(object):
         """ Returns the data as a Python file-like object.
         """
         return StringIO("")
+
+    @property
+    def content_type(self):
+        """ Reterns a binary value of content-type if it is a string. 
+        """
+        if isinstance(self._content_type, str):
+            self._content_type = b(self._content_type)
+        return self._content_type
 
     def __len__(self):
         """ Unified access to size of data.
@@ -91,7 +104,7 @@ class ResultFile(ResultItem):
 
     @property
     def data(self):
-        with open(self.path) as f:
+        with open(self.path, 'rb') as f:
             return f.read()
 
     @property
@@ -102,7 +115,7 @@ class ResultFile(ResultItem):
         return os.path.getsize(self.path)
 
     def chunked(self, chunksize):
-        with open(self.path) as f:
+        with open(self.path, 'rb') as f:
             while True:
                 data = f.read(chunksize)
                 if not data:
@@ -121,15 +134,17 @@ class ResultBuffer(ResultItem):
 
     def __init__(self, buf, content_type=None, filename=None, identifier=None):
         super(ResultBuffer, self).__init__(content_type, filename, identifier)
-        self.buf = buf
+        if isinstance(buf, str) or isinstance(buf, bytes):
+            self.buf = buf
+        else: 
+            self.buf = buf.tobytes()
 
     @property
     def data(self):
         return self.buf
-
-    @property
-    def data_file(self):
-        return StringIO(self.buf)
+    # @property
+    # def data_file(self):
+    #     return StringIO(self.buf)
 
     def __len__(self):
         return len(self.buf)
@@ -165,16 +180,18 @@ def get_headers(result_item):
     if hasattr(result_item, 'headers'):
         for header in result_item.headers:
             yield header
-    yield "Content-Type", result_item.content_type or "application/octet-stream"
+    yield b"Content-Type", result_item.content_type or b"application/octet-stream"
     if result_item.identifier:
-        yield "Content-Id", result_item.identifier
+        yield b"Content-Id", result_item.identifier.encode('utf-8')
+        if  isinstance(result_item.filename, str):
+            result_item.filename = b(result_item.filename)
     if result_item.filename:
         yield (
-            "Content-Disposition", 'attachment; filename="%s"'
+            b"Content-Disposition", b'attachment; filename="%s"'
             % result_item.filename
         )
     try:
-        yield "Content-Length", len(result_item)
+        yield b"Content-Length", b"%d" % len(result_item)
     except (AttributeError, NotImplementedError):
         pass
 
@@ -183,14 +200,14 @@ def get_payload_size(result_set, boundary):
     """ Calculate the size of the result set and all entailed result items plus
         headers.
     """
-    boundary_str = "%s--%s%s" % (mp.CRLF, boundary, mp.CRLF)
-    boundary_str_end = "%s--%s--" % (mp.CRLF, boundary)
+    boundary_str = b"%s--%s%s" % (mp.CRLF, boundary, mp.CRLF)
+    boundary_str_end = b"%s--%s--" % (mp.CRLF, boundary)
 
     size = 0
     for item in result_set:
         size += len(boundary_str)
         size += len(
-            mp.CRLF.join("%s: %s" % (k, v) for k, v in get_headers(item))
+            mp.CRLF.join(b"%s: %s" % (k, v) for k, v in get_headers(item))
         )
         size += len(mp.CRLFCRLF)
         size += len(item)
@@ -219,28 +236,33 @@ def to_http_response(result_set, response_type=HttpResponse, boundary=None):
     # if more than one item is contained in the result set, the content type is
     # multipart
     if len(result_set) > 1:
-        boundary = boundary or uuid4().hex
-        content_type = "multipart/related; boundary=%s" % boundary
+        boundary = boundary or (uuid4().hex).encode('utf-8')
+        content_type = b"multipart/related; boundary=%s" % boundary
         headers = (('Content-Length', get_payload_size(result_set, boundary)), )
 
     # otherwise, the content type is the content type of the first included item
+    elif len(result_set) < 1 or result_set[0].content_type is None:
+        boundary = None
+        content_type = b"application/octet-stream"
+        headers = (('Content-Length', 0 ),)
+
     else:
         boundary = None
-        content_type = result_set[0].content_type or "application/octet-stream"
+        content_type = result_set[0].content_type or b"application/octet-stream"
         headers = tuple(get_headers(result_set[0]))
 
     def response_iterator(items, boundary=None):
         try:
             if boundary:
-                boundary_str = "%s--%s%s" % (mp.CRLF, boundary, mp.CRLF)
-                boundary_str_end = "%s--%s--" % (mp.CRLF, boundary)
+                boundary_str = b"%s--%s%s" % (mp.CRLF, boundary, mp.CRLF)
+                boundary_str_end = b"%s--%s--" % (mp.CRLF, boundary)
 
             for item in items:
                 if boundary:
                     yield boundary_str
                     yield mp.CRLF.join(
-                        "%s: %s" % (key, value)
-                        for key, value in get_headers(item)
+                    b"%s: %s" % (key, value) 
+                    for key, value in get_headers(item)
                     ) + mp.CRLFCRLF
                 yield item.data
             if boundary:
@@ -276,18 +298,18 @@ def parse_headers(headers):
 
         :param headers: the raw header :class:`dict`
     """
-    content_type = headers.get("Content-Type", "application/octet-stream")
+    content_type = headers.get(b"Content-Type", b"application/octet-stream")
     _, params = mp.parse_parametrized_option(
-        headers.get("Content-Disposition", "")
+        headers.get(b"Content-Disposition", b"")
     )
-    filename = params.get("filename")
+    filename = params.get(b"filename")
     if filename:
-        if filename.startswith('"'):
+        if filename.startswith(b'"'):
             filename = filename[1:]
-        if filename.endswith('"'):
+        if filename.endswith(b'"'):
             filename = filename[:-1]
 
-    identifier = headers.get("Content-Id")
+    identifier = headers.get(b"Content-Id")
     return content_type, filename, identifier
 
 
@@ -302,5 +324,5 @@ def result_set_from_raw_data(data):
     return [
         ResultBuffer(d, *parse_headers(headers))
         for headers, d in mp.iterate(data)
-        if not headers.get("Content-Type").startswith("multipart")
+        if not headers.get(b"Content-Type").startswith(b"multipart")
     ]

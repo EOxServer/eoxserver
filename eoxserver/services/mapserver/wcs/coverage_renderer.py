@@ -25,11 +25,11 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-
-from datetime import datetime
-from urllib import unquote
 import logging
+from datetime import datetime
 
+from django.utils.six.moves.urllib.parse import unquote
+from django.utils.six import binary_type, b
 from lxml import etree
 
 from eoxserver.contrib import mapserver as ms
@@ -119,6 +119,11 @@ class RectifiedCoverageMapServerRenderer(BaseRenderer):
         # create and configure map object
         map_ = self.create_map()
 
+        env = {}
+        for data_location in data_locations:
+            env.update(data_location.env)
+        gdal.set_env(env, False)
+
         # configure outputformat
         native_format = self.get_native_format(coverage, data_locations)
         if native_format and get_format_by_mime(native_format) is None:
@@ -171,7 +176,7 @@ class RectifiedCoverageMapServerRenderer(BaseRenderer):
         if params.version == Version(2, 0):
             mediatype = getattr(params, "mediatype", None)
             if mediatype in ("multipart/mixed", "multipart/related"):
-                with vsi.TemporaryVSIFile.from_buffer(str(result_set[1].data)) as f:
+                with vsi.TemporaryVSIFile.from_buffer(result_set[1].data) as f:
                     ds = gdal.Open(f.name)
                     grid = objects.Grid.from_gdal_dataset(ds)
 
@@ -192,8 +197,12 @@ class RectifiedCoverageMapServerRenderer(BaseRenderer):
                 coverage._origin = origin
                 coverage._size = size
                 coverage._range_type = range_type
+                if isinstance(result_set[1].filename, binary_type):
+                    file_name = result_set[1].filename.decode()
+                else:
+                    file_name = result_set[1].filename
 
-                reference = 'cid:coverage/%s' % result_set[1].filename
+                reference = 'cid:coverage/%s' % file_name
 
                 encoder = WCS20EOXMLEncoder()
 
@@ -225,8 +234,6 @@ class RectifiedCoverageMapServerRenderer(BaseRenderer):
     def translate_params(self, params, range_type):
         """ "Translate" parameters to be understandable by mapserver.
         """
-
-
 
         if params.version.startswith("2.0"):
             for key, value in params:

@@ -31,6 +31,37 @@ from eoxserver.core.decoders import (
 from eoxserver.core.util.xmltools import NameSpace, NameSpaceMap
 from eoxserver.services.ows.wcs.v20.util import ns_wcs
 
+class CompressionNotSupported(InvalidParameterException):
+    code = "CompressionNotSupported"
+
+
+class CompressionInvalid(InvalidParameterException):
+    code = "CompressionInvalid"
+
+class JpegQualityInvalid(InvalidParameterException):
+    code = "JpegQualityInvalid"
+
+class PredictorInvalid(InvalidParameterException):
+    code = "PredictorInvalid"
+
+class PredictorNotSupported(InvalidParameterException):
+    code = "PredictorNotSupported"
+
+
+class InterleavingInvalid(InvalidParameterException):
+    code =  "InterleavingInvalid"
+
+class TilingInvalid(InvalidParameterException):
+    code = "TilingInvalid"
+
+def parse_jpeg_quality(value):
+
+    value = int(value)
+    if value < 1 or value > 100:
+        raise JpegQualityInvalid(
+            "geotiff:jpeg_quality should be an integer between 1 and 100",
+            "geotiff:jpeg_quality")
+    return value
 
 class WCS20GeoTIFFEncodingExtension(object):
     def supports(self, frmt, options):
@@ -57,19 +88,22 @@ class WCS20GeoTIFFEncodingExtension(object):
         tilewidth = decoder.tilewidth
 
         if predictor and compression not in ("LZW", "Deflate"):
-            raise InvalidParameterException(
+            raise PredictorNotSupported(
                 "geotiff:predictor requires compression method 'LZW' or "
                 "'Deflate'.", "geotiff:predictor"
             )
 
-        if jpeg_quality is not None and compression != "JPEG":
-            raise InvalidParameterException(
-                "geotiff:jpeg_quality requires compression method 'JPEG'.",
-                "geotiff:jpeg_quality"
-            )
+        if jpeg_quality is not None:  
+            if compression != "JPEG":
+                raise CompressionNotSupported(
+                    "geotiff:jpeg_quality requires compression method 'JPEG'.",
+                    "geotiff:jpeg_quality"
+                )
+            else :
+                parse_jpeg_quality(jpeg_quality)
 
         if tiling and (tileheight is None or tilewidth is None):
-            raise InvalidParameterException(
+            raise TilingInvalid(
                 "geotiff:tiling requires geotiff:tilewidth and "
                 "geotiff:tileheight to be set.", "geotiff:tiling"
             )
@@ -86,11 +120,10 @@ class WCS20GeoTIFFEncodingExtension(object):
 
 
 compression_enum = enum(
-    ("None", "PackBits", "Huffman", "LZW", "JPEG", "Deflate")
+    ("None", "PackBits", "Huffman", "LZW", "JPEG", "Deflate"), True, CompressionInvalid
 )
-predictor_enum = enum(("None", "Horizontal", "FloatingPoint"))
-interleave_enum = enum(("Pixel", "Band"))
-
+predictor_enum = enum(("None", "Horizontal", "FloatingPoint"), True, PredictorInvalid)
+interleave_enum = enum(("Pixel", "Band"), True, InterleavingInvalid)
 
 def parse_multiple_16(raw):
     value = int(raw)
@@ -103,7 +136,7 @@ def parse_multiple_16(raw):
 
 class WCS20GeoTIFFEncodingExtensionKVPDecoder(kvp.Decoder):
     compression = kvp.Parameter("geotiff:compression", num="?", type=compression_enum)
-    jpeg_quality = kvp.Parameter("geotiff:jpeg_quality", num="?", type=value_range(1, 100, type=int))
+    jpeg_quality = kvp.Parameter("geotiff:jpeg_quality", num="?", type=int)
     predictor   = kvp.Parameter("geotiff:predictor", num="?", type=predictor_enum)
     interleave  = kvp.Parameter("geotiff:interleave", num="?", type=interleave_enum)
     tiling      = kvp.Parameter("geotiff:tiling", num="?", type=boolean)
@@ -113,7 +146,7 @@ class WCS20GeoTIFFEncodingExtensionKVPDecoder(kvp.Decoder):
 
 class WCS20GeoTIFFEncodingExtensionXMLDecoder(xml.Decoder):
     compression = xml.Parameter("wcs:Extension/geotiff:parameters/geotiff:compression/text()", num="?", type=compression_enum, locator="geotiff:compression")
-    jpeg_quality = xml.Parameter("wcs:Extension/geotiff:parameters/geotiff:jpeg_quality/text()", num="?", type=value_range(1, 100, type=int), locator="geotiff:jpeg_quality")
+    jpeg_quality = xml.Parameter("wcs:Extension/geotiff:parameters/geotiff:jpeg_quality/text()", num="?", type=int, locator="geotiff:jpeg_quality")
     predictor   = xml.Parameter("wcs:Extension/geotiff:parameters/geotiff:predictor/text()", num="?", type=predictor_enum, locator="geotiff:predictor")
     interleave  = xml.Parameter("wcs:Extension/geotiff:parameters/geotiff:interleave/text()", num="?", type=interleave_enum, locator="geotiff:interleave")
     tiling      = xml.Parameter("wcs:Extension/geotiff:parameters/geotiff:tiling/text()", num="?", type=boolean, locator="geotiff:tiling")

@@ -31,7 +31,7 @@ from eoxserver.core.util.timetools import parse_iso8601
 from eoxserver.core.util.xmltools import parse, NameSpace, NameSpaceMap
 from eoxserver.core.util.iteratortools import pairwise
 from eoxserver.core.decoders import xml, to_dict, InvalidParameterException
-
+from eoxserver.core import Component
 
 NS_EOP_20 = NameSpace("http://www.opengis.net/eop/2.0", "eop")
 NS_OPT_20 = NameSpace("http://www.opengis.net/opt/2.0", "opt")
@@ -55,7 +55,7 @@ nsmap_21 = NameSpaceMap(NS_GML, NS_OM, *namespaces_21)
 nsmap_gml = NameSpaceMap(NS_GML)
 
 
-class EOOMFormatReader(object):
+class EOOMFormatReader(Component):
     def test(self, obj):
         tree = parse(obj)
         tag = tree.getroot().tag if tree is not None else None
@@ -197,5 +197,7 @@ class EOOMExtraMetadataDecoder(EOOMNamespaceMixIn, xml.Decoder):
     antenna_look_direction = xml.Parameter("om:procedure/eop:EarthObservationEquipment/eop:acquisitionParameters/sar:Acquisition/sar:antennaLookDirection/text()", type=str, num="?")
     minimum_incidence_angle = xml.Parameter("om:procedure/eop:EarthObservationEquipment/eop:acquisitionParameters/sar:Acquisition/sar:minimumIncidenceAngle/text()", type=float, num="?")
     maximum_incidence_angle = xml.Parameter("om:procedure/eop:EarthObservationEquipment/eop:acquisitionParameters/sar:Acquisition/sar:maximumIncidenceAngle/text()", type=float, num="?")
+    across_track_incidence_angle = xml.Parameter("om:procedure/eop:EarthObservationEquipment/eop:acquisitionParameters/opt:Acquisition/eop:acrossTrackIncidenceAngle/text()", type=float, num="?")
+    along_track_incidence_angle = xml.Parameter("om:procedure/eop:EarthObservationEquipment/eop:acquisitionParameters/opt:Acquisition/eop:alongTrackIncidenceAngle/text()", type=float, num="?")
     doppler_frequency = xml.Parameter("om:procedure/eop:EarthObservationEquipment/eop:acquisitionParameters/sar:Acquisition/sar:dopplerFrequency/text()", type=float, num="?")
     incidence_angle_variation = xml.Parameter("om:procedure/eop:EarthObservationEquipment/eop:acquisitionParameters/sar:Acquisition/sar:incidenceAngleVariation/text()", type=float, num="?")

@@ -55,17 +55,17 @@ if __name__ == "__main__":
     try:
         path = argv[1]
     except IndexError:
-        print "Requires filename"
+        print ("Requires filename")
         exit(1)
 
     reader = GDALDatasetEnvisatMetadataFormatReader(env)
     ds = gdal.Open(path)
 
     if not ds:
-        print "Cannot open '%s' as GDAL Dataset." % path
+        print ("Cannot open '%s' as GDAL Dataset." % path)
         exit(1)
     elif not reader.test_ds(ds):
-        print "Dataset '%s' does not contain required ENVISAT metadata." % path
+        print ("Dataset '%s' does not contain required ENVISAT metadata." % path)
         exit(1)
     
     md = reader.read_ds(ds)

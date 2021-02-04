@@ -40,10 +40,13 @@ DEFAULT_EOXS_OWS_SERVICE_HANDLERS = [
 
     'eoxserver.services.ows.wms.v10.handlers.WMS10GetCapabilitiesHandler',
     'eoxserver.services.ows.wms.v10.handlers.WMS10GetMapHandler',
+    # 'eoxserver.services.ows.wms.v10.handlers.WMS10GetFeatureInfoHandler',
     'eoxserver.services.ows.wms.v11.handlers.WMS11GetCapabilitiesHandler',
     'eoxserver.services.ows.wms.v11.handlers.WMS11GetMapHandler',
+    # 'eoxserver.services.ows.wms.v11.handlers.WMS11GetFeatureInfoHandler',
     'eoxserver.services.ows.wms.v13.handlers.WMS13GetCapabilitiesHandler',
     'eoxserver.services.ows.wms.v13.handlers.WMS13GetMapHandler',
+    # 'eoxserver.services.ows.wms.v13.handlers.WMS13GetFeatureInfoHandler',
 
     'eoxserver.services.ows.wps.v10.getcapabilities.WPS10GetCapabilitiesHandler',
     'eoxserver.services.ows.wps.v10.describeprocess.WPS10DescribeProcessHandler',

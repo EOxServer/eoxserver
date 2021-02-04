@@ -221,10 +221,10 @@ class Subsets(list):
                         bbox[3] = subset.high
 
         if bbox != [None, None, None, None]:
-            bbox = map(
+            bbox = list(map(
                 lambda v: v[0] if v[0] is not None else v[1],
                 zip(bbox, max_extent)
-            )
+            ))
 
             bbox[0] -= tolerance
             bbox[1] -= tolerance

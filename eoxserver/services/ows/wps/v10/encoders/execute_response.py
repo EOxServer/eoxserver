@@ -31,6 +31,8 @@
 
 from lxml import etree
 from django.utils.timezone import now
+from django.utils.six import itervalues
+
 from eoxserver.core.config import get_eoxserver_config
 from eoxserver.services.ows.common.config import CapabilitiesConfigReader
 from eoxserver.core.util.timetools import isoformat
@@ -78,7 +80,7 @@ class WPS10ExecuteResponseXMLEncoder(WPS10BaseXMLEncoder):
             "The processes execution completed successfully."
         ))
         outputs = []
-        for result, prm, req in results.itervalues():
+        for result, prm, req in itervalues(results):
             outputs.append(_encode_output(result, prm, req))
         elem.append(WPS("ProcessOutputs", *outputs))
         return elem

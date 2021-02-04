@@ -25,15 +25,23 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
+from unittest import SkipTest, skipIf
+import numpy as np
+try:
+    from scipy.stats import linregress
+    HAVE_SCIPY = True
+except ImportError:
+    HAVE_SCIPY = False
 from eoxserver.testing.utils import tag
 
 from autotest_services import base as testbase
 
 
 format_to_extension = {
-    "image/jpeg": "jpeg",
+    "image/jpeg": "jpg",
     "image/png": "png",
-    "image/gif": "gif"
+    "image/gif": "gif",
+    "image/tiff": "tif"
 }
 
 @tag('wms', 'wms11', 'getmap')
@@ -47,17 +55,17 @@ class WMS11GetMapTestCase(testbase.RasterTestCase):
     frmt = "image/jpeg"
     time = None
     dim_bands = None
-    
+
     swap_axes = True
-    
+
     httpHeaders = None
-    
+
     def getFileExtension(self, part=None):
         try:
             return format_to_extension[self.frmt]
         except KeyError:
             return testbase.mimetypes.guess_extension(self.frmt, False)[1:]
-    
+
     def getRequest(self):
         params = "service=WMS&request=GetMap&version=1.1.1&" \
                  "layers=%s&styles=%s&srs=%s&bbox=%s&" \
@@ -66,13 +74,13 @@ class WMS11GetMapTestCase(testbase.RasterTestCase):
                      ",".join(map(str, self.bbox)),
                      self.width, self.height, self.frmt
                  )
-        
+
         if self.time:
             params += "&time=%s" % self.time
-            
+
         if self.dim_bands:
             params += "&dim_bands=%s" % self.dim_bands
-        
+
         if self.httpHeaders is None:
             return (params, "kvp")
         else:
@@ -89,23 +97,23 @@ class WMS13GetMapTestCase(testbase.RasterTestCase):
     frmt = "image/jpeg"
     time = None
     dim_bands = None
-    
+
     swap_axes = True
-    
+
     httpHeaders = None
-    
+
     def getFileExtension(self, part=None):
         try:
             return format_to_extension[self.frmt]
         except KeyError:
             return testbase.mimetypes.guess_extension(self.frmt, False)[1:]
-    
+
     def getRequest(self):
         bbox = self.bbox if not self.swap_axes else (
             self.bbox[1], self.bbox[0],
             self.bbox[3], self.bbox[2]
         )
-        
+
         params = "service=WMS&request=GetMap&version=1.3.0&" \
                  "layers=%s&styles=%s&crs=%s&bbox=%s&" \
                  "width=%d&height=%d&format=%s" % (
@@ -113,13 +121,13 @@ class WMS13GetMapTestCase(testbase.RasterTestCase):
                      ",".join(map(str, bbox)),
                      self.width, self.height, self.frmt
                  )
-        
+
         if self.time:
             params += "&time=%s" % self.time
-            
+
         if self.dim_bands:
             params += "&dim_bands=%s" % self.dim_bands
-        
+
         if self.httpHeaders is None:
             return (params, "kvp")
         else:
@@ -130,3 +138,20 @@ class WMS13GetMapTestCase(testbase.RasterTestCase):
 class WMS13ExceptionTestCase(testbase.ExceptionTestCase):
     def getExceptionCodeLocation(self):
         return "ogc:ServiceException/@code"
+
+@tag('wms', 'wms13')
+class WMSTIFFComparison(WMS13GetMapTestCase, testbase.GDALDatasetTestCase):
+    def testBinaryComparisonRaster(self):
+        self.skipTest('compare the band size, count, and statistics')
+    @tag('stastics')
+    @skipIf(not HAVE_SCIPY, "scipy modoule is not installed")
+    def testBandStatistics(self):
+        for band in range( self.res_ds.RasterCount ):
+            band += 1
+            if band:
+                exp_band = self.exp_ds.GetRasterBand(band)
+                res_band = self.res_ds.GetRasterBand(band)
+                array1 = np.array(exp_band.ReadAsArray()).flatten()
+                array2 = np.array(res_band.ReadAsArray()).flatten()
+                regress_result = linregress(array1,array2)
+                self.assertGreaterEqual(regress_result.rvalue, 0.9)

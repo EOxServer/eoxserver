@@ -37,10 +37,13 @@ import re
 from django.conf import settings
 from django.db.models import Q
 from django.urls import reverse
+from django.http import HttpResponse
 
 from eoxserver.core.decoders import kvp, typelist, InvalidParameterException
 from eoxserver.core.config import get_eoxserver_config
-from eoxserver.render.map.renderer import get_map_renderer
+from eoxserver.render.map.renderer import (
+    get_map_renderer, # get_feature_info_renderer
+)
 from eoxserver.render.map.objects import Map
 from eoxserver.resources.coverages import crss
 from eoxserver.resources.coverages import models
@@ -215,8 +218,123 @@ class WMSBaseGetMapHandler(object):
             layers=layers
         )
 
-        # TODO: translate to Response
-        return map_renderer.render_map(map_)
+        result_bytes, content_type, filename = map_renderer.render_map(map_)
+
+        response = HttpResponse(result_bytes, content_type=content_type)
+        if filename:
+            response['Content-Disposition'] = 'inline; filename="%s"' % filename
+
+        return response
+
+
+class WMSBaseGetFeatureInfoHandler(object):
+    methods = ['GET']
+    service = "WMS"
+    request = "GetFeatureInfo"
+
+    def handle(self, request):
+        decoder = self.get_decoder(request)
+
+        minx, miny, maxx, maxy = decoder.bbox
+        x = decoder.x
+        y = decoder.y
+        time = decoder.time
+        crs = decoder.srs
+        layer_names = decoder.layers
+
+        width = decoder.width
+        height = decoder.height
+
+        # calculate the zoomlevel
+        zoom = calculate_zoom((minx, miny, maxx, maxy), width, height, crs)
+
+        if not layer_names:
+            raise InvalidParameterException("No layers specified", "layers")
+
+        srid = crss.parseEPSGCode(
+            crs, (crss.fromShortCode, crss.fromURN, crss.fromURL)
+        )
+        if srid is None:
+            raise InvalidCRS(crs, "crs")
+
+        field_mapping, mapping_choices = get_field_mapping_for_model(
+            models.Product
+        )
+
+        # calculate resolution
+        # TODO: dateline
+        resx = (maxx - minx) / width
+        resy = (maxy - miny) / height
+
+        p_minx = x * resx
+        p_miny = y * resy
+        p_maxx = (x + 1) * resx
+        p_maxy = (y + 1) * resy
+
+        filter_expressions = filters.bbox(
+            filters.attribute('footprint', field_mapping),
+            p_minx, p_miny, p_maxx, p_maxy, crs, bboverlaps=False
+        )
+
+        if time:
+            filter_expressions &= filters.time_interval(time)
+
+        cql = getattr(decoder, 'cql', None)
+        if cql:
+            cql_filters = to_filter(
+                parse(cql), field_mapping, mapping_choices
+            )
+            filter_expressions &= cql_filters
+
+        # TODO: multiple sorts per layer?
+        sort_by = getattr(decoder, 'sort_by', None)
+        if sort_by:
+            sort_by = (field_mapping.get(sort_by[0], sort_by[0]), sort_by[1])
+
+        styles = decoder.styles
+
+        if styles:
+            styles = styles.split(',')
+        else:
+            styles = [None] * len(layer_names)
+
+        dimensions = {
+            "time": time,
+            "elevation": decoder.elevation,
+            "ranges": decoder.dim_range,
+            "bands": decoder.dim_bands,
+            "wavelengths": decoder.dim_wavelengths,
+        }
+
+        feature_info_renderer = get_feature_info_renderer()
+
+        layer_mapper = LayerMapper(
+            feature_info_renderer.get_supported_layer_types(), "__"
+        )
+
+        layers = []
+        for layer_name, style in zip(layer_names, styles):
+            name, suffix = layer_mapper.split_layer_suffix_name(layer_name)
+            layer = layer_mapper.lookup_layer(
+                name, suffix, style,
+                filter_expressions, sort_by, zoom=zoom, **dimensions
+            )
+            layers.append(layer)
+
+        map_ = Map(
+            width=decoder.width, height=decoder.height, format=decoder.format,
+            bbox=(minx, miny, maxx, maxy), crs=crs,
+            bgcolor=decoder.bgcolor, transparent=decoder.transparent,
+            layers=layers
+        )
+
+        result_bytes, content_type, filename = feature_info_renderer.render_feature_info(map_)
+
+        response = HttpResponse(result_bytes, content_type=content_type)
+        if filename:
+            response['Content-Disposition'] = 'inline; filename="%s"' % filename
+
+        return response
 
 
 class WMSBaseGetCapbilitiesDecoder(kvp.Decoder):
@@ -232,10 +350,15 @@ def parse_transparent(value):
     raise ValueError("Invalid value for 'transparent' parameter.")
 
 
-def parse_range(value):
+def parse_ranges(value):
+    ranges_separator = getattr(settings, 'EOXS_WMS_DIM_RANGES_SEPARATOR', r',')
+    range_separator = getattr(settings, 'EOXS_WMS_DIM_RANGE_SEPARATOR', r'\s+')
     return [
-        float(v)
-        for v in re.split(r'\s+', value.strip())
+        [
+            float(v)
+            for v in re.split(range_separator, rng.strip())
+        ]
+        for rng in re.split(ranges_separator, value)
     ]
 
 
@@ -261,7 +384,7 @@ class WMSBaseGetMapDecoder(kvp.Decoder):
     elevation = kvp.Parameter(type=float, num="?")
     dim_bands = kvp.Parameter(type=typelist(int_or_str, ","), num="?")
     dim_wavelengths = kvp.Parameter(type=typelist(float, ","), num="?")
-    dim_range = kvp.Parameter(type=typelist(parse_range, ','), num="?")
+    dim_range = kvp.Parameter(type=parse_ranges, num="?")
 
     cql = kvp.Parameter(num="?")
 

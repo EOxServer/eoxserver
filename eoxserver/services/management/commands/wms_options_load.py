@@ -31,6 +31,7 @@ import traceback
 import json
 from optparse import make_option
 from django.core.management.base import BaseCommand, CommandError
+from django.utils.six import string_types
 from eoxserver.resources.coverages.management.commands import (
     CommandOutputMixIn, nested_commit_on_success,
 )
@@ -146,7 +147,7 @@ def set_from_dict(wms_opt_obj, options):
     def _scales(scales):
         if scales is None:
             return None
-        if isinstance(scales, basestring):
+        if isinstance(scales, string_types):
             scales = scales.split(',')
         return ",".join(str(int(round(float(v)))) for v in scales)
 

@@ -24,9 +24,9 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
-
+from unittest import skip
 from autotest_services import base as testbase
-import base as wmsbase
+from . import base as wmsbase
 
 
 class WMS13GetCapabilitiesValidTestCase(testbase.XMLTestCase):
@@ -42,7 +42,7 @@ class WMS13GetCapabilitiesEmptyTestCase(testbase.XMLTestCase):
     fixtures = [
         "range_types.json", "meris_range_type.json", "asar_range_type.json"
     ]
-    
+
     def getRequest(self):
         params = "service=WMS&version=1.3.0&request=GetCapabilities"
         return (params, "kvp")
@@ -99,11 +99,13 @@ class WMS13GetMapMultipleDatasetsTestCase(wmsbase.WMS13GetMapTestCase):
               )
     width = 200
     bbox = (-3.75, 32.19025, 28.29481, 46.268645)
-    
+
 class WMS13GetMapDatasetMultispectralTestCase(wmsbase.WMS13GetMapTestCase):
     """ Test a GetMap request with a dataset containing 15 bands. """
     layers = ("MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed",)
     bbox = (8.487755775451660, 32.195316643454134, 25.407486727461219, 46.249103546142578)
+    width = 1000
+    height = 1000
 
 
 class WMS13GetMapMosaicTestCase(wmsbase.WMS13GetMapTestCase):
@@ -125,7 +127,8 @@ class WMS13GetMapPNGDatasetTestCase(wmsbase.WMS13GetMapTestCase):
 #     bbox = (8.5, 32.2, 25.4, 46.3)
 #     frmt = "image/gif"
 
-class WMS13GetMapTIFFDatasetTestCase(wmsbase.WMS13GetMapTestCase):
+
+class WMS13GetMapTIFFDatasetTestCase(wmsbase.WMSTIFFComparison):
     """ Test a GetMap request with a dataset series. """
     layers = ("mosaic_MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_RGB_reduced",)
     bbox = (8.5, 32.2, 25.4, 46.3)
@@ -135,7 +138,7 @@ class WMS13GetMapLayerNotDefinedFaultTestCase(wmsbase.WMS13ExceptionTestCase):
     def getRequest(self):
         params = "service=WMS&version=1.3.0&request=GetMap&layers=INVALIDLAYER&bbox=0,0,1,1&crs=EPSG:4326&width=10&height=10&exceptions=XML&format=image/png"
         return (params, "kvp")
-    
+
     def getExpectedExceptionCode(self):
         return "LayerNotDefined"
 
@@ -143,15 +146,15 @@ class WMS13GetMapFormatUnknownFaultTestCase(wmsbase.WMS13ExceptionTestCase):
     def getRequest(self):
         params = "service=WMS&version=1.3.0&request=GetMap&layers=MER_FRS_1P_reduced&bbox=-32,-4,46,28&crs=EPSG:4326&width=100&height=100&format=image/INVALID&exceptions=application/vnd.ogc.se_xml"
         return (params, "kvp")
-    
+
     def getExpectedExceptionCode(self):
         return "InvalidFormat"
-    
+
 class WMS13GetMapInvalidBoundingBoxTestCase(wmsbase.WMS13ExceptionTestCase):
     def getRequest(self):
         params = "service=WMS&version=1.3.0&request=GetMap&layers=MER_FRS_1P_reduced&bbox=1,2,3&crs=EPSG:4326&width=100&height=100&format=image/jpeg&exceptions=application/vnd.ogc.se_xml"
         return (params, "kvp")
-    
+
     def getExpectedExceptionCode(self):
         return "InvalidParameterValue"
 
@@ -159,7 +162,7 @@ class WMS13GetMapInvalidCRSTestCase(wmsbase.WMS13ExceptionTestCase):
     def getRequest(self):
         params = "service=WMS&version=1.3.0&request=GetMap&layers=MER_FRS_1P_reduced&bbox=0,0,1,1&crs=INVALIDCRS&width=100&height=100&format=image/jpeg&exceptions=application/vnd.ogc.se_xml"
         return (params, "kvp")
-    
+
     def getExpectedExceptionCode(self):
         return "InvalidCRS"
 
@@ -173,8 +176,8 @@ class WMS13GetMapReferenceableGridReprojectionTestCase(wmsbase.WMS13GetMapTestCa
     layers = ("ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775", )
     crs = "EPSG:32734"
     bbox = (122043.08622624225, 6008645.867004246, 594457.4634022854, 6459127.468615601)
-    width = 472
-    height = 451
+    width = 1000
+    height = 1000
     swap_axes = False
 
 class WMS13GetMapCollectionTestCase(wmsbase.WMS13GetMapTestCase):
@@ -236,12 +239,16 @@ class WMS13GetMapDatasetOneBandTestCase(wmsbase.WMS13GetMapTestCase):
     layers = ("MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed",)
     bbox = (8.487755775451660, 32.195316643454134, 25.407486727461219, 46.249103546142578)
     dim_bands = "MERIS_radiance_01_uint16"
+    width = 1000
+    height = 1000
 
 class WMS13GetMapDatasetThreeBandsTestCase(wmsbase.WMS13GetMapTestCase):
     """ Test a GetMap request with a dataset containing 15 bands. """
     layers = ("MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed",)
     bbox = (8.487755775451660, 32.195316643454134, 25.407486727461219, 46.249103546142578)
     dim_bands = "MERIS_radiance_02_uint16,MERIS_radiance_08_uint16,MERIS_radiance_12_uint16"
+    width = 1000
+    height = 1000
 
 #===============================================================================
 # Reprojected
@@ -250,7 +257,7 @@ class WMS13GetMapDatasetThreeBandsTestCase(wmsbase.WMS13GetMapTestCase):
 class WMS13GetMapReprojectedDatasetTestCase(wmsbase.WMS13GetMapTestCase):
     """ Test a GetMap request with a reprojected dataset. """
     fixtures = testbase.OWSTestCase.fixtures + ["meris_coverages_reprojected_uint16.json"]
-    
+
     layers = ("MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed_reprojected",)
     bbox = (8.487755775451660, 32.195316643454134, 25.407486727461219, 46.249103546142578)
 
@@ -261,7 +268,7 @@ class WMS13GetMapReprojectedDatasetTestCase(wmsbase.WMS13GetMapTestCase):
 class WMS13GetMapCrossesDatelineDatasetTestCase(wmsbase.WMS13GetMapTestCase):
     """ Test a GetMap request with a reprojected dataset. """
     fixtures = testbase.BASE_FIXTURES + ["crosses_dateline.json"]
-    
+
     layers = ("crosses_dateline",)
     bbox = (-180, -90, 180, 90)
     width = 200
@@ -279,7 +286,7 @@ class WMS13GetMapProductMaskedTestCase(wmsbase.WMS13GetMapTestCase):
     fixtures = MASK_FIXTURES
 
     layers = ("product_mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced__masked_clouds",)
-    bbox = (11, 32, 28, 46) 
+    bbox = (11, 32, 28, 46)
 
 class WMS13GetMapCollectionMaskedTestCase(wmsbase.WMS13GetMapTestCase):
     """ Test a GetMap request with the masked layer for a dataset series. """
@@ -298,7 +305,7 @@ class WMS13GetMapProductCloudMaskTestCase(wmsbase.WMS13GetMapTestCase):
 
     layers = ("product_mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced__clouds",)
     styles = ("magenta",)
-    bbox = (11, 32, 28, 46) 
+    bbox = (11, 32, 28, 46)
 
 class WMS13GetMapCollectionCloudMaskTestCase(wmsbase.WMS13GetMapTestCase):
     """ Test a GetMap request for cloudmask of a dataset series. """
@@ -306,7 +313,7 @@ class WMS13GetMapCollectionCloudMaskTestCase(wmsbase.WMS13GetMapTestCase):
 
     layers = ("MER_FRS_1P_reduced_products_RGB__clouds",)
     styles = ("magenta",)
-    bbox = (11, 32, 28, 46) 
+    bbox = (11, 32, 28, 46)
 
 #===============================================================================
 # Masked Outlines
@@ -318,6 +325,13 @@ class WMS13GetMapProductMaskedOutlinesTestCase(wmsbase.WMS13GetMapTestCase):
 
     layers = ("product_mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced__outlines_masked_clouds",)
     bbox = (11, 32, 28, 46)
+
+class WMS13GetMapProductMaskedOutlinesOutOFBoundsTestCase(wmsbase.WMS13GetMapTestCase):
+    """ Test a GetMap request with the masked outlines of an out-of-bound bounding box layer for a dataset. """
+    fixtures = MASK_FIXTURES
+
+    layers = ("product_mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced__outlines_masked_clouds",)
+    bbox = (2, 3, 4, 5)
 
 class WMS13GetMapCollectionMaskedOutlinesTestCase(wmsbase.WMS13GetMapTestCase):
     """ Test a GetMap request with the masked layer for a dataset series. """
@@ -349,14 +363,14 @@ class WMS13GetMapDatasetStyledTestCase(wmsbase.WMS13GetMapTestCase):
 
 class WMS13GetFeatureInfoTestCase(testbase.HTMLTestCase):
     """ Test a GetFeatureInfo on an outline layer. """
-    
+
     def getRequest(self):
         params = "SERVICE=WMS&VERSION=1.3.0&REQUEST=GetFeatureInfo&LAYERS=MER_FRS_1P_reduced_RGB__outlines&QUERY_LAYERS=MER_FRS_1P_reduced_RGB_outlines&STYLES=&BBOX=32.158895,-3.75,46.3,28.326165&FEATURE_COUNT=10&HEIGHT=100&WIDTH=200&FORMAT=image%2Fpng&INFO_FORMAT=text/html&CRS=EPSG:4326&I=100&J=50";
         return (params, "kvp")
 
 class WMS13GetFeatureInfoTimeIntervalTestCase(testbase.HTMLTestCase):
     """ Test a GetFeatureInfo on an outline layer with a given time slice. """
-    
+
     def getRequest(self):
         params = "SERVICE=WMS&VERSION=1.3.0&REQUEST=GetFeatureInfo&LAYERS=MER_FRS_1P_reduced_RGB_outlines&QUERY_LAYERS=MER_FRS_1P_reduced_RGB_outlines&STYLES=&BBOX=24.433594,-8.986816,60.205078,58.908691&FEATURE_COUNT=10&HEIGHT=814&WIDTH=1545&FORMAT=image%2Fpng&INFO_FORMAT=text/html&CRS=EPSG:4326&I=598&J=504&TIME=2006-08-16T09:09:29Z/2006-08-16T09:12:46Z";
         return (params, "kvp")
@@ -364,7 +378,7 @@ class WMS13GetFeatureInfoTimeIntervalTestCase(testbase.HTMLTestCase):
 
 class WMS13GetFeatureInfoEmptyTestCase(testbase.HTMLTestCase):
     """ Test a GetFeatureInfo request not hitting any datasets because of spatial/temporal bounds. """
-    
+
     def getRequest(self):
         params = "LAYERS=MER_FRS_1P_reduced_RGB_outlines&QUERY_LAYERS=MER_FRS_1P_reduced_RGB_outlines&STYLES=&SERVICE=WMS&VERSION=1.3.0&REQUEST=GetFeatureInfo&EXCEPTIONS=INIMAGE&BBOX=20.742187%2C-19.401855%2C56.513672%2C48.493652&FEATURE_COUNT=10&HEIGHT=814&WIDTH=1545&FORMAT=image%2Fpng&INFO_FORMAT=text%2Fhtml&CRS=EPSG%3A4326&I=1038&J=505"
         return (params, "kvp")
@@ -381,7 +395,7 @@ class WMS13GetFeatureInfoMaskedOutlinesTestCase(testbase.HTMLTestCase):
 
 class WMS13GetFeatureInfoEOOMTestCase(testbase.XMLTestCase):
     """ Test a GetFeatureInfo on an outline layer. """
-    
+
     def getRequest(self):
         params = "SERVICE=WMS&VERSION=1.3.0&REQUEST=GetFeatureInfo&LAYERS=MER_FRS_1P_reduced_RGB_outlines&QUERY_LAYERS=MER_FRS_1P_reduced_RGB_outlines&STYLES=&BBOX=32.158895,-3.75,46.3,28.326165&FEATURE_COUNT=10&HEIGHT=100&WIDTH=200&FORMAT=image%2Fpng&INFO_FORMAT=application/xml&CRS=EPSG:4326&I=100&J=50";
         return (params, "kvp")
@@ -395,7 +409,7 @@ class WMS13GetFeatureInfoEOOMTestCase(testbase.XMLTestCase):
 
 class WMS13GetLegendGraphicDatasetStyledTestCase(testbase.RasterTestCase):
     """ Test a GetLegendGraphic request for a dataset with an associated style. """
-    
+
     fixtures = wmsbase.WMS13GetMapTestCase.fixtures + [
         "cryo_range_type.json", "cryo_coverages.json"
     ]

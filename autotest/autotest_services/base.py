@@ -34,12 +34,24 @@ import logging
 from lxml import etree
 import tempfile
 import mimetypes
-from cStringIO import StringIO
+from base64 import b64decode
+import numpy as np
+try:
+    from scipy.stats import linregress
+    HAVE_SCIPY = True
+except ImportError:
+    HAVE_SCIPY = False
+try:
+    from cStringIO import StringIO as BytesIO
+except ImportError:
+    from io import BytesIO
 import cgi
-from unittest import SkipTest
+from unittest import SkipTest, skipIf
+import glob
 
 from django.test import Client, TransactionTestCase
 from django.conf import settings
+from django.utils.six import assertCountEqual, binary_type, b
 
 from eoxserver.core.config import get_eoxserver_config
 from eoxserver.core.util import multiparttools as mp
@@ -230,36 +242,52 @@ class OWSTestCase(TransactionTestCase):
         Helper function for the basic XML tree comparison to be used by
         `testXMLComparison`.
         """
-        expected_path = os.path.join(
+        expected_path_basename = os.path.join(
             self.getExpectedFileDir(), self.getExpectedFileName(suffix)
         )
         response_path = os.path.join(
             self.getResponseFileDir(), self.getResponseFileName(suffix)
         )
 
+        expected_paths = glob.glob(expected_path_basename + '*')
+
         # store the XML response
         if response is None:
             response = self.prepareXMLData(self.getXMLData())
 
         # check that the expected XML response exists
-        if not os.path.isfile(expected_path):
+        if not expected_paths:
+            if isinstance(response, binary_type):
+                response = response.decode()
             with open(response_path, 'w') as f:
                 f.write(response)
 
             self.skipTest(
-                "Missing the expected XML response '%s'." % expected_path
+                "Missing the expected XML response '%s'."
+                % expected_path_basename
             )
 
-        # perform the actual comparison
-        try:
-            xmlCompareFiles(expected_path, StringIO(response))
-        except Exception as e:
+        fails = []
+        for expected_path in expected_paths:
+            # perform the actual comparison
+            try:
+                xmlCompareFiles(expected_path, BytesIO(response))
+                break
+            except Exception as e:
+                fails.append(e)
+        else:
             with open(response_path, 'w') as f:
+                if isinstance(response, binary_type):
+                    response = response.decode()
                 f.write(response)
-
+            reasons = ', '.join([
+                str(e) for e in fails
+            ])
             self.fail(
-                "Response returned in '%s' is not equal to expected response "
-                "in '%s'. REASON: %s " % (response_path, expected_path, str(e))
+                "Response returned in '%s' is not equal to expected "
+                "response(s) in '%s'. REASON(S): %s " % (
+                    response_path, ', '.join(expected_paths), reasons
+                )
             )
 
     def _testBinaryComparison(self, file_type, data=None):
@@ -273,13 +301,6 @@ class OWSTestCase(TransactionTestCase):
             self.getResponseFileDir(), self.getResponseFileName(file_type)
         )
 
-        try:
-            with open(expected_path, 'r') as f:
-                expected = f.read()
-
-        except IOError:
-            expected = None
-
         actual_response = None
         if data is None:
             if file_type in ("raster", "html"):
@@ -291,6 +312,18 @@ class OWSTestCase(TransactionTestCase):
         else:
             actual_response = data
 
+        # read the expected response, either binary or as string
+        try:
+            if isinstance(actual_response, binary_type):
+                open_type = 'rb'
+            else:
+                open_type = 'r'
+            with open(expected_path, open_type) as f:
+                expected = f.read()
+
+        except IOError:
+            expected = None
+
         if expected != actual_response:
             if self.getFileExtension("raster") in ("hdf", "nc"):
                 self.skipTest(
@@ -299,7 +332,11 @@ class OWSTestCase(TransactionTestCase):
                 )
 
             # save the contents of the file
-            with open(response_path, 'w') as f:
+            if isinstance(actual_response, binary_type):
+                open_type = 'wb'
+            else:
+                open_type = 'w'
+            with open(response_path, open_type) as f:
                 f.write(actual_response)
 
             if file_type == "raster":
@@ -360,10 +397,9 @@ class RasterTestCase(OWSTestCase):
         content_disposition = self.response.get("Content-Disposition")
         if content_disposition is not None:
             _, params = cgi.parse_header(content_disposition)
-            self.assertEqual(
-                self.getFileExtension("raster"),
-                os.path.splitext(params["filename"])[1][1:]
-            )
+            expected_extension = self.getFileExtension("raster")
+            result_extension = os.path.splitext(params["filename"])[1][1:]
+            self.assertEqual(expected_extension, result_extension)
         else:
             self.skipTest("No 'Content-Disposition' header detected.")
 
@@ -378,9 +414,15 @@ class GDALDatasetTestCase(RasterTestCase):
     def setUp(self):
         super(GDALDatasetTestCase, self).setUp()
         _, self.tmppath = tempfile.mkstemp("." + self.getFileExtension("raster"))
-        f = open(self.tmppath, "w")
-        f.write(self.getResponseData())
-        f.close()
+
+        data = self.getResponseData()
+        if isinstance(data, binary_type):
+            mode = 'wb'
+        else:
+            mode = 'w'
+        with open(self.tmppath, mode) as f:
+            f.write(data)
+
         gdal.AllRegister()
 
         exp_path = os.path.join(
@@ -407,23 +449,52 @@ class GDALDatasetTestCase(RasterTestCase):
             pass
 
 
-@tag('rectifiedgrid')
-class RectifiedGridCoverageTestCase(GDALDatasetTestCase):
+class StatisticsMixIn(object):
+    expected_minimum_correlation = 0.95
+    def testBinaryComparisonRaster(self):
+        try:
+            super(StatisticsMixIn, self).testBinaryComparisonRaster()
+        except:
+            self.skipTest('compare the band size, count, and statistics')
+    @tag('stastics')
+    @skipIf(not HAVE_SCIPY, "scipy modoule is not installed")
+    def testBandStatistics(self):
+        for band in range( self.res_ds.RasterCount ):
+            band += 1
+            if band:
+                exp_band = self.exp_ds.GetRasterBand(band)
+                res_band = self.res_ds.GetRasterBand(band)
+                array1 = np.array(exp_band.ReadAsArray()).flatten()
+                array2 = np.array(res_band.ReadAsArray()).flatten()
+                regress_result = linregress(array1, array2)
+                self.assertGreaterEqual(regress_result.rvalue, self.expected_minimum_correlation)
+
+
+class WCSBinaryComparison(StatisticsMixIn, GDALDatasetTestCase):
+
     @tag('size')
     def testSize(self):
         self.assertEqual((self.res_ds.RasterXSize, self.res_ds.RasterYSize),
                          (self.exp_ds.RasterXSize, self.exp_ds.RasterYSize))
 
+    @tag('band-count')
+    def testBandCount(self):
+        self.assertEqual(self.res_ds.RasterCount, self.exp_ds.RasterCount)
+
+
+@tag('rectifiedgrid')
+class RectifiedGridCoverageTestCase(WCSBinaryComparison, GDALDatasetTestCase):
+
     @tag('extent')
     def testExtent(self):
-        EPSILON = 1e-8
-
+        exp_resolution = resolution_from_ds(self.exp_ds)
+        epsilon = exp_resolution[0]/10
         res_extent = extent_from_ds(self.res_ds)
         exp_extent = extent_from_ds(self.exp_ds)
 
         if not max([
                 abs(res_extent[i] - exp_extent[i]) for i in range(0, 4)
-            ]) < EPSILON:
+            ]) < epsilon:
             self.fail("Extent does not match %s != %s" % (
                 res_extent, exp_extent
             ))
@@ -445,15 +516,7 @@ class RectifiedGridCoverageTestCase(GDALDatasetTestCase):
 
 
 @tag('referenceablegrid')
-class ReferenceableGridCoverageTestCase(GDALDatasetTestCase):
-    @tag('size')
-    def testSize(self):
-        self.assertEqual((self.res_ds.RasterXSize, self.res_ds.RasterYSize),
-                         (self.exp_ds.RasterXSize, self.exp_ds.RasterYSize))
-
-    @tag('band-count')
-    def testBandCount(self):
-        self.assertEqual(self.res_ds.RasterCount, self.exp_ds.RasterCount)
+class ReferenceableGridCoverageTestCase(WCSBinaryComparison, GDALDatasetTestCase):
 
     @tag('gcps')
     def testGCPs(self):
@@ -498,7 +561,6 @@ class XMLTestCase(XMLNoValTestCase):
     @tag('validate')
     def testValidate(self, XMLData=None):
         logger.info("Validating XML ...")
-
         if XMLData is None:
             doc = etree.XML(self.getXMLData())
         else:
@@ -718,16 +780,20 @@ class MultipartTestCase(XMLTestCase):
         return etree.tostring(xml , encoding="UTF-8" , xml_declaration=True)"""
 
     def _unpackMultipartContent(self, response):
+
         if getattr(response, "streaming", False):
             content = "".join(response)
         else:
             content = response.content
-
-        for headers, data in mp.iterate(content, headers=response):
-            if RE_MIME_TYPE_XML.match(headers["Content-Type"]):
-                self.xmlData = str(data)
+        headers = {
+            b(key): b(value)
+            for key, value in response.items()
+        }
+        for headers, data in mp.iterate(content, headers=headers):
+            if RE_MIME_TYPE_XML.match(headers[b"Content-Type"].decode("utf-8")):
+                self.xmlData = data.tobytes()
             else:
-                self.imageData = str(data)
+                self.imageData = data.tobytes()
 
     def _setUpMultiparts(self):
         if self.isSetUp:
@@ -1046,7 +1112,7 @@ class WCS20DescribeEOCoverageSetSubsettingTestCase(XMLTestCase):
             }
         )
         expected_coverage_ids = self.getExpectedCoverageIds()
-        self.assertItemsEqual(result_coverage_ids, expected_coverage_ids)
+        self.assertCountEqual(result_coverage_ids, expected_coverage_ids)
 
         # assert that every coverage ID is unique in the response
         for coverage_id in result_coverage_ids:
@@ -1091,7 +1157,7 @@ class WCS20DescribeEOCoverageSetSectionsTestCase(XMLTestCase):
             }
         )
         sections = [section.tag for section in sections]
-        self.assertItemsEqual(sections, self.getExpectedSections())
+        self.assertCountEqual(sections, self.getExpectedSections())
 
 class WCS20GetCoverageMultipartTestCase(MultipartTestCase):
     @tag('xml-comparison')
@@ -1144,22 +1210,22 @@ class WPS10XMLComparison(XMLTestCase):
         if part == "xml":
             return "xml"
         elif part == "raster":
-            return "tif"    
+            return "tif"
 
     @staticmethod
-    def parseFileName(src) : 
-        try : 
-            with file( src ) as fid : 
-                return fid.read() 
-        except Exception as e : 
+    def parseFileName(src) :
+        try :
+            with open(src, 'rb') as fid :
+                return fid.read()
+        except Exception as e :
             raise XMLParseError ("Failed to parse the \"%s\" file! %s" % ( src , str(e) ))
 
     def parse( self, src) :
-        return  self.parseFileName(src) 
+        return  self.parseFileName(src)
 
 
     def testXMLComparison(self):
-        
+
         expected_path= os.path.join(
             self.getExpectedFileDir(), self.getExpectedFileName('xml')
         )
@@ -1168,7 +1234,6 @@ class WPS10XMLComparison(XMLTestCase):
         expected_doc = etree.fromstring(expectedString)
         # replace the encoded data so it compare other nodes in the xml files
         response_doc = etree.fromstring(self.prepareXMLData(self.getXMLData()))
-            
         expected_elems = expected_doc.xpath('//wps:ComplexData', namespaces={'wps': 'http://www.opengis.net/wps/1.0.0'})
         response_elems = response_doc.xpath('//wps:ComplexData', namespaces= {'wps': 'http://www.opengis.net/wps/1.0.0'})
 
@@ -1176,11 +1241,11 @@ class WPS10XMLComparison(XMLTestCase):
             parent = response_elem.getparent()
             # override the response elem with the expected elem
             parent[parent.index(response_elem)] = expected_elem
-            
+
         self.response.content = etree.tostring(response_doc, encoding="ISO-8859-1")
 
         super(WPS10XMLComparison, self).testXMLComparison()
-        
+
 
     def testBinaryComparisonRaster(self):
 
@@ -1190,12 +1255,17 @@ class WPS10XMLComparison(XMLTestCase):
         expected_path= os.path.join(
             self.getExpectedFileDir(), self.getExpectedFileName("raster")
         )
-        # creates a response image that contains the encoded text of the response xml file 
+        # creates a response image that contains the encoded text of the response xml file
         doc = etree.fromstring( self.prepareXMLData(self.getXMLData()))
-        encodedText= ' '.join(e.text for e in doc.xpath('//wps:ComplexData', namespaces= {'wps': 'http://www.opengis.net/wps/1.0.0'}))
+
+        try:
+            encodedText = doc.xpath('//wps:ComplexData', namespaces= {'wps': 'http://www.opengis.net/wps/1.0.0'})[0].text
+        except IndexError:
+            self.fail('No complex data found in the XML tree')
+
         _, self.tmppath = tempfile.mkstemp("." + self.getFileExtension("raster"))
-        with open(self.tmppath, 'w') as f:
-            f.write(encodedText.decode('base64'))
+        with open(self.tmppath, 'wb') as f:
+            f.write(b64decode(encodedText))
         gdal.AllRegister()
 
         exp_path = os.path.join(
@@ -1230,7 +1300,7 @@ class WPS10BinaryComparison(GDALDatasetTestCase):
     @tag('band-count')
     def testBandCount(self):
         self.assertEqual(self.res_ds.RasterCount, self.exp_ds.RasterCount)
-    
+
         def tearDown(self):
             super(WPS10BinaryComparison, self).tearDown()
             try:
@@ -1239,4 +1309,3 @@ class WPS10BinaryComparison(GDALDatasetTestCase):
                 os.remove(self.tmppath)
             except AttributeError:
                 pass
-

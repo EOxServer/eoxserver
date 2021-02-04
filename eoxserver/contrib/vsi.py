@@ -31,7 +31,6 @@
 
 
 import os
-import sys
 from uuid import uuid4
 from functools import wraps
 
@@ -255,7 +254,7 @@ class TemporaryVSIFile(VSIFile):
     """
 
     @classmethod
-    def from_buffer(cls, buf, mode="w", filename=None):
+    def from_buffer(cls, buf, mode="wb", filename=None):
         """ Creates a :class:`TemporaryVSIFile` from a string.
 
         :param buf: the supplied string
@@ -273,8 +272,9 @@ class TemporaryVSIFile(VSIFile):
     def close(self):
         """ Close the file. This also deletes it.
         """
-        super(TemporaryVSIFile, self).close()
-        remove(self.name)
+        if not self.closed:
+            super(TemporaryVSIFile, self).close()
+            remove(self.name)
 
 
 def join(first, *paths):

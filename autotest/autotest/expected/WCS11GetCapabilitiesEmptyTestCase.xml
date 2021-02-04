@@ -68,6 +68,9 @@ Copyright (C) European Space Agency - ESA</ows:Abstract>
           <ows:Value>1.1.2</ows:Value>
         </ows:AllowedValues>
       </ows:Parameter>
+      <ows:Parameter name="cql">
+        <ows:AnyValue/>
+      </ows:Parameter>
     </ows:Operation>
     <ows:Operation name="DescribeCoverage">
       <ows:DCP>

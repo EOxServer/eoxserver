@@ -34,6 +34,7 @@ try:
     from collections import OrderedDict
 except ImportError:
     from django.utils.datastructures import SortedDict as OrderedDict
+from django.utils.six import string_types
 from django.core.management.base import BaseCommand, CommandError
 from eoxserver.resources.coverages.management.commands import CommandOutputMixIn
 from eoxserver.services.models import WMSRenderOptions
@@ -106,7 +107,7 @@ def output_detailed(wms_opts):
     for wms_opt in wms_opts:
         yield "%s\n" % wms_opt.coverage.identifier
         for key, val in wms_opt_to_dict(wms_opt).items():
-            if hasattr(val, '__len__') and not isinstance(val, basestring):
+            if hasattr(val, '__len__') and not isinstance(val, string_types):
                 val = ",".join(str(v) for v in val)
             if key == "coverage_identifier":
                 continue

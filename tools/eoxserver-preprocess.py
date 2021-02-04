@@ -333,7 +333,7 @@ def main(args):
             with open(output_md_filename, "w+") as f:
                 f.write(xml)
         
-    except Exception, e:
+    except Exception as e:
         # error wrapping
         if other_values["traceback"]:
             traceback.print_exc()

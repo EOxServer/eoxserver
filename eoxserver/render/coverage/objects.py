@@ -13,8 +13,8 @@
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
-# The above copyright notice and this permission notice shall be included in all
-# copies of this Software or works derived from this Software.
+# The above copyright notice and this permission notice shall be included in
+# all copies of this Software or works derived from this Software.
 #
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -32,7 +32,7 @@ except ImportError:
 
 from copy import deepcopy
 
-from django.utils import six
+from django.utils.six import string_types
 from eoxserver.core.util.timetools import parse_iso8601, parse_duration
 from eoxserver.contrib import gdal, osr
 from eoxserver.contrib.osr import SpatialReference
@@ -126,6 +126,7 @@ class Field(object):
     def __repr__(self):
         return '<Field %r>' % self.identifier
 
+
 class RangeType(list):
     def __init__(self, name, fields):
         super(RangeType, self).__init__(fields)
@@ -148,7 +149,7 @@ class RangeType(list):
     def subset(self, subsets):
         fields = []
         for subset in subsets:
-            if isinstance(subset, six.string_types):
+            if isinstance(subset, string_types):
                 fields.append(deepcopy(self.get_field(subset)))
             elif isinstance(subset, (list, tuple)):
                 start_id, stop_id = subset
@@ -295,6 +296,7 @@ class Axis(object):
     def uom(self):
         return self._uom
 
+
 class IrregularAxis(object):
     regular = False
 
@@ -319,7 +321,6 @@ class IrregularAxis(object):
     @property
     def uom(self):
         return self._uom
-
 
 
 class Grid(list):
@@ -526,7 +527,9 @@ class Coverage(object):
     @property
     def native_format(self):
         return self._native_format or (
-            self.arraydata_locations[0].format if self.arraydata_locations else None
+            self.arraydata_locations[0].format
+            if self.arraydata_locations else
+            None
         )
 
     @property
@@ -612,53 +615,56 @@ class Coverage(object):
                 return index - location.start_field + 1
 
     @classmethod
-    def from_model(cls, coverage_model):
-        eo_metadata = EOMetadata(None, None, None)
-        if coverage_model.begin_time and coverage_model.end_time and \
-                coverage_model.footprint:
-            eo_metadata = EOMetadata(
-                coverage_model.begin_time, coverage_model.end_time,
-                coverage_model.footprint
-            )
-        elif coverage_model.parent_product:
-            product = coverage_model.parent_product
-            if product.begin_time and product.end_time and product.footprint:
-                eo_metadata = EOMetadata(
-                    coverage_model.begin_time, coverage_model.end_time,
-                    coverage_model.footprint
-                )
+    def from_model(cls, model):
+        # use coverages EO metadata by default and fill up with
+        # EO metadata from Product
+        begin_time = model.begin_time
+        if not begin_time and model.parent_product:
+            begin_time = model.parent_product.begin_time
+        end_time = model.end_time
+        if not end_time and model.parent_product:
+            end_time = model.parent_product.end_time
+        footprint = model.footprint
+        if not footprint and model.parent_product:
+            footprint = model.parent_product.footprint
+        eo_metadata = EOMetadata(begin_time, end_time, footprint)
 
         arraydata_locations = [
             ArraydataLocation(
                 get_vsi_path(item), get_vsi_env(item.storage), item.format,
                 item.field_index, item.field_index + (item.band_count - 1)
             )
-            for item in coverage_model.arraydata_items.all()
+            for item in model.arraydata_items.all()
         ]
 
         metadata_locations = [
-            Location(get_vsi_path(item), get_vsi_env(item.storage), item.format)
-            for item in coverage_model.metadata_items.all()
+            Location(
+                get_vsi_path(item), get_vsi_env(item.storage), item.format
+            )
+            for item in model.metadata_items.all()
         ]
 
-        if coverage_model.coverage_type:
+        if model.coverage_type:
             range_type = RangeType.from_coverage_type(
-                coverage_model.coverage_type
+                model.coverage_type
             )
         else:
             range_type = RangeType.from_gdal_dataset(
                 gdal.OpenShared(arraydata_locations[0].path),
-                coverage_model.identifier
+                model.identifier
             )
 
-        grid = Grid.from_model(coverage_model.grid)
+        grid = Grid.from_model(model.grid)
 
-        origin = Origin.from_description(grid.types, coverage_model.origin)
+        origin = Origin.from_description(grid.types, model.origin)
 
         return cls(
-            identifier=coverage_model.identifier,
-            eo_metadata=eo_metadata, range_type=range_type, origin=origin,
-            grid=grid, size=coverage_model.size,
+            identifier=model.identifier,
+            eo_metadata=eo_metadata,
+            range_type=range_type,
+            origin=origin,
+            grid=grid,
+            size=model.size,
             arraydata_locations=arraydata_locations,
             metadata_locations=metadata_locations
         )

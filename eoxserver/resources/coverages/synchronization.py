@@ -43,7 +43,7 @@ from eoxserver.resources.coverages import models
 from eoxserver.resources.coverages.registration.component import (
     RegistratorComponent
 )
-
+from django.utils.six import string_types
 
 logger = logging.getLogger(__name__)
 
@@ -79,7 +79,7 @@ def synchronize(collection, recursive=False, force=False):
     """
 
     # allow both model and identifier
-    if isinstance(collection, basestring):
+    if isinstance(collection, string_types):
         collection = models.Collection.objects.get(identifier=collection)
 
     collection = collection.cast()

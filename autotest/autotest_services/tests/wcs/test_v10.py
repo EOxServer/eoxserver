@@ -43,9 +43,15 @@ class WCS10GetCapabilitiesValidTestCase(testbase.XMLTestCase):
 class WCS10GetCapabilitiesEmptyTestCase(testbase.XMLTestCase):
     """This test shall retrieve a valid but empty WCS 1.0 GetCapabilities response (see #41)"""
     fixtures = []
-    
+
     def getRequest(self):
         params = "service=WCS&version=1.0.0&request=GetCapabilities"
+        return (params, "kvp")
+
+@tag('wcs', 'wcs10')
+class WCS10GetCapabilitiesCQLTestCase(testbase.XMLTestCase):
+    def getRequest(self):
+        params = "service=WCS&version=1.0.0&request=GetCapabilities&cql=identifier='mosaic_MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_RGB_reduced'"
         return (params, "kvp")
 
 @tag('wcs', 'wcs10')

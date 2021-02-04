@@ -13,8 +13,8 @@
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
-# The above copyright notice and this permission notice shall be included in all
-# copies of this Software or works derived from this Software.
+# The above copyright notice and this permission notice shall be included in
+# all copies of this Software or works derived from this Software.
 #
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -36,9 +36,10 @@ from keystoneclient import exceptions as ksexceptions
 from keystoneclient.v2_0 import client as ksclient_v2
 from keystoneclient.v3 import client as ksclient_v3
 from swiftclient.exceptions import ClientException
-from six.moves.urllib.parse import urljoin, urlparse, urlunparse
+from django.utils.six.moves.urllib import parse
 
 from eoxserver.core.util.timetools import parse_iso8601
+from eoxserver.backends.storage_auths import BaseStorageAuthHandler
 
 logger = logging.getLogger(__name__)
 
@@ -62,13 +63,13 @@ def get_keystone_client(auth_url, user, key, os_options, **kwargs):
     # Add the version suffix in case of versionless Keystone endpoints. If
     # auth_version is also unset it is likely that it is v3
     if not VERSIONFUL_AUTH_PATH.match(
-            urlparse(auth_url).path.rstrip('/').rsplit('/', 1)[-1]):
+            parse.urlparse(auth_url).path.rstrip('/').rsplit('/', 1)[-1]):
         # Normalize auth_url to end in a slash because urljoin
         auth_url = auth_url.rstrip('/') + '/'
         if auth_version and auth_version in AUTH_VERSIONS_V2:
-            auth_url = urljoin(auth_url, "v2.0")
+            auth_url = parse.urljoin(auth_url, "v2.0")
         else:
-            auth_url = urljoin(auth_url, "v3")
+            auth_url = parse.urljoin(auth_url, "v3")
             auth_version = '3'
         logger.debug("Versionless auth_url - using %s as endpoint" % auth_url)
 
@@ -120,6 +121,7 @@ variables to be set or overridden with -A, -U, or -K.''')
 
     return client
 
+
 def get_endpoint_url_and_token(client, os_options):
     service_type = os_options.get('service_type') or 'object-store'
     endpoint_type = os_options.get('endpoint_type') or 'publicURL'
@@ -137,27 +139,10 @@ def get_endpoint_url_and_token(client, os_options):
                               'have you specified a region?' % service_type)
     return endpoint, client.auth_token
 
+
 def get_auth_expires_at(client):
     return parse_iso8601(client.auth_ref['expires_at'])
 
-
-class StorageAuthVSIContext(object):
-    def __init__(self, env_vars):
-        self.env_vars = env_vars
-
-    def __enter__(self):
-        pass
-
-    def __exit__(self, type, value, traceback):
-        pass
-
-class BaseStorageAuthHandler(object):
-    def __init__(self, url, parameters):
-        self.url = url
-        self.parameters = parameters
-
-    def get_vsi_env(self):
-        raise NotImplementedError
 
 class KeystoneStorageAuthHandler(BaseStorageAuthHandler):
     name = 'keystone'
@@ -187,7 +172,7 @@ class KeystoneStorageAuthHandler(BaseStorageAuthHandler):
                 user=self.parameters.get('username'),
                 key=self.parameters.get('password'),
                 os_options=os_options,
-            ))).hexdigest()
+            )).encode('utf-8')).hexdigest()
 
             token_key = 'keystone_auth_token_%s' % base_key
             url_key = 'keystone_storage_url_%s' % base_key
@@ -202,16 +187,21 @@ class KeystoneStorageAuthHandler(BaseStorageAuthHandler):
         logger.debug(
             'Fetching swift storage URL and access token'
         )
-        client = get_keystone_client(self.url, user=self.parameters.get('username'),
+        client = get_keystone_client(
+            self.url,
+            user=self.parameters.get('username'),
             key=self.parameters.get('password'),
             os_options=os_options,
         )
-        expires_in = (get_auth_expires_at(client) - timezone.now()).total_seconds()
+        expires_in = (
+            get_auth_expires_at(client) - timezone.now()
+        ).total_seconds()
         url, token = get_endpoint_url_and_token(client, os_options)
 
         if cache:
             logger.debug(
-                'Caching swift storage URL and access token. Valid for %f seconds.'
+                'Caching swift storage URL and access token. '
+                'Valid for %f seconds.'
                 % expires_in
             )
             cache.set(url_key, url, expires_in)

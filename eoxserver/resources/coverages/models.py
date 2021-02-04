@@ -38,6 +38,7 @@ from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
 from django.contrib.gis.db import models
 from django.contrib.gis.db.models import Extent, Union
+from django.contrib.gis.geos import Polygon
 from django.db.models import Min, Max, Q, F, ExpressionWrapper
 from django.db.models.functions import Cast
 from django.utils.timezone import now
@@ -95,7 +96,7 @@ def band_expression_validator(band_expression):
 
 
 class FieldType(models.Model):
-    coverage_type = models.ForeignKey('CoverageType', related_name='field_types', **mandatory)
+    coverage_type = models.ForeignKey('CoverageType', on_delete=models.CASCADE, related_name='field_types', **mandatory)
     index = models.PositiveSmallIntegerField(**mandatory)
     identifier = models.CharField(max_length=512, validators=identifier_validators, **mandatory)
     description = models.TextField(**optional)
@@ -118,7 +119,7 @@ class FieldType(models.Model):
 
 
 class AllowedValueRange(models.Model):
-    field_type = models.ForeignKey(FieldType, related_name='allowed_value_ranges')
+    field_type = models.ForeignKey(FieldType, on_delete=models.CASCADE, related_name='allowed_value_ranges')
     start = models.FloatField(**mandatory)
     end = models.FloatField(**mandatory)
 
@@ -140,7 +141,8 @@ class NilValue(models.Model):
 
 class MaskType(models.Model):
     name = models.CharField(max_length=512, validators=name_validators, **mandatory)
-    product_type = models.ForeignKey('ProductType', related_name='mask_types', **mandatory)
+    product_type = models.ForeignKey('ProductType', on_delete=models.CASCADE, related_name='mask_types', **mandatory)
+    validity = models.BooleanField(default=False)
 
     def __str__(self):
         return self.name
@@ -176,7 +178,7 @@ class CollectionType(models.Model):
 
 
 class BrowseType(models.Model):
-    product_type = models.ForeignKey(ProductType, related_name="browse_types", **mandatory)
+    product_type = models.ForeignKey(ProductType, on_delete=models.CASCADE, related_name="browse_types", **mandatory)
     name = models.CharField(max_length=256, validators=name_validators, blank=True, null=False)
 
     red_or_grey_expression = models.CharField(max_length=512, validators=[band_expression_validator], **optional)
@@ -333,7 +335,7 @@ class EOObject(models.Model):
 class Collection(EOObject):
     collection_type = models.ForeignKey(CollectionType, related_name='collections', **optional_protected)
 
-    grid = models.ForeignKey(Grid, **optional)
+    grid = models.ForeignKey(Grid, on_delete=models.CASCADE, **optional)
 
 
 class Mosaic(EOObject, GridFixture):
@@ -354,7 +356,7 @@ class Coverage(EOObject, GridFixture):
 
     collections = models.ManyToManyField(Collection, related_name='coverages', blank=True)
     mosaics = models.ManyToManyField(Mosaic, related_name='coverages', blank=True)
-    parent_product = models.ForeignKey(Product, related_name='coverages', **optional)
+    parent_product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='coverages', **optional)
 
 
 class ReservedIDManager(models.Manager):
@@ -423,7 +425,7 @@ class MetaDataItem(backends.DataItem):
         for code, name in SEMANTIC_CHOICES
     }
 
-    eo_object = models.ForeignKey(EOObject, related_name='metadata_items', **mandatory)
+    eo_object = models.ForeignKey(EOObject, on_delete=models.CASCADE, related_name='metadata_items', **mandatory)
     semantic = models.SmallIntegerField(choices=SEMANTIC_CHOICES, **optional)
 
     class Meta:
@@ -432,8 +434,8 @@ class MetaDataItem(backends.DataItem):
 
 
 class Browse(backends.DataItem):
-    product = models.ForeignKey(Product, related_name='browses', **mandatory)
-    browse_type = models.ForeignKey(BrowseType, **optional)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='browses', **mandatory)
+    browse_type = models.ForeignKey(BrowseType, on_delete=models.CASCADE, **optional)
     style = models.CharField(max_length=256, **optional)
 
     coordinate_reference_system = models.TextField(**mandatory)
@@ -449,14 +451,14 @@ class Browse(backends.DataItem):
 
 
 class Mask(backends.DataItem):
-    product = models.ForeignKey(Product, related_name='masks', **mandatory)
-    mask_type = models.ForeignKey(MaskType, **mandatory)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='masks', **mandatory)
+    mask_type = models.ForeignKey(MaskType, on_delete=models.CASCADE, **mandatory)
 
     geometry = models.GeometryField(**optional)
 
 
 class ProductDataItem(backends.DataItem):
-    product = models.ForeignKey(Product, related_name='product_data_items', **mandatory)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='product_data_items', **mandatory)
 
 
 class ArrayDataItem(backends.DataItem):
@@ -465,7 +467,7 @@ class ArrayDataItem(backends.DataItem):
         (1, 'dimension')
     ]
 
-    coverage = models.ForeignKey(EOObject, related_name='arraydata_items', **mandatory)
+    coverage = models.ForeignKey(EOObject, on_delete=models.CASCADE, related_name='arraydata_items', **mandatory)
 
     field_index = models.PositiveSmallIntegerField(default=0, **mandatory)
     band_count = models.PositiveSmallIntegerField(default=1, **mandatory)
@@ -485,7 +487,7 @@ class ArrayDataItem(backends.DataItem):
 
 
 class CollectionMetadata(models.Model):
-    collection = models.OneToOneField(Collection, related_name='collection_metadata')
+    collection = models.OneToOneField(Collection, on_delete=models.CASCADE, related_name='collection_metadata')
 
     product_type = models.CharField(max_length=256, **optional_indexed)
     doi = models.CharField(max_length=256, **optional_indexed)
@@ -510,10 +512,11 @@ class CollectionMetadata(models.Model):
 # ==============================================================================
 
 
+@python_2_unicode_compatible
 class AbstractCommonValue(models.Model):
     value = models.CharField(max_length=256, db_index=True, unique=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.value
 
     class Meta:
@@ -625,7 +628,7 @@ class ProductMetadata(models.Model):
         (1, 'RIGHT')
     )
 
-    product = models.OneToOneField(Product, related_name='product_metadata')
+    product = models.OneToOneField(Product, on_delete=models.CASCADE, related_name='product_metadata')
 
     parent_identifier = models.CharField(max_length=256, **optional_indexed)
 
@@ -665,6 +668,8 @@ class ProductMetadata(models.Model):
     antenna_look_direction = models.PositiveSmallIntegerField(choices=ANTENNA_LOOK_DIRECTION_CHOICES, **optional_indexed)
     minimum_incidence_angle = models.FloatField(**optional_indexed)
     maximum_incidence_angle = models.FloatField(**optional_indexed)
+    across_track_incidence_angle = models.FloatField(**optional_indexed)
+    along_track_incidence_angle = models.FloatField(**optional_indexed)
     # for SAR acquisitions
     doppler_frequency = models.FloatField(**optional_indexed)
     incidence_angle_variation = models.FloatField(**optional_indexed)
@@ -676,7 +681,7 @@ class ProductMetadata(models.Model):
 
 
 class CoverageMetadata(models.Model):
-    coverage = models.OneToOneField(Coverage, related_name="coverage_metadata")
+    coverage = models.OneToOneField(Coverage, on_delete=models.CASCADE, related_name="coverage_metadata")
 
 
 # ==============================================================================
@@ -710,7 +715,7 @@ def cast_eo_object(eo_object):
     return eo_object
 
 
-def collection_insert_eo_object(collection, eo_object):
+def collection_insert_eo_object(collection, eo_object, use_extent=False):
     """ Inserts an EOObject (either a Product or Coverage) into a collection.
         When an EOObject is passed, it is downcast to its actual type. An error
         is raised when an object of the wrong type is passed.
@@ -768,10 +773,16 @@ def collection_insert_eo_object(collection, eo_object):
         collection.coverages.add(eo_object)
 
     if eo_object.footprint:
+        footprint = eo_object.footprint
+        if use_extent:
+            footprint = Polygon.from_bbox(footprint.extent)
+
         if collection.footprint:
-            collection.footprint = collection.footprint.union(
-                eo_object.footprint
-            )
+            collection.footprint = collection.footprint.union(footprint)
+            if use_extent:
+                collection.footprint = Polygon.from_bbox(
+                    collection.footprint.extent
+                )
         else:
             collection.footprint = eo_object.footprint
 
@@ -791,7 +802,7 @@ def collection_insert_eo_object(collection, eo_object):
     collection.save()
 
 
-def collection_exclude_eo_object(collection, eo_object):
+def collection_exclude_eo_object(collection, eo_object, use_extent=False):
     """ Exclude an EOObject (either Product or Coverage) from the collection.
     """
     eo_object = cast_eo_object(eo_object)
@@ -807,17 +818,21 @@ def collection_exclude_eo_object(collection, eo_object):
     elif isinstance(eo_object, Coverage):
         collection.coverages.remove(eo_object)
 
-    collection_collect_metadata(collection,
+    collection_collect_metadata(
+        collection,
         eo_object.footprint is not None,
         eo_object.begin_time and eo_object.begin_time == collection.begin_time,
         eo_object.end_time and eo_object.end_time == collection.end_time,
-        False
+        use_extent=use_extent
     )
+    collection.full_clean()
+    collection.save()
 
 
 def collection_collect_metadata(collection, collect_footprint=True,
                                 collect_begin_time=True, collect_end_time=True,
-                                product_summary=False, coverage_summary=False):
+                                product_summary=False, coverage_summary=False,
+                                use_extent=False):
     """ Collect metadata
     """
 
@@ -825,7 +840,10 @@ def collection_collect_metadata(collection, collect_footprint=True,
         aggregates = {}
 
         if collect_footprint:
-            aggregates["footprint"] = Union("footprint")
+            if use_extent:
+                aggregates["extent"] = Extent("footprint")
+            else:
+                aggregates["footprint"] = Union("footprint")
         if collect_begin_time:
             aggregates["begin_time"] = Min("begin_time")
         if collect_end_time:
@@ -837,7 +855,12 @@ def collection_collect_metadata(collection, collect_footprint=True,
         ).aggregate(**aggregates)
 
         if collect_footprint:
-            collection.footprint = values["footprint"]
+            if use_extent:
+                collection.footprint = Polygon.from_bbox(
+                    values["extent"]
+                )
+            else:
+                collection.footprint = values["footprint"]
         if collect_begin_time:
             collection.begin_time = values["begin_time"]
         if collect_end_time:
@@ -999,11 +1022,7 @@ def mosaic_recalc_metadata(mosaic):
     """ Recalculates axis origins and time/footprint metadata
         for the given mosaic model. Does not save the model.
     """
-    values = mosaic.coverages.aggregate(
-        begin_time=Min('begin_time'),
-        end_time=Max('end_time'),
-        footprint=Union('footprint'),
-    )
+    values = mosaic.coverages.aggregate(begin_time=Min('begin_time'),end_time=Max('end_time'),footprint=Union('footprint'),)
     mosaic.begin_time = values['begin_time']
     mosaic.end_time = values['end_time']
     mosaic.footprint = values['footprint']

@@ -31,7 +31,7 @@ from eoxserver.resources.coverages import models as coverages
 
 
 class Extra(models.Model):
-    eo_object = models.OneToOneField(coverages.EOObject, related_name="webclient_extra")
+    eo_object = models.OneToOneField(coverages.EOObject, related_name="webclient_extra", on_delete=models.CASCADE)
 
     display_name = models.CharField(max_length=64, blank=True, null=True)
     info = models.TextField(blank=True, null=True)

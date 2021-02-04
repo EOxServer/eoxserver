@@ -29,7 +29,7 @@ from django.contrib.gis.geos import Polygon
 from django.contrib.gis.gdal import SpatialReference, CoordTransform, DataSource
 
 from eoxserver.contrib import gdal
-from eoxserver.backends.access import get_vsi_path, get_vsi_env
+from eoxserver.backends.access import get_vsi_path, get_vsi_env, gdal_open
 from eoxserver.render.coverage.objects import Coverage
 
 
@@ -103,7 +103,7 @@ class Browse(object):
             browse_model.max_x, browse_model.max_y
         )
 
-        ds = gdal.Open(filename)
+        ds = gdal_open(browse_model)
         mode = _get_ds_mode(ds)
         ds = None
 
@@ -195,8 +195,9 @@ class GeneratedBrowse(Browse):
         return self._field_list
 
     @classmethod
-    def from_coverage_models(cls, band_expressions_and_ranges, fields_and_coverage_models,
-                             field_names, product_model):
+    def from_coverage_models(cls, band_expressions_and_ranges,
+                             fields_and_coverage_models,
+                             product_model):
 
         band_expressions, ranges = zip(*band_expressions_and_ranges)
 
@@ -216,16 +217,17 @@ class GeneratedBrowse(Browse):
                 fields_and_coverages[field_name][0].range_type.get_field(
                     field_name
                 )
-                for field_name in field_names
+                for field_name in fields_and_coverages.keys()
             ],
             product_model.footprint
         )
 
 
 class Mask(object):
-    def __init__(self, filename=None, geometry=None):
+    def __init__(self, filename=None, geometry=None, validity=False):
         self._filename = filename
         self._geometry = geometry
+        self._validity = validity
 
     @property
     def filename(self):
@@ -245,12 +247,27 @@ class Mask(object):
             first = first.union(other)
         return first.geos
 
+    @property
+    def validity(self):
+        return self._validity
+
     @classmethod
-    def from_model(cls, mask_model):
-        return cls(
-            get_vsi_path(mask_model) if mask_model.location else None,
-            mask_model.geometry
-        )
+    def from_model(cls, mask_model, mask_type):
+        filename = None
+        if mask_model and mask_model.location:
+            filename = get_vsi_path(mask_model)
+
+        geometry = None
+        if mask_model:
+            geometry = mask_model.geometry
+
+        mask_type = mask_type or mask_model.mask_type
+
+        validity = False
+        if mask_type:
+            validity = mask_type.validity
+
+        return cls(filename, geometry, validity)
 
 
 class MaskedBrowse(object):
@@ -267,10 +284,11 @@ class MaskedBrowse(object):
         return self._mask
 
     @classmethod
-    def from_models(cls, product_model, browse_model, mask_model):
+    def from_models(cls, product_model, browse_model, mask_model,
+                    mask_type_model):
         return cls(
             Browse.from_model(product_model, browse_model),
-            Mask.from_model(mask_model)
+            Mask.from_model(mask_model, mask_type_model)
         )
 
 

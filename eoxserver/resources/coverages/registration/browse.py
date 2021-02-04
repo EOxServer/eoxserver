@@ -26,7 +26,7 @@
 # ------------------------------------------------------------------------------
 
 from eoxserver.contrib import gdal
-from eoxserver.backends.access import get_vsi_path
+from eoxserver.backends.access import get_vsi_path, gdal_open
 from eoxserver.backends.util import resolve_storage
 from eoxserver.resources.coverages import models
 from eoxserver.resources.coverages.registration import base
@@ -58,8 +58,7 @@ class BrowseRegistrator(base.BaseRegistrator):
 
         # Get a VSI handle for the browse to get the size, extent and CRS
         # via GDAL
-        vsi_path = get_vsi_path(browse)
-        ds = gdal.Open(vsi_path)
+        ds = gdal_open(browse)
         browse.width = ds.RasterXSize
         browse.height = ds.RasterYSize
         browse.coordinate_reference_system = ds.GetProjection()

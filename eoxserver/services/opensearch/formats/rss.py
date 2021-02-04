@@ -29,7 +29,11 @@ from itertools import chain
 
 from lxml.etree import CDATA
 from lxml.builder import ElementMaker
-from django.core.urlresolvers import reverse
+try:
+    from django.core.urlresolvers import reverse
+except ImportError:
+    from django.urls import reverse
+from django.utils.http import urlencode
 
 from eoxserver.core.util.xmltools import etree, NameSpace, NameSpaceMap, typemap
 from eoxserver.core.util.timetools import isoformat
@@ -85,8 +89,14 @@ class RSSResultFormat(BaseFeedResultFormat):
 
     def encode_item(self, request, item, search_context):
         link_url = request.build_absolute_uri(
-            "%s?service=WCS&version=2.0.1&request=DescribeCoverage&coverageId=%s"
-            % (reverse("ows"), item.identifier)
+            "%s?%s" % (
+                reverse("ows"), urlencode(dict(
+                    service="WCS",
+                    version="2.0.1",
+                    request="DescribeCoverage",
+                    coverageId=item.identifier,
+                ))
+            )
         )
 
         rss_item = RSS("item",

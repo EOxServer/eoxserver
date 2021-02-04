@@ -56,6 +56,7 @@ class BaseRenderer(Component):
         """
         map_ = ms.mapObj()
         map_.setMetaData("ows_enable_request", "*")
+        map_.setMetaData("ows_onlineresource", "*")
         maxsize = WCSConfigReader(get_eoxserver_config()).maxsize
         if maxsize is not None:
             map_.maxsize = maxsize
@@ -80,11 +81,11 @@ class BaseRenderer(Component):
         bands = list(range_type)
 
         coverage_identifier = coverage.identifier
-        try:
-            models.identifier_validators[0](coverage_identifier)
-        except:
-            coverage_identifier = 'not-ncname'
-
+        if version and version.startswith('2'):
+            try:
+                models.identifier_validators[0](coverage_identifier)
+            except Exception:
+                coverage_identifier = 'not-ncname'
 
         # create and configure layer
         layer = ms.layerObj()
@@ -157,7 +158,7 @@ class BaseRenderer(Component):
             }, namespace="wcs")
 
         native_crs = "EPSG:%d" % sr.srid
-        all_crss = crss.getSupportedCRS_WCS(format_function=crss.asShortCode)
+        all_crss = list(crss.getSupportedCRS_WCS(format_function=crss.asShortCode))
         if native_crs in all_crss:
             all_crss.remove(native_crs)
 

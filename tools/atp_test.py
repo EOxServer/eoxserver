@@ -45,7 +45,12 @@ import os
 import sys
 import uuid 
 import time 
-
+try:
+    # Python 2
+    xrange
+except NameError:
+    # Python 3, xrange is now named range
+    xrange = range
 #----------------------------------------------------------------------
 #number of test tasks 
 
@@ -67,7 +72,7 @@ os.environ["DJANGO_SETTINGS_MODULE"] = os.environ.get("DJANGO_SETTINGS_MODULE",D
 #for path in paths : 
 
 for path in sys.argv[1:] : 
-    print path 
+    print (path )
     if path not in sys.path:
         sys.path.append(path)
 
@@ -91,7 +96,7 @@ registerTaskType( PROCESS_CLASS , ASYNC_HANDLER , ASYNC_TIMEOUT , ASYNC_TIMERET 
 
 def testHandler( taskStatus , param ) :
 
-    print "HANDLER:" , param 
+    print ("HANDLER:" , param )
 
     # change status  
     #taskStatus.setSuccess()
@@ -124,13 +129,13 @@ def testEnqueue( param ) :
             # enqueue task for execution 
             enqueueTask( PROCESS_CLASS , tid , param )
         
-            print "ENQUEUE: %s" % tid , param  
+            print ("ENQUEUE: %s" % tid , param)  
         
             break 
 
         except QueueFull : # retry if queue full 
 
-            print " --- QueueFull #%i - sleep: %g s"%( cnt + 1 , getWaitTime(cnt) ) 
+            print (" --- QueueFull #%i - sleep: %g s"%( cnt + 1 , getWaitTime(cnt) )) 
 
             time.sleep(getWaitTime(cnt)) 
 

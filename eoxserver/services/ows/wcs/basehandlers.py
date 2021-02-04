@@ -1,9 +1,9 @@
-#-------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
 #
-#-------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Copyright (C) 2013 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -13,8 +13,8 @@
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
-# The above copyright notice and this permission notice shall be included in all
-# copies of this Software or works derived from this Software.
+# The above copyright notice and this permission notice shall be included in
+# all copies of this Software or works derived from this Software.
 #
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -23,12 +23,12 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 """\
-This module contains a set of handler base classes which shall help to implement
-a specific handler. Interface methods need to be overridden in order to work,
-default methods can be overidden.
+This module contains a set of handler base classes which shall help to
+implement a specific handler. Interface methods need to be overridden in order
+to work, default methods can be overidden.
 """
 from django.db.models import Q
 
@@ -42,8 +42,9 @@ from eoxserver.services.ows.wcs.renderers import (
     get_capabilities_renderer, get_coverage_description_renderer,
     get_coverage_renderer,
 )
-
 from eoxserver.render.coverage.objects import Coverage, Mosaic
+from eoxserver.services.ecql import parse, to_filter
+from eoxserver.services import filters
 
 
 class WCSGetCapabilitiesHandlerBase(object):
@@ -63,17 +64,31 @@ class WCSGetCapabilitiesHandlerBase(object):
         """ Default implementation of the coverage lookup. Simply returns all
             coverages in no specific order.
         """
-        return models.EOObject.objects.filter(
-            Q(
-                service_visibility__service='wcs',
-                service_visibility__visibility=True
-            ) | Q(  # include mosaics with a Grid
-                mosaic__isnull=False,
-                mosaic__grid__isnull=False,
-                service_visibility__service='wcs',
-                service_visibility__visibility=True
+
+        cql_text = decoder.cql
+        if cql_text:
+            qs = models.EOObject.objects.all()
+            mapping, mapping_choices = filters.get_field_mapping_for_model(
+                qs.model
             )
-        ).order_by(
+            ast = parse(cql_text)
+            filter_expressions = to_filter(ast, mapping, mapping_choices)
+            qs = qs.filter(filter_expressions)
+
+        else:
+            qs = models.EOObject.objects.filter(
+                Q(
+                    service_visibility__service='wcs',
+                    service_visibility__visibility=True
+                ) | Q(  # include mosaics with a Grid
+                    mosaic__isnull=False,
+                    mosaic__grid__isnull=False,
+                    service_visibility__service='wcs',
+                    service_visibility__visibility=True
+                )
+            )
+
+        return qs.order_by(
             "identifier"
         ).select_subclasses(models.Coverage, models.Mosaic)
 
@@ -82,7 +97,8 @@ class WCSGetCapabilitiesHandlerBase(object):
             coverages/decoder.
         """
 
-        return WCSCapabilitiesRenderParams(coverages,
+        return WCSCapabilitiesRenderParams(
+            coverages,
             getattr(decoder, "version", None),
             getattr(decoder, "sections", None),
             getattr(decoder, "acceptlanguages", None),
@@ -254,8 +270,12 @@ class WCSGetCoverageHandlerBase(object):
         else:
             coverages = obj.coverages.all().order_by("begin_time")
             if subsets:
-                subset_polygon = subsets.bounding_polygon(Mosaic.from_model(obj, []))
-                coverages = coverages.filter(footprint__intersects=subset_polygon)
+                subset_polygon = subsets.bounding_polygon(
+                    Mosaic.from_model(obj, [])
+                )
+                coverages = coverages.filter(
+                    footprint__intersects=subset_polygon
+                )
             return Mosaic.from_model(obj, coverages)
 
     def get_params(self, coverages, decoder, request):
