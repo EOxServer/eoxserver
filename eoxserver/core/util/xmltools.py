@@ -140,7 +140,13 @@ def parse(obj):
     elif isinstance(obj, etree._ElementTree):
         return obj
     try:
-        tree_or_elem = etree.fromstring(obj.encode('ascii'))
+        try:
+            # convert str -> bytes if necessary
+            obj = obj.encode('ascii')
+        except AttributeError:
+            pass
+
+        tree_or_elem = etree.fromstring(obj)
         if etree.iselement(tree_or_elem):
             return tree_or_elem.getroottree()
         return tree_or_elem
