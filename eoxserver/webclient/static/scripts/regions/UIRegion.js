@@ -1,1 +1,0 @@
-(function(){"use strict";var a=this;a.define(["backbone","communicator","backbone.marionette"],function(a,b){var c=a.Marionette.Region.extend({constructor:function(){},onShow:function(a){a.$(".close").on("click",_.bind(this.onClose,this))},onClose:function(){this.close()}});return c})}).call(this);

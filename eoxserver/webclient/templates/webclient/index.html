@@ -25,83 +25,218 @@
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  THE SOFTWARE.
 -->
-
-<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
-<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
-<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js"> <!--<![endif]-->
 <head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-    <title>EOxServer - Webclient</title>
-    <meta name="description" content="">
-    <meta name="viewport" content="width=device-width">
+        <meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
+        <meta charset="UTF-8">
+        <title>EOxServer - Webclient</title>
+        <link rel="icon" href="//eox.at/wp-content/uploads/2015/06/cropped-eox_eye-192x192.png" sizes="192x192" />
+        <link rel="apple-touch-icon-precomposed" href="//eox.at/wp-content/uploads/2015/06/cropped-eox_eye-180x180.png" />
+      </head>
+      <body>
+        <header id="header" style="width: 100%; height:70px;">
+          <h3 style="width:100%;text-align:center;
+          color: #006699;">EOxServer - Webclient
+          <a href="//eox.at"><img src="//eox.at/wp-content/uploads/2017/09/EOX_Logo.svg" alt="EOX" style="height:25px;margin-left:10px"/></a>
+          </h3>
+        </header>
+        <div id="app" style="width: 100%; top: 60px; bottom: 0; position: absolute; margin: 0; padding:0;"></div>
+        <script src="{% static 'prism.js' %}"></script>
+        <script>
+        var baseUrl = "{{path}}";
+        var config = {
+          "settings": {
+              "rightPanelOpen": true,
+              "leftPanelOpen": false,
+              "leftPanelTabIndex": 0,
+              "tutorial": "once",
+              "uploadEnabled": false,
+              "downloadEnabled": true,
+              "searchEnabled" : true,
+              "searchDebounceTime": 500,
+              "language": "en",
+              "timeDomain": [
+                  "{{start_time_full}}",
+                  "{{end_time_full}}",
+              ],
+              "constrainTimeDomain": true,
+              "displayTimeDomain": [
+                  "{{start_time_full}}",
+                  "{{end_time_full}}",
+              ],
+              "displayInterval": "P1096D",
+              "selectedTimeDomain": [
+                  "{{start_time}}",
+                  "{{end_time}}",
+              ],
+              "selectableInterval": "P1096D",
+              "timeSliderControls": true,
+              "maxTooltips": 1,
+              //"center": [12, 49],
+              //"zoom": 5,
+              "extent": [{{ bbox }}],
+              "maxZoom": 15,
+              "footprintFillColor": "rgba(0, 0, 0, 0.2)",
+              "footprintStrokeColor": "rgba(0, 0, 0, 1)",
+              "filterFillColor": "rgba(0, 165, 255, 0)",
+              "filterStrokeColor": "rgba(0, 165, 255, 1)",
+              "filterOutsideColor": "rgba(0, 0, 0, 0.5)",
+              "selectedFootprintFillColor": "rgba(255, 0, 0, 0.2)",
+              "selectedFootprintStrokeColor": "rgba(255, 0, 0, 1)",
+              "highlightFillColor": "rgba(246, 182, 0, 0.5)",
+              "highlightStrokeColor": "rgba(246, 182, 0, 1)",
+              "highlightStrokeWidth": 3,
+              "translations": {
+                  "en": {
+                      "Cloud Cover": "Cloud coverage (%)",
+                      "Error: NoApplicableCode": "Search timed out. Please refine the filter criteria.",
+                  }
+              },
+          },
+          "baseLayers": [
+              {
+                  "id": "terrain-light",
+                  "displayName": "EOX Terrain-Light",
+                  "display": {
+                      "id": "terrain-light",
+                      "visible": true,
+                      "protocol": "WMTS",
+                      "urls": [
+                          "//d.s2maps-tiles.eu/wmts/",
+                          "//e.s2maps-tiles.eu/wmts/"
+                      ],
+                      "matrixSet": "WGS84",
+                      "format": "image/png",
+                      "projection": "EPSG:4326",
+                      "style": "default",
+                      "attribution": "Terrain-Light { Data &copy; <a href=\"//www.openstreetmap.org/copyright\" target=\"_blank\">OpenStreetMap</a> contributors and <a href='javascript:;' onClick='toggle(terrain_attribution)'>others</a>, Rendering &copy; <a href=\"//eox.at\" target=\"_blank\">EOX</a> }"
+                  }
+              }, {
+                  "id": "terrain",
+                  "displayName": "EOX Terrain",
+                  "display": {
+                      "id": "terrain",
+                      "visible": false,
+                      "protocol": "WMTS",
+                      "urls": [
+                          "//d.s2maps-tiles.eu/wmts/",
+                          "//e.s2maps-tiles.eu/wmts/"
+                      ],
+                      "matrixSet": "WGS84",
+                      "format": "image/png",
+                      "projection": "EPSG:4326",
+                      "style": "default",
+                      "attribution": "Terrain { Data &copy; <a href=\"//www.openstreetmap.org/copyright\" target=\"_blank\">OpenStreetMap</a> contributors and <a href='javascript:;' onClick='toggle(terrain_attribution)'>others</a>, Rendering &copy; <a href=\"//eox.at\" target=\"_blank\">EOX</a> }"
+                  }
+              },  {
+                  "id": "s2cloudless",
+                  "displayName": "EOX Sentinel-2 cloudless",
+                  "display": {
+                      "id": "s2cloudless-2018",
+                      "visible": false,
+                      "protocol": "WMTS",
+                      "urls": [
+                          "//d.s2maps-tiles.eu/wmts/",
+                          "//e.s2maps-tiles.eu/wmts/"
+                      ],
+                      "matrixSet": "WGS84",
+                      "format": "image/png",
+                      "projection": "EPSG:4326",
+                      "style": "default",
+                      "attribution": "<a xmlns:dct=\"//purl.org/dc/terms/\" href=\"//s2maps.eu\" property=\"dct:title\">Sentinel-2 cloudless - //s2maps.eu</a> by <a xmlns:cc=\"//creativecommons.org/ns#\" href=\"s://eox.at\" property=\"cc:attributionName\" rel=\"cc:attributionURL\">EOX IT Services GmbH</a> (Contains modified Copernicus Sentinel data 2017 &amp; 2018)"
+                  }
+              }
+          ],
+          "layers": [
+          {% for layer in layers %}
+            {
+                  "id": "{{ layer.identifier }}",
+                  "displayName": "{% if layer.webclient_extra.display_name %}{{ layer.webclient_extra.display_name }}{% else %}{{ layer.identifier }}{% endif %}",
+                  {% if layer.webclient_extra.color %}"displayColor":"{{ layer.webclient_extra.color }}",{% endif %}
+                  "display": {
+                      "id":  "{{ layer.identifier }}",
+                      "visible": {% if layer.webclient_extra.default_visible %}true{% else %}true{% endif %},
+                      "protocol": 'WMS',
+                      "url": "{% url 'ows' %}",
+                      "format": 'image/png',
+                      "projection": 'EPSG:4326',
+                      "style": '',
+                      "useMilliseconds": true,
+                      "maxZoom": 15,
+                  },
+                  "detailsDisplay": {
+                      "id": "{{ layer.identifier }}",
+                      "visible": {% if layer.webclient_extra.default_visible %}true{% else %}true{% endif %},
+                      "protocol": 'WMS',
+                      "url": "{% url 'ows' %}",
+                      "format": 'image/png',
+                      "projection": 'EPSG:4326',
+                      "style": '',
+                      "useMilliseconds": true,
+                      "maxZoom": {% if layer.webclient_extra.max_zoom %}{{layer.webclient_extra.max_zoom}}{% else %}15{% endif %},
+                      "options": [{
+                        "name": "Style",
+                        "target": "detailsDisplay.extraParameters.LAYERS",
+                        "values": [
+                            {
+                                "label": "Default",
+                                "value": "{{ layer.identifier }}",
+                            },
+                            {% for product_type in layer.collection_type.allowed_product_types.all %}
+                            {% for browse_type in product_type.browse_types.all %}
+                            {
+                                "label": "{{ browse_type.name }}",
+                                "value": "{{ layer.identifier }}__{{ browse_type.name }}",
+                            },
+                            {% endfor %}
+                            {% endfor %}
+                        ]
+                    }],
+                  },
+                  "search": {
+                      "protocol": "OpenSearch",
+                      "url": "{% url 'opensearch:collection:description' collection_id=layer.identifier %}",
+                      "id": "{{ layer.identifier }}",
+                      "histogramBinCount": {% if layer.webclient_extra.histogram_bin_count %}{{layer.webclient_extra.histogram_bin_count}}{% else %}28{% endif %},
+                      "format": "application/atom+xml",
+                      "method": "GET",
+                      "histogramThreshold":{% if layer.webclient_extra.histogram_threshold %}{{layer.webclient_extra.histogram_threshold}}{% else %}600{% endif %},
+                      "lightweightBuckets": true,
+                      "searchLimit": {% if layer.webclient_extra.search_limit %}{{layer.webclient_extra.search_limit}}{% else %}600{% endif %},
+                      "loadMore": {% if layer.webclient_extra.load_more %}{{layer.webclient_extra.load_more}}{% else %}600{% endif %},
+                      "countZeroRecords": true,
+                      "parametersFilterSettings": {
+                          "collapsed": false,
+                      },
+                  }
+              }{% if forloop.last %}{% else %},{% endif%}
+      {% endfor %}
+          ],
+          "overlayLayers": [
+              {
+                  "id": "overlay_base",
+                  "displayName": "EOX Borders and Labels",
+                  "display": {
+                      "id": "overlay_base",
+                      "visible": false,
+                      "protocol": "WMTS",
+                      "urls": [
+                          "//d.tiles.maps.eox.at/wmts/",
+                          "//e.tiles.maps.eox.at/wmts/"
+                      ],
+                      "matrixSet": "WGS84",
+                      "style": "default",
+                      "format": "image/png",
+                      "projection": "EPSG:4326",
+                      "attribution": "Overlay { Data &copy; <a href=\"//www.openstreetmap.org/copyright\" target=\"_blank\">OpenStreetMap</a> contributors, Rendering &copy; <a href=\"//eox.at\" target=\"_blank\">EOX</a> and <a href=\"//github.com/mapserver/basemaps\" target=\"_blank\">MapServer</a> }"
+                  }
+              }
+          ]
+      };
 
-    <link rel="icon" href="{% static 'favicon.ico' %}" type="image/x-icon">
-    <link rel="shortcut icon" href="% static '}favicon.ico' %}" type="image/x-icon">
-    <link rel="stylesheet" href="{% static 'styles/main.css' %}">
-    <script src="{% static 'scripts/vendor/modernizr.js' %}"></script>
-</head>
-<body>
-
-    <!--[if lt IE 7]>
-        <p class="chromeframe">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> or <a href="http://www.google.com/chromeframe/?redirect=true">activate Google Chrome Frame</a> to improve your experience.</p>
-    <![endif]-->
-
-    <script data-main="{% static 'scripts/init' %}" src="{% static 'bower_components/requirejs/require.js' %}"></script>
-
-    <div id="content">
-        <div id="map" class="not-selectable"></div>
-        <div id="viewContent"></div>
-        <div id="leftSideBar"></div>
-        <div id="rightSideBar"></div>
-        <div id="topBar"></div>
-        <div id="bottomBar"></div>
-    </div>
-
-    <div id="loadscreen" class="modal-backdrop"> <i class="fa fa-cog fa-spin fa-4x"></i> </div>
-
-    <!-- HIDDEN DOWNLOAD DIV -->
-    <div id="div-downloads">
-      <iframe name="iframe-download-post" id="iframe-download-post"></iframe>
-    </div>
-
-
-    <div id="preload">
-       <img src="{% static 'images/glyphicons.png' %}" width="1" height="1" alt="Preload image">
-    </div>
-
-    <div id="error-messages"></div>
-
-
-     <div id="terrain_attribution">
-        <p style="float: right"><a href="javascript:;" onclick="toggle(terrain_attribution)">×</a></p>
-        <p>Terrain map data</p>
-        <ul>
-            <li>OpenStreetMap © <a href="http://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap contributors</a></li>
-            <li>NaturalEarth <a href="http://www.naturalearthdata.com/about/terms-of-use/" target="_blank">public domain</a></li>
-            <li>EU-DEM © Produced using Copernicus data and information<br>funded by the European Union</li>
-            <li>SRTM © <a href="http://nasa.gov" target="_blank">NASA</a></li>
-            <li>GTOPO30</li>
-            <li>CleanTOPO2 public domain</li>
-            <li>GlobCover © <a href="http://esa.int" target="_blank">ESA</a></li>
-        </ul>
-        <p>Terrain map design © <a href="http://eox.at" target="_blank">EOX IT Services GmbH</a></p>
-    </div>
-
-    <script>
-        // Used to display/hide terrain attribution
-        function toggle(e) { e.style.display = (e.style.display == 'block' ? 'none' : 'block'); }
-    </script>
-
-
-
-    <!-- Google Analytics: change UA-XXXXX-X to be your site's ID. -->
-    <!--<script>
-        var _gaq=[['_setAccount','UA-XXXXX-X'],['_trackPageview']];
-        (function(d,t){var g=d.createElement(t),s=d.getElementsByTagName(t)[0];
-        g.src='//www.google-analytics.com/ga.js';
-        s.parentNode.insertBefore(g,s)}(document,'script'));
-    </script>-->
-</body>
-</html>
+          var app = new Application({
+            config: config,
+            container: document.getElementById('app'),
+          });
+          app.start();
+        </script>
+      </body>

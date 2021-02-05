@@ -57,7 +57,7 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
                 help='The location of the STAC Items. Mandatory.'
             )
             parser.add_argument(
-                '--in', '-i', dest='stdin', action="store_true", default=False,
+                '--in', dest='stdin', action="store_true", default=False,
                 help='Read the STAC Item from stdin instead from a file.'
             )
 
@@ -84,7 +84,7 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
                 'The name of the new product type. Optional.'
             )
         )
-        register_parser.add_argument(
+        types_parser.add_argument(
             "--ignore-existing", "-i",
             dest="ignore_existing", action="store_true", default=False,
             help=(

@@ -96,29 +96,54 @@
         "attribution": "Blue Marble { &copy; <a href=\"http://nasa.gov\" target=\"_blank\">NASA</a> }"
       }
     ],
+
     "products": [
       {% for layer in layers %}
       {
-        "name": "{% if layer.webclient_extra.display_name %}{{ layer.webclient_extra.display_name }}{% else %}{{ layer.identifier }}{% endif %}",
-        "visible": {% if layer.webclient_extra.default_visible %}true{% else %}false{% endif %},
-        "timeSlider": true,
-        "timeSliderProtocol":"WPS",
-        {% if layer.webclient_extra.color %}"color": "{{ layer.webclient_extra.color }}",{% endif %}
-        "view": {
-          "id": "{{ layer.identifier }}",
-          "protocol": "WMS",
-          "urls": [
-              "{% url 'ows' %}"
-          ],
-          "style": "default"
-        },
-        "download": {
-          "id": "{{ layer.identifier }}",
-          "protocol": "EOWCS",
-          "url": "{% url 'ows' %}"
-        }
-      }{% if forloop.last %}{% else %},{% endif%}
+                  "id": "{{ layer.identifier }}",
+                  "name": "{% if layer.webclient_extra.display_name %}{{ layer.webclient_extra.display_name }}{% else %}{{ layer.identifier }}{% endif %}",
+                  "displayColor": {% if layer.webclient_extra.color %}"color": "{{ layer.webclient_extra.color }}",{% endif %}
+                  "display": {
+                      "id":  "{{ layer.identifier }}",
+                      "visible": {% if layer.webclient_extra.default_visible %}true{% else %}false{% endif %},
+                      "protocol": 'WMS',
+                      "url": "url": "{% url 'ows' %}",
+                      "format": 'image/png',
+                      "projection": 'EPSG:4326',
+                      "style": '',
+                      "useMilliseconds": true,
+                      "maxZoom": 15,
+                  },
+                  "detailsDisplay": {
+                      "id": "{{ layer.identifier }}",
+                      "visible": {% if layer.webclient_extra.default_visible %}true{% else %}false{% endif %},
+                      "protocol": 'WMS',
+                      "url": "{% url 'ows' %}",
+                      "format": 'image/png',
+                      "projection": 'EPSG:4326',
+                      "style": '',
+                      "useMilliseconds": true,
+                      "maxZoom": {% if layer.webclient_extra.max_zoom %}{{layer.webclient_extra.max_zoom}}{% else %}15{% endif %},
+                  },
+                  "search": {
+                      "protocol": "OpenSearch",
+                      "url": "{% url 'ows' %}",
+                      "id": "{{ layer.identifier }}",
+                      "histogramBinCount": {% if layer.webclient_extra.histogram_bin_count %}{{layer.webclient_extra.histogram_bin_count}}{% else %}28{% endif %},
+                      "format": "application/atom+xml",
+                      "method": "GET",
+                      "histogramThreshold":{% if layer.webclient_extra.histogram_threshold %}{{layer.webclient_extra.histogram_threshold}}{% else %}600{% endif %},
+                      "lightweightBuckets": true,
+                      "searchLimit": {% if layer.webclient_extra.search_limit %}{{layer.webclient_extra.search_limit}}{% else %}600{% endif %},
+                      "loadMore": {% if layer.webclient_extra.load_more %}{{layer.webclient_extra.load_more}}{% else %}600{% endif %},
+                      "countZeroRecords": true,
+                      "parametersFilterSettings": {
+                          "collapsed": false,
+                      },
+                  }
+              }{% if forloop.last %}{% else %},{% endif%}
       {% endfor %}
+
     ],
     "overlays": [
        {

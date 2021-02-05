@@ -399,7 +399,7 @@ def mosaic(filenames, save=None):
 
             band.SetMetadataItem("source_0", """
                 <{source_type}Source>
-                    <SourceFilename relativeToVRT="1">{filename}</SourceFilename>
+                    <SourceFilename relativeToVRT="0">{filename}</SourceFilename>
                     <SourceBand>{band}</SourceBand>
                     <SrcRect xOff="0" yOff="0" xSize="{x_size_orig}" ySize="{y_size_orig}"></SrcRect>
                     <DstRect xOff="{x_off}" yOff="{y_off}" xSize="{x_size}" ySize="{y_size}"></DstRect>
@@ -437,7 +437,7 @@ def select_bands(filename, env, band_indices, save=None):
 
             out_band.SetMetadataItem("source_0", """
                 <SimpleSource>
-                    <SourceFilename relativeToVRT="1">{filename}</SourceFilename>
+                    <SourceFilename relativeToVRT="0">{filename}</SourceFilename>
                     <SourceBand>{band}</SourceBand>
                 </SimpleSource>
             """.format(
@@ -481,7 +481,7 @@ def stack_bands(filenames, env, save=None):
 
             out_band.SetMetadataItem("source_0", """
                 <SimpleSource>
-                    <SourceFilename relativeToVRT="1">{filename}</SourceFilename>
+                    <SourceFilename relativeToVRT="0">{filename}</SourceFilename>
                     <SourceBand>{band}</SourceBand>
                     <SrcRect xOff="0" yOff="0" xSize="{x_size_orig}" ySize="{y_size_orig}"></SrcRect>
                     <DstRect xOff="{x_off}" yOff="{y_off}" xSize="{x_size}" ySize="{y_size}"></DstRect>
