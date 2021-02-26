@@ -467,7 +467,7 @@ def bbox(lhs, minx, miny, maxx, maxy, crs=None, bboverlaps=True):
     box = Polygon.from_bbox((minx, miny, maxx, maxy))
 
     if crs:
-        box.srid = SpatialReference(crs).srid
+    box.srid = SpatialReference(crs).srid
         box.transform(4326)
 
     if bboverlaps:
