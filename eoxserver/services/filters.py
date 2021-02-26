@@ -465,10 +465,7 @@ def bbox(lhs, minx, miny, maxx, maxy, crs=None, bboverlaps=True):
     """
     assert isinstance(lhs, F)
     box = Polygon.from_bbox((minx, miny, maxx, maxy))
-
-    if crs:
-        box.srid = SpatialReference(crs).srid
-        box.transform(4326)
+    box.srid = SpatialReference(crs).srid
 
     if bboverlaps:
         return Q(**{"%s__bboverlaps" % lhs.name: box})
