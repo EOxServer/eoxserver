@@ -107,7 +107,7 @@ jobs:
         run: |
           # TODO: --all-tags does not seem to work with the version on github-actions
           # docker push --all-tags eoxa/eoxserver
-          for tag in $(docker image ls --format "{{.Tag}}" eoxa/eoxserver) ; do echo docker push "eoxa/eoxserver:$tag" ; done
+          for tag in $(docker image ls --format "{{.Tag}}" eoxa/eoxserver) ; do docker push "eoxa/eoxserver:$tag" ; done
         if: success()
 
       # build a Python package and publish it on pypi
