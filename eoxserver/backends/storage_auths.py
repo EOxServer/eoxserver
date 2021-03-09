@@ -55,6 +55,7 @@ class S3StorageAuthHandler(BaseStorageAuthHandler):
             AWS_VIRTUAL_HOSTING=os.environ.get('AWS_VIRTUAL_HOSTING', 'FALSE'),
             AWS_ACCESS_KEY_ID=self.parameters.get('ACCESS_KEY_ID'),
             AWS_SECRET_ACCESS_KEY=self.parameters.get('SECRET_ACCESS_KEY'),
+            AWS_REGION=self.parameters.get('AWS_REGION')
         )
 
 
