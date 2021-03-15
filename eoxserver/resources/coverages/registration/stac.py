@@ -95,7 +95,7 @@ def get_product_type_name(stac_item):
 
 @transaction.atomic
 def register_stac_product(location, stac_item, product_type=None, storage=None,
-                          replace=False):
+                          replace=False, mapping={}):
     """ Registers a single parsed STAC item as a Product. The
         product type to be used can be specified via the product_type_name
         argument.
@@ -214,13 +214,21 @@ def register_stac_product(location, stac_item, product_type=None, storage=None,
     for asset_name, asset in assets.items():
         overrides = {}
         bands = asset.get('eo:bands')
-        if not bands:
-            continue
+        if asset_name not in mapping.keys():
+            if not bands:
+                continue
+        else:
+            bands=[asset_name]
+                
 
         if not isinstance(bands, list):
             bands = [bands]
 
-        band_names = [band['name'] for band in bands]
+        try:
+            band_names = [band['name'] for band in bands]
+        except TypeError:
+            band_names = bands
+
         try:
             coverage_type = models.CoverageType.objects.get(
                 Q(allowed_product_types=product_type),
