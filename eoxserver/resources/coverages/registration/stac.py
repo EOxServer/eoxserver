@@ -81,9 +81,9 @@ def get_product_type_name(stac_item):
     if not bands:
         bands = []
         for asset in assets.values():
-            bands.extend(asset.get('eo:bands'), [])
+            bands.extend(asset.get('eo:bands', []))
 
-    parts.extend([band['name'] for band in bands])
+    parts.extend({band['name'] for band in bands})
 
     if not parts:
         raise RegistrationError(
@@ -95,7 +95,7 @@ def get_product_type_name(stac_item):
 
 @transaction.atomic
 def register_stac_product(location, stac_item, product_type=None, storage=None,
-                          replace=False):
+                          replace=False, mapping={}):
     """ Registers a single parsed STAC item as a Product. The
         product type to be used can be specified via the product_type_name
         argument.
@@ -214,20 +214,31 @@ def register_stac_product(location, stac_item, product_type=None, storage=None,
     for asset_name, asset in assets.items():
         overrides = {}
         bands = asset.get('eo:bands')
-        if not bands:
-            continue
+        if asset_name not in mapping.keys():
+            if not bands:
+                continue
+        else:
+            bands=[asset_name]
+                
 
         if not isinstance(bands, list):
             bands = [bands]
 
-        band_names = [band['name'] for band in bands]
-        coverage_type = models.CoverageType.objects.get(
-            Q(allowed_product_types=product_type),
-            *[
-                Q(field_types__identifier=band_name)
-                for band_name in band_names
-            ]
-        )
+        try:
+            band_names = [band['name'] for band in bands]
+        except TypeError:
+            band_names = bands
+
+        try:
+            coverage_type = models.CoverageType.objects.get(
+                Q(allowed_product_types=product_type),
+                *[
+                    Q(field_types__identifier=band_name)
+                    for band_name in band_names
+                ]
+            )
+        except models.CoverageType.DoesNotExist:
+            continue
         overrides['identifier'] = '%s_%s' % (identifier, asset_name)
 
         # create the storage item
@@ -236,7 +247,7 @@ def register_stac_product(location, stac_item, product_type=None, storage=None,
         if not isabs(parsed.path):
             path = normpath(join(dirname(location), parsed.path))
         else:
-            path = parsed.path
+            path = parsed.path.strip('/')
 
         # arraydata_item = models.ArrayDataItem(
         #     location=path,
@@ -261,16 +272,16 @@ def register_stac_product(location, stac_item, product_type=None, storage=None,
             overrides['size'] = shape
 
         if transform:
-            overrides['origin'] = [transform[transform[0], transform[3]]]
+            overrides['origin'] = [transform[2], transform[5]]
 
         if epsg and transform:
             sr = osr.SpatialReference(epsg)
             axis_names = ['x', 'y'] if sr.IsProjected() else ['long', 'lat']
             grid_def = {
-                'coordinate_reference_system': epsg,
+                'coordinate_reference_system': "EPSG:%s" % (epsg),
                 'axis_names': axis_names,
                 'axis_types': ['spatial', 'spatial'],
-                'axis_offsets': [transform[1], transform[5]],
+                'axis_offsets': [transform[0], transform[4]],
             }
             overrides['grid'] = grid_def  # get_grid(grid_def)
 
@@ -286,7 +297,7 @@ def register_stac_product(location, stac_item, product_type=None, storage=None,
         #     size = values['size']
         #     origin = values['origin']
 
-        registrator.register(
+        report = registrator.register(
             data_locations=[([storage.name] if storage else []) + [path]],
             metadata_locations=[],
             coverage_type_name=coverage_type.name,
@@ -295,6 +306,7 @@ def register_stac_product(location, stac_item, product_type=None, storage=None,
             replace=replace,
         )
 
+        models.product_add_coverage(product, report.coverage)
         # grid = get_grid(grid_def)
 
         # if models.Coverage.objects.filter(identifier=coverage_id).exists():
@@ -338,7 +350,7 @@ def create_product_type_from_stac_collection(stac_collection,
 
 @transaction.atomic
 def create_product_type_from_stac_item(stac_item, product_type_name=None,
-                                       ignore_existing=False):
+                                       ignore_existing=False, coverage_mapping={}):
     """ Creates a ProductType from a parsed STAC Item. Also creates all
         related CoverageTypes and their interned FieldTypes.
 
@@ -365,16 +377,32 @@ def create_product_type_from_stac_item(stac_item, product_type_name=None,
     # list of Asset ID + bands
     bands_list = []
 
-    for asset_name, asset in assets.items():
-        if 'eo:bands' in asset:
-            bands_list.append(
-                (
-                    asset_name,
-                    asset['eo:bands']
-                    if isinstance(asset['eo:bands'], list) else
-                    [asset['eo:bands']]
+    if coverage_mapping:
+        coverage_ids = list(coverage_mapping.keys())
+        coverage_types = list(coverage_mapping.values())
+
+    if coverage_mapping:
+        for asset_name, asset in assets.items():
+            if asset_name in coverage_id:
+                bands_list.append(
+                    (
+                        asset_name,
+                        asset['eo:bands']
+                        if isinstance(asset['eo:bands'], list) else
+                        [asset['eo:bands']]
+                    )
                 )
-            )
+    else:
+        for asset_name, asset in assets.items():
+            if 'eo:bands' in asset:
+                bands_list.append(
+                    (
+                        asset_name,
+                        asset['eo:bands']
+                        if isinstance(asset['eo:bands'], list) else
+                        [asset['eo:bands']]
+                    )
+                )
 
     if not bands_list and 'eo:bands' in properties:
         bands_list.extend(

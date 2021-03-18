@@ -1114,7 +1114,8 @@ def product_add_coverage(product, coverage):
             'in this product' % (coverage_type.name if coverage_type else 'None')
         )
 
-    product.coverages.add(coverage)
+    coverage.parent_product = product
+    coverage.save()
 
 # ==============================================================================
 # Validators
