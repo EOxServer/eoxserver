@@ -245,10 +245,12 @@ def register_stac_product(location, stac_item, product_type=None, storage=None,
                 ]
             )
         except models.CoverageType.DoesNotExist:
-            try: 
+            try:
                 coverage_type = models.CoverageType.objects.get(
-                Q(allowed_product_types=product_type))
-            except (models.CoverageType.DoesNotExist, models.CoverageType.MultipleObjectsReturned):
+                    Q(allowed_product_types=product_type)
+                )
+            except (models.CoverageType.DoesNotExist,
+                    models.CoverageType.MultipleObjectsReturned):
                 continue
         overrides['identifier'] = '%s_%s' % (identifier, asset_name)
 
@@ -361,7 +363,8 @@ def create_product_type_from_stac_collection(stac_collection,
 
 @transaction.atomic
 def create_product_type_from_stac_item(stac_item, product_type_name=None,
-                                       ignore_existing=False, coverage_mapping={}):
+                                       ignore_existing=False,
+                                       coverage_mapping={}):
     """ Creates a ProductType from a parsed STAC Item. Also creates all
         related CoverageTypes and their interned FieldTypes.
 
@@ -389,12 +392,8 @@ def create_product_type_from_stac_item(stac_item, product_type_name=None,
     bands_list = []
 
     if coverage_mapping:
-        coverage_ids = list(coverage_mapping.keys())
-        coverage_types = list(coverage_mapping.values())
-
-    if coverage_mapping:
         for asset_name, asset in assets.items():
-            if asset_name in coverage_id:
+            if asset_name in coverage_mapping:
                 bands_list.append(
                     (
                         asset_name,
