@@ -130,6 +130,9 @@ def register_stac_product(location, stac_item, product_type=None, storage=None,
     if 'start_datetime' in properties and 'end_datetime' in properties:
         start_time = parse_iso8601(properties['start_datetime'])
         end_time = parse_iso8601(properties['end_datetime'])
+    elif 'start_time' in properties and 'end_time' in properties:
+        start_time = parse_iso8601(properties['start_time'])
+        end_time = parse_iso8601(properties['end_time'])
     else:
         start_time = end_time = parse_iso8601(properties['datetime'])
 
@@ -213,21 +216,25 @@ def register_stac_product(location, stac_item, product_type=None, storage=None,
 
     for asset_name, asset in assets.items():
         overrides = {}
-        bands = asset.get('eo:bands')
-        if asset_name not in mapping.keys():
-            if not bands:
+        if mapping:
+            if asset_name in mapping.keys():
+                if 'eo:bands' in asset.keys():
+                    bands = asset['eo:bands']
+                    band_names = [band['name'] for band in bands]
+                else:
+                    band_names = [asset_name]
+            else:
                 continue
         else:
-            bands=[asset_name]
-                
+            bands = asset.get('eo:bands')
 
-        if not isinstance(bands, list):
-            bands = [bands]
+            if not isinstance(bands, list):
+                bands = [bands]
 
-        try:
-            band_names = [band['name'] for band in bands]
-        except TypeError:
-            band_names = bands
+            try:
+                band_names = [band['name'] for band in bands]
+            except TypeError:
+                band_names = bands
 
         try:
             coverage_type = models.CoverageType.objects.get(
@@ -238,7 +245,11 @@ def register_stac_product(location, stac_item, product_type=None, storage=None,
                 ]
             )
         except models.CoverageType.DoesNotExist:
-            continue
+            try: 
+                coverage_type = models.CoverageType.objects.get(
+                Q(allowed_product_types=product_type))
+            except (models.CoverageType.DoesNotExist, models.CoverageType.MultipleObjectsReturned):
+                continue
         overrides['identifier'] = '%s_%s' % (identifier, asset_name)
 
         # create the storage item
