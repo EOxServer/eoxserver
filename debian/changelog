@@ -1,4 +1,114 @@
-eoxserver (0.4.0-0~trusty1) trusty; urgency=low
+eoxserver (1.0rc22-0~focal0) focal; urgency=low
+
+  * New upstream version.
+
+ -- Angelos Tzotsos <gcpp.kalxas@gmail.com>  Fri, 05 Feb 2021 15:00:00 +0200
+
+eoxserver (1.0rc21-0~focal0) focal; urgency=low
+
+  * New upstream version.
+
+ -- Angelos Tzotsos <gcpp.kalxas@gmail.com>  Sun, 24 Jan 2021 22:00:00 +0200
+
+eoxserver (1.0rc17-0~focal2) focal; urgency=low
+
+  * Added pycql dependency.
+
+ -- Angelos Tzotsos <gcpp.kalxas@gmail.com>  Mon, 11 Jan 2021 13:00:00 +0200
+
+eoxserver (1.0rc17-0~focal0) focal; urgency=low
+
+  * New upstream version.
+
+ -- Angelos Tzotsos <gcpp.kalxas@gmail.com>  Thu, 17 Dec 2020 13:00:00 +0200
+
+eoxserver (1.0rc16-0~focal0) focal; urgency=low
+
+  * New upstream version.
+
+ -- Angelos Tzotsos <gcpp.kalxas@gmail.com>  Sat, 12 Dec 2020 13:00:00 +0200
+
+eoxserver (1.0rc12-0~focal2) focal; urgency=low
+
+  * New upstream version.
+  * Switch to pybuild.
+
+ -- Angelos Tzotsos <gcpp.kalxas@gmail.com>  Sat, 12 Sep 2020 14:00:00 +0300
+
+eoxserver (1.0beta2-0~bionic0) bionic; urgency=low
+
+  * New upstream version.
+
+ -- Angelos Tzotsos <gcpp.kalxas@gmail.com>  Mon, 05 Aug 2019 14:00:00 +0200
+
+eoxserver (1.0beta1+9526dd5-0~bionic0) bionic; urgency=low
+
+  * Updating code from upstream beta git branch.
+  * Removed upstream paches.
+
+ -- Angelos Tzotsos <gcpp.kalxas@gmail.com>  Thu, 25 Jul 2019 18:00:00 +0300
+
+eoxserver (1.0beta1-3~bionic0) bionic; urgency=low
+
+  * Apply upstream patch for highest resolution feature.
+
+ -- Angelos Tzotsos <gcpp.kalxas@gmail.com>  Wed, 24 Jul 2019 23:00:00 +0300
+
+eoxserver (1.0beta1-2~bionic0) bionic; urgency=low
+
+  * Re-apply upstream patches for instance creation script.
+
+ -- Angelos Tzotsos <gcpp.kalxas@gmail.com>  Tue, 23 Jul 2019 15:00:00 +0300
+
+eoxserver (1.0beta1-1~bionic0) bionic; urgency=low
+
+  * Fixing instance creation script.
+
+ -- Angelos Tzotsos <gcpp.kalxas@gmail.com>  Tue, 23 Jul 2019 02:00:00 +0200
+
+eoxserver (1.0beta1-0~bionic0) bionic; urgency=low
+
+  * New upstream version.
+
+ -- Angelos Tzotsos <gcpp.kalxas@gmail.com>  Sun, 21 Jul 2019 17:00:00 +0200
+
+eoxserver (0.4.1~6dbc367-0~bionic0) bionic; urgency=low
+
+  * No change rebuild for Bionic.
+
+ -- Angelos Tzotsos <gcpp.kalxas@gmail.com>  Sat, 18 Aug 2018 15:00:00 +0200
+
+eoxserver (0.4.1~6dbc367-0~xenial0) xenial; urgency=low
+
+  * 0.4.1 6dbc367 pulled from github 0.4 branch.
+
+ -- Angelos Tzotsos <gcpp.kalxas@gmail.com>  Sun, 18 Jun 2017 22:00:00 +0200
+
+eoxserver (0.4.0-0~xenial1) xenial; urgency=low
+
+  * New upstream release.
+
+ -- Angelos Tzotsos <gcpp.kalxas@gmail.com>  Fri, 09 Jun 2017 20:00:00 +0200
+
+eoxserver (0.4.0~beta3-0~xenial1) xenial; urgency=low
+
+  * No change rebuild for Xenial.
+
+ -- Angelos Tzotsos <gcpp.kalxas@gmail.com>  Wed, 01 Jun 2016 16:26:00 +0200
+
+eoxserver (0.4.0beta3-0~trusty0) trusty; urgency=low
+
+  * 0.4 beta3-release.
+
+ -- Angelos Tzotsos <gcpp.kalxas@gmail.com>  Thu, 02 Jul 2015 19:00:00 +0200
+
+eoxserver (0.4.0beta2-0~trusty0) trusty; urgency=low
+
+  * 0.4 beta2-release.
+
+ -- Angelos Tzotsos <gcpp.kalxas@gmail.com>  Tue, 06 Jan 2015 14:00:00 +0200
+
+eoxserver (0.4.0beta1-0~trusty1) trusty; urgency=low
 
   * 0.4 beta-release.
 
