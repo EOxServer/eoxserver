@@ -463,7 +463,7 @@ following parameters when searching for datasets:
     |                             |   datasets time span.                                     |                                  |
     +-----------------------------+-----------------------------------------------------------+----------------------------------+
     | cql                         | This parameter allows to perform more complex queries     |   For more information see the   |
-    |                             | using the Common Query Language (CQL).                    |   `CQL Documentation <CQL>`_.    |
+    |                             | using the Common Query Language (CQL).                    |   :ref:`CQL` documentation.      |
     +-----------------------------+-----------------------------------------------------------+----------------------------------+
 
 .. note::

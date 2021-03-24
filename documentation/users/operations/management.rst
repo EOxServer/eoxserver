@@ -421,7 +421,7 @@ cloud coverage. For this to work, the metadata of the Products needs to be
 indexed upon registration. This is done in the process of metadata reading.
 
 For more details about CQL and all available metadata fields refer to
-the `CQL <CQL>`_ documentation.
+the :ref:`CQL` documentation.
 
 :ref:`wcs`
 ~~~~~~~~~~
