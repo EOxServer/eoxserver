@@ -29,6 +29,7 @@ import re
 
 from django.core.management.base import CommandError, BaseCommand
 from django.db import transaction
+from django.db.models import Q
 from django.contrib.gis.geos import GEOSGeometry
 
 from eoxserver.core.util.timetools import parse_iso8601
@@ -202,9 +203,11 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
         deregister_parser.add_argument(
             '--all', '-a', action="store_true",
             default=False, dest='all_products',
-            help='When this flag is set, all the products are selected to be derigesterd'
+            help=(
+                'When this flag is set, all the products are selected to be '
+                'derigestered'
+            )
         )
-
 
         deregister_parser.add_argument(
                 'identifier', default=None, nargs='?',
@@ -309,8 +312,24 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             for product in products:
                 try:
                     product_id = product.identifier
+                    grids = list(models.Grid.objects.filter(
+                        coverage__parent_product=product)
+                    )
                     product.delete()
-                    self.print_msg('Successfully deregistered product %r' % product_id)
+
+                    # clean up grids
+                    for grid in grids:
+                        grid_used = models.EOObject.objects.filter(
+                            Q(coverage__grid=grid) | Q(mosaic__grid=grid),
+                        ).exists()
+                        # clean up grid as well, if it is not referenced
+                        # anymore but saving named (user defined) grids
+                        if grid and not grid.name and not grid_used:
+                            grid.delete()
+
+                    self.print_msg(
+                        'Successfully deregistered product %r' % product_id
+                    )
                 except models.Product.DoesNotExist:
                     raise CommandError('No such Product %r' % identifier)
 
