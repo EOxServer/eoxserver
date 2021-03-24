@@ -39,6 +39,8 @@ shows how these models can be interacted with via the command line interfaces.
 Data model
 ----------
 
+.. figure:: images/models.png
+
 The data model is loosely based on the OGC coverages data models, especially
 with the EO Application Profile for WCS 2.0.
 
