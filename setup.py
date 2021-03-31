@@ -99,7 +99,7 @@ setup(
         'zipstream',
         'psycopg2',
         'lxml',
-        'pycql',
+        'pycql==0.0.8',
     ],
     extras_require={
         'dev': ['scipy'],
