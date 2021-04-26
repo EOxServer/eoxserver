@@ -163,6 +163,7 @@ class WMS13Encoder(XMLEncoder):
         elems.extend(
             WMS("Style",
                 WMS("Name", style),
+                WMS("Title", style),
                 WMS("Abstract", style),
             ) for style in layer_description.styles
         )
