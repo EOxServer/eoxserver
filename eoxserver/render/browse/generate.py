@@ -35,6 +35,7 @@ import numpy as np
 from django.utils.six import string_types
 
 from eoxserver.render.browse.util import warp_fields
+from eoxserver.render.browse.functions import get_function, get_buffer
 from eoxserver.contrib import vrt, gdal, osr
 
 
@@ -310,6 +311,9 @@ def generate_browse(band_expressions, fields_and_coverages,
 
 def _generate_browse_complex(parsed_exprs, fields_and_coverages,
                              width, height, bbox, crs, generator):
+
+    # TODO: get the pixel buffer and adjust accordingly
+    # buffer = get_buffer()
     o_x = bbox[0]
     o_y = bbox[3]
     res_x = (bbox[2] - bbox[0]) / width
@@ -364,35 +368,6 @@ operator_map = {
     _ast.Mult: operator.mul,
 }
 
-function_map = {
-    'sin': np.sin,
-    'cos': np.cos,
-    'tan': np.tan,
-    'arcsin': np.arcsin,
-    'arccos': np.arccos,
-    'arctan': np.arctan,
-    'hypot': np.hypot,
-    'arctan2': np.arctan2,
-    'degrees': np.degrees,
-    'radians': np.radians,
-    'unwrap': np.unwrap,
-    'deg2rad': np.deg2rad,
-    'rad2deg': np.rad2deg,
-    'sinh': np.sinh,
-    'cosh': np.cosh,
-    'tanh': np.tanh,
-    'arcsinh': np.arcsinh,
-    'arccosh': np.arccosh,
-    'arctanh': np.arctanh,
-    'exp': np.exp,
-    'expm1': np.expm1,
-    'exp2': np.exp2,
-    'log': np.log,
-    'log10': np.log10,
-    'log2': np.log2,
-    'log1p': np.log1p,
-}
-
 
 def _evaluate_expression(expr, fields_and_datasets, generator):
     if isinstance(expr, _ast.Name):
@@ -414,17 +389,17 @@ def _evaluate_expression(expr, fields_and_datasets, generator):
         if not isinstance(expr.func, _ast.Name):
             raise BrowseGenerationError('Invalid function call')
 
-        func = function_map.get(expr.func.id)
-        if not func:
-            raise BrowseGenerationError(
-                'Invalid function %s, available functions are '
-                % (expr.func.id, ', '.join(function_map.keys()))
-            )
+        func = get_function(expr.func.id)
+        # if not func:
+        #     raise BrowseGenerationError(
+        #         'Invalid function %s, available functions are %s'
+        #         % (expr.func.id, ', '.join(function_map.keys()))
+        #     )
 
-        if not len(expr.args) == 1:
-            raise BrowseGenerationError(
-                'Invalid number of arguments for function call'
-            )
+        # if not len(expr.args) == 1:
+        #     raise BrowseGenerationError(
+        #         'Invalid number of arguments for function call'
+        #     )
 
         args_data = [
             _evaluate_expression(
@@ -432,7 +407,6 @@ def _evaluate_expression(expr, fields_and_datasets, generator):
             ) for arg in expr.args
         ]
         res = func(*args_data)
-        logger.info("%s, %s, %s" % (expr.func.id, np.min(res), np.max(res)))
         return res
 
     elif hasattr(_ast, 'Num') and isinstance(expr, _ast.Num):
