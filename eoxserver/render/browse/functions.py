@@ -1,4 +1,32 @@
+# ------------------------------------------------------------------------------
+#
+# Project: EOxServer <http://eoxserver.org>
+# Authors: Fabian Schindler <fabian.schindler@eox.at>
+#
+# ------------------------------------------------------------------------------
+# Copyright (C) 2021 EOX IT Services GmbH
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies of this Software or works derived from this Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+# ------------------------------------------------------------------------------
+
 from contextlib import contextmanager
+import logging
 from uuid import uuid4
 
 import numpy as np
@@ -7,27 +35,21 @@ from eoxserver.contrib import gdal
 from eoxserver.contrib import gdal_array
 
 
+logger = logging.getLogger(__name__)
+
 __all__ = [
     'get_function',
     'get_buffer',
 ]
 
 
-@contextmanager
-def temp_ds(*args, **kwargs):
+def hillshade(data, zfactor=1, scale=1, azimuth=315, altitude=45, alg='Horn'):
+    in_ds = gdal_array.OpenNumPyArray(data, False)
     filename = '/vsimem/%s.tif' % uuid4().hex
-    driver = gdal.GetDriverByName('GTiff')
-    ds = driver.Create(filename, *args, **kwargs)
-    yield ds
-    del ds
-    gdal.Unlink(filename)
 
-
-def hillshade(in_data, zfactor=1, scale=1, azimuth=315, altitude=45, alg='Horn'):
-    in_ds = gdal_array.OpenNumPyArray(in_data)
-    with temp_ds(in_ds.RasterXSize, in_ds.RasterYSize, 3) as out_ds:
+    try:
         gdal.DEMProcessing(
-            out_ds.GetFileList()[0],
+            filename,
             in_ds,
             'hillshade',
             zFactor=zfactor,
@@ -37,27 +59,35 @@ def hillshade(in_data, zfactor=1, scale=1, azimuth=315, altitude=45, alg='Horn')
             alg=alg,
         )
 
+        out_ds = gdal.Open(filename)
         band = out_ds.GetRasterBand(1)
         out_data = band.ReadAsArray()
         del out_ds
+    finally:
+        gdal.Unlink(filename)
 
     return out_data
 
 
-def slopeshade(in_data, scale=1, alg='Horn'):
-    in_ds = gdal_array.OpenNumPyArray(in_data)
-    with temp_ds() as out_ds:
+def slopeshade(data, scale=1, alg='Horn'):
+    in_ds = gdal_array.OpenNumPyArray(data, False)
+    filename = '/vsimem/%s.tif' % uuid4().hex
+
+    try:
         gdal.DEMProcessing(
-            out_ds.GetFileList()[0],
+            filename,
             in_ds,
             'slope',
             scale=scale,
             alg=alg,
         )
 
+        out_ds = gdal.Open(filename)
         band = out_ds.GetRasterBand(1)
         out_data = band.ReadAsArray()
         del out_ds
+    finally:
+        gdal.Unlink(filename)
 
     return out_data
 
@@ -93,12 +123,6 @@ function_map = {
     'slopeshade': slopeshade,
 }
 
-# TODO: find out really required buffer values
-buffer_map = {
-    'hillshade': 5,
-    'slopeshade': 5,
-}
-
 
 def get_function(name):
     func = function_map.get(name)
@@ -108,6 +132,12 @@ def get_function(name):
             % (name, ', '.join(function_map.keys()))
         )
     return func
+
+
+buffer_map = {
+    'hillshade': 1,
+    'slopeshade': 1,
+}
 
 
 def get_buffer(name):
