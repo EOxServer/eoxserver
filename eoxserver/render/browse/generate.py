@@ -390,16 +390,6 @@ def _evaluate_expression(expr, fields_and_datasets, generator):
             raise BrowseGenerationError('Invalid function call')
 
         func = get_function(expr.func.id)
-        # if not func:
-        #     raise BrowseGenerationError(
-        #         'Invalid function %s, available functions are %s'
-        #         % (expr.func.id, ', '.join(function_map.keys()))
-        #     )
-
-        # if not len(expr.args) == 1:
-        #     raise BrowseGenerationError(
-        #         'Invalid number of arguments for function call'
-        #     )
 
         args_data = [
             _evaluate_expression(
