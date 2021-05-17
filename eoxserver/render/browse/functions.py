@@ -25,7 +25,6 @@
 # THE SOFTWARE.
 # ------------------------------------------------------------------------------
 
-from contextlib import contextmanager
 import logging
 from uuid import uuid4
 
@@ -43,7 +42,7 @@ __all__ = [
 ]
 
 
-def hillshade(data, zfactor=1, scale=1, azimuth=315, altitude=45, alg='Horn'):
+def _dem_processing(data, processing, **kwargs):
     in_ds = gdal_array.OpenNumPyArray(data, False)
     filename = '/vsimem/%s.tif' % uuid4().hex
 
@@ -51,12 +50,8 @@ def hillshade(data, zfactor=1, scale=1, azimuth=315, altitude=45, alg='Horn'):
         gdal.DEMProcessing(
             filename,
             in_ds,
-            'hillshade',
-            zFactor=zfactor,
-            scale=scale,
-            azimuth=azimuth,
-            altitude=altitude,
-            alg=alg,
+            processing,
+            **kwargs,
         )
 
         out_ds = gdal.Open(filename)
@@ -67,29 +62,59 @@ def hillshade(data, zfactor=1, scale=1, azimuth=315, altitude=45, alg='Horn'):
         gdal.Unlink(filename)
 
     return out_data
+
+
+def hillshade(data, zfactor=1, scale=1, azimuth=315, altitude=45, alg='Horn'):
+    return _dem_processing(
+        data,
+        'hillshade',
+        zFactor=zfactor,
+        scale=scale,
+        azimuth=azimuth,
+        altitude=altitude,
+        alg=alg,
+    )
 
 
 def slopeshade(data, scale=1, alg='Horn'):
-    in_ds = gdal_array.OpenNumPyArray(data, False)
-    filename = '/vsimem/%s.tif' % uuid4().hex
+    return _dem_processing(
+        data,
+        'slope',
+        scale=scale,
+        alg=alg,
+    )
 
-    try:
-        gdal.DEMProcessing(
-            filename,
-            in_ds,
-            'slope',
-            scale=scale,
-            alg=alg,
-        )
 
-        out_ds = gdal.Open(filename)
-        band = out_ds.GetRasterBand(1)
-        out_data = band.ReadAsArray()
-        del out_ds
-    finally:
-        gdal.Unlink(filename)
+def aspect(data, trignonometric=False, zero_for_flat=False, alg='Horn'):
+    return _dem_processing(
+        data,
+        'aspect',
+        trigonometric=trignonometric,
+        zeroForFlat=zero_for_flat,
+        alg=alg,
+    )
 
-    return out_data
+
+def tri(data, alg='Wilson'):
+    return _dem_processing(
+        data,
+        'TRI',
+        alg=alg,
+    )
+
+
+def tpi(data):
+    return _dem_processing(
+        data,
+        'TPI',
+    )
+
+
+def roughness(data):
+    return _dem_processing(
+        data,
+        'roughness',
+    )
 
 
 function_map = {
@@ -121,6 +146,10 @@ function_map = {
     'log1p': np.log1p,
     'hillshade': hillshade,
     'slopeshade': slopeshade,
+    'aspect': aspect,
+    'tri': tri,
+    'tpi': tpi,
+    'roughness': roughness,
 }
 
 
