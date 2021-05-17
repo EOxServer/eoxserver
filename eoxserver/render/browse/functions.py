@@ -52,7 +52,7 @@ def _dem_processing(data, processing, **kwargs):
             filename,
             in_ds,
             processing,
-            **kwargs,
+            **kwargs
         )
 
         out_ds = gdal.Open(filename)
