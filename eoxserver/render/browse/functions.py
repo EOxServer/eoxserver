@@ -31,6 +31,7 @@ from uuid import uuid4
 import numpy as np
 
 from eoxserver.contrib import gdal
+from eoxserver.contrib import ogr
 from eoxserver.contrib import gdal_array
 
 
@@ -117,6 +118,65 @@ def roughness(data):
     )
 
 
+def contours(data, offset=0, interval=100, fill_value=-9999):
+    in_ds = gdal_array.OpenNumPyArray(data, False)
+    in_band = in_ds.GetRasterBand(1)
+    vec_filename = '/tmp/%s.shp' % uuid4().hex
+    out_filename = '/vsimem/%s.tif' % uuid4().hex
+    vector_driver = ogr.GetDriverByName('ESRI Shapefile')
+
+    try:
+        contour_datasource = vector_driver.CreateDataSource(vec_filename)
+        contour_layer = contour_datasource.CreateLayer('contour')
+
+        # set up fields for id/value
+        field_defn = ogr.FieldDefn("ID", ogr.OFTInteger)
+        contour_layer.CreateField(field_defn)
+
+        field_defn = ogr.FieldDefn("value", ogr.OFTReal)
+        contour_layer.CreateField(field_defn)
+
+        gdal.ContourGenerate(
+            in_band,
+            interval,
+            offset,
+            [],
+            0,
+            0,
+            contour_layer,
+            0,
+            1
+        )
+
+        del contour_layer
+        del contour_datasource
+
+        vector_ds = gdal.OpenEx(vec_filename, gdal.OF_VECTOR)
+        vector_layer = vector_ds.GetLayer(0)
+
+        gdal.Rasterize(
+            out_filename,
+            vector_ds,
+            width=in_ds.RasterXSize,
+            height=in_ds.RasterYSize,
+            format='GTiff',
+            attribute='value',
+            layers=[vector_layer.GetName()],
+            outputType=gdal.GDT_Float32,
+            initValues=fill_value,
+        )
+
+        out_ds = gdal.Open(out_filename)
+        band = out_ds.GetRasterBand(1)
+        out_data = band.ReadAsArray()
+        del out_ds
+    finally:
+        vector_driver.DeleteDataSource(vec_filename)
+        gdal.Unlink(out_filename)
+
+    return out_data
+
+
 function_map = {
     'sin': np.sin,
     'cos': np.cos,
@@ -150,6 +210,7 @@ function_map = {
     'tri': tri,
     'tpi': tpi,
     'roughness': roughness,
+    'contours': contours,
 }
 
 
