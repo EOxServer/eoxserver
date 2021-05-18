@@ -388,9 +388,8 @@ class BrowseLayerMixIn(object):
                     for layer_obj in layer_objs:
                         _create_raster_style(
                             style or "blackwhite", layer_obj,
-                            browse_range[0], browse_range[1], [
-                                nil_value[0] for nil_value in field.nil_values
-                            ]
+                            browse_range[0], browse_range[1],
+                            browse.nodata_values
                         )
 
                 else:
