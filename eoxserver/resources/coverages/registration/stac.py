@@ -116,7 +116,7 @@ def register_stac_product(location, stac_item, product_type=None, storage=None,
     # fetch the product type by name, metadata or passed object
     if isinstance(product_type, models.ProductType):
         pass
-    if isinstance(product_type, str):
+    elif isinstance(product_type, str):
         product_type = models.ProductType.objects.get(name=product_type)
     else:
         product_type = models.ProductType.objects.get(
