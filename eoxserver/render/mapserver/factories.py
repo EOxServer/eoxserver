@@ -758,7 +758,7 @@ def _create_raster_style(name, layer, minvalue=0, maxvalue=255,
     colors = COLOR_SCALES[name]
 
     if not nil_values or any(nil_value is None for nil_value in nil_values):
-        nil_values = None
+        nil_values = []
     else:
         nil_values = [float(nil_value) for nil_value in nil_values or []]
 
