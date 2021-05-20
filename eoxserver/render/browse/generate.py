@@ -30,6 +30,7 @@ import ast
 import _ast
 import operator
 import logging
+import concurrent.futures
 
 import numpy as np
 from django.utils.six import string_types
@@ -308,6 +309,8 @@ def generate_browse(band_expressions, fields_and_coverages,
     #         BrowseCreationInfo(stacked_filename, None), generator, False
     #     )
 
+def thread_warp(coverages, field_name, bbox, crs, width, height):
+    return field_name, warp_fields(coverages, field_name, bbox, crs, width, height)
 
 def _generate_browse_complex(parsed_exprs, fields_and_coverages,
                              width, height, bbox, crs, generator):
@@ -325,12 +328,19 @@ def _generate_browse_complex(parsed_exprs, fields_and_coverages,
         field_names |= set(extract_fields(parsed_expression))
 
     fields_and_datasets = {}
-    for field_name in field_names:
-        coverages = fields_and_coverages[field_name]
-        field_data = warp_fields(
-            coverages, field_name, bbox, crs, width, height
-        )
-        fields_and_datasets[field_name] = field_data
+
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        futures = []
+        for field_name in field_names:
+            coverages = fields_and_coverages[field_name]
+            futures.append(executor.submit(thread_warp, coverages, field_name, bbox, crs, width, height))
+            # field_data = warp_fields(
+            #     coverages, field_name, bbox, crs, width, height
+            # )
+            # fields_and_datasets[field_name] = field_data
+        for future in concurrent.futures.as_completed(futures):
+            res = future.result()
+            fields_and_datasets[res[0]] = res[1]
 
     out_filename = generator.generate('tif')
     tiff_driver = gdal.GetDriverByName('GTiff')

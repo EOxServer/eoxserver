@@ -47,7 +47,7 @@ def warp_fields(coverages, field_name, bbox, crs, width, height):
         else:
             ds = orig_ds
 
-        gdal.Warp(out_ds, ds)
+        gdal.Warp(out_ds, ds, multithread=True)
         ds = None
 
         if vrt_filename:
