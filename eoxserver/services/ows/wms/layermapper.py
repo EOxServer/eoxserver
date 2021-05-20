@@ -601,42 +601,44 @@ def _generate_browse_from_browse_type(product, browse_type):
     from eoxserver.render.browse.generate import extract_fields
 
     band_expressions = []
+    ranges = []
+    nodata_values = []
     field_names = []
     red_bands = extract_fields(browse_type.red_or_grey_expression)
-    band_expressions.append((
-        browse_type.red_or_grey_expression, (
-            browse_type.red_or_grey_range_min,
-            browse_type.red_or_grey_range_max,
-        )
+    band_expressions.append(browse_type.red_or_grey_expression)
+    ranges.append((
+        browse_type.red_or_grey_range_min,
+        browse_type.red_or_grey_range_max,
     ))
+    nodata_values.append(browse_type.red_or_grey_nodata_value)
     field_names.extend(red_bands)
 
     if browse_type.green_expression and browse_type.blue_expression:
         green_bands = extract_fields(browse_type.green_expression)
         blue_bands = extract_fields(browse_type.blue_expression)
-        band_expressions.append((
-            browse_type.green_expression, (
-                browse_type.green_range_min,
-                browse_type.green_range_max,
-            )
+        band_expressions.append(browse_type.green_expression)
+        ranges.append((
+            browse_type.green_range_min,
+            browse_type.green_range_max,
         ))
-        band_expressions.append((
-            browse_type.blue_expression, (
-                browse_type.blue_range_min,
-                browse_type.blue_range_max,
-            )
+        nodata_values.append(browse_type.green_nodata_value)
+        band_expressions.append(browse_type.blue_expression)
+        ranges.append((
+            browse_type.blue_range_min,
+            browse_type.blue_range_max,
         ))
+        nodata_values.append(browse_type.blue_nodata_value)
         field_names.extend(green_bands)
         field_names.extend(blue_bands)
 
         if browse_type.alpha_expression:
             alpha_bands = extract_fields(browse_type.alpha_expression)
-            band_expressions.append((
-                browse_type.alpha_expression, (
-                    browse_type.alpha_range_min,
-                    browse_type.alpha_range_max,
-                )
+            band_expressions.append(browse_type.alpha_expression)
+            ranges.append((
+                browse_type.alpha_range_min,
+                browse_type.alpha_range_max,
             ))
+            nodata_values.append(browse_type.alpha_nodata_value)
             field_names.extend(alpha_bands)
 
     coverages, fields_and_coverages = _lookup_coverages(product, field_names)
@@ -644,7 +646,11 @@ def _generate_browse_from_browse_type(product, browse_type):
     # only return a browse instance if coverages were found
     if coverages:
         return GeneratedBrowse.from_coverage_models(
-            band_expressions, fields_and_coverages, product
+            band_expressions,
+            ranges,
+            nodata_values,
+            fields_and_coverages,
+            product,
         )
     return None
 
@@ -669,7 +675,11 @@ def _generate_browse_from_bands(product, bands, wavelengths, ranges):
     # only return a browse instance if coverages were found
     if coverages:
         return GeneratedBrowse.from_coverage_models(
-            zip(bands, ranges or [(None, None)] * len(bands)), fields_and_coverages, product
+            bands,
+            ranges or [(None, None)] * len(bands),
+            [None] * len(bands),
+            fields_and_coverages,
+            product
         )
     return None
 
