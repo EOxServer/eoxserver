@@ -80,7 +80,7 @@ def get_product_type_name(stac_item):
     bands = properties.get('eo:bands')
     if not bands:
         bands = []
-        for asset in assets.values():
+        for _, asset in sorted(assets.items()):
             bands.extend(asset.get('eo:bands', []))
 
     parts.extend({band['name'] for band in bands})
@@ -443,38 +443,43 @@ def create_product_type_from_stac_item(stac_item, product_type_name=None,
                 definition=band.get('common_name'),
             )
 
+    # create browse types
     browse_defs = properties.get('brow:browses', {})
-    for browse_name, browse in browse_defs.items():
-        browse_bands = browse.get('bands')
-        range_ = browse.get('range')
-        expression = browse.get('expression')
-        browse_def = {'name': browse_name}
-        if browse_bands:
-            if len(browse_bands) not in (1, 3, 4):
-                raise RegistrationError(
-                    'Failed to create browse type: wrong number of bands'
-                )
-            browse_def['red_or_grey_expression'] = browse_bands[0]
-            browse_def['red_or_grey_range_min'] = range_[0]
-            browse_def['red_or_grey_range_max'] = range_[1]
-            if len(browse_bands) >= 3:
-                browse_def['green_expression'] = browse_bands[1]
-                browse_def['green_range_min'] = range_[0]
-                browse_def['green_range_max'] = range_[1]
-                browse_def['blue_expression'] = browse_bands[2]
-                browse_def['blue_range_min'] = range_[0]
-                browse_def['blue_range_max'] = range_[1]
-            if len(browse_bands) == 3:
-                browse_def['alpha_expression'] = browse_bands[3]
-                browse_def['alpha_range_min'] = range_[0]
-                browse_def['alpha_range_max'] = range_[1]
+    if browse_defs:
+        for browse_name, browse in browse_defs.items():
+            browse_bands = browse.get('bands')
+            range_ = browse.get('range')
+            expression = browse.get('expression')
+            browse_def = {'name': browse_name}
+            if browse_bands:
+                if len(browse_bands) not in (1, 3, 4):
+                    raise RegistrationError(
+                        'Failed to create browse type: wrong number of bands'
+                    )
+                browse_def['red_or_grey_expression'] = browse_bands[0]
+                browse_def['red_or_grey_range_min'] = range_[0]
+                browse_def['red_or_grey_range_max'] = range_[1]
+                if len(browse_bands) >= 3:
+                    browse_def['green_expression'] = browse_bands[1]
+                    browse_def['green_range_min'] = range_[0]
+                    browse_def['green_range_max'] = range_[1]
+                    browse_def['blue_expression'] = browse_bands[2]
+                    browse_def['blue_range_min'] = range_[0]
+                    browse_def['blue_range_max'] = range_[1]
+                if len(browse_bands) == 3:
+                    browse_def['alpha_expression'] = browse_bands[3]
+                    browse_def['alpha_range_min'] = range_[0]
+                    browse_def['alpha_range_max'] = range_[1]
 
-        elif expression:
-            browse_def['red_or_grey_expression'] = expression
+            elif expression:
+                browse_def['red_or_grey_expression'] = expression
 
-        models.BrowseType.objects.create(
-            product_type=product_type,
-            **browse_def,
-        )
+            models.BrowseType.objects.create(
+                product_type=product_type,
+                **browse_def,
+            )
+
+    else:
+        pass
 
     return (product_type, True)
