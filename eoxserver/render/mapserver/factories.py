@@ -756,6 +756,7 @@ def _build_vrt(size, field_locations):
 def _create_raster_style(name, layer, minvalue=0, maxvalue=255,
                          nil_values=None):
     colors = COLOR_SCALES[name]
+
     if nil_values and all(v is not None for v in nil_values):
         nil_values = [float(nil_value) for nil_value in nil_values]
     else:
