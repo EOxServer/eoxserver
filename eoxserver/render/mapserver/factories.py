@@ -757,10 +757,10 @@ def _create_raster_style(name, layer, minvalue=0, maxvalue=255,
                          nil_values=None):
     colors = COLOR_SCALES[name]
 
-    if not nil_values or any(nil_value is None for nil_value in nil_values):
-        nil_values = []
+    if nil_values and all(v is not None for v in nil_values):
+        nil_values = [float(nil_value) for nil_value in nil_values]
     else:
-        nil_values = [float(nil_value) for nil_value in nil_values or []]
+        nil_values = []
 
     if nil_values:
         offsite = ms.colorObj(*OFFSITE_COLORS.get(name, (0, 0, 0)))
