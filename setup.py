@@ -103,6 +103,7 @@ setup(
     ],
     extras_require={
         'dev': ['scipy'],
+        ':python_version == "2.7"': ['futures']
     },
     zip_safe=False,
 
