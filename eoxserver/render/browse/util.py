@@ -11,13 +11,20 @@ def create_mem_ds(width, height, data_type):
 
 def warp_fields(coverages, field_name, bbox, crs, width, height):
     driver = gdal.GetDriverByName('MEM')
+    field = coverages[0].range_type.get_field(field_name)
     out_ds = driver.Create(
         '',
         width,
         height,
         1,
-        coverages[0].range_type.get_field(field_name).data_type
+        field.data_type
     )
+    nil_value = None
+    if field.nil_values:
+        band = out_ds.GetRasterBand(1)
+        nil_value = float(field.nil_values[0][0])
+        band.SetNoDataValue(nil_value)
+        band.Fill(nil_value)
 
     out_ds.SetGeoTransform([
         bbox[0],
@@ -53,5 +60,4 @@ def warp_fields(coverages, field_name, bbox, crs, width, height):
         if vrt_filename:
             gdal.Unlink(vrt_filename)
 
-    band = out_ds.GetRasterBand(1)
-    return band.ReadAsArray()
+    return out_ds

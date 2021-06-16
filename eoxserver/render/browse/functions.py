@@ -27,6 +27,7 @@
 
 import logging
 from uuid import uuid4
+from functools import wraps
 
 import numpy as np
 
@@ -44,13 +45,14 @@ __all__ = [
 
 
 def _dem_processing(data, processing, **kwargs):
-    in_ds = gdal_array.OpenNumPyArray(data, False)
     filename = '/vsimem/%s.tif' % uuid4().hex
 
     try:
+
+        logger.info(data.GetRasterBand(1).GetNoDataValue())
         gdal.DEMProcessing(
             filename,
-            in_ds,
+            data,
             processing,
             **kwargs
         )
@@ -58,11 +60,12 @@ def _dem_processing(data, processing, **kwargs):
         out_ds = gdal.Open(filename)
         band = out_ds.GetRasterBand(1)
         out_data = band.ReadAsArray()
+        logger.info(out_data)
         del out_ds
     finally:
         gdal.Unlink(filename)
 
-    return out_data
+    return gdal_array.OpenNumPyArray(out_data, False)
 
 
 def hillshade(data, zfactor=1, scale=1, azimuth=315, altitude=45, alg='Horn'):
@@ -175,6 +178,17 @@ def contours(data, offset=0, interval=100, fill_value=-9999):
         gdal.Unlink(out_filename)
 
     return out_data
+
+
+def wrap_numpy_func(function):
+    @wraps(function)
+    def inner(ds, *args, **kwargs):
+        band = ds.GetRasterBand(1)
+        data = band.ReadAsArray()
+        function(data, *args, **kwargs)
+        band.WriteArray(data)
+        return ds
+    return inner
 
 
 function_map = {

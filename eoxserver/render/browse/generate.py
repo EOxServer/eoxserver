@@ -31,13 +31,14 @@ import _ast
 import operator
 import logging
 import concurrent.futures
+from functools import wraps
 
 import numpy as np
 from django.utils.six import string_types
 
 from eoxserver.render.browse.util import warp_fields
 from eoxserver.render.browse.functions import get_function, get_buffer
-from eoxserver.contrib import vrt, gdal, osr
+from eoxserver.contrib import vrt, gdal, osr, gdal_array
 
 
 logger = logging.getLogger(__name__)
@@ -342,12 +343,25 @@ def _generate_browse_complex(parsed_exprs, fields_and_coverages,
             res = future.result()
             fields_and_datasets[res[0]] = res[1]
 
+    out_datasets = []
+    for band_index, parsed_expr in enumerate(parsed_exprs, start=1):
+        with np.errstate(divide='ignore', invalid='ignore'):
+            out_data = _evaluate_expression(
+                parsed_expr, fields_and_datasets, generator
+            )
+
+        if isinstance(out_data, (int, float)):
+            out_data = gdal_array.OpenNumPyArray(
+                np.full((height, width), out_data), False
+            )
+        out_datasets.append(out_data)
+
     out_filename = generator.generate('tif')
     tiff_driver = gdal.GetDriverByName('GTiff')
     out_ds = tiff_driver.Create(
         out_filename,
         width, height, len(parsed_exprs),
-        gdal.GDT_Float32,
+        out_datasets[0].GetRasterBand(1).DataType,
         options=[
             "TILED=YES",
             "COMPRESS=PACKBITS"
@@ -356,26 +370,48 @@ def _generate_browse_complex(parsed_exprs, fields_and_coverages,
     out_ds.SetGeoTransform([o_x, res_x, 0, o_y, 0, res_y])
     out_ds.SetProjection(osr.SpatialReference(crs).wkt)
 
-    for band_index, parsed_expr in enumerate(parsed_exprs, start=1):
-        with np.errstate(divide='ignore', invalid='ignore'):
-            out_data = _evaluate_expression(
-                parsed_expr, fields_and_datasets, generator
-            )
+    for out_data in out_datasets:
+        band = out_data.GetRasterBand(1)
 
-        if isinstance(out_data, (int, float)):
-            out_data = np.full((height, width), out_data)
+        logger.info(band.ReadAsArray())
 
         out_band = out_ds.GetRasterBand(band_index)
-        out_band.WriteArray(out_data)
+        out_band.WriteArray(band.ReadAsArray())
 
     return BrowseCreationInfo(out_filename, None)
 
 
+def wrap_operator(function):
+    @wraps(function)
+    def inner(lhs, rhs):
+        if isinstance(lhs, (int, float)) and isinstance(rhs, (int, float)):
+            return function(lhs, rhs)
+
+        gt = None
+        if isinstance(lhs, gdal.Dataset):
+            gt = lhs.GetGeoTransform()
+            band = lhs.GetRasterBand(1)
+            lhs = band.ReadAsArray()
+
+        if isinstance(rhs, gdal.Dataset):
+            gt = gt or rhs.GetGeoTransform()
+            band = rhs.GetRasterBand(1)
+            rhs = band.ReadAsArray()
+
+        data = function(lhs, rhs)
+        out_ds = gdal_array.OpenNumPyArray(data, False)
+        out_ds.SetGeoTransform(gt)
+        # TODO: copy metadata
+        return out_ds
+
+    return inner
+
+
 operator_map = {
-    _ast.Add: operator.add,
-    _ast.Sub: operator.sub,
-    _ast.Div: operator.truediv,
-    _ast.Mult: operator.mul,
+    _ast.Add: wrap_operator(operator.add),
+    _ast.Sub: wrap_operator(operator.sub),
+    _ast.Div: wrap_operator(operator.truediv),
+    _ast.Mult: wrap_operator(operator.mul),
 }
 
 
