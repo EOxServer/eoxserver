@@ -46,10 +46,7 @@ __all__ = [
 
 def _dem_processing(data, processing, **kwargs):
     filename = '/vsimem/%s.tif' % uuid4().hex
-
     try:
-
-        logger.info(data.GetRasterBand(1).GetNoDataValue())
         gdal.DEMProcessing(
             filename,
             data,
@@ -60,7 +57,6 @@ def _dem_processing(data, processing, **kwargs):
         out_ds = gdal.Open(filename)
         band = out_ds.GetRasterBand(1)
         out_data = band.ReadAsArray()
-        logger.info(out_data)
         del out_ds
     finally:
         gdal.Unlink(filename)

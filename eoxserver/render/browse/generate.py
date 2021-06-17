@@ -372,9 +372,6 @@ def _generate_browse_complex(parsed_exprs, fields_and_coverages,
 
     for out_data in out_datasets:
         band = out_data.GetRasterBand(1)
-
-        logger.info(band.ReadAsArray())
-
         out_band = out_ds.GetRasterBand(band_index)
         out_band.WriteArray(band.ReadAsArray())
 
