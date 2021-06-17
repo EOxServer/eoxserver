@@ -122,8 +122,7 @@ def roughness(data):
 
 
 def contours(data, offset=0, interval=100, fill_value=-9999):
-    in_ds = gdal_array.OpenNumPyArray(data, False)
-    in_band = in_ds.GetRasterBand(1)
+    in_band = data.GetRasterBand(1)
     vec_filename = '/tmp/%s.shp' % uuid4().hex
     out_filename = '/vsimem/%s.tif' % uuid4().hex
     vector_driver = ogr.GetDriverByName('ESRI Shapefile')
@@ -157,21 +156,24 @@ def contours(data, offset=0, interval=100, fill_value=-9999):
         vector_ds = gdal.OpenEx(vec_filename, gdal.OF_VECTOR)
         vector_layer = vector_ds.GetLayer(0)
 
+        gt = data.GetGeoTransform()
         gdal.Rasterize(
             out_filename,
             vector_ds,
-            width=in_ds.RasterXSize,
-            height=in_ds.RasterYSize,
+            width=data.RasterXSize,
+            height=data.RasterYSize,
             format='GTiff',
             attribute='value',
             layers=[vector_layer.GetName()],
             outputType=gdal.GDT_Float32,
             initValues=fill_value,
+            xRes=gt[1],
+            yRes=gt[5],
         )
 
         out_ds = gdal.Open(out_filename)
         band = out_ds.GetRasterBand(1)
-        out_data = band.ReadAsArray()
+        out_data = gdal_array.OpenNumPyArray(band.ReadAsArray(), False)
         del out_ds
     finally:
         vector_driver.DeleteDataSource(vec_filename)
