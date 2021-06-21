@@ -97,7 +97,7 @@ setup(
         'python-dateutil',
         'django-model-utils<4.0.0',
         'zipstream',
-        'psycopg2',
+        'psycopg2>=2.8,<2.9',
         'lxml',
         'pycql==0.0.8',
     ],
