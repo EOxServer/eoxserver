@@ -35,6 +35,7 @@ RUN apt-get update \
     gdal-bin \
     libsqlite3-mod-spatialite \
     postgresql-client \
+    python3-psycopg2 \
   && apt-get autoremove -y \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/partial/* /tmp/* /var/tmp/*

@@ -27,6 +27,7 @@
 
 import logging
 from uuid import uuid4
+from functools import wraps
 
 import numpy as np
 
@@ -44,13 +45,11 @@ __all__ = [
 
 
 def _dem_processing(data, processing, **kwargs):
-    in_ds = gdal_array.OpenNumPyArray(data, False)
     filename = '/vsimem/%s.tif' % uuid4().hex
-
     try:
         gdal.DEMProcessing(
             filename,
-            in_ds,
+            data,
             processing,
             **kwargs
         )
@@ -62,7 +61,7 @@ def _dem_processing(data, processing, **kwargs):
     finally:
         gdal.Unlink(filename)
 
-    return out_data
+    return gdal_array.OpenNumPyArray(out_data, False)
 
 
 def hillshade(data, zfactor=1, scale=1, azimuth=315, altitude=45, alg='Horn'):
@@ -119,8 +118,7 @@ def roughness(data):
 
 
 def contours(data, offset=0, interval=100, fill_value=-9999):
-    in_ds = gdal_array.OpenNumPyArray(data, False)
-    in_band = in_ds.GetRasterBand(1)
+    in_band = data.GetRasterBand(1)
     vec_filename = '/tmp/%s.shp' % uuid4().hex
     out_filename = '/vsimem/%s.tif' % uuid4().hex
     vector_driver = ogr.GetDriverByName('ESRI Shapefile')
@@ -154,27 +152,41 @@ def contours(data, offset=0, interval=100, fill_value=-9999):
         vector_ds = gdal.OpenEx(vec_filename, gdal.OF_VECTOR)
         vector_layer = vector_ds.GetLayer(0)
 
+        gt = data.GetGeoTransform()
         gdal.Rasterize(
             out_filename,
             vector_ds,
-            width=in_ds.RasterXSize,
-            height=in_ds.RasterYSize,
+            width=data.RasterXSize,
+            height=data.RasterYSize,
             format='GTiff',
             attribute='value',
             layers=[vector_layer.GetName()],
             outputType=gdal.GDT_Float32,
             initValues=fill_value,
+            xRes=gt[1],
+            yRes=gt[5],
         )
 
         out_ds = gdal.Open(out_filename)
         band = out_ds.GetRasterBand(1)
-        out_data = band.ReadAsArray()
+        out_data = gdal_array.OpenNumPyArray(band.ReadAsArray(), False)
         del out_ds
     finally:
         vector_driver.DeleteDataSource(vec_filename)
         gdal.Unlink(out_filename)
 
     return out_data
+
+
+def wrap_numpy_func(function):
+    @wraps(function)
+    def inner(ds, *args, **kwargs):
+        band = ds.GetRasterBand(1)
+        data = band.ReadAsArray()
+        function(data, *args, **kwargs)
+        band.WriteArray(data)
+        return ds
+    return inner
 
 
 function_map = {

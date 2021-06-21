@@ -774,7 +774,6 @@ def _create_raster_style(name, layer, minvalue=0, maxvalue=255,
             style = ms.styleObj()
             style.color = offsite
             style.opacity = 0
-            style.rangeitem = ""
             cls.insertStyle(style)
             layer.insertClass(cls)
 
@@ -793,7 +792,7 @@ def _create_raster_style(name, layer, minvalue=0, maxvalue=255,
         low_nil = max(low_nil_values)
         cls = ms.classObj()
         cls.setExpression(
-            "([pixel] <= %s AND [pixel] > %s)" % (minvalue, low_nil)
+            "([pixel] < %s AND [pixel] > %s)" % (minvalue, low_nil)
         )
         cls.group = name
         style = ms.styleObj()
@@ -815,7 +814,7 @@ def _create_raster_style(name, layer, minvalue=0, maxvalue=255,
         next_perc, next_color = next_item
 
         cls = ms.classObj()
-        cls.setExpression("([pixel] >= %s AND [pixel] < %s)" % (
+        cls.setExpression("([pixel] > %s AND [pixel] < %s)" % (
             (minvalue + prev_perc * interval),
             (minvalue + next_perc * interval)
         ))
