@@ -190,7 +190,7 @@ class WCS20DescribeEOCoverageSetHandler(object):
             Q(  # Coverages within directly referenced Collections
                 coverage__collections__in=collections
             ) |
-            Q(  # Coverages within directly referenced Collections
+            Q(  # Coverages within directly referenced Mosaics
                 coverage__mosaics__in=mosaics
             ) |
             Q(  # directly referenced Mosaics

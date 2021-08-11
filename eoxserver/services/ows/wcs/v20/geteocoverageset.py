@@ -1,9 +1,9 @@
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
 #
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Copyright (C) 2013 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -13,8 +13,8 @@
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
-# The above copyright notice and this permission notice shall be included in all
-# copies of this Software or works derived from this Software.
+# The above copyright notice and this permission notice shall be included in
+# all copies of this Software or works derived from this Software.
 #
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -23,7 +23,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 
 import os
@@ -36,26 +36,22 @@ from django.db.models import Q
 from django.http import HttpResponse
 try:
     from django.http import StreamingHttpResponse
-except:
+except ImportError:
     StreamingHttpResponse = HttpResponse
 
 from django.utils.six import MAXSIZE
-from eoxserver.core import Component, implements, ExtensionPoint
+from django.conf import settings
+from django.utils.module_loading import import_string
+
 from eoxserver.core.config import get_eoxserver_config
 from eoxserver.core.decoders import xml, kvp, typelist, enum
+from eoxserver.render.coverage import objects
 from eoxserver.resources.coverages import models
-from eoxserver.services.ows.interfaces import (
-    ServiceHandlerInterface, GetServiceHandlerInterface,
-    PostServiceHandlerInterface
-)
 from eoxserver.services.ows.wcs.v20.util import (
     nsmap, parse_subset_kvp, parse_subset_xml
 )
 from eoxserver.services.ows.wcs.v20.parameters import WCS20CoverageRenderParams
 from eoxserver.services.ows.common.config import WCSEOConfigReader
-from eoxserver.services.ows.wcs.interfaces import (
-    WCSCoverageRendererInterface, PackageWriterInterface
-)
 from eoxserver.services.subset import Subsets, Trim
 from eoxserver.services.exceptions import (
     NoSuchDatasetSeriesOrCoverageException, InvalidRequestException,
@@ -66,14 +62,33 @@ from eoxserver.services.exceptions import (
 logger = logging.getLogger(__name__)
 
 
-class WCS20GetEOCoverageSetHandler(Component):
-    implements(ServiceHandlerInterface)
-    implements(GetServiceHandlerInterface)
-    implements(PostServiceHandlerInterface)
+DEFAULT_PACKAGE_WRITERS = [
+    'eoxserver.services.ows.wcs.v20.packages.tar.TarPackageWriter',
+    'eoxserver.services.ows.wcs.v20.packages.zip.ZipPackageWriter',
+]
+PACKAGE_WRITERS = None
 
-    coverage_renderers = ExtensionPoint(WCSCoverageRendererInterface)
-    package_writers = ExtensionPoint(PackageWriterInterface)
 
+def _setup_package_writers():
+    global PACKAGE_WRITERS
+    specifiers = getattr(
+        settings, 'EOXS_PACKAGE_WRITERS',
+        DEFAULT_PACKAGE_WRITERS
+    )
+    PACKAGE_WRITERS = [
+        import_string(specifier)()
+        for specifier in specifiers
+    ]
+
+
+def get_package_writers():
+    if PACKAGE_WRITERS is None:
+        _setup_package_writers()
+
+    return PACKAGE_WRITERS
+
+
+class WCS20GetEOCoverageSetHandler(object):
     service = "WCS"
     versions = ("2.0.0", "2.0.1")
     methods = ['GET', 'POST']
@@ -93,7 +108,13 @@ class WCS20GetEOCoverageSetHandler(Component):
         )
 
     def get_renderer(self, params):
-        for renderer in self.coverage_renderers:
+        # TODO: fix circular import issue and get renderer from the
+        # get_coverage_renderer function
+        from eoxserver.services.mapserver.wcs.coverage_renderer import RectifiedCoverageMapServerRenderer
+        # from eoxserver.services.ows.wcs.basehandlers import get_coverage_renderers
+        renderers = [RectifiedCoverageMapServerRenderer()]
+        # for renderer in get_coverage_renderers(params):
+        for renderer in renderers:
             if renderer.supports(params):
                 return renderer
 
@@ -102,7 +123,7 @@ class WCS20GetEOCoverageSetHandler(Component):
         )
 
     def get_pacakge_writer(self, format, params):
-        for writer in self.package_writers:
+        for writer in get_package_writers():
             if writer.supports(format, params):
                 return writer
 
@@ -140,103 +161,118 @@ class WCS20GetEOCoverageSetHandler(Component):
         except ValueError as e:
             raise InvalidSubsettingException(str(e))
 
-        if len(eo_ids) == 0:
-            raise
-
-        # fetch a list of all requested EOObjects
-        available_ids = models.EOObject.objects.filter(
+        # fetch the objects directly referenced by EOID
+        eo_objects = models.EOObject.objects.filter(
             identifier__in=eo_ids
-        ).values_list("identifier", flat=True)
+        ).select_subclasses()
 
-        # match the requested EOIDs against the available ones. If any are
-        # requested, that are not available, raise and exit.
-        failed = [eo_id for eo_id in eo_ids if eo_id not in available_ids]
+        # check if all EOIDs are available
+        available_ids = set(eo_object.identifier for eo_object in eo_objects)
+        failed = [
+            eo_id for eo_id in eo_ids if eo_id not in available_ids
+        ]
+
+        # fail when some objects are not available
         if failed:
             raise NoSuchDatasetSeriesOrCoverageException(failed)
 
-        collections_qs = subsets.filter(models.Collection.objects.filter(
-            identifier__in=eo_ids
-        ), containment="overlaps")
-
-        # create a set of all indirectly referenced containers by iterating
-        # recursively. The containment is set to "overlaps", to also include
-        # collections that might have been excluded with "contains" but would
-        # have matching coverages inserted.
-
-        def recursive_lookup(super_collection, collection_set):
-            sub_collections = models.Collection.objects.filter(
-                collections__in=[super_collection.pk]
-            ).exclude(
-                pk__in=map(lambda c: c.pk, collection_set)
-            )
-            sub_collections = subsets.filter(sub_collections, "overlaps")
-
-            # Add all to the set
-            collection_set |= set(sub_collections)
-
-            for sub_collection in sub_collections:
-                recursive_lookup(sub_collection, collection_set)
-
-        collection_set = set(collections_qs)
-        for collection in set(collection_set):
-            recursive_lookup(collection, collection_set)
-
-        collection_pks = map(lambda c: c.pk, collection_set)
-
-        # Get all either directly referenced coverages or coverages that are
-        # within referenced containers. Full subsetting is applied here.
-
-        coverages_qs = models.Coverage.objects.filter(
-            Q(identifier__in=eo_ids) | Q(collections__in=collection_pks)
-        )
-        coverages_qs = subsets.filter(coverages_qs, containment=containment)
-
-        # save a reference before limits are applied to obtain the full number
-        # of matched coverages.
-        coverages_no_limit_qs = coverages_qs
-
-        # compute how many (if any) coverages can be retrieved. This depends on
-        # the "count" parameter and default setting. Also, if we already
-        # exceeded the count, limit the number of dataset series aswell
-        """
-        if inc_dss_section:
-            num_collections = len(collection_set)
-        else:
-            num_collections = 0
-
-        if num_collections < count and inc_cov_section:
-            coverages_qs = coverages_qs.order_by("identifier")[:count - num_collections]
-        elif num_collections == count or not inc_cov_section:
-            coverages_qs = []
-        else:
-            coverages_qs = []
-            collection_set = sorted(collection_set, key=lambda c: c.identifier)[:count]
-        """
-
-        # get a number of coverages that *would* have been included, but are not
-        # because of the count parameter
-        # count_all_coverages = coverages_no_limit_qs.count()
-
-        # TODO: if containment is "within" we need to check all collections
-        # again
-        if containment == "within":
-            collection_set = filter(lambda c: subsets.matches(c), collection_set)
-
+        # split list of objects into Collections, Products and Coverages
+        collections = []
+        mosaics = []
+        products = []
         coverages = []
-        dataset_series = []
 
-        # finally iterate over everything that has been retrieved and get
-        # a list of dataset series and coverages to be encoded into the response
-        for eo_object in chain(coverages_qs, collection_set):
-            if issubclass(eo_object.real_type, models.Coverage):
-                coverages.append(eo_object.cast())
+        for eo_object in eo_objects:
+            if isinstance(eo_object, models.Collection):
+                collections.append(eo_object)
+            elif isinstance(eo_object, models.Mosaic):
+                mosaics.append(eo_object)
+            elif isinstance(eo_object, models.Product):
+                products.append(eo_object)
+            elif isinstance(eo_object, models.Coverage):
+                coverages.append(eo_object)
+
+        filters = subsets.get_filters(containment=containment)
+
+        # get a QuerySet of all dataset series, directly or indirectly
+        # referenced
+        all_dataset_series_qs = models.EOObject.objects.filter(
+            Q(  # directly referenced Collections
+                collection__isnull=False,
+                identifier__in=[
+                    collection.identifier for collection in collections
+                ],
+            ) |
+            Q(  # directly referenced Products
+                product__isnull=False,
+                identifier__in=[product.identifier for product in products],
+            ) |
+            Q(  # Products within Collections
+                product__isnull=False,
+                product__collections__in=collections,
+                **filters
+            )
+        )
+
+        # Allow metadata queries on coverage itself or on the
+        # parent product if available
+        parent_product_filters = []
+        for key, value in filters.items():
+            prop = key.partition('__')[0]
+            parent_product_filters.append(
+                Q(**{
+                    key: value
+                }) | Q(**{
+                    '%s__isnull' % prop: True,
+                    'coverage__parent_product__%s' % key: value
+                })
+            )
+
+        # get a QuerySet for all Coverages, directly or indirectly referenced
+        all_coverages_qs = models.EOObject.objects.filter(
+            *parent_product_filters
+        ).filter(
+            Q(  # directly referenced Coverages
+                identifier__in=[
+                    coverage.identifier for coverage in coverages
+                ]
+            ) |
+            Q(  # Coverages within directly referenced Products
+                coverage__parent_product__in=products,
+            ) |
+            Q(  # Coverages within indirectly referenced Products
+                coverage__parent_product__collections__in=collections
+            ) |
+            Q(  # Coverages within directly referenced Collections
+                coverage__collections__in=collections
+            ) |
+            Q(  # Coverages within directly referenced Mosaics
+                coverage__mosaics__in=mosaics
+            ) |
+            Q(  # directly referenced Mosaics
+                identifier__in=[
+                    mosaic.identifier for mosaic in mosaics
+                ]
+            ) |
+            Q(  # Mosaics within directly referenced Collections
+                mosaic__collections__in=collections
+            )
+        ).select_subclasses(models.Coverage, models.Mosaic)
+
+        all_coverages_qs = all_coverages_qs.order_by('identifier')
+
+        # limit coverages according to the number of dataset series
+        coverages_qs = all_coverages_qs[:max(
+            0, count - all_dataset_series_qs.count() - len(mosaics)
+        )]
 
         fd, pkg_filename = tempfile.mkstemp()
         tmp = os.fdopen(fd)
         tmp.close()
         package = writer.create_package(pkg_filename, format, format_params)
 
-        for coverage in coverages:
+        for coverage_model in coverages_qs:
+            coverage = objects.from_model(coverage_model)
             params = self.get_params(coverage, decoder, request)
             renderer = self.get_renderer(params)
             result_set = renderer.render(params)
@@ -269,7 +305,7 @@ class WCS20GetEOCoverageSetHandler(Component):
 
 
 def tempfile_iterator(filename, chunksize=2048, delete=True):
-    with open(filename) as file_obj:
+    with open(filename, 'rb') as file_obj:
         while True:
             data = file_obj.read(chunksize)
             if not data:
