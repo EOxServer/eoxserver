@@ -282,13 +282,13 @@ class WCS20GetEOCoverageSetHandler(object):
                     ext = mimetypes.guess_extension(result_item.content_type)
                     filename = coverage.identifier + ext
                 else:
-                    filename = result_item.filename
+                    filename = result_item.filename.decode()
                 if filename in all_filenames:
                     continue  # TODO: create new filename
                 all_filenames.add(filename)
                 location = "%s/%s" % (coverage.identifier, filename)
                 writer.add_to_package(
-                    package, result_item.data_file, result_item.size, location
+                    package, result_item.data, result_item.size, location
                 )
 
         mime_type = writer.get_mime_type(package, format, format_params)

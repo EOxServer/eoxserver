@@ -43,8 +43,8 @@ class ZipPackageWriter(object):
     def cleanup(self, package):
         package.close()
 
-    def add_to_package(self, package, file_obj, size, location):
-        package.writestr(location, file_obj.read())
+    def add_to_package(self, package, data, size, location):
+        package.writestr(location, data)
 
     def get_mime_type(self, package, format, params):
         return "application/zip"
