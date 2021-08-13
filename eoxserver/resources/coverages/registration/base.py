@@ -456,23 +456,22 @@ def get_grid(definition):
             axis_names + [None] * (4 - len(axis_names))
         )
 
-        try:
-            # try to find a suitable grid: with the given axis types,
-            # offsets and coordinate reference system
-            grid = models.Grid.objects.get(
-                coordinate_reference_system=definition[
-                    'coordinate_reference_system'
-                ],
-                axis_1_type=type_1,
-                axis_2_type=type_2,
-                axis_3_type=type_3,
-                axis_4_type=type_4,
-                axis_1_offset=offset_1,
-                axis_2_offset=offset_2,
-                axis_3_offset=offset_3,
-                axis_4_offset=offset_4,
-            )
-        except models.Grid.DoesNotExist:
+        # try to find a suitable grid: with the given axis types,
+        # offsets and coordinate reference system
+        grid = models.Grid.objects.filter(
+            coordinate_reference_system=definition[
+                'coordinate_reference_system'
+            ],
+            axis_1_type=type_1,
+            axis_2_type=type_2,
+            axis_3_type=type_3,
+            axis_4_type=type_4,
+            axis_1_offset=offset_1,
+            axis_2_offset=offset_2,
+            axis_3_offset=offset_3,
+            axis_4_offset=offset_4,
+        ).first()
+        if grid is None:
             # create a new grid from the given definition
             grid = models.Grid.objects.create(
                 coordinate_reference_system=definition[
