@@ -106,6 +106,11 @@ ALLOWED_NODE_TYPES = (
     _ast.UnaryOp,
     _ast.BinOp,
 
+    _ast.Subscript,
+    _ast.Slice,
+    _ast.Load,
+    _ast.Index,
+
     _ast.Mult,
     _ast.Div,
     _ast.Add,
@@ -310,8 +315,12 @@ def generate_browse(band_expressions, fields_and_coverages,
     #         BrowseCreationInfo(stacked_filename, None), generator, False
     #     )
 
+
 def thread_warp(coverages, field_name, bbox, crs, width, height):
-    return field_name, warp_fields(coverages, field_name, bbox, crs, width, height)
+    return field_name, warp_fields(
+        coverages, field_name, bbox, crs, width, height
+    )
+
 
 def _generate_browse_complex(parsed_exprs, fields_and_coverages,
                              width, height, bbox, crs, generator):
@@ -334,7 +343,12 @@ def _generate_browse_complex(parsed_exprs, fields_and_coverages,
         futures = []
         for field_name in field_names:
             coverages = fields_and_coverages[field_name]
-            futures.append(executor.submit(thread_warp, coverages, field_name, bbox, crs, width, height))
+            futures.append(
+                executor.submit(
+                    thread_warp,
+                    coverages, field_name, bbox, crs, width, height
+                )
+            )
             # field_data = warp_fields(
             #     coverages, field_name, bbox, crs, width, height
             # )
@@ -343,11 +357,12 @@ def _generate_browse_complex(parsed_exprs, fields_and_coverages,
             res = future.result()
             fields_and_datasets[res[0]] = res[1]
 
+    cache = {}
     out_datasets = []
     for band_index, parsed_expr in enumerate(parsed_exprs, start=1):
         with np.errstate(divide='ignore', invalid='ignore'):
             out_data = _evaluate_expression(
-                parsed_expr, fields_and_datasets, generator
+                parsed_expr, fields_and_datasets, generator, cache
             )
 
         if isinstance(out_data, (int, float)):
@@ -370,7 +385,7 @@ def _generate_browse_complex(parsed_exprs, fields_and_coverages,
     out_ds.SetGeoTransform([o_x, res_x, 0, o_y, 0, res_y])
     out_ds.SetProjection(osr.SpatialReference(crs).wkt)
 
-    for out_data in out_datasets:
+    for band_index, out_data in enumerate(out_datasets, start=1):
         band = out_data.GetRasterBand(1)
         out_band = out_ds.GetRasterBand(band_index)
         out_band.WriteArray(band.ReadAsArray())
@@ -412,21 +427,25 @@ operator_map = {
 }
 
 
-def _evaluate_expression(expr, fields_and_datasets, generator):
+def _evaluate_expression(expr, fields_and_datasets, generator, cache):
+    key = ast.dump(expr)
+    if key in cache:
+        return cache[key]
+
     if isinstance(expr, _ast.Name):
-        return fields_and_datasets[expr.id]
+        result = fields_and_datasets[expr.id]
 
     elif isinstance(expr, _ast.BinOp):
         left_data = _evaluate_expression(
-            expr.left, fields_and_datasets, generator
+            expr.left, fields_and_datasets, generator, cache
         )
 
         right_data = _evaluate_expression(
-            expr.right, fields_and_datasets, generator
+            expr.right, fields_and_datasets, generator, cache
         )
 
         op = operator_map[type(expr.op)]
-        return op(left_data, right_data)
+        result = op(left_data, right_data)
 
     elif isinstance(expr, _ast.Call):
         if not isinstance(expr.func, _ast.Name):
@@ -436,14 +455,31 @@ def _evaluate_expression(expr, fields_and_datasets, generator):
 
         args_data = [
             _evaluate_expression(
-                arg, fields_and_datasets, generator
+                arg, fields_and_datasets, generator, cache
             ) for arg in expr.args
         ]
         res = func(*args_data)
-        return res
+        result = res
+
+    elif isinstance(expr, _ast.Subscript):
+        value = _evaluate_expression(
+            expr.value, fields_and_datasets, generator, cache
+        )
+        # assume that we will only use a single index
+        slice_ = expr.slice.value.value
+
+        # Get a copy of the selected band
+        data = value.GetRasterBand(slice_ + 1).ReadAsArray()
+        result = gdal_array.OpenNumPyArray(data, True)
 
     elif hasattr(_ast, 'Num') and isinstance(expr, _ast.Num):
-        return expr.n
+        result = expr.n
 
     elif hasattr(_ast, 'Constant') and isinstance(expr, _ast.Constant):
-        return expr.value
+        result = expr.value
+
+    else:
+        raise BandExpressionError('Invalid expression node %s' % expr)
+
+    cache[key] = result
+    return result
