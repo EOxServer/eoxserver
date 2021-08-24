@@ -180,7 +180,7 @@ def contours(data, offset=0, interval=100, fill_value=-9999):
 
 def pansharpen(pan_ds, *spectral_dss):
     spectral_band_xml = ''.join(
-        '<SpectralBand dstBand="%d"></SpectralBand>' % i + 1
+        '<SpectralBand dstBand="%d"></SpectralBand>' % (i + 1)
         for i in range(len(spectral_dss))
     )
     ds = gdal.CreatePansharpenedVRT(
