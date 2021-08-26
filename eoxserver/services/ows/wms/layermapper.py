@@ -74,6 +74,16 @@ class LayerMapper(object):
             coverage = RenderCoverage.from_model(eo_object)
             return LayerDescription.from_mosaic(coverage, raster_styles)
         elif isinstance(eo_object, (models.Product, models.Collection)):
+            dimensions = {}
+            if eo_object.begin_time and eo_object.end_time:
+                dimensions["time"] = {
+                    'min': isoformat(eo_object.begin_time),
+                    'max': isoformat(eo_object.end_time),
+                    'step': 'PT1S',
+                    'default': isoformat(eo_object.end_time),
+                    'units': 'ISO8601'
+                }
+
             if getattr(eo_object, "product_type", None):
                 browse_type_qs = eo_object.product_type.browse_types.all()
                 mask_type_qs = eo_object.product_type.mask_types.all()
@@ -105,14 +115,16 @@ class LayerMapper(object):
                         eo_object.identifier, self.suffix_separator
                     ),
                     styles=geometry_styles,
-                    queryable=True
+                    queryable=True,
+                    dimensions=dimensions,
                 ),
                 LayerDescription(
                     "%s%soutlined" % (
                         eo_object.identifier, self.suffix_separator
                     ),
                     styles=geometry_styles,
-                    queryable=True
+                    queryable=True,
+                    dimensions=dimensions,
                 )
             ]
             for name, is_gray in browse_types_name_and_is_gray:
@@ -122,7 +134,8 @@ class LayerMapper(object):
                             eo_object.identifier, self.suffix_separator,
                             name
                         ) if name else eo_object.identifier,
-                        styles=raster_styles if is_gray else []
+                        styles=raster_styles if is_gray else [],
+                        dimensions=dimensions,
                     )
                 )
 
@@ -133,27 +146,19 @@ class LayerMapper(object):
                             eo_object.identifier, self.suffix_separator,
                             mask_type_name
                         ),
-                        styles=geometry_styles
+                        styles=geometry_styles,
+                        dimensions=dimensions,
                     )
                 )
                 sub_layers.append(
                     LayerDescription(
                         "%s%smasked_%s" % (
                             eo_object.identifier, self.suffix_separator,
-                            mask_type_name
-                        )
+                            mask_type_name,
+                        ),
+                        dimensions=dimensions,
                     )
                 )
-
-            dimensions = {}
-            if eo_object.begin_time and eo_object.end_time:
-                dimensions["time"] = {
-                    'min': isoformat(eo_object.begin_time),
-                    'max': isoformat(eo_object.end_time),
-                    'step': 'PT1S',
-                    'default': isoformat(eo_object.end_time),
-                    'units': 'ISO8601'
-                }
 
             return LayerDescription(
                 name=eo_object.identifier,
@@ -690,8 +695,8 @@ def _lookup_coverages(product, field_names):
         coverage_type__field_types__identifier__in=field_names
     )
 
-    # annotate the coverages with booleans indicating whether or not they have a
-    # certain field
+    # annotate the coverages with booleans indicating whether or not they
+    # have a certain field
     coverages = coverages.annotate(**{
         'has_%s' % field_name: Case(
             When(
