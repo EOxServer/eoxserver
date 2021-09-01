@@ -48,7 +48,9 @@ from eoxserver.core.decoders import xml, kvp, typelist, enum
 from eoxserver.render.coverage import objects
 from eoxserver.resources.coverages import models
 from eoxserver.services.ows.wcs.v20.util import (
-    nsmap, parse_subset_kvp, parse_subset_xml
+    nsmap, parse_subset_kvp, parse_subset_xml, parse_scaleaxis_kvp,
+    parse_scaleaxis_xml, parse_scaleextent_kvp, parse_scaleextent_xml,
+    parse_scalesize_kvp, parse_scalesize_xml, parse_interpolation
 )
 from eoxserver.services.ows.wcs.v20.parameters import WCS20CoverageRenderParams
 from eoxserver.services.ows.common.config import WCSEOConfigReader
@@ -103,8 +105,37 @@ class WCS20GetEOCoverageSetHandler(object):
             return WCS20GetEOCoverageSetXMLDecoder(request.body)
 
     def get_params(self, coverage, decoder, request):
+        if decoder.apply_subset:
+            subsets = Subsets(decoder.subsets, crs=decoder.subsettingcrs)
+        else:
+            subsets = Subsets([], crs=decoder.subsettingcrs)
+
+        scalefactor = decoder.scalefactor
+        scales = list(
+            chain(decoder.scaleaxes, decoder.scalesize, decoder.scaleextent)
+        )
+
+        # check scales validity: ScaleFactor and any other scale
+        if scalefactor and scales:
+            raise InvalidRequestException(
+                "ScaleFactor and any other scale operation are mutually "
+                "exclusive.", locator="scalefactor"
+            )
+
+        # check scales validity: Axis uniqueness
+        axes = set()
+        for scale in scales:
+            if scale.axis in axes:
+                raise InvalidRequestException(
+                    "Axis '%s' is scaled multiple times." % scale.axis,
+                    locator=scale.axis
+                )
+            axes.add(scale.axis)
+
         return WCS20CoverageRenderParams(
-            coverage, Subsets(decoder.subsets), http_request=request
+            coverage, subsets, decoder.rangesubset, decoder.format,
+            decoder.outputcrs, decoder.mediatype, decoder.interpolation,
+            scalefactor, scales, {}, request
         )
 
     def get_renderer(self, params):
@@ -122,13 +153,14 @@ class WCS20GetEOCoverageSetHandler(object):
             "Could not find renderer for coverage '%s'."
         )
 
-    def get_pacakge_writer(self, format, params):
+    def get_pacakge_writer(self, package_format, params):
         for writer in get_package_writers():
-            if writer.supports(format, params):
+            if writer.supports(package_format, params):
                 return writer
 
         raise InvalidRequestException(
-            "Format '%s' is not supported." % format, locator="format"
+            "Package format '%s' is not supported." % package_format,
+            locator="packageFormat"
         )
 
     @property
@@ -142,8 +174,8 @@ class WCS20GetEOCoverageSetHandler(object):
         decoder = self.get_decoder(request)
         eo_ids = decoder.eo_ids
 
-        format, format_params = decoder.format
-        writer = self.get_pacakge_writer(format, format_params)
+        package_format, format_params = decoder.package_format
+        writer = self.get_pacakge_writer(package_format, format_params)
 
         containment = decoder.containment
 
@@ -262,14 +294,18 @@ class WCS20GetEOCoverageSetHandler(object):
         all_coverages_qs = all_coverages_qs.order_by('identifier')
 
         # limit coverages according to the number of dataset series
-        coverages_qs = all_coverages_qs[:max(
+        offset = decoder.start_index
+        length = max(
             0, count - all_dataset_series_qs.count() - len(mosaics)
-        )]
+        )
+        coverages_qs = all_coverages_qs[offset:offset + length]
 
         fd, pkg_filename = tempfile.mkstemp()
         tmp = os.fdopen(fd)
         tmp.close()
-        package = writer.create_package(pkg_filename, format, format_params)
+        package = writer.create_package(
+            pkg_filename, package_format, format_params
+        )
 
         for coverage_model in coverages_qs:
             coverage = objects.from_model(coverage_model)
@@ -291,8 +327,12 @@ class WCS20GetEOCoverageSetHandler(object):
                     package, result_item.data, result_item.size, location
                 )
 
-        mime_type = writer.get_mime_type(package, format, format_params)
-        ext = writer.get_file_extension(package, format, format_params)
+        mime_type = writer.get_mime_type(
+            package, package_format, format_params
+        )
+        ext = writer.get_file_extension(
+            package, package_format, format_params
+        )
         writer.cleanup(package)
 
         response = StreamingHttpResponse(
@@ -328,7 +368,7 @@ containment_enum = enum(
 )
 
 
-def parse_format(string):
+def parse_package_format(string):
     parts = string.split(";")
     params = dict(
         param.strip().split("=", 1) for param in parts[1:]
@@ -336,19 +376,51 @@ def parse_format(string):
     return parts[0], params
 
 
+def parse_apply_subset(value):
+    value = value.upper()
+    if value == 'TRUE':
+        return True
+    elif value == 'FALSE':
+        return False
+    raise ValueError("Invalid value for 'applySubset' parameter.")
+
+
 class WCS20GetEOCoverageSetKVPDecoder(kvp.Decoder):
     eo_ids      = kvp.Parameter("eoid", type=typelist(str, ","), num=1, locator="eoid")
     subsets     = kvp.Parameter("subset", type=parse_subset_kvp, num="*")
     containment = kvp.Parameter(type=containment_enum, num="?")
     count       = kvp.Parameter(type=pos_int, num="?", default=MAXSIZE)
-    format      = kvp.Parameter(num=1, type=parse_format)
+    start_index = kvp.Parameter("startIndex", type=pos_int, num="?", default=0)
+    package_format = kvp.Parameter(num=1, type=parse_package_format)
+    mediatype   = kvp.Parameter("mediatype", num="?")
+    format      = kvp.Parameter("format", num="?")
+    apply_subset = kvp.Parameter("applySubset", type=parse_apply_subset, default=True, num="?")
+    scaleaxes   = kvp.Parameter("scaleaxes", type=typelist(parse_scaleaxis_kvp, ","), default=(), num="?")
+    scalesize   = kvp.Parameter("scalesize", type=typelist(parse_scalesize_kvp, ","), default=(), num="?")
+    scaleextent = kvp.Parameter("scaleextent", type=typelist(parse_scaleextent_kvp, ","), default=(), num="?")
+    interpolation = kvp.Parameter("interpolation", type=parse_interpolation, num="?")
+    subsettingcrs = kvp.Parameter("subsettingcrs", num="?")
+    outputcrs   = kvp.Parameter("outputcrs", num="?")
+    interpolation = kvp.Parameter("interpolation", type=parse_interpolation, num="?")
+
 
 
 class WCS20GetEOCoverageSetXMLDecoder(xml.Decoder):
-    eo_ids      = xml.Parameter("/wcseo:EOID/text()", num="+", locator="eoid")
-    subsets     = xml.Parameter("/wcs:DimensionTrim", type=parse_subset_xml, num="*")
-    containment = xml.Parameter("/wcseo:containment/text()", type=containment_enum, locator="containment")
-    count       = xml.Parameter("/@count", type=pos_int, num="?", default=MAXSIZE, locator="count")
-    format      = xml.Parameter("/wcs:format/text()", type=parse_format, num=1, locator="format")
+    eo_ids      = xml.Parameter("wcseo11:eoId/text()", num="+", locator="eoid")
+    subsets     = xml.Parameter("wcs:DimensionTrim", type=parse_subset_xml, num="*")
+    containment = xml.Parameter("wcseo11:containment/text()", type=containment_enum, locator="containment")
+    count       = xml.Parameter("@count", type=pos_int, num="?", default=MAXSIZE, locator="count")
+    start_index = xml.Parameter("@startIndex", type=pos_int, num="?", default=0, locator="startIndex")
+    package_format = xml.Parameter("wcseo11:packageFormat/text()", type=parse_package_format, num=1, locator="packageFormat")
+    mediatype   = xml.Parameter("wcs:mediaType/text()", num="?", locator="mediatype")
+    format      = xml.Parameter("wcseo11:format/text()", num="?", locator="format")
+    apply_subset = xml.Parameter("wcseo11:applySubset/text()", type=parse_apply_subset, num="?", locator="format")
+    scaleaxes   = xml.Parameter("scal:ScaleByAxesFactor/scal:ScaleAxis", type=parse_scaleaxis_xml, num="*", default=(), locator="scaleaxes")
+    scalesize   = xml.Parameter("scal:ScaleToSize/scal:TargetAxisSize", type=parse_scalesize_xml, num="*", default=(), locator="scalesize")
+    scaleextent = xml.Parameter("scal:ScaleToExtent/scal:TargetAxisExtent", type=parse_scaleextent_xml, num="*", default=(), locator="scaleextent")
+    interpolation = xml.Parameter("int:Interpolation/int:globalInterpolation/text()", type=parse_interpolation, num="?", locator="interpolation")
+    subsettingcrs = xml.Parameter("crs:subsettingCrs/text()", num="?", locator="subsettingcrs")
+    outputcrs   = xml.Parameter("crs:outputCrs/text()", num="?", locator="outputcrs")
+    interpolation = xml.Parameter("int:Interpolation/int:globalInterpolation/text()", type=parse_interpolation, num="?", locator="interpolation")
 
     namespaces = nsmap
