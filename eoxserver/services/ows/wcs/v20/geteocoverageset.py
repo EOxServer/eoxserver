@@ -327,6 +327,9 @@ class WCS20GetEOCoverageSetHandler(object):
                     package, result_item.data, result_item.size, location
                 )
 
+        # TODO: if decoder.mediatype is set to multipart/* add a dataset
+        # series description
+
         mime_type = writer.get_mime_type(
             package, package_format, format_params
         )
