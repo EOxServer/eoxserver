@@ -94,7 +94,7 @@ def get_product_type_name(stac_item):
 
 
 @transaction.atomic
-def register_stac_product(location, stac_item, product_type=None, storage=None,
+def register_stac_product(stac_item, product_type=None, storage=None,
                           replace=False, mapping={}):
     """ Registers a single parsed STAC item as a Product. The
         product type to be used can be specified via the product_type_name
@@ -217,7 +217,7 @@ def register_stac_product(location, stac_item, product_type=None, storage=None,
     for asset_name, asset in assets.items():
         overrides = {}
         if mapping:
-            if asset_name in mapping.keys():
+            if asset_name in mapping['assets']:
                 if 'eo:bands' in asset.keys():
                     bands = asset['eo:bands']
                     band_names = [band['name'] for band in bands]
@@ -393,7 +393,7 @@ def create_product_type_from_stac_item(stac_item, product_type_name=None,
 
     if coverage_mapping:
         for asset_name, asset in assets.items():
-            if asset_name in coverage_mapping:
+            if asset_name in coverage_mapping['assets']:
                 bands_list.append(
                     (
                         asset_name,
