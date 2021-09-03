@@ -50,7 +50,8 @@ from eoxserver.resources.coverages import models
 from eoxserver.services.ows.wcs.v20.util import (
     nsmap, parse_subset_kvp, parse_subset_xml, parse_scaleaxis_kvp,
     parse_scaleaxis_xml, parse_scaleextent_kvp, parse_scaleextent_xml,
-    parse_scalesize_kvp, parse_scalesize_xml, parse_interpolation
+    parse_scalesize_kvp, parse_scalesize_xml, parse_interpolation,
+    parse_range_subset_kvp, parse_range_subset_xml
 )
 from eoxserver.services.ows.wcs.v20.parameters import WCS20CoverageRenderParams
 from eoxserver.services.ows.common.config import WCSEOConfigReader
@@ -391,6 +392,8 @@ def parse_apply_subset(value):
 class WCS20GetEOCoverageSetKVPDecoder(kvp.Decoder):
     eo_ids      = kvp.Parameter("eoid", type=typelist(str, ","), num=1, locator="eoid")
     subsets     = kvp.Parameter("subset", type=parse_subset_kvp, num="*")
+    scalefactor = kvp.Parameter("scalefactor", type=float, num="?")
+    rangesubset = kvp.Parameter("rangesubset", type=parse_range_subset_kvp, num="?")
     containment = kvp.Parameter(type=containment_enum, num="?")
     count       = kvp.Parameter(type=pos_int, num="?", default=MAXSIZE)
     start_index = kvp.Parameter("startIndex", type=pos_int, num="?", default=0)
@@ -414,9 +417,11 @@ class WCS20GetEOCoverageSetXMLDecoder(xml.Decoder):
     containment = xml.Parameter("wcseo11:containment/text()", type=containment_enum, locator="containment")
     count       = xml.Parameter("@count", type=pos_int, num="?", default=MAXSIZE, locator="count")
     start_index = xml.Parameter("@startIndex", type=pos_int, num="?", default=0, locator="startIndex")
+    scalefactor = xml.Parameter("wcs:Extension/scal:ScaleByFactor/scal:scaleFactor/text()", type=float, num="?", locator="scalefactor")
     package_format = xml.Parameter("wcseo11:packageFormat/text()", type=parse_package_format, num=1, locator="packageFormat")
     mediatype   = xml.Parameter("wcs:mediaType/text()", num="?", locator="mediatype")
     format      = xml.Parameter("wcseo11:format/text()", num="?", locator="format")
+    rangesubset = xml.Parameter("wcs:Extension/rsub:RangeSubset", type=parse_range_subset_xml, num="?", locator="rangesubset")
     apply_subset = xml.Parameter("wcseo11:applySubset/text()", type=parse_apply_subset, num="?", locator="format")
     scaleaxes   = xml.Parameter("scal:ScaleByAxesFactor/scal:ScaleAxis", type=parse_scaleaxis_xml, num="*", default=(), locator="scaleaxes")
     scalesize   = xml.Parameter("scal:ScaleToSize/scal:TargetAxisSize", type=parse_scalesize_xml, num="*", default=(), locator="scalesize")
