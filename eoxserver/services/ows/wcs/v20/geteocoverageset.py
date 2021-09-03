@@ -178,6 +178,8 @@ class WCS20GetEOCoverageSetHandler(object):
         writer = self.get_pacakge_writer(package_format, format_params)
 
         containment = decoder.containment
+        if not containment:
+            containment = "overlaps"
 
         count_default = self.constraints["CountDefault"]
         count = decoder.count
@@ -394,7 +396,7 @@ class WCS20GetEOCoverageSetKVPDecoder(kvp.Decoder):
     containment = kvp.Parameter(type=containment_enum, num="?")
     count       = kvp.Parameter(type=pos_int, num="?", default=MAXSIZE)
     start_index = kvp.Parameter("startIndex", type=pos_int, num="?", default=0)
-    package_format = kvp.Parameter(num=1, type=parse_package_format)
+    package_format = kvp.Parameter("packageFormat", num=1, type=parse_package_format)
     mediatype   = kvp.Parameter("mediatype", num="?")
     format      = kvp.Parameter("format", num="?")
     apply_subset = kvp.Parameter("applySubset", type=parse_apply_subset, default=True, num="?")
