@@ -96,7 +96,7 @@ def get_product_type_name(stac_item):
 
 @transaction.atomic
 def register_stac_product(stac_item, product_type=None, storage=None,
-                          replace=False, mapping={},
+                          replace=False, coverage_mapping={},
                           metadata_asset_names=None):
     """ Registers a single parsed STAC item as a Product. The
         product type to be used can be specified via the product_type_name
@@ -264,17 +264,24 @@ def register_stac_product(stac_item, product_type=None, storage=None,
 
     for asset_name, asset in assets.items():
         overrides = {}
-        if mapping:
-            if asset_name in mapping['assets']:
-                if 'eo:bands' in asset.keys():
-                    bands = asset['eo:bands']
-                    band_names = [band['name'] for band in bands]
-                else:
-                    band_names = [asset_name]
+        # if we have an explicit mapping defined, we only pick the coverages
+        # in that mapping
+        if coverage_mapping:
+            for coverage_type_name, mapping in coverage_mapping.items():
+                if asset_name in coverage_mapping['assets']:
+                    coverage_type = models.CoverageType.objects.get(
+                        name=coverage_type_name
+                    )
+                    break
             else:
                 continue
+
+        # if no mapping is defined, we try to figure out the coverage type via
+        # the `eo:bands`
         else:
             bands = asset.get('eo:bands')
+            if bands is None:
+                continue
 
             if not isinstance(bands, list):
                 bands = [bands]
@@ -284,22 +291,22 @@ def register_stac_product(stac_item, product_type=None, storage=None,
             except TypeError:
                 band_names = bands
 
-        try:
-            coverage_type = models.CoverageType.objects.get(
-                Q(allowed_product_types=product_type),
-                *[
-                    Q(field_types__identifier=band_name)
-                    for band_name in band_names
-                ]
-            )
-        except models.CoverageType.DoesNotExist:
             try:
                 coverage_type = models.CoverageType.objects.get(
-                    Q(allowed_product_types=product_type)
+                    Q(allowed_product_types=product_type),
+                    *[
+                        Q(field_types__identifier=band_name)
+                        for band_name in band_names
+                    ]
                 )
-            except (models.CoverageType.DoesNotExist,
-                    models.CoverageType.MultipleObjectsReturned):
-                continue
+            except models.CoverageType.DoesNotExist:
+                try:
+                    coverage_type = models.CoverageType.objects.get(
+                        Q(allowed_product_types=product_type)
+                    )
+                except (models.CoverageType.DoesNotExist,
+                        models.CoverageType.MultipleObjectsReturned):
+                    continue
         overrides['identifier'] = '%s_%s' % (identifier, asset_name)
 
         # create the storage item
@@ -309,12 +316,6 @@ def register_stac_product(stac_item, product_type=None, storage=None,
             path = parsed.path
         else:
             path = parsed.path.strip('/')
-
-        # arraydata_item = models.ArrayDataItem(
-        #     location=path,
-        #     storage=storage,
-        #     band_count=len(bands),
-        # )
 
         if 'proj:geometry' in asset:
             coverage_footprint = GEOSGeometry(
