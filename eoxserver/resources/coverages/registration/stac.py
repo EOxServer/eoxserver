@@ -316,6 +316,8 @@ def register_stac_product(stac_item, product_type=None, storage=None,
         #     band_count=len(bands),
         # )
 
+        coverage_footprint = None
+
         if 'proj:geometry' in asset:
             coverage_footprint = GEOSGeometry(
                 json.dumps(asset['proj:geometry'])
