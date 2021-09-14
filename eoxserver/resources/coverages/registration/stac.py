@@ -268,7 +268,7 @@ def register_stac_product(stac_item, product_type=None, storage=None,
         # in that mapping
         if coverage_mapping:
             for coverage_type_name, mapping in coverage_mapping.items():
-                if asset_name in coverage_mapping['assets']:
+                if asset_name in mapping['assets']:
                     coverage_type = models.CoverageType.objects.get(
                         name=coverage_type_name
                     )
