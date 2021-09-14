@@ -27,6 +27,7 @@
 
 
 import tarfile
+import io
 
 
 gzip_mimes = ("application/gzip", "application/x-gzip")
@@ -54,10 +55,10 @@ class TarPackageWriter(object):
     def cleanup(self, package):
         package.close()
 
-    def add_to_package(self, package, file_obj, size, location):
+    def add_to_package(self, package, data, size, location):
         info = tarfile.TarInfo(location)
         info.size = size
-        package.addfile(info, file_obj)
+        package.addfile(info, io.BytesIO(data))
 
     def get_mime_type(self, package, format, params):
         return "application/x-compressed-tar"

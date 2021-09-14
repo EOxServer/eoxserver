@@ -70,7 +70,7 @@ class ResultItem(object):
 
     @property
     def content_type(self):
-        """ Reterns a binary value of content-type if it is a string. 
+        """ Reterns a binary value of content-type if it is a string.
         """
         if isinstance(self._content_type, str):
             self._content_type = b(self._content_type)
@@ -136,7 +136,7 @@ class ResultBuffer(ResultItem):
         super(ResultBuffer, self).__init__(content_type, filename, identifier)
         if isinstance(buf, str) or isinstance(buf, bytes):
             self.buf = buf
-        else: 
+        else:
             self.buf = buf.tobytes()
 
     @property
@@ -261,7 +261,7 @@ def to_http_response(result_set, response_type=HttpResponse, boundary=None):
                 if boundary:
                     yield boundary_str
                     yield mp.CRLF.join(
-                    b"%s: %s" % (key, value) 
+                    b"%s: %s" % (key, value)
                     for key, value in get_headers(item)
                     ) + mp.CRLFCRLF
                 yield item.data
