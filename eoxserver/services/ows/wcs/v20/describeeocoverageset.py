@@ -1,9 +1,9 @@
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
 #
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Copyright (C) 2013 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -13,8 +13,8 @@
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
-# The above copyright notice and this permission notice shall be included in all
-# copies of this Software or works derived from this Software.
+# The above copyright notice and this permission notice shall be included in
+# all copies of this Software or works derived from this Software.
 #
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -23,11 +23,10 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 
 import logging
-from itertools import chain
 
 from django.db.models import Q
 from django.utils.six import MAXSIZE
@@ -134,7 +133,8 @@ class WCS20DescribeEOCoverageSetHandler(object):
 
         filters = subsets.get_filters(containment=containment)
 
-        # get a QuerySet of all dataset series, directly or indirectly referenced
+        # get a QuerySet of all dataset series, directly or indirectly
+        # referenced
         all_dataset_series_qs = models.EOObject.objects.filter(
             Q(  # directly referenced Collections
                 collection__isnull=False,
@@ -151,7 +151,7 @@ class WCS20DescribeEOCoverageSetHandler(object):
                 product__collections__in=collections,
                 **filters
             )
-        )
+        ).distinct().order_by('identifier')
 
         if inc_dss_section:
             dataset_series_qs = all_dataset_series_qs[:count]
@@ -201,7 +201,7 @@ class WCS20DescribeEOCoverageSetHandler(object):
             Q(  # Mosaics within directly referenced Collections
                 mosaic__collections__in=collections
             )
-        ).select_subclasses(models.Coverage, models.Mosaic)
+        ).distinct().select_subclasses(models.Coverage, models.Mosaic)
 
         all_coverages_qs = all_coverages_qs.order_by('identifier')
 
@@ -218,7 +218,9 @@ class WCS20DescribeEOCoverageSetHandler(object):
         )]
 
         # compute the number of all items that would match
-        number_matched = all_coverages_qs.count() + all_dataset_series_qs.count()
+        number_matched = (
+            all_coverages_qs.count() + all_dataset_series_qs.count()
+        )
 
         # create an encoder and encode the result
         encoder = WCS20EOXMLEncoder()
@@ -254,6 +256,7 @@ containment_enum = enum(
 sections_enum = enum(
     ("DatasetSeriesDescriptions", "CoverageDescriptions", "All"), False
 )
+
 
 class WCS20DescribeEOCoverageSetKVPDecoder(kvp.Decoder, SectionsMixIn):
     eo_ids      = kvp.Parameter("eoid", type=typelist(str, ","), num=1, locator="eoid")
