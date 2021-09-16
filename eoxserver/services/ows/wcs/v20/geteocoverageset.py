@@ -63,6 +63,7 @@ from eoxserver.services.exceptions import (
 
 logger = logging.getLogger(__name__)
 
+DEFAULT_DEFAULT_PACKAGE_FORMAT = 'application/gzip'
 
 DEFAULT_PACKAGE_WRITERS = [
     'eoxserver.services.ows.wcs.v20.packages.tar.TarPackageWriter',
@@ -174,7 +175,15 @@ class WCS20GetEOCoverageSetHandler(object):
         decoder = self.get_decoder(request)
         eo_ids = decoder.eo_ids
 
-        package_format, format_params = decoder.package_format
+        package_format = decoder.package_format
+        if package_format:
+            package_format, format_params = package_format
+        else:
+            package_format = getattr(
+                settings, 'EOXS_DEFAULT_PACKAGE_FORMAT',
+                DEFAULT_DEFAULT_PACKAGE_FORMAT
+            )
+            format_params = {}
         writer = self.get_pacakge_writer(package_format, format_params)
 
         containment = decoder.containment
@@ -394,7 +403,7 @@ class WCS20GetEOCoverageSetKVPDecoder(kvp.Decoder):
     containment = kvp.Parameter(type=containment_enum, num="?")
     count       = kvp.Parameter(type=pos_int, num="?", default=MAXSIZE)
     start_index = kvp.Parameter("startIndex", type=pos_int, num="?", default=0)
-    package_format = kvp.Parameter("packageFormat", num=1, type=parse_package_format)
+    package_format = kvp.Parameter("packageFormat", num="?", type=parse_package_format)
     mediatype   = kvp.Parameter("mediatype", num="?")
     format      = kvp.Parameter("format", num="?")
     apply_subset = kvp.Parameter("applySubset", type=parse_apply_subset, default=True, num="?")
@@ -414,7 +423,7 @@ class WCS20GetEOCoverageSetXMLDecoder(xml.Decoder):
     containment = xml.Parameter("wcseo11:containment/text()", type=containment_enum, locator="containment")
     count       = xml.Parameter("@count", type=pos_int, num="?", default=MAXSIZE, locator="count")
     start_index = xml.Parameter("@startIndex", type=pos_int, num="?", default=0, locator="startIndex")
-    package_format = xml.Parameter("wcseo11:packageFormat/text()", type=parse_package_format, num=1, locator="packageFormat")
+    package_format = xml.Parameter("wcseo11:packageFormat/text()", type=parse_package_format, num="?", locator="packageFormat")
     mediatype   = xml.Parameter("wcs:mediaType/text()", num="?", locator="mediatype")
     format      = xml.Parameter("wcseo11:format/text()", num="?", locator="format")
     apply_subset = xml.Parameter("wcseo11:applySubset/text()", type=parse_apply_subset, num="?", locator="format")
