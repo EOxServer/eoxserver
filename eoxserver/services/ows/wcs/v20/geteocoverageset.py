@@ -246,7 +246,7 @@ class WCS20GetEOCoverageSetHandler(object):
                 product__collections__in=collections,
                 **filters
             )
-        )
+        ).distinct()
 
         # Allow metadata queries on coverage itself or on the
         # parent product if available
@@ -291,9 +291,7 @@ class WCS20GetEOCoverageSetHandler(object):
             Q(  # Mosaics within directly referenced Collections
                 mosaic__collections__in=collections
             )
-        ).select_subclasses(models.Coverage, models.Mosaic)
-
-        all_coverages_qs = all_coverages_qs.order_by('identifier')
+        ).distinct().select_subclasses(models.Coverage, models.Mosaic)
 
         # limit coverages according to the number of dataset series
         offset = decoder.start_index
