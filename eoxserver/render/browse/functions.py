@@ -178,6 +178,28 @@ def contours(data, offset=0, interval=100, fill_value=-9999):
     return out_data
 
 
+def pansharpen(pan_ds, *spectral_dss):
+    spectral_band_xml = ''.join(
+        '<SpectralBand dstBand="%d"></SpectralBand>' % (i + 1)
+        for i in range(len(spectral_dss))
+    )
+    ds = gdal.CreatePansharpenedVRT(
+        """
+        <VRTDataset subClass="VRTPansharpenedDataset">
+            <PansharpeningOptions>
+                %s
+            </PansharpeningOptions>
+        </VRTDataset>
+        """ % spectral_band_xml,
+        pan_ds.GetRasterBand(1), [
+            spectral_ds.GetRasterBand(1) for spectral_ds in spectral_dss
+        ]
+    )
+
+    out_ds = gdal_array.OpenNumPyArray(ds.ReadAsArray(), True)
+    return out_ds
+
+
 def wrap_numpy_func(function):
     @wraps(function)
     def inner(ds, *args, **kwargs):
@@ -223,6 +245,7 @@ function_map = {
     'tpi': tpi,
     'roughness': roughness,
     'contours': contours,
+    'pansharpen': pansharpen,
 }
 
 

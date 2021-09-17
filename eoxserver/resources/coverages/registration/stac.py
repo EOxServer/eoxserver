@@ -26,26 +26,27 @@
 # ------------------------------------------------------------------------------
 
 import json
-from os.path import isabs, join, dirname, normpath
+from os.path import isabs
 from urllib.parse import urlparse
 
 from django.contrib.gis.geos import GEOSGeometry
 from django.db.models import Q
 from django.db import transaction
 
-from eoxserver.contrib import osr
+from eoxserver.contrib import osr, gdal
 from eoxserver.core.util.timetools import parse_iso8601
 from eoxserver.backends import models as backends
-from eoxserver.backends.access import gdal_open
+from eoxserver.backends.access import get_vsi_path, get_vsi_env
 from eoxserver.resources.coverages import models
-from eoxserver.resources.coverages.registration.registrators.gdal import GDALRegistrator
+from eoxserver.resources.coverages.registration.registrators.gdal import (
+    GDALRegistrator
+)
 from eoxserver.resources.coverages.registration.exceptions import (
     RegistrationError
 )
 from eoxserver.resources.coverages.registration.product import create_metadata
-from eoxserver.resources.coverages.registration.base import get_grid
-from eoxserver.resources.coverages.metadata.coverage_formats import (
-    get_reader_by_test
+from eoxserver.resources.coverages.metadata.component import (
+    ProductMetadataComponent
 )
 
 
@@ -95,7 +96,8 @@ def get_product_type_name(stac_item):
 
 @transaction.atomic
 def register_stac_product(stac_item, product_type=None, storage=None,
-                          replace=False, mapping={}):
+                          replace=False, coverage_mapping={},
+                          metadata_asset_names=None):
     """ Registers a single parsed STAC item as a Product. The
         product type to be used can be specified via the product_type_name
         argument.
@@ -126,7 +128,10 @@ def register_stac_product(stac_item, product_type=None, storage=None,
     if isinstance(storage, str):
         storage = backends.Storage.objects.get(name=storage)
 
-    footprint = GEOSGeometry(json.dumps(geometry))
+    footprint = None
+    if geometry is not None:
+        footprint = GEOSGeometry(json.dumps(geometry))
+
     if 'start_datetime' in properties and 'end_datetime' in properties:
         start_time = parse_iso8601(properties['start_datetime'])
         end_time = parse_iso8601(properties['end_datetime'])
@@ -143,15 +148,41 @@ def register_stac_product(stac_item, product_type=None, storage=None,
         else:
             raise RegistrationError('Product %s already exists' % identifier)
 
-    product = models.Product.objects.create(
-        identifier=identifier,
-        begin_time=start_time,
-        end_time=end_time,
-        footprint=footprint,
-        product_type=product_type,
-    )
-
+    # metadata handling
+    component = ProductMetadataComponent()
     metadata = {}
+
+    # fetch all "metadata assets" (i.e with 'metadata' in roles)
+    if metadata_asset_names is not None:
+        try:
+            metadata_assets = [
+                assets[metadata_asset_name]
+                for metadata_asset_name in metadata_asset_names
+            ]
+        except KeyError as e:
+            raise RegistrationError('Failed to get asset %s' % e)
+    else:
+        metadata_assets = [
+            asset
+            for asset in assets.values()
+            if 'metadata' in asset.get('roles', [])
+        ]
+
+    metadata_items = [
+        models.MetaDataItem(
+            location=asset['href'],
+            storage=storage,
+        )
+        for asset in metadata_assets
+    ]
+
+    for metadata_item in reversed(metadata_items):
+        path = get_vsi_path(metadata_item)
+        with gdal.config_env(get_vsi_env(metadata_item.storage)):
+            metadata.update(component.read_product_metadata_file(path))
+
+    # read metadata directly from STAC Item, overruling what was already
+    # read from metadata assets
     simple_mappings = {
         'eo:cloud_cover': 'cloud_cover',
         'sar:instrument_mode': 'sensor_mode',
@@ -209,24 +240,48 @@ def register_stac_product(stac_item, product_type=None, storage=None,
                 for name in field_name:
                     metadata[name] = value
 
-    # actually create the metadata object
+    # read footprint from metadata if it was not already defined
+    footprint = footprint or metadata.get('footprint')
+
+    # finally create the product and its metadata object
+    product = models.Product.objects.create(
+        identifier=identifier,
+        begin_time=start_time,
+        end_time=end_time,
+        footprint=footprint,
+        product_type=product_type,
+    )
+
     create_metadata(product, metadata)
+
+    # attach all metadata items
+    for metadata_item in metadata_items:
+        metadata_item.eo_object = product
+        metadata_item.full_clean()
+        metadata_item.save()
 
     registrator = GDALRegistrator()
 
     for asset_name, asset in assets.items():
         overrides = {}
-        if mapping:
-            if asset_name in mapping['assets']:
-                if 'eo:bands' in asset.keys():
-                    bands = asset['eo:bands']
-                    band_names = [band['name'] for band in bands]
-                else:
-                    band_names = [asset_name]
+        # if we have an explicit mapping defined, we only pick the coverages
+        # in that mapping
+        if coverage_mapping:
+            for coverage_type_name, mapping in coverage_mapping.items():
+                if asset_name in mapping['assets']:
+                    coverage_type = models.CoverageType.objects.get(
+                        name=coverage_type_name
+                    )
+                    break
             else:
                 continue
+
+        # if no mapping is defined, we try to figure out the coverage type via
+        # the `eo:bands`
         else:
             bands = asset.get('eo:bands')
+            if bands is None:
+                continue
 
             if not isinstance(bands, list):
                 bands = [bands]
@@ -236,45 +291,43 @@ def register_stac_product(stac_item, product_type=None, storage=None,
             except TypeError:
                 band_names = bands
 
-        try:
-            coverage_type = models.CoverageType.objects.get(
-                Q(allowed_product_types=product_type),
-                *[
-                    Q(field_types__identifier=band_name)
-                    for band_name in band_names
-                ]
-            )
-        except models.CoverageType.DoesNotExist:
             try:
                 coverage_type = models.CoverageType.objects.get(
-                    Q(allowed_product_types=product_type)
+                    Q(allowed_product_types=product_type),
+                    *[
+                        Q(field_types__identifier=band_name)
+                        for band_name in band_names
+                    ]
                 )
-            except (models.CoverageType.DoesNotExist,
-                    models.CoverageType.MultipleObjectsReturned):
-                continue
+            except models.CoverageType.DoesNotExist:
+                try:
+                    coverage_type = models.CoverageType.objects.get(
+                        Q(allowed_product_types=product_type)
+                    )
+                except (models.CoverageType.DoesNotExist,
+                        models.CoverageType.MultipleObjectsReturned):
+                    continue
         overrides['identifier'] = '%s_%s' % (identifier, asset_name)
 
         # create the storage item
         parsed = urlparse(asset['href'])
 
         if not isabs(parsed.path):
-            path = normpath(join(dirname(location), parsed.path))
+            path = parsed.path
         else:
             path = parsed.path.strip('/')
 
-        # arraydata_item = models.ArrayDataItem(
-        #     location=path,
-        #     storage=storage,
-        #     band_count=len(bands),
-        # )
+        coverage_footprint = None
 
-        coverage_footprint = footprint
         if 'proj:geometry' in asset:
             coverage_footprint = GEOSGeometry(
                 json.dumps(asset['proj:geometry'])
             )
+        if footprint:
+            coverage_footprint = footprint
 
-        overrides['footprint'] = coverage_footprint.wkt
+        if coverage_footprint:
+            overrides['footprint'] = coverage_footprint.wkt
 
         shape = asset.get('proj:shape') or properties.get('proj:shape')
         transform = asset.get('proj:transform') or \
