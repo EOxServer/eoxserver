@@ -168,7 +168,7 @@ class WCS20GetEOCoverageSetHandler(object):
     def constraints(self):
         reader = WCSEOConfigReader(get_eoxserver_config())
         return {
-            "CountDefault": reader.paging_count_default
+            "CountDefault": reader.paging_count_default,
         }
 
     def handle(self, request):
@@ -237,26 +237,6 @@ class WCS20GetEOCoverageSetHandler(object):
 
         filters = subsets.get_filters(containment=containment)
 
-        # get a QuerySet of all dataset series, directly or indirectly
-        # referenced
-        all_dataset_series_qs = models.EOObject.objects.filter(
-            Q(  # directly referenced Collections
-                collection__isnull=False,
-                identifier__in=[
-                    collection.identifier for collection in collections
-                ],
-            ) |
-            Q(  # directly referenced Products
-                product__isnull=False,
-                identifier__in=[product.identifier for product in products],
-            ) |
-            Q(  # Products within Collections
-                product__isnull=False,
-                product__collections__in=collections,
-                **filters
-            )
-        ).distinct()
-
         # Allow metadata queries on coverage itself or on the
         # parent product if available
         parent_product_filters = []
@@ -302,12 +282,9 @@ class WCS20GetEOCoverageSetHandler(object):
             )
         ).distinct().select_subclasses(models.Coverage, models.Mosaic)
 
-        # limit coverages according to the number of dataset series
+        # limit coverages according to the requested or default count
         offset = decoder.start_index
-        length = max(
-            0, count - all_dataset_series_qs.count() - len(mosaics)
-        )
-        coverages_qs = all_coverages_qs[offset:offset + length]
+        coverages_qs = all_coverages_qs[offset:offset + count]
 
         fd, pkg_filename = tempfile.mkstemp()
         tmp = os.fdopen(fd)
