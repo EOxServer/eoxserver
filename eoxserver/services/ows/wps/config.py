@@ -27,7 +27,8 @@
 
 
 DEFAULT_EOXS_PROCESSES = [
-    'eoxserver.services.ows.wps.processes.get_time_data.GetTimeDataProcess'
+    'eoxserver.services.ows.wps.processes.get_time_data.GetTimeDataProcess',
+    'eoxserver.services.ows.wps.processes.get_height_profile.GetHeightProfileProcess'
 ]
 
 DEFAULT_EOXS_ASYNC_BACKENDS = [
