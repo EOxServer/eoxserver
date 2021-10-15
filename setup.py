@@ -100,6 +100,7 @@ setup(
         'psycopg2',
         'lxml',
         'pycql==0.0.8',
+        'matplotlib',
     ],
     extras_require={
         'dev': ['scipy'],

@@ -26,10 +26,14 @@
 # THE SOFTWARE.
 # -----------------------------------------------------------------------------
 
+import csv
 from uuid import uuid4
+import os
 
-from datetime import datetime
 from math import radians, cos, sin, asin, sqrt
+
+import numpy as np
+import matplotlib.pyplot as plt
 
 from eoxserver.contrib import gdal
 
@@ -37,7 +41,8 @@ from eoxserver.core import Component, implements
 
 from eoxserver.services.ows.wps.interfaces import ProcessInterface
 from eoxserver.services.ows.wps.parameters import (
-    LiteralData, ComplexData, FormatText
+    LiteralData, ComplexData, FormatText, CDAsciiTextBuffer,
+    CDByteBuffer, FormatBinaryRaw, FormatBinaryBase64,
 )
 from eoxserver.services.ows.wps.exceptions import InvalidInputValueError
 
@@ -45,52 +50,56 @@ from eoxserver.resources.coverages import models
 from eoxserver.backends.access import gdal_open
 
 
-
 class GetHeightProfileProcess(Component):
     """ GetHeightProfileProcess defines a WPS process needed by the EOxC
         DEM implementtation """
+
+    def __init__(self):
+        super(GetHeightProfileProcess, self).__init__()
 
     implements(ProcessInterface)
 
     identifier = "GetHeightProfile"
     title = "Get the hight profile for a coverage"
-    description = ("provides a height profile between 2 points within a product "
+    description = ("provides a height profile between 2 points within a coverage "
                   " The process is used by the  by the EOxC DEM implementtation")
     metadata = {}
     profiles = ['EOxServer:GetHeightProfile']
 
     inputs = {
-        "product": LiteralData(
-            "product",
-            title="Product identifier."),
-        "line": ComplexData(
+        "coverage": LiteralData(
+            "coverage",
+            title="coverage identifier."),
+        "line": LiteralData(
             "line",
-            datetime,
             title="horizontal axis of the height profile."
         ),
-        "output_format": LiteralData(
-            "format",
-            optional=True,
-            title="Optional end of the time interval."
-        ),
         "interpolation_method": LiteralData(
-            "collection",
-            title="Collection name (a.k.a. dataset-series identifier)."),
+            "method",
+            title="Interpolation method (a.k.a. near, avarage ... etc)."),
+        "interval": LiteralData(
+            "interval",
+            optional=True,
+            title="Distance interval."
+        ),
     }
 
     outputs = {
-        "times": ComplexData(
-            "times",
-            formats=(FormatText('text/csv'), FormatText('text/plain')),
-            title=(
-                "Comma separated list of collection's coverages, "
-                "their extents and times."
-            ),
-            abstract=(
-                "NOTE: The use of the 'text/plain' format is "
-                "deprecated! This format will be removed!'"
+        "profile": ComplexData(
+            "profile",
+            title="output image data",
+            abstract="Binary complex data output.",
+            formats=(
+                FormatBinaryRaw('image/png'),
+                FormatBinaryBase64('image/png'),
+                FormatBinaryRaw('image/jpeg'),
+                FormatBinaryBase64('image/jpeg'),
+                FormatBinaryRaw('image/tiff'),
+                FormatBinaryBase64('image/tiff'),
+                FormatText('text/csv'),
+                FormatText('text/plain')
             )
-        )
+        ),
     }
 
     def haversine(lon1, lat1, lon2, lat2):
@@ -110,55 +119,89 @@ class GetHeightProfileProcess(Component):
         return c * r
 
     @staticmethod
-    def execute(self, product, line, interval, output_format, interpolation_method, **kwarg):
+    def execute(coverage, line, interval, interpolation_method, profile, **kwarg):
         """ The main execution function for the process.
         """
 
+        if isinstance(line, str):
+            line = eval(line)
+
+        line_distance = GetHeightProfileProcess.haversine(line[0], line[1], line[2], line[3])
+
         # get the dataset series matching the requested ID
         try:
-            model = models.EOObject.objects.filter(
-                identifier=product
-            ).select_subclasses().get()
+            model = models.Coverage.objects.get(
+                identifier=coverage)
 
-        except models.EOObject.DoesNotExist:
+        except models.Coverage.DoesNotExist:
             raise InvalidInputValueError(
-                "product", "Invalid product name '%s'!" % product
+                "coverage", "Invalid coverage name '%s'!" % coverage
             )
         try:
 
             data_items = model.arraydata_items.all()
 
-        except data_items.length > 1:
+        except model.arraydata_items.all().length > 1:
             raise InvalidInputValueError(
-                "product", "product '%s' has more than one imagery, the profile process handles single images!" % product
+                "coverage", "coverage '%s' has more than one imagery, the profile process handles single images!" % coverage
             )
         data_item = data_items[0]
         ds = gdal_open(data_item, False)
-
         proj_str = "+proj=tpeqd +lon_1={} +lat_1={} +lon_2={} +lat_2={}".format(line[0], line[1], line[2], line[3])
-
-        line_distance = self.haversine(line[0], line[1], line[2], line[3])
-
         bbox = ((-1 * line_distance / 2), (100*0.5), line_distance / 2, -(100*0.5))
+        interval = int(interval)
 
-        # Calculate the number of samples in our profile.
+        # # Calculate the number of samples in the profile.
         num_samples = int(line_distance / interval)
 
-        tmp_name = '/vsimem/%s' % uuid4().hex
+        tmp_ds = '/vsimem/%s' % uuid4().hex
 
-        profile = gdal.Warp(tmp_name, ds, dstSRS=proj_str, outputBounds=bbox,
+        profile_ds = gdal.Warp(tmp_ds, ds, dstSRS=proj_str, outputBounds=bbox,
                         height=1, width=num_samples, resampleAlg=interpolation_method,
-                        format=output_format)
+                        format='Gtiff')
 
-        array_out = profile.GetRasterBand(1).ReadAsArray()
+        array_out = profile_ds.GetRasterBand(1).ReadAsArray()
 
-        # TODO: return the output as a csv or as png plot using matpoltlib
+        y = []
+        for (d, value) in enumerate(array_out[0, :]):
+            y.append(value)
+        x = np.arange(0, (num_samples * interval)/1000, interval/1000)
 
-        # with open('out.csv', 'w') as f:
-        #     f.write("dist,value\n")
-        #     for (d, value) in enumerate(array_out[0, :]):
-        #         f.write("{},{}\n".format(d*interval, value))
+        if (profile['mime_type'] == 'csv'):
+            _output = CDAsciiTextBuffer()
+            writer = csv.writer(_output, quoting=csv.QUOTE_ALL)
+            header = ["distance", "elevation"]
+            writer.writerow(header)
 
-        gdal.Unlink(tmp_name)
+            for (d, value) in enumerate(array_out[0, :]):
+                writer.writerow([
+                    d * interval,
+                    value
+                ])
 
-        return array_out
+        else:
+            if profile['mime_type'] == "image/png":
+                extension = ".png"
+
+            elif profile['mime_type'] == "image/jpeg":
+                extension = ".jpg"
+
+            elif profile['mime_type'] == "image/tiff":
+                extension = ".tif"
+
+            tmppath = '{}.{}'.format(uuid4().hex, extension)
+            output_filename = 'height_profile.%s' % extension
+            fig = plt.figure()
+            plt.plot(x, y)
+            fig.savefig(tmppath)
+            with open(tmppath, 'rb') as fid:
+                _output = CDByteBuffer(
+                    fid.read(), filename=output_filename,
+                )
+            os.remove(tmppath)
+            return _output
+
+        tmp_ds.Destroy()
+        gdal.Unlink(tmp_ds)
+
+        return _output
