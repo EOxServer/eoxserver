@@ -94,6 +94,15 @@ def get_product_type_name(stac_item):
     return '_'.join(parts)
 
 
+def get_path_from_href(href):
+    parsed = urlparse(href)
+
+    if not isabs(parsed.path):
+        return parsed.path
+    else:
+        return parsed.path.strip('/')
+
+
 @transaction.atomic
 def register_stac_product(stac_item, product_type=None, storage=None,
                           replace=False, coverage_mapping={},
@@ -170,7 +179,7 @@ def register_stac_product(stac_item, product_type=None, storage=None,
 
     metadata_items = [
         models.MetaDataItem(
-            location=asset['href'],
+            location=get_path_from_href(asset['href']),
             storage=storage,
         )
         for asset in metadata_assets
@@ -310,12 +319,7 @@ def register_stac_product(stac_item, product_type=None, storage=None,
         overrides['identifier'] = '%s_%s' % (identifier, asset_name)
 
         # create the storage item
-        parsed = urlparse(asset['href'])
-
-        if not isabs(parsed.path):
-            path = parsed.path
-        else:
-            path = parsed.path.strip('/')
+        path = get_path_from_href(asset['href'])
 
         coverage_footprint = None
 
