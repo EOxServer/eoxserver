@@ -97,7 +97,9 @@ def get_product_type_name(stac_item):
 def get_path_from_href(href):
     parsed = urlparse(href)
 
-    if not isabs(parsed.path):
+    if parsed.scheme.lower() == 's3':
+        return '%s%s' % (parsed.netloc, parsed.path)
+    elif not isabs(parsed.path):
         return parsed.path
     else:
         return parsed.path.strip('/')
