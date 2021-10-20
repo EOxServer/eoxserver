@@ -26,13 +26,11 @@
 # THE SOFTWARE.
 # -----------------------------------------------------------------------------
 
-import json
-from eoxserver.contrib import gdal
 import numpy as np
 
 from eoxserver.core import Component, implements
-# from eoxserver.resources import coverages
 
+from eoxserver.contrib import gdal
 from eoxserver.services.ows.wps.interfaces import ProcessInterface
 from eoxserver.services.ows.wps.parameters import (
     LiteralData, ComplexData, FormatJSON, CDObject

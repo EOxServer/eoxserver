@@ -167,8 +167,11 @@ class GetHeightProfileProcess(Component):
             y.append(value)
         x = np.arange(0, (num_samples * interval)/1000, interval/1000)
 
-        if (profile['mime_type'] == 'csv'):
+        if (profile['mime_type'] == "text/csv"):
             _output = CDAsciiTextBuffer()
+            if getattr(_output, 'mime_type', None) is None:
+                setattr(_output, 'mime_type', 'text/csv')
+
             writer = csv.writer(_output, quoting=csv.QUOTE_ALL)
             header = ["distance", "elevation"]
             writer.writerow(header)
@@ -200,8 +203,5 @@ class GetHeightProfileProcess(Component):
                 )
             os.remove(tmppath)
             return _output
-
-        tmp_ds.Destroy()
-        gdal.Unlink(tmp_ds)
 
         return _output
