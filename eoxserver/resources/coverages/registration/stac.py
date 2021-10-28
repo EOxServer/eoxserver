@@ -28,6 +28,7 @@
 import json
 from os.path import isabs
 from urllib.parse import urlparse
+import logging
 
 from django.contrib.gis.geos import GEOSGeometry
 from django.db.models import Q
@@ -36,7 +37,7 @@ from django.db import transaction
 from eoxserver.contrib import osr, gdal
 from eoxserver.core.util.timetools import parse_iso8601
 from eoxserver.backends import models as backends
-from eoxserver.backends.access import get_vsi_path, get_vsi_env
+from eoxserver.backends.access import get_vsi_path, get_vsi_env, gdal_open
 from eoxserver.resources.coverages import models
 from eoxserver.resources.coverages.registration.registrators.gdal import (
     GDALRegistrator
@@ -48,6 +49,9 @@ from eoxserver.resources.coverages.registration.product import create_metadata
 from eoxserver.resources.coverages.metadata.component import (
     ProductMetadataComponent
 )
+
+
+logger = logging.getLogger()
 
 
 def get_product_type_name(stac_item):
@@ -108,7 +112,7 @@ def get_path_from_href(href):
 @transaction.atomic
 def register_stac_product(stac_item, product_type=None, storage=None,
                           replace=False, coverage_mapping={},
-                          metadata_asset_names=None):
+                          browse_mapping=None, metadata_asset_names=None):
     """ Registers a single parsed STAC item as a Product. The
         product type to be used can be specified via the product_type_name
         argument.
@@ -117,8 +121,11 @@ def register_stac_product(stac_item, product_type=None, storage=None,
     identifier = stac_item['id']
     replaced = False
 
+    logger.debug('Registering STAC Item %s' % identifier)
+
     if replace:
         if models.Product.objects.filter(identifier=identifier).exists():
+            logger.debug('Deleting existing Product %s' % identifier)
             models.Product.objects.filter(identifier=identifier).delete()
             replaced = True
 
@@ -273,8 +280,11 @@ def register_stac_product(stac_item, product_type=None, storage=None,
 
     registrator = GDALRegistrator()
 
+    # handling coverages
+
     for asset_name, asset in assets.items():
         overrides = {}
+        coverage_type = None
         # if we have an explicit mapping defined, we only pick the coverages
         # in that mapping
         if coverage_mapping:
@@ -357,18 +367,11 @@ def register_stac_product(stac_item, product_type=None, storage=None,
             }
             overrides['grid'] = grid_def  # get_grid(grid_def)
 
-        # if not grid_def or not size or not origin:
-        #     ds = gdal_open(arraydata_item)
-        #     reader = get_reader_by_test(ds)
-        #     if not reader:
-        #         raise RegistrationError(
-        #             'Failed to get metadata reader for coverage'
-        #         )
-        #     values = reader.read(ds)
-        #     grid_def = values['grid']
-        #     size = values['size']
-        #     origin = values['origin']
-
+        logger.debug(
+            'Adding coverage %s to Product %s' % (
+                coverage_type.name, identifier
+            )
+        )
         report = registrator.register(
             data_locations=[([storage.name] if storage else []) + [path]],
             metadata_locations=[],
@@ -379,35 +382,43 @@ def register_stac_product(stac_item, product_type=None, storage=None,
         )
 
         models.product_add_coverage(product, report.coverage)
-        # grid = get_grid(grid_def)
 
-        # if models.Coverage.objects.filter(identifier=coverage_id).exists():
-        #     if replace:
-        #         models.Coverage.objects.filter(identifier=coverage_id).delete()
-        #     else:
-        #         raise RegistrationError(
-        #             'Coverage %s already exists' % coverage_id
-        #         )
+    # Register browses
 
-        # coverage = models.Coverage.objects.create(
-        #     identifier=coverage_id,
-        #     footprint=coverage_footprint,
-        #     begin_time=start_time,
-        #     end_time=end_time,
-        #     grid=grid,
-        #     axis_1_origin=origin[0],
-        #     axis_2_origin=origin[1],
-        #     axis_1_size=size[0],
-        #     axis_2_size=size[1],
-        #     coverage_type=coverage_type,
-        #     parent_product=product,
-        # )
+    for asset_name, asset in assets.items():
+        browse_type = None
+        if browse_mapping is not None:
+            for browse_type_name, browse_type_def in browse_mapping.items():
+                if browse_type_def.get('asset') == asset_name:
+                    browse_type = product_type.browse_types.get(
+                        name=browse_type_name
+                    )
+                    break
+        else:
+            # TODO: automatic detection?
+            pass
 
-        # arraydata_item.coverage = coverage
-        # arraydata_item.full_clean()
-        # arraydata_item.save()
+        if browse_type is not None:
+            logger.debug(
+                'Adding browse %s to Product %s' % (
+                    browse_type.name, identifier
+                )
+            )
+            browse = models.Browse(
+                storage=storage,
+                location=get_path_from_href(asset['href']),
+                product=product,
+                browse_type=browse_type,
+            )
+            ds = gdal_open(browse)
+            browse.width = ds.RasterXSize
+            browse.height = ds.RasterYSize
+            browse.coordinate_reference_system = ds.GetProjection()
+            extent = gdal.get_extent(ds)
+            browse.min_x, browse.min_y, browse.max_x, browse.max_y = extent
 
-    # TODO: browses if possible
+            browse.full_clean()
+            browse.save()
 
     return (product, replaced)
 
