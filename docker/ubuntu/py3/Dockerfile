@@ -25,9 +25,7 @@ ENV GUNICORN_CMD_ARGS "--config /opt/eoxserver/gunicorn.conf.py ${INSTANCE_NAME}
 
 # install OS dependency packages
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
-RUN apt-get update && apt-get install -y software-properties-common \
-  && apt-get update  && add-apt-repository -y ppa:ubuntugis/ppa \
-  && apt-get update \
+RUN apt-get update \
   && apt-get install -y \
     python3 \
     python3-pip \

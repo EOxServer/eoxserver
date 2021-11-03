@@ -147,7 +147,9 @@ class GetHeightProfileProcess(Component):
             )
         data_item = data_items[0]
         ds = gdal_open(data_item, False)
-        proj_str = "+proj=tpeqd +lon_1={} +lat_1={} +lon_2={} +lat_2={}".format(line[0], line[1], line[2], line[3])
+
+        proj_wkt = 'PROJCS["unknown",GEOGCS["unknown",DATUM["WGS_1984",SPHEROID["WGS 84",6378137,298.257223563,AUTHORITY["EPSG","7030"]],AUTHORITY["EPSG","6326"]],PRIMEM["Greenwich",0,AUTHORITY["EPSG","8901"]],UNIT["degree",0.0174532925199433,AUTHORITY["EPSG","9122"]]],PROJECTION["Two_Point_Equidistant"],PARAMETER["Latitude_Of_1st_Point",{}],PARAMETER["Longitude_Of_1st_Point",{}],PARAMETER["Latitude_Of_2nd_Point",{}],PARAMETER["Longitude_Of_2nd_Point",{}],PARAMETER["false_easting",0],PARAMETER["false_northing",0],UNIT["metre",1,AUTHORITY["EPSG","9001"]],AXIS["Easting",EAST],AXIS["Northing",NORTH]]'.format(line[1], line[0], line[3], line[2])
+
         bbox = ((-1 * line_distance / 2), (100*0.5), line_distance / 2, -(100*0.5))
         interval = int(interval)
 
@@ -156,7 +158,7 @@ class GetHeightProfileProcess(Component):
 
         tmp_ds = '/vsimem/%s' % uuid4().hex
 
-        profile_ds = gdal.Warp(tmp_ds, ds, dstSRS=proj_str, outputBounds=bbox,
+        profile_ds = gdal.Warp(tmp_ds, ds, dstSRS=proj_wkt, outputBounds=bbox,
                         height=1, width=num_samples, resampleAlg=interpolation_method,
                         format='Gtiff')
 
@@ -202,6 +204,8 @@ class GetHeightProfileProcess(Component):
                     fid.read(), filename=output_filename,
                 )
             os.remove(tmppath)
+            tmp_ds = None
             return _output
 
+        tmp_ds = None
         return _output
