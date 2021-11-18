@@ -160,8 +160,10 @@ class KeystoneStorageAuthHandler(BaseStorageAuthHandler):
             key: parameters.get(key)
             for key in [
                 'tenant_id', 'auth_token', 'service_type', 'endpoint_type',
-                'tenant_name', 'object_storage_url', 'region_name',
-                'service_username', 'service_project_name', 'service_key', 'auth_version'
+                'tenant_name', 'region_name',
+                'auth_version', 'project_name', 'user_domain_name',
+                'user_domain_id', 'project_id', 'project_domain_name',
+                'project_domain_id',
             ]
         }
         try:
