@@ -26,8 +26,7 @@
 # ------------------------------------------------------------------------------
 
 import json
-from os.path import isabs
-from urllib.parse import urlparse
+from urllib.parse import urlparse, urlunparse
 import logging
 
 from django.contrib.gis.geos import GEOSGeometry
@@ -99,14 +98,22 @@ def get_product_type_name(stac_item):
 
 
 def get_path_from_href(href):
-    parsed = urlparse(href)
+    """ Extract the path from the given HREF. For S3 URLs this includes
+        the bucket name. Leading and trailing slashes will be stripped, so
+        resulting paths are always relative.
 
-    if parsed.scheme.lower() == 's3':
-        return '%s%s' % (parsed.netloc, parsed.path)
-    elif not isabs(parsed.path):
-        return parsed.path
-    else:
-        return parsed.path.strip('/')
+        Examples:
+
+        >>> get_path_from_href('s3://bucket/prefix/file.ext')
+        'bucket/prefix/file.ext'
+        >>> get_path_from_href('https://www.example.com/path/to/res.ext')
+        'path/to/res.ext'
+    """
+    parsed = urlparse(href)
+    if parsed.scheme.lower() in ('http', 'https', 'ftp'):
+        parsed = parsed._replace(netloc='')
+    parsed = parsed._replace(scheme='')
+    return urlunparse(parsed).strip('/')
 
 
 @transaction.atomic
