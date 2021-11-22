@@ -35,6 +35,11 @@ from math import radians, cos, sin, asin, sqrt
 import numpy as np
 import matplotlib.pyplot as plt
 
+try:
+    from cStringIO import StringIO as BytesIO
+except ImportError:
+    from io import BytesIO
+
 from eoxserver.contrib import gdal
 
 from eoxserver.core import Component, implements
@@ -108,7 +113,7 @@ class GetHeightProfileProcess(Component):
         on the earth (specified in decimal degrees)
         """
         # convert decimal degrees to radians
-        lon1, lat1, lon2, lat2 = map(radians, [lon1, lat1, lon2, lat2])
+        lon1, lat1, lon2, lat2 = [radians(v) for v in [lon1, lat1, lon2, lat2]]
 
         # haversine formula
         dlon = lon2 - lon1
@@ -164,9 +169,8 @@ class GetHeightProfileProcess(Component):
 
         array_out = profile_ds.GetRasterBand(1).ReadAsArray()
 
-        y = []
-        for (d, value) in enumerate(array_out[0, :]):
-            y.append(value)
+        y = array_out[0].tolist()
+
         x = np.arange(0, (num_samples * interval)/1000, interval/1000)
 
         if (profile['mime_type'] == "text/csv"):
@@ -186,24 +190,23 @@ class GetHeightProfileProcess(Component):
 
         else:
             if profile['mime_type'] == "image/png":
-                extension = ".png"
+                extension = "png"
 
             elif profile['mime_type'] == "image/jpeg":
-                extension = ".jpg"
+                extension = "jpg"
 
             elif profile['mime_type'] == "image/tiff":
-                extension = ".tif"
+                extension = "tif"
 
-            tmppath = '{}.{}'.format(uuid4().hex, extension)
             output_filename = 'height_profile.%s' % extension
             fig = plt.figure()
             plt.plot(x, y)
-            fig.savefig(tmppath)
-            with open(tmppath, 'rb') as fid:
-                _output = CDByteBuffer(
-                    fid.read(), filename=output_filename,
-                )
-            os.remove(tmppath)
+            image_data = BytesIO()
+            fig.savefig(image_data, format=extension)
+            image_data.seek(0)
+
+            _output = CDByteBuffer(
+                    image_data.read(), filename=output_filename,)
             tmp_ds = None
             return _output
 
