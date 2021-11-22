@@ -56,13 +56,11 @@ from eoxserver.backends.access import gdal_open
 
 
 class GetHeightProfileProcess(Component):
-    """ GetHeightProfileProcess defines a WPS process needed by the EOxC
-        DEM implementtation """
+    """ GetHeightProfileProcess defines a WPS process for getting Height
+        Profile information """
 
     def __init__(self):
         super(GetHeightProfileProcess, self).__init__()
-
-    implements(ProcessInterface)
 
     identifier = "GetHeightProfile"
     title = "Get the hight profile for a coverage"

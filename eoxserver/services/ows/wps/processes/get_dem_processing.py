@@ -49,13 +49,12 @@ logger = logging.getLogger(__name__)
 
 
 class DemProcessingProcess(Component):
-    """ DemProcessing defines a WPS process needed by the EOxC
-        DEM implementtation """
+    """ DemProcessing defines a WPS process that provides multiple
+        DEM processes """
 
     def __init__(self):
         super(DemProcessingProcess, self).__init__()
 
-    implements(ProcessInterface)
 
     identifier = "DemProcessing"
     title = "Dem Processing (hillshade, aspect, relief...)for a coverage/s that intersects with the input bbox"
