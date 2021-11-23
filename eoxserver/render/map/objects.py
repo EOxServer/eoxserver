@@ -370,6 +370,30 @@ class Map(object):
         )
 
 
+class Legend(object):
+    def __init__(self, layer, width, height, format):
+        self._layer = layer
+        self._width = width
+        self._height = height
+        self._format = format
+
+    @property
+    def layer(self):
+        return self._layer
+
+    @property
+    def width(self):
+        return self._width
+
+    @property
+    def height(self):
+        return self._height
+
+    @property
+    def format(self):
+        return self._format
+
+
 class LayerDescription(object):
     """ Abstract layer description
     """

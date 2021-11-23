@@ -1,10 +1,10 @@
-#-------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
 #          Stephan Meissl <stephan.meissl@eox.at>
 #
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Copyright (C) 2013 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -14,8 +14,8 @@
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
-# The above copyright notice and this permission notice shall be included in all
-# copies of this Software or works derived from this Software.
+# The above copyright notice and this permission notice shall be included in
+# all copies of this Software or works derived from this Software.
 #
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -24,12 +24,12 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 """\
-This module contains a set of handler base classes which shall help to implement
-a specific handler. Interface methods need to be overridden in order to work,
-default methods can be overidden.
+This module contains a set of handler base classes which shall help to
+implement a specific handler. Interface methods need to be overridden in order
+to work, default methods can be overidden.
 """
 import math
 import re
@@ -42,15 +42,17 @@ from django.http import HttpResponse
 from eoxserver.core.decoders import kvp, typelist, InvalidParameterException
 from eoxserver.core.config import get_eoxserver_config
 from eoxserver.render.map.renderer import (
-    get_map_renderer, # get_feature_info_renderer
+    get_map_renderer, get_legend_renderer,  # get_feature_info_renderer
 )
-from eoxserver.render.map.objects import Map
+from eoxserver.render.map.objects import Map, Legend
 from eoxserver.resources.coverages import crss
 from eoxserver.resources.coverages import models
 from eoxserver.services.ows.wms.util import parse_bbox, parse_time, int_or_str
 from eoxserver.services.ows.common.config import CapabilitiesConfigReader
 from eoxserver.services.ows.wms.exceptions import InvalidCRS
-from eoxserver.services.ecql import parse, to_filter, get_field_mapping_for_model
+from eoxserver.services.ecql import (
+    parse, to_filter, get_field_mapping_for_model
+)
 from eoxserver.services import filters
 from eoxserver.services.ows.wms.layermapper import LayerMapper
 from eoxserver.services import views
@@ -74,7 +76,9 @@ class WMSBaseGetCapabilitiesHandler(object):
 
         cql_text = decoder.cql
         if cql_text:
-            mapping, mapping_choices = filters.get_field_mapping_for_model(qs.model)
+            mapping, mapping_choices = filters.get_field_mapping_for_model(
+                qs.model
+            )
             ast = parse(cql_text)
             filter_expressions = to_filter(ast, mapping, mapping_choices)
             qs = qs.filter(filter_expressions)
@@ -90,7 +94,8 @@ class WMSBaseGetCapabilitiesHandler(object):
                     coverage__isnull=False,
                     service_visibility__service='wms',
                     service_visibility__visibility=True
-                ) | Q(  # include all Collections, exclude "WMS-invisible" later
+                ) | Q(  # include all Collections, exclude "WMS-invisible"
+                        # later
                     collection__isnull=False
                 )
             ).exclude(
@@ -218,115 +223,165 @@ class WMSBaseGetMapHandler(object):
 
         response = HttpResponse(result_bytes, content_type=content_type)
         if filename:
-            response['Content-Disposition'] = 'inline; filename="%s"' % filename
+            response['Content-Disposition'] = \
+                'inline; filename="%s"' % filename
 
         return response
 
 
-class WMSBaseGetFeatureInfoHandler(object):
+# class WMSBaseGetFeatureInfoHandler(object):
+#     methods = ['GET']
+#     service = "WMS"
+#     request = "GetFeatureInfo"
+
+#     def handle(self, request):
+#         decoder = self.get_decoder(request)
+
+#         minx, miny, maxx, maxy = decoder.bbox
+#         x = decoder.x
+#         y = decoder.y
+#         time = decoder.time
+#         crs = decoder.srs
+#         layer_names = decoder.layers
+
+#         width = decoder.width
+#         height = decoder.height
+
+#         # calculate the zoomlevel
+#         zoom = calculate_zoom((minx, miny, maxx, maxy), width, height, crs)
+
+#         if not layer_names:
+#             raise InvalidParameterException("No layers specified", "layers")
+
+#         srid = crss.parseEPSGCode(
+#             crs, (crss.fromShortCode, crss.fromURN, crss.fromURL)
+#         )
+#         if srid is None:
+#             raise InvalidCRS(crs, "crs")
+
+#         field_mapping, mapping_choices = get_field_mapping_for_model(
+#             models.Product
+#         )
+
+#         # calculate resolution
+#         # TODO: dateline
+#         resx = (maxx - minx) / width
+#         resy = (maxy - miny) / height
+
+#         p_minx = x * resx
+#         p_miny = y * resy
+#         p_maxx = (x + 1) * resx
+#         p_maxy = (y + 1) * resy
+
+#         filter_expressions = filters.bbox(
+#             filters.attribute('footprint', field_mapping),
+#             p_minx, p_miny, p_maxx, p_maxy, crs, bboverlaps=False
+#         )
+
+#         if time:
+#             filter_expressions &= filters.time_interval(time)
+
+#         cql = getattr(decoder, 'cql', None)
+#         if cql:
+#             cql_filters = to_filter(
+#                 parse(cql), field_mapping, mapping_choices
+#             )
+#             filter_expressions &= cql_filters
+
+#         # TODO: multiple sorts per layer?
+#         sort_by = getattr(decoder, 'sort_by', None)
+#         if sort_by:
+#             sort_by = (field_mapping.get(sort_by[0], sort_by[0]), sort_by[1])
+
+#         styles = decoder.styles
+
+#         if styles:
+#             styles = styles.split(',')
+#         else:
+#             styles = [None] * len(layer_names)
+
+#         dimensions = {
+#             "time": time,
+#             "elevation": decoder.elevation,
+#             "ranges": decoder.dim_range,
+#             "bands": decoder.dim_bands,
+#             "wavelengths": decoder.dim_wavelengths,
+#         }
+
+#         feature_info_renderer = get_feature_info_renderer()
+
+#         layer_mapper = LayerMapper(feature_info_renderer.get_supported_layer_types())
+
+#         layers = []
+#         for layer_name, style in zip(layer_names, styles):
+#             name, suffix = layer_mapper.split_layer_suffix_name(layer_name)
+#             layer = layer_mapper.lookup_layer(
+#                 name, suffix, style,
+#                 filter_expressions, sort_by, zoom=zoom, **dimensions
+#             )
+#             layers.append(layer)
+
+#         map_ = Map(
+#             width=decoder.width, height=decoder.height, format=decoder.format,
+#             bbox=(minx, miny, maxx, maxy), crs=crs,
+#             bgcolor=decoder.bgcolor, transparent=decoder.transparent,
+#             layers=layers
+#         )
+
+#         result_bytes, content_type, filename = feature_info_renderer.render_feature_info(map_)
+
+#         response = HttpResponse(result_bytes, content_type=content_type)
+#         if filename:
+#             response['Content-Disposition'] = 'inline; filename="%s"' % filename
+
+#         return response
+
+
+class WMSBaseGetLegendGraphicHandler(object):
     methods = ['GET']
     service = "WMS"
-    request = "GetFeatureInfo"
+    request = "GetLegendGraphic"
 
     def handle(self, request):
         decoder = self.get_decoder(request)
+        layer_name = decoder.layer
+        style = decoder.style
 
-        minx, miny, maxx, maxy = decoder.bbox
-        x = decoder.x
-        y = decoder.y
-        time = decoder.time
-        crs = decoder.srs
-        layer_names = decoder.layers
-
-        width = decoder.width
-        height = decoder.height
-
-        # calculate the zoomlevel
-        zoom = calculate_zoom((minx, miny, maxx, maxy), width, height, crs)
-
-        if not layer_names:
+        if not layer_name:
             raise InvalidParameterException("No layers specified", "layers")
 
-        srid = crss.parseEPSGCode(
-            crs, (crss.fromShortCode, crss.fromURN, crss.fromURL)
-        )
-        if srid is None:
-            raise InvalidCRS(crs, "crs")
+        renderer = get_legend_renderer()
 
-        field_mapping, mapping_choices = get_field_mapping_for_model(
-            models.Product
-        )
+        layer_mapper = LayerMapper(renderer.get_supported_layer_types())
 
-        # calculate resolution
-        # TODO: dateline
-        resx = (maxx - minx) / width
-        resy = (maxy - miny) / height
-
-        p_minx = x * resx
-        p_miny = y * resy
-        p_maxx = (x + 1) * resx
-        p_maxy = (y + 1) * resy
-
-        filter_expressions = filters.bbox(
-            filters.attribute('footprint', field_mapping),
-            p_minx, p_miny, p_maxx, p_maxy, crs, bboverlaps=False
+        name, suffix = layer_mapper.split_layer_suffix_name(layer_name)
+        layer = layer_mapper.lookup_layer(
+            name,
+            suffix,
+            style,
+            filters_expressions=Q(),
+            sort_by=None,
+            time=None,
+            ranges=None,
+            bands=None,
+            wavelengths=None,
+            elevation=None,
+            zoom=decoder.scale,
+            limit=1,
         )
 
-        if time:
-            filter_expressions &= filters.time_interval(time)
-
-        cql = getattr(decoder, 'cql', None)
-        if cql:
-            cql_filters = to_filter(
-                parse(cql), field_mapping, mapping_choices
-            )
-            filter_expressions &= cql_filters
-
-        # TODO: multiple sorts per layer?
-        sort_by = getattr(decoder, 'sort_by', None)
-        if sort_by:
-            sort_by = (field_mapping.get(sort_by[0], sort_by[0]), sort_by[1])
-
-        styles = decoder.styles
-
-        if styles:
-            styles = styles.split(',')
-        else:
-            styles = [None] * len(layer_names)
-
-        dimensions = {
-            "time": time,
-            "elevation": decoder.elevation,
-            "ranges": decoder.dim_range,
-            "bands": decoder.dim_bands,
-            "wavelengths": decoder.dim_wavelengths,
-        }
-
-        feature_info_renderer = get_feature_info_renderer()
-
-        layer_mapper = LayerMapper(feature_info_renderer.get_supported_layer_types())
-
-        layers = []
-        for layer_name, style in zip(layer_names, styles):
-            name, suffix = layer_mapper.split_layer_suffix_name(layer_name)
-            layer = layer_mapper.lookup_layer(
-                name, suffix, style,
-                filter_expressions, sort_by, zoom=zoom, **dimensions
-            )
-            layers.append(layer)
-
-        map_ = Map(
+        legend = Legend(
+            layer=layer,
             width=decoder.width, height=decoder.height, format=decoder.format,
-            bbox=(minx, miny, maxx, maxy), crs=crs,
-            bgcolor=decoder.bgcolor, transparent=decoder.transparent,
-            layers=layers
         )
 
-        result_bytes, content_type, filename = feature_info_renderer.render_feature_info(map_)
+        result_bytes, content_type, filename = renderer.render_legend(legend)
 
         response = HttpResponse(result_bytes, content_type=content_type)
         if filename:
-            response['Content-Disposition'] = 'inline; filename="%s"' % filename
+            response['Content-Disposition'] = 'inline; filename="%s"' % (
+                filename
+            )
 
         return response
 
@@ -398,3 +453,12 @@ def calculate_zoom(bbox, width, height, crs):
         if zoom < 1:
             zoom = 1
         return zoom
+
+
+class WMSBaseGetLegendGraphicDecoder(kvp.Decoder):
+    layer = kvp.Parameter(num=1)
+    style = kvp.Parameter(num='?')
+    width = kvp.Parameter(type=int, num='?')
+    height = kvp.Parameter(type=int, num='?')
+    format = kvp.Parameter(num=1)
+    scale = kvp.Parameter(type=float, default=0, num='?')

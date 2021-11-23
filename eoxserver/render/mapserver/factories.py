@@ -298,7 +298,7 @@ class OutlinedCoverageLayerFactory(CoverageLayerFactoryMixIn,
             shape_obj = ms.shapeObj.fromWKT(coverage.footprint.wkt)
             outlines_layer_obj.addFeature(shape_obj)
 
-            class_obj = _create_geometry_class(vector_style)
+            class_obj = _create_geometry_class(vector_style, name='outlines')
             outlines_layer_obj.insertClass(class_obj)
 
         return coverage_layers
@@ -337,29 +337,34 @@ class BrowseLayerMixIn(object):
                                     style):
         for browse in browses:
             if isinstance(browse, GeneratedBrowse):
-                creation_info, filename_generator, reset_info = \
-                    generate_browse(
-                        browse.band_expressions,
-                        browse.fields_and_coverages,
-                        map_.width, map_.height,
-                        map_.bbox,
-                        map_.crs,
-                        filename_generator
-                    )
+                reset_info = False
+                creation_info = None
+                if map_ is not None:
+                    creation_info, filename_generator, reset_info = \
+                        generate_browse(
+                            browse.band_expressions,
+                            browse.fields_and_coverages,
+                            map_.width, map_.height,
+                            map_.bbox,
+                            map_.crs,
+                            filename_generator
+                        )
                 layer_objs = _create_raster_layer_objs(
                     map_obj, browse.extent, browse.spatial_reference,
-                    creation_info.filename, filename_generator
+                    creation_info.filename if creation_info else '',
+                    filename_generator
                 )
 
                 for layer_obj in layer_objs:
-                    layer_obj.data = creation_info.filename
-                    if creation_info.env:
-                        ms.set_env(map_obj, creation_info.env, True)
+                    if creation_info:
+                        layer_obj.data = creation_info.filename
+                        if creation_info.env:
+                            ms.set_env(map_obj, creation_info.env, True)
 
-                    if creation_info.bands:
-                        layer_obj.setProcessingKey('BANDS', ','.join(
-                            str(band) for band in creation_info.bands
-                        ))
+                        if creation_info.bands:
+                            layer_obj.setProcessingKey('BANDS', ','.join(
+                                str(band) for band in creation_info.bands
+                            ))
 
                     if reset_info:
                         sr = osr.SpatialReference(map_.crs)
@@ -376,42 +381,42 @@ class BrowseLayerMixIn(object):
                             layer_obj.setMetaData("wms_srs", short_epsg)
                         layer_obj.setProjection(sr.proj)
 
-                if browse.mode == BROWSE_MODE_GRAYSCALE:
-                    field = browse.field_list[0]
-                    if ranges:
-                        browse_range = ranges[0]
-                    elif browse.ranges[0] != (None, None):
-                        browse_range = browse.ranges[0]
-                    else:
-                        browse_range = _get_range(field)
-
-                    for layer_obj in layer_objs:
-                        _create_raster_style(
-                            style or "blackwhite", layer_obj,
-                            browse_range[0], browse_range[1],
-                            browse.nodata_values
-                        )
-
-                else:
-                    browse_iter = enumerate(
-                        zip(browse.field_list, browse.ranges), start=1
-                    )
-                    for i, (field, field_range) in browse_iter:
+                    if browse.mode == BROWSE_MODE_GRAYSCALE:
+                        field = browse.field_list[0]
                         if ranges:
-                            if len(ranges) == 1:
-                                range_ = ranges[0]
-                            else:
-                                range_ = ranges[i - 1]
-                        elif field_range != (None, None):
-                            range_ = field_range
+                            browse_range = ranges[0]
+                        elif browse.ranges[0] != (None, None):
+                            browse_range = browse.ranges[0]
                         else:
-                            range_ = _get_range(field)
+                            browse_range = _get_range(field)
 
                         for layer_obj in layer_objs:
-                            layer_obj.setProcessingKey(
-                                "SCALE_%d" % i,
-                                "%s,%s" % tuple(range_)
+                            _create_raster_style(
+                                style or "blackwhite", layer_obj,
+                                browse_range[0], browse_range[1],
+                                browse.nodata_values
                             )
+
+                    else:
+                        browse_iter = enumerate(
+                            zip(browse.field_list, browse.ranges), start=1
+                        )
+                        for i, (field, field_range) in browse_iter:
+                            if ranges:
+                                if len(ranges) == 1:
+                                    range_ = ranges[0]
+                                else:
+                                    range_ = ranges[i - 1]
+                            elif field_range != (None, None):
+                                range_ = field_range
+                            else:
+                                range_ = _get_range(field)
+
+                            for layer_obj in layer_objs:
+                                layer_obj.setProcessingKey(
+                                    "SCALE_%d" % i,
+                                    "%s,%s" % tuple(range_)
+                                )
 
             elif isinstance(browse, Browse):
                 layer_objs = _create_raster_layer_objs(
@@ -490,7 +495,7 @@ class OutlinedBrowseLayerFactory(BrowseLayerMixIn, BaseMapServerLayerFactory):
             shape_obj = ms.shapeObj.fromWKT(browse.footprint.wkt)
             outlines_layer_obj.addFeature(shape_obj)
 
-            class_obj = _create_geometry_class(vector_style)
+            class_obj = _create_geometry_class(vector_style, name='outlines')
             outlines_layer_obj.insertClass(class_obj)
 
         return filename_generator
@@ -620,7 +625,8 @@ class OutlinesLayerFactory(BaseMapServerLayerFactory):
             layer_obj.addFeature(shape_obj)
 
         class_obj = _create_geometry_class(
-            layer.style or 'red', fill_opacity=layer.fill
+            layer.style or 'red', fill_opacity=layer.fill,
+            name='outlines',
         )
         layer_obj.insertClass(class_obj)
 
@@ -698,8 +704,10 @@ def _create_polygon_layer(map_obj):
 
 
 def _create_geometry_class(color_name, background_color_name=None,
-                           fill_opacity=None):
+                           fill_opacity=None, name=None):
     cls_obj = ms.classObj()
+    if name is not None:
+        cls_obj.name = name
     outline_style_obj = ms.styleObj()
 
     try:
@@ -819,6 +827,7 @@ def _create_raster_style(name, layer, minvalue=0, maxvalue=255,
             (minvalue + next_perc * interval)
         ))
         cls.group = name
+        cls.name = "%s - %s" % (prev_perc, next_perc)
 
         style = ms.styleObj()
         style.mincolor = ms.colorObj(*prev_color)
