@@ -51,7 +51,6 @@ class GetStatisticsProcess(Component):
     """ GetStatistics defines a WPS process for Raster image Statistics
         retrieval"""
 
-
     identifier = "GetStatistics"
     title = "Get statistics for a coverage/s that intersects with the input bbox"
     description = ("provides statistics of all the coverages whithin a provided bounding box. "
@@ -63,6 +62,10 @@ class GetStatisticsProcess(Component):
         "bbox": LiteralData(
             "bbox",
             title="bounding box that intersect with the products."
+        ),
+        "collection": LiteralData(
+            "collection",
+            title="The Identifier of the collection of intrest."
         ),
     }
 
@@ -76,7 +79,7 @@ class GetStatisticsProcess(Component):
     }
 
     @staticmethod
-    def execute(bbox, **kwarg):
+    def execute(bbox, collection, **kwarg):
         """ The main execution function for the process.
         """
 
@@ -87,14 +90,15 @@ class GetStatisticsProcess(Component):
         parsed_bbox = Polygon.from_bbox(values)
 
         # get the dataset series intersecting with the requested bbox
+        collection = models.Collection.objects.get(identifier=collection)
 
         coverages = models.Coverage.objects.filter(
+            Q(collections=collection.id) &
             Q(footprint__intersects=parsed_bbox)
             | Q(footprint__isnull=True, parent_product__footprint__intersects=parsed_bbox))
 
-        report = {}
-        for index, coverage in enumerate(coverages):
-
+        report = []
+        for coverage in coverages:
             try:
                 data_items = coverage.arraydata_items.all()
 
@@ -104,31 +108,32 @@ class GetStatisticsProcess(Component):
                 )
 
             data_item = data_items[0]
-
             ds = gdal_open(data_item, False)
 
-            band = ds.GetRasterBand(1)
-            image_array = band.ReadAsArray()
-            stats = ds.GetRasterBand(1).GetStatistics(0, 1)
-            bin_array, hist = np.histogram(image_array, bins=np.arange(int(stats[0]), int(stats[1]), 20, int))
-
-            # nodata = band.GetNoDataValue()
-            # no_value = np.where(np.any(image_array==nodata, axis=1))
-
-            id_key = "Coverage_%s" % str(index + 1)
             coverage_id = coverage.identifier
+            stats_json = {"id": coverage_id}
+            for band_number in range(1, ds.RasterCount+1):
 
-            stats_json = {
-                "id": coverage_id,
-                "MINIMUM": stats[0],
-                "MAXIMUM": stats[1],
-                "MEAN": stats[2],
-                "STDDEV": stats[3],
-                "HISTOGRAM_FREQUENCY": bin_array.tolist(),
-                "HISTOGRAM_PIXEL_VALUES": hist.tolist(),
-                # "NUMBER_OF_NODATA_PIXELS": no_value[0].size
-                }
-            report[id_key] = stats_json
+                band = ds.GetRasterBand(band_number)
+                image_array = band.ReadAsArray()
+                stats = ds.GetRasterBand(band_number).GetStatistics(0, 1)
+                bin_array, hist = np.histogram(image_array, bins=np.arange(int(stats[0]), int(stats[1]), 20, int))
+
+                # nodata = band.GetNoDataValue()
+                # no_value = np.where(np.any(image_array==nodata, axis=1))
+
+                band_data = {
+                    "MINIMUM": stats[0],
+                    "MAXIMUM": stats[1],
+                    "MEAN": stats[2],
+                    "STDDEV": stats[3],
+                    "HISTOGRAM_FREQUENCY": bin_array.tolist(),
+                    "HISTOGRAM_PIXEL_VALUES": hist.tolist(),
+                    # "NUMBER_OF_NODATA_PIXELS": no_value[0].size
+                    }
+                stats_json["band_%s" % band_number] = band_data
+
+            report.append(stats_json)
 
         _output = CDObject(
             report, format=FormatJSON(),
