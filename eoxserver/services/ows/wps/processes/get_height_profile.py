@@ -55,12 +55,25 @@ from eoxserver.resources.coverages import models
 from eoxserver.backends.access import gdal_open
 
 
+def haversine(lon1, lat1, lon2, lat2):
+    """
+    Calculate the great circle distance between two points
+    on the earth (specified in decimal degrees)
+    """
+    # convert decimal degrees to radians
+    lon1, lat1, lon2, lat2 = [radians(v) for v in [lon1, lat1, lon2, lat2]]
+
+    # haversine formula
+    dlon = lon2 - lon1
+    dlat = lat2 - lat1
+    a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlon/2)**2
+    c = 2 * asin(sqrt(a))
+    r = 6378137.0
+    return c * r
+
 class GetHeightProfileProcess(Component):
     """ GetHeightProfileProcess defines a WPS process for getting Height
         Profile information """
-
-    def __init__(self):
-        super(GetHeightProfileProcess, self).__init__()
 
     identifier = "GetHeightProfile"
     title = "Get the hight profile for a coverage"
@@ -105,21 +118,6 @@ class GetHeightProfileProcess(Component):
         ),
     }
 
-    def haversine(lon1, lat1, lon2, lat2):
-        """
-        Calculate the great circle distance between two points
-        on the earth (specified in decimal degrees)
-        """
-        # convert decimal degrees to radians
-        lon1, lat1, lon2, lat2 = [radians(v) for v in [lon1, lat1, lon2, lat2]]
-
-        # haversine formula
-        dlon = lon2 - lon1
-        dlat = lat2 - lat1
-        a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlon/2)**2
-        c = 2 * asin(sqrt(a))
-        r = 6378137.0
-        return c * r
 
     @staticmethod
     def execute(coverage, line, interval, interpolation_method, profile, **kwarg):
@@ -129,7 +127,7 @@ class GetHeightProfileProcess(Component):
         if isinstance(line, str):
             line = eval(line)
 
-        line_distance = GetHeightProfileProcess.haversine(line[0], line[1], line[2], line[3])
+        line_distance = haversine(line[0], line[1], line[2], line[3])
 
         # get the dataset series matching the requested ID
         try:

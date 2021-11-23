@@ -51,8 +51,6 @@ class GetStatisticsProcess(Component):
     """ GetStatistics defines a WPS process for Raster image Statistics
         retrieval"""
 
-    def __init__(self):
-        super(GetStatisticsProcess, self).__init__()
 
     identifier = "GetStatistics"
     title = "Get statistics for a coverage/s that intersects with the input bbox"
