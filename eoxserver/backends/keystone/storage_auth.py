@@ -57,7 +57,7 @@ def get_keystone_client(auth_url, user, key, os_options, **kwargs):
 
     insecure = kwargs.get('insecure', False)
     timeout = kwargs.get('timeout', None)
-    auth_version = kwargs.get('auth_version', None)
+    auth_version = os_options.get('auth_version', None)
     debug = logger.isEnabledFor(logging.DEBUG)
 
     # Add the version suffix in case of versionless Keystone endpoints. If
@@ -152,15 +152,20 @@ class KeystoneStorageAuthHandler(BaseStorageAuthHandler):
         return url, token
 
     def get_auth(self):
-        os_options = {
-            key: self.parameters.get(key)
-            for key in [
-                'tenant_id', 'auth_token', 'service_type', 'endpoint_type',
-                'tenant_name', 'object_storage_url', 'region_name',
-                'service_username', 'service_project_name', 'service_key'
-            ]
+        parameters = {
+            key.replace("-", "_"): value for key, value in self.parameters.items()
         }
 
+        os_options = {
+            key: parameters.get(key)
+            for key in [
+                'tenant_id', 'auth_token', 'service_type', 'endpoint_type',
+                'tenant_name', 'region_name',
+                'auth_version', 'project_name', 'user_domain_name',
+                'user_domain_id', 'project_id', 'project_domain_name',
+                'project_domain_id',
+            ]
+        }
         try:
             cache = caches['default']
         except InvalidCacheBackendError:

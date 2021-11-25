@@ -63,6 +63,7 @@ from eoxserver.services.exceptions import (
 
 logger = logging.getLogger(__name__)
 
+DEFAULT_DEFAULT_PACKAGE_FORMAT = 'application/gzip'
 
 DEFAULT_PACKAGE_WRITERS = [
     'eoxserver.services.ows.wcs.v20.packages.tar.TarPackageWriter',
@@ -167,14 +168,22 @@ class WCS20GetEOCoverageSetHandler(object):
     def constraints(self):
         reader = WCSEOConfigReader(get_eoxserver_config())
         return {
-            "CountDefault": reader.paging_count_default
+            "CountDefault": reader.paging_count_default,
         }
 
     def handle(self, request):
         decoder = self.get_decoder(request)
         eo_ids = decoder.eo_ids
 
-        package_format, format_params = decoder.package_format
+        package_format = decoder.package_format
+        if package_format:
+            package_format, format_params = package_format
+        else:
+            package_format = getattr(
+                settings, 'EOXS_DEFAULT_PACKAGE_FORMAT',
+                DEFAULT_DEFAULT_PACKAGE_FORMAT
+            )
+            format_params = {}
         writer = self.get_pacakge_writer(package_format, format_params)
 
         containment = decoder.containment
@@ -228,26 +237,6 @@ class WCS20GetEOCoverageSetHandler(object):
 
         filters = subsets.get_filters(containment=containment)
 
-        # get a QuerySet of all dataset series, directly or indirectly
-        # referenced
-        all_dataset_series_qs = models.EOObject.objects.filter(
-            Q(  # directly referenced Collections
-                collection__isnull=False,
-                identifier__in=[
-                    collection.identifier for collection in collections
-                ],
-            ) |
-            Q(  # directly referenced Products
-                product__isnull=False,
-                identifier__in=[product.identifier for product in products],
-            ) |
-            Q(  # Products within Collections
-                product__isnull=False,
-                product__collections__in=collections,
-                **filters
-            )
-        )
-
         # Allow metadata queries on coverage itself or on the
         # parent product if available
         parent_product_filters = []
@@ -291,16 +280,11 @@ class WCS20GetEOCoverageSetHandler(object):
             Q(  # Mosaics within directly referenced Collections
                 mosaic__collections__in=collections
             )
-        ).select_subclasses(models.Coverage, models.Mosaic)
+        ).distinct().select_subclasses(models.Coverage, models.Mosaic)
 
-        all_coverages_qs = all_coverages_qs.order_by('identifier')
-
-        # limit coverages according to the number of dataset series
+        # limit coverages according to the requested or default count
         offset = decoder.start_index
-        length = max(
-            0, count - all_dataset_series_qs.count() - len(mosaics)
-        )
-        coverages_qs = all_coverages_qs[offset:offset + length]
+        coverages_qs = all_coverages_qs[offset:offset + count]
 
         fd, pkg_filename = tempfile.mkstemp()
         tmp = os.fdopen(fd)
@@ -396,7 +380,7 @@ class WCS20GetEOCoverageSetKVPDecoder(kvp.Decoder):
     containment = kvp.Parameter(type=containment_enum, num="?")
     count       = kvp.Parameter(type=pos_int, num="?", default=MAXSIZE)
     start_index = kvp.Parameter("startIndex", type=pos_int, num="?", default=0)
-    package_format = kvp.Parameter("packageFormat", num=1, type=parse_package_format)
+    package_format = kvp.Parameter("packageFormat", num="?", type=parse_package_format)
     mediatype   = kvp.Parameter("mediatype", num="?")
     format      = kvp.Parameter("format", num="?")
     apply_subset = kvp.Parameter("applySubset", type=parse_apply_subset, default=True, num="?")
@@ -416,7 +400,7 @@ class WCS20GetEOCoverageSetXMLDecoder(xml.Decoder):
     containment = xml.Parameter("wcseo11:containment/text()", type=containment_enum, locator="containment")
     count       = xml.Parameter("@count", type=pos_int, num="?", default=MAXSIZE, locator="count")
     start_index = xml.Parameter("@startIndex", type=pos_int, num="?", default=0, locator="startIndex")
-    package_format = xml.Parameter("wcseo11:packageFormat/text()", type=parse_package_format, num=1, locator="packageFormat")
+    package_format = xml.Parameter("wcseo11:packageFormat/text()", type=parse_package_format, num="?", locator="packageFormat")
     mediatype   = xml.Parameter("wcs:mediaType/text()", num="?", locator="mediatype")
     format      = xml.Parameter("wcseo11:format/text()", num="?", locator="format")
     apply_subset = xml.Parameter("wcseo11:applySubset/text()", type=parse_apply_subset, num="?", locator="format")

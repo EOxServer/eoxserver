@@ -26,6 +26,7 @@
 # ------------------------------------------------------------------------------
 
 from django.db.models import Case, Value, When, IntegerField, BooleanField
+from django.conf import settings
 
 from eoxserver.core.config import get_eoxserver_config
 from eoxserver.core.decoders import config, enum
@@ -58,12 +59,20 @@ class NoSuchPrefix(NoSuchLayer):
     locator = 'layer'
 
 
+DEFAULT_EOXS_LAYER_SUFFIX_SEPARATOR = '__'
+
+
 class LayerMapper(object):
     """ Default layer mapper.
     """
 
-    def __init__(self, supported_layer_types, suffix_separator):
+    def __init__(self, supported_layer_types, suffix_separator=None):
         self.supported_layer_types = supported_layer_types
+        if suffix_separator is None:
+            suffix_separator = getattr(
+                settings, 'EOXS_LAYER_SUFFIX_SEPARATOR',
+                DEFAULT_EOXS_LAYER_SUFFIX_SEPARATOR
+            )
         self.suffix_separator = suffix_separator
 
     def get_layer_description(self, eo_object, raster_styles, geometry_styles):

@@ -106,9 +106,7 @@ class WMSBaseGetCapabilitiesHandler(object):
         raster_styles = map_renderer.get_raster_styles()
         geometry_styles = map_renderer.get_geometry_styles()
 
-        layer_mapper = LayerMapper(
-            map_renderer.get_supported_layer_types(), "__"
-        )
+        layer_mapper = LayerMapper(map_renderer.get_supported_layer_types())
         layer_descriptions = [
             layer_mapper.get_layer_description(
                 eo_object, raster_styles, geometry_styles
@@ -198,9 +196,7 @@ class WMSBaseGetMapHandler(object):
 
         map_renderer = get_map_renderer()
 
-        layer_mapper = LayerMapper(
-            map_renderer.get_supported_layer_types(), "__"
-        )
+        layer_mapper = LayerMapper(map_renderer.get_supported_layer_types())
 
         layers = []
         for layer_name, style in zip(layer_names, styles):
@@ -308,9 +304,7 @@ class WMSBaseGetFeatureInfoHandler(object):
 
         feature_info_renderer = get_feature_info_renderer()
 
-        layer_mapper = LayerMapper(
-            feature_info_renderer.get_supported_layer_types(), "__"
-        )
+        layer_mapper = LayerMapper(feature_info_renderer.get_supported_layer_types())
 
         layers = []
         for layer_name, style in zip(layer_names, styles):

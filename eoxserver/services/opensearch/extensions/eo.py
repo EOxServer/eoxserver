@@ -282,5 +282,7 @@ class EarthObservationExtensionDecoder(kvp.Decoder):
     antennaLookDirection = kvp.Parameter(num="?", type=str)
     minimumIncidenceAngle = kvp.Parameter(num="?", type=parse_float_range)
     maximumIncidenceAngle = kvp.Parameter(num="?", type=parse_float_range)
+    acrossTrackIncidenceAngle = kvp.Parameter(num="?", type=parse_float_range)
+    alongTrackIncidenceAngle = kvp.Parameter(num="?", type=parse_float_range)
     dopplerFrequency = kvp.Parameter(num="?", type=parse_float_range)
     incidenceAngleVariation = kvp.Parameter(num="?", type=parse_float_range)

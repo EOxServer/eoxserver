@@ -47,6 +47,8 @@ if os.environ.get('READTHEDOCS', None) != 'True':
     rename = Rename
 
     unlink = remove = Unlink
+else:
+    UINT32_MAX = 0xffffffff
 
 
 def open(filename, mode="r"):
