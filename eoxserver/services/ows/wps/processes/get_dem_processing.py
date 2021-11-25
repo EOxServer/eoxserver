@@ -27,15 +27,17 @@
 # -----------------------------------------------------------------------------
 
 from uuid import uuid4
-from eoxserver.core import Component, implements
+import numpy as np
+from eoxserver.core import Component
 
 import eoxserver.render.browse.functions as functions
 
 from eoxserver.contrib import gdal
-from eoxserver.services.ows.wps.interfaces import ProcessInterface
+
 from eoxserver.services.ows.wps.parameters import (
     LiteralData, ComplexData, FormatJSON, CDObject,
     FormatBinaryRaw, FormatBinaryBase64, CDByteBuffer,
+    BoundingBoxData
 )
 from eoxserver.services.ows.wps.exceptions import InvalidInputValueError
 
@@ -69,7 +71,7 @@ class DemProcessingProcess(Component):
             optional=True,
             title="identifier of the process to be implemented."
         ),
-        "bbox": LiteralData(
+        "bbox": BoundingBoxData(
             "bbox",
             title="bounding box that intersect with the products."
         ),
@@ -127,9 +129,9 @@ class DemProcessingProcess(Component):
         """ The main execution function for the process.
         """
 
-        values = list(map(float, bbox.split(",")))
-        if len(values) != 4:
-            raise ValueError("Invalid number of coordinates in 'bbox'.")
+        np_bbox = np.array(bbox)
+        flattened_bbox = np_bbox.flatten()
+        values = flattened_bbox.tolist()
 
         data_format = "raster"
         # output format selection

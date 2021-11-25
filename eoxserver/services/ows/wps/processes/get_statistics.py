@@ -33,9 +33,8 @@ from eoxserver.core import Component
 from eoxserver.contrib import gdal
 
 from eoxserver.services.ows.wps.parameters import (
-    LiteralData, ComplexData, FormatJSON, CDObject
+    LiteralData, ComplexData, FormatJSON, CDObject, BoundingBoxData
 )
-from eoxserver.services.ows.wps.exceptions import InvalidInputValueError
 
 from eoxserver.resources.coverages import models
 from eoxserver.backends.access import gdal_open
@@ -59,7 +58,7 @@ class GetStatisticsProcess(Component):
     profiles = ['EOxServer:GetStatistics']
 
     inputs = {
-        "bbox": LiteralData(
+        "bbox": BoundingBoxData(
             "bbox",
             title="bounding box that intersect with the products."
         ),
@@ -83,9 +82,9 @@ class GetStatisticsProcess(Component):
         """ The main execution function for the process.
         """
 
-        values = list(map(float, bbox.split(",")))
-        if len(values) != 4:
-            raise ValueError("Invalid number of coordinates in 'bbox'.")
+        np_bbox = np.array(bbox)
+        flattened_bbox = np_bbox.flatten()
+        values = flattened_bbox.tolist()
 
         parsed_bbox = Polygon.from_bbox(values)
 
