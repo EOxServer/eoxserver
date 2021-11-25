@@ -146,6 +146,7 @@ class GetHeightProfileProcess(Component):
             raise InvalidInputValueError(
                 "coverage", "coverage '%s' has more than one imagery, the profile process handles single images!" % coverage
             )
+
         data_item = data_items[0]
         ds = gdal_open(data_item, False)
 

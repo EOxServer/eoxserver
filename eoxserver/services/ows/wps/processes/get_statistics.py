@@ -28,10 +28,10 @@
 
 import numpy as np
 
-from eoxserver.core import Component, implements
+from eoxserver.core import Component
 
 from eoxserver.contrib import gdal
-from eoxserver.services.ows.wps.interfaces import ProcessInterface
+
 from eoxserver.services.ows.wps.parameters import (
     LiteralData, ComplexData, FormatJSON, CDObject
 )
@@ -39,7 +39,7 @@ from eoxserver.services.ows.wps.exceptions import InvalidInputValueError
 
 from eoxserver.resources.coverages import models
 from eoxserver.backends.access import gdal_open
-from django.db.models import Q
+from django.db.models import Q, F
 
 from django.contrib.gis.geos import Polygon
 import logging
@@ -99,29 +99,33 @@ class GetStatisticsProcess(Component):
 
         report = []
         for coverage in coverages:
-            try:
-                data_items = coverage.arraydata_items.all()
-
-            except coverage.arraydata_items.all().length > 1:
-                raise InvalidInputValueError(
-                    "coverage", "coverage '%s' has more than one imagery, this process handles single images!" % coverage
-                )
-
-            data_item = data_items[0]
-            ds = gdal_open(data_item, False)
 
             coverage_id = coverage.identifier
-            stats_json = {"id": coverage_id}
-            for band_number in range(1, ds.RasterCount+1):
+            coverage_type = models.CoverageType.objects.get(id=coverage.coverage_type_id)
+            fields = coverage_type.field_types.all()
+
+            for field_idx, field in enumerate(fields):
+                nill_values = [float(item['value']) for item in field.nil_values.values('value')]
+                array_data_item = coverage.arraydata_items.get(
+                    field_index__lte=field_idx,
+                    field_index__gt=field_idx - F('band_count')
+                            )
+
+                ds = gdal_open(array_data_item, False)
+
+                stats_json = {"id": coverage_id}
+
+                band_number = array_data_item.field_index - field_idx + 1
 
                 band = ds.GetRasterBand(band_number)
                 image_array = band.ReadAsArray()
                 stats = ds.GetRasterBand(band_number).GetStatistics(0, 1)
                 bin_array, hist = np.histogram(image_array, bins=np.arange(int(stats[0]), int(stats[1]), 20, int))
 
-                # nodata = band.GetNoDataValue()
-                # no_value = np.where(np.any(image_array==nodata, axis=1))
-
+                no_data_list = []
+                for no_data in nill_values:
+                    no_data_list.append(np.where(np.any(image_array == no_data,
+                                        axis=1))[0].size)
                 band_data = {
                     "MINIMUM": stats[0],
                     "MAXIMUM": stats[1],
@@ -129,11 +133,11 @@ class GetStatisticsProcess(Component):
                     "STDDEV": stats[3],
                     "HISTOGRAM_FREQUENCY": bin_array.tolist(),
                     "HISTOGRAM_PIXEL_VALUES": hist.tolist(),
-                    # "NUMBER_OF_NODATA_PIXELS": no_value[0].size
+                    "NUMBER_OF_NODATA_PIXELS": sum(no_data_list)
                     }
                 stats_json["band_%s" % band_number] = band_data
 
-            report.append(stats_json)
+                report.append(stats_json)
 
         _output = CDObject(
             report, format=FormatJSON(),
