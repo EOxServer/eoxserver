@@ -27,6 +27,7 @@
 # -----------------------------------------------------------------------------
 
 from uuid import uuid4
+import json
 import numpy as np
 from eoxserver.core import Component
 
@@ -204,15 +205,17 @@ class DemProcessingProcess(Component):
         res_ds = func(*args)
 
         out_ds = driver.CreateCopy(output_filename, res_ds, 0)
+
         if extension == '.tif':
             out_ds.SetGeoTransform(ds.GetGeoTransform())
             out_ds.SetProjection(ds.GetProjection())
-
+        del out_ds
         if extension == ".geojson":
 
             with open(output_filename) as f:
+
                 _output = CDObject(
-                    f.read(), format=FormatJSON(),
+                    json.load(f), format=FormatJSON(),
                     filename=("identity_complex.json")
                 )
             # _output = CDObject(
@@ -227,6 +230,5 @@ class DemProcessingProcess(Component):
                     fid.read(), filename=output_filename,
                 )
         gdal.Unlink(output_filename)
-        del out_ds
         del tmp_ds
         return _output
