@@ -24,7 +24,7 @@ ENV GUNICORN_CMD_ARGS "--config /opt/eoxserver/gunicorn.conf.py ${INSTANCE_NAME}
 
 # install OS dependency packages
 RUN apt-get update \
-  && apt-get install -y \
+  && DEBIAN_FRONTEND=noninteractive  apt-get install -y \
     python \
     python-pip \
     python-psycopg2 \
@@ -33,6 +33,7 @@ RUN apt-get update \
     gdal-bin \
     libsqlite3-mod-spatialite \
     postgresql-client \
+    python-tk \
   && apt-get autoremove -y \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/partial/* /tmp/* /var/tmp/*
