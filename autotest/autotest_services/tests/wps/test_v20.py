@@ -32,7 +32,7 @@ from autotest_services.tests.wps.base import (
     WPS10CapabilitiesMixIn,
 )
 
-XML_CONTENT_TYPE = "application/xml; charset=utf-8"
+XML_CONTENT_TYPE = "application/xml"
 
 #===============================================================================
 # WCS 2.0 GetCapabilities

@@ -25,13 +25,17 @@
 # THE SOFTWARE.
 # -------------------------------------------------------------------------------
 
+from typing import List
+
 from eoxserver.core.config import get_eoxserver_config
-from eoxserver.core.decoders import kvp, xml
-from eoxserver.services.ows.wps.util import get_processes
 from eoxserver.services.ows.common.config import CapabilitiesConfigReader
+from eoxserver.services.ows.dispatch import filter_handlers
+from eoxserver.services.ows.wps.util import get_processes
+from eoxserver.services.ows.wps.interfaces import ProcessInterface
 
 from ows.wps.v20 import encoders
-from ows.wps.types import ServiceCapabilities
+from ows.wps.types import ProcessSummary, ServiceCapabilities
+from ows.common.types import Metadata, Operation, OperationMethod
 
 
 class WPS20GetCapabilitiesHandler(object):
@@ -47,40 +51,94 @@ class WPS20GetCapabilitiesHandler(object):
 
         conf = CapabilitiesConfigReader(get_eoxserver_config())
 
-        result = encoders.xml_encode_capabilities(
-            capabilities=ServiceCapabilities(
-                title=conf.title,
-                abstract=conf.abstract,
-                keywords=conf.keywords,
-                service_type=self.__class__.service,
-                service_type_versions=self.__class__.versions,
-                profiles=[],
-                fees=conf.fees,
-                access_constraints=conf.access_constraints,
-                # service provider
-                provider_name=conf.provider_name,
-                provider_site=conf.provider_site,
-                individual_name=conf.individual_name,
-                organisation_name=None,
-                position_name=conf.position_name,
-                # contact info
-                phone_voice=conf.phone_voice,
-                phone_facsimile=conf.phone_facsimile,
-                # address fields
-                delivery_point=conf.delivery_point,
-                city=conf.city,
-                administrative_area=conf.administrative_area,
-                postal_code=conf.postal_code,
-                country=conf.country,
-                electronic_mail_address=conf.electronic_mail_address,
-                online_resource=conf.onlineresource,
-                hours_of_service=conf.hours_of_service,
-                contact_instructions=conf.contact_instructions,
-                role=conf.role,
-                operations=[],
-            )
+        capabilities = ServiceCapabilities(
+            title=conf.title,
+            abstract=conf.abstract,
+            keywords=conf.keywords,
+            service_type=self.__class__.service,
+            service_type_versions=self.__class__.versions,
+            profiles=[],
+            fees=conf.fees,
+            access_constraints=conf.access_constraints,
+            # service provider
+            provider_name=conf.provider_name,
+            provider_site=conf.provider_site,
+            individual_name=conf.individual_name,
+            organisation_name=None,
+            position_name=conf.position_name,
+            # contact info
+            phone_voice=conf.phone_voice,
+            phone_facsimile=conf.phone_facsimile,
+            # address fields
+            delivery_point=conf.delivery_point,
+            city=conf.city,
+            administrative_area=conf.administrative_area,
+            postal_code=conf.postal_code,
+            country=conf.country,
+            electronic_mail_address=conf.electronic_mail_address,
+            online_resource=conf.onlineresource,
+            hours_of_service=conf.hours_of_service,
+            contact_instructions=conf.contact_instructions,
+            role=conf.role,
+            operations=self._encode_operations_metadata(conf),
+            process_summaries=_encode_process_summaries(),
         )
-        print(result.value)
+
+        result = encoders.xml_encode_capabilities(capabilities=capabilities)
+
         return result.value, result.content_type
-        # encoder = WPS10CapabilitiesXMLEncoder()
-        # return encoder.serialize(encoder.encode_capabilities(get_processes()))
+
+    def _encode_operations_metadata(
+        self, conf: CapabilitiesConfigReader
+    ) -> List[Operation]:
+        get_handlers = filter_handlers(
+            service="WPS", versions=self.versions, method="GET"
+        )
+        post_handlers = filter_handlers(
+            service="WPS", versions=self.versions, method="POST"
+        )
+        all_handlers = sorted(
+            set(get_handlers + post_handlers), key=lambda h: h.request
+        )
+        url = conf.http_service_url
+        return [
+            Operation(
+                name=handler.request,
+                operation_methods=[
+                    OperationMethod(
+                        method=method,
+                        service_url=url,
+                    )
+                    for method in handler.methods
+                ],
+            )
+            for handler in all_handlers
+        ]
+
+
+def _encode_process_summaries() -> List[ProcessSummary]:
+    processes: List[ProcessInterface] = get_processes()
+    return [
+        ProcessSummary(
+            identifier=(
+                identifier := getattr(process, "identifier", type(process).__name__)
+            ),
+            title=getattr(process, "title", identifier),
+            abstract=getattr(process, "description", process.__doc__),
+            keywords=[],  # TODO: which value to use?
+            metadata=[
+                Metadata(
+                    about=key,
+                    href=value,
+                )  # TODO: check if this translation makes sense?
+                for key, value in getattr(process, "metadata", {}).items()
+            ],
+            sync_execute=getattr(process, "synchronous", False),
+            async_execute=getattr(process, "asynchronous", False),
+            by_value=False,  # TODO: which value to use?
+            by_reference=False,  # TODO: which value to use?
+            version=getattr(process, "version", "1.0.0"),
+            model=None,  # TODO: which value to use?
+        )
+        for process in processes
+    ]
