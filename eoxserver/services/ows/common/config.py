@@ -38,7 +38,7 @@ class CapabilitiesConfigReader(config.Reader):
     abstract            = config.Option(default="None")
     keywords            = config.Option(type=typelist(str, ","), default=[])
     fees                = config.Option(default="None")
-    access_constraints  = config.Option(default="None")
+    access_constraints  = config.Option(type=typelist(str, ","), default=[])
     provider_name       = config.Option(default="None")
     provider_site       = config.Option(default="None")
     individual_name     = config.Option(default="None")

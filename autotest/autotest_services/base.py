@@ -283,6 +283,7 @@ class OWSTestCase(TransactionTestCase):
             reasons = ', '.join([
                 str(e) for e in fails
             ])
+            breakpoint()
             self.fail(
                 "Response returned in '%s' is not equal to expected "
                 "response(s) in '%s'. REASON(S): %s " % (

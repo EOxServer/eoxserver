@@ -239,6 +239,7 @@ def xmlCompareFiles( src0 , src1 , verbose = False ) :
     def parse( src , label ) : 
         return  parseFileName( src ) if ( type(src) in string_types ) else parseFileObj( src , label ) 
 
+    verbose=True
     return xmlCompareDOMs( parse(src0,"the first") , parse(src1,"the second") , verbose ) 
 
 #-------------------------------------------------------------------------------
