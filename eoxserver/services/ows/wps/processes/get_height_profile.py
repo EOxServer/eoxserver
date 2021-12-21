@@ -77,8 +77,7 @@ class GetHeightProfileProcess(Component):
 
     identifier = "GetHeightProfile"
     title = "Get the hight profile for a coverage"
-    description = ("provides a height profile between 2 points within a coverage "
-                  " The process is used by the  by the EOxC DEM implementtation")
+    description = ("provides a height profile between 2 points within a coverage.")
     metadata = {}
     profiles = ['EOxServer:GetHeightProfile']
 

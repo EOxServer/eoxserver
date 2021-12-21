@@ -52,8 +52,7 @@ class GetStatisticsProcess(Component):
 
     identifier = "GetStatistics"
     title = "Get statistics for a coverage/s that intersects with the input bbox"
-    description = ("provides statistics of all the coverages whithin a provided bounding box. "
-                  " The process is used by the  by the EOxC DEM implementtation")
+    description = ("provides statistics of all the coverages whithin a provided bounding box.")
     metadata = {}
     profiles = ['EOxServer:GetStatistics']
 
@@ -93,8 +92,10 @@ class GetStatisticsProcess(Component):
 
         coverages = models.Coverage.objects.filter(
             Q(collections=collection.id) &
-            Q(footprint__intersects=parsed_bbox)
-            | Q(footprint__isnull=True, parent_product__footprint__intersects=parsed_bbox))
+            (
+                Q(footprint__intersects=parsed_bbox)
+                | Q(footprint__isnull=True, parent_product__footprint__intersects=parsed_bbox))
+            )
 
         report = []
         for coverage in coverages:

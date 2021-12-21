@@ -58,8 +58,7 @@ class DemProcessingProcess(Component):
     identifier = "DemProcessing"
     title = "Dem Processing (hillshade, aspect, relief...)for a coverage/s that intersects with the input bbox"
     description = ("provides processed results of all the coverages whithin a provided bounding box. "
-                  " The processes returns hillshade, aspect/ratio, slope and contour."
-                  " The process is used by the  by the EOxC DEM implementtation")
+                  " The processes returns hillshade, aspect/ratio, slope and contour.")
     metadata = {}
     profiles = ['EOxServer:DemProcessing']
 
