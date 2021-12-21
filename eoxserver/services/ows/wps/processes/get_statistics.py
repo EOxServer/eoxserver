@@ -100,8 +100,12 @@ class GetStatisticsProcess(Component):
         for coverage in coverages:
 
             coverage_id = coverage.identifier
-            coverage_type = models.CoverageType.objects.get(id=coverage.coverage_type_id)
+            coverage_type = coverage.coverage_type
             fields = coverage_type.field_types.all()
+            stats_json = {
+                "id": coverage_id,
+                "bands": []
+            }
 
             for field_idx, field in enumerate(fields):
                 nill_values = [float(item['value']) for item in field.nil_values.values('value')]
@@ -111,8 +115,6 @@ class GetStatisticsProcess(Component):
                             )
 
                 ds = gdal_open(array_data_item, False)
-
-                stats_json = {"id": coverage_id}
 
                 band_number = array_data_item.field_index - field_idx + 1
 
@@ -126,6 +128,7 @@ class GetStatisticsProcess(Component):
                     no_data_list.append(np.where(np.any(image_array == no_data,
                                         axis=1))[0].size)
                 band_data = {
+                    "BAND_ID": band_number,
                     "MINIMUM": stats[0],
                     "MAXIMUM": stats[1],
                     "MEAN": stats[2],
@@ -134,9 +137,9 @@ class GetStatisticsProcess(Component):
                     "HISTOGRAM_PIXEL_VALUES": hist.tolist(),
                     "NUMBER_OF_NODATA_PIXELS": sum(no_data_list)
                     }
-                stats_json["band_%s" % band_number] = band_data
+                stats_json["bands"].append(band_data)
 
-                report.append(stats_json)
+            report.append(stats_json)
 
         _output = CDObject(
             report, format=FormatJSON(),
