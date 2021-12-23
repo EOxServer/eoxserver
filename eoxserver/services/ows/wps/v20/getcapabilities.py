@@ -60,7 +60,7 @@ class WPS20GetCapabilitiesHandler(object):
             service_type_versions=self.__class__.versions,
             profiles=[],
             fees=conf.fees,
-            access_constraints=conf.access_constraints,
+            access_constraints=conf.access_constraints.split(","),  # TODO: check if this is a reasonable translation
             # service provider
             provider_name=conf.provider_name,
             provider_site=conf.provider_site,
