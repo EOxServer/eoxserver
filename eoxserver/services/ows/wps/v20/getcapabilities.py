@@ -32,6 +32,7 @@ from eoxserver.services.ows.common.config import CapabilitiesConfigReader
 from eoxserver.services.ows.dispatch import filter_handlers
 from eoxserver.services.ows.wps.util import get_processes
 from eoxserver.services.ows.wps.interfaces import ProcessInterface
+from eoxserver.services.ows.wps.v20.common import encode_process_summary
 
 from ows.wps.v20 import encoders
 from ows.wps.types import ProcessSummary, ServiceCapabilities
@@ -81,7 +82,7 @@ class WPS20GetCapabilitiesHandler(object):
             contact_instructions=conf.contact_instructions,
             role=conf.role,
             operations=self._encode_operations_metadata(conf),
-            process_summaries=_encode_process_summaries(),
+            process_summaries=encode_process_summaries(),
         )
 
         result = encoders.xml_encode_capabilities(capabilities=capabilities)
@@ -116,29 +117,6 @@ class WPS20GetCapabilitiesHandler(object):
         ]
 
 
-def _encode_process_summaries() -> List[ProcessSummary]:
+def encode_process_summaries() -> List[ProcessSummary]:
     processes: List[ProcessInterface] = get_processes()
-    return [
-        ProcessSummary(
-            identifier=(
-                identifier := getattr(process, "identifier", type(process).__name__)
-            ),
-            title=getattr(process, "title", identifier),
-            abstract=getattr(process, "description", process.__doc__),
-            keywords=[],  # TODO: which value to use?
-            metadata=[
-                Metadata(
-                    about=key,
-                    href=value,
-                )  # TODO: check if this translation makes sense?
-                for key, value in getattr(process, "metadata", {}).items()
-            ],
-            sync_execute=getattr(process, "synchronous", False),
-            async_execute=getattr(process, "asynchronous", False),
-            by_value=False,  # TODO: which value to use?
-            by_reference=False,  # TODO: which value to use?
-            version=getattr(process, "version", "1.0.0"),
-            model=None,  # TODO: which value to use?
-        )
-        for process in processes
-    ]
+    return [encode_process_summary(process) for process in processes]

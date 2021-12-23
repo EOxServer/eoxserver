@@ -24,40 +24,33 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 # -------------------------------------------------------------------------------
-# pylint: disable=missing-docstring,line-too-long,too-many-ancestors
-
-from autotest_services import base as testbase
-from autotest_services.tests.wps.base import (
-    WPS10ExecuteMixIn,
-    ContentTypeCheckMixIn,
-    ContentDispositionCheckMixIn,
-    WPS10CapabilitiesMixIn,
-)
-
-XML_CONTENT_TYPE = "application/xml"
-
-# ===============================================================================
-# WPS 2.0 GetCapabilities
-# ===============================================================================
 
 
-class WPS20GetCapabilitiesValidTestCase(ContentTypeCheckMixIn, testbase.XMLTestCase):
-    expectedContentType = XML_CONTENT_TYPE
+from eoxserver.services.ows.wps.interfaces import ProcessInterface
 
-    def getRequest(self):
-        params = "service=WPS&version=2.0.0&request=GetCapabilities"
-        return (params, "kvp")
+from ows.wps.types import ProcessSummary
+from ows.common.types import Metadata
 
 
-# ===============================================================================
-# WPS 2.0 DescribeProcess
-# ===============================================================================
-
-
-
-
-class WPS20DescribeProcessTC06MinimalValidProcess(ContentTypeCheckMixIn, testbase.XMLTestCase):
-    expectedContentType = XML_CONTENT_TYPE
-    def getRequest(self):
-        params = "service=WPS&version=2.0.0&request=DescribeProcess&identifier=Test06MinimalValidProcess"
-        return (params, "kvp")
+def encode_process_summary(process: ProcessInterface) -> ProcessSummary:
+    return ProcessSummary(
+        identifier=(
+            identifier := getattr(process, "identifier", type(process).__name__)
+        ),
+        title=getattr(process, "title", identifier),
+        abstract=getattr(process, "description", process.__doc__),
+        keywords=[],  # TODO: which value to use?
+        metadata=[
+            Metadata(
+                about=key,
+                href=value,
+            )  # TODO: check if this translation makes sense?
+            for key, value in getattr(process, "metadata", {}).items()
+        ],
+        sync_execute=getattr(process, "synchronous", False),
+        async_execute=getattr(process, "asynchronous", False),
+        by_value=False,  # TODO: which value to use?
+        by_reference=False,  # TODO: which value to use?
+        version=getattr(process, "version", "1.0.0"),
+        model=None,  # TODO: which value to use?
+    )

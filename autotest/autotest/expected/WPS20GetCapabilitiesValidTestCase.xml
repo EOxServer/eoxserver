@@ -58,6 +58,14 @@ Copyright (C) European Space Agency - ESA</ows:Abstract>
         </ows:ServiceContact>
     </ows:ServiceProvider>
     <ows:OperationsMetadata>
+        <ows:Operation name="DescribeProcess">
+            <ows:DCP>
+                <ows:HTTP>
+                    <ows:Get xlink:href="http://testserver/ows"/>
+                    <ows:Post xlink:href="http://testserver/ows"/>
+                </ows:HTTP>
+            </ows:DCP>
+        </ows:Operation>
         <ows:Operation name="GetCapabilities">
             <ows:DCP>
                 <ows:HTTP>
