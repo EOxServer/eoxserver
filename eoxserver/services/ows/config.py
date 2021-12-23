@@ -54,6 +54,7 @@ DEFAULT_EOXS_OWS_SERVICE_HANDLERS = [
 
     'eoxserver.services.ows.wps.v20.getcapabilities.WPS20GetCapabilitiesHandler',
     'eoxserver.services.ows.wps.v20.describeprocess.WPS20DescribeProcessHandler',
+    'eoxserver.services.ows.wps.v20.execute.WPS20ExecuteHandler',
 
     'eoxserver.services.ows.dseo.v10.handlers.GetCapabilitiesHandler',
     'eoxserver.services.ows.dseo.v10.handlers.GetProductHandler',

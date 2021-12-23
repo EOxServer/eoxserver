@@ -45,6 +45,7 @@ from eoxserver.core.util.multiparttools import iterate as iterate_multipart
 from eoxserver.services.ows.wps.config import (
     DEFAULT_EOXS_PROCESSES, DEFAULT_EOXS_ASYNC_BACKENDS
 )
+from eoxserver.services.ows.wps.exceptions import NoSuchProcessError
 
 
 def parse_named_parts(request):
@@ -136,6 +137,16 @@ def get_processes():
         _setup_processes()
 
     return PROCESSES
+
+
+def get_process_by_identifier(identifier: str):
+    for process in get_processes():
+        process_identifier = (
+            getattr(process, 'identifier', None) or type(process).__name__
+        )
+        if process_identifier == identifier:
+            return process
+    raise NoSuchProcessError(identifier)
 
 
 def get_async_backends():

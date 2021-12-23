@@ -54,10 +54,38 @@ class WPS20GetCapabilitiesValidTestCase(ContentTypeCheckMixIn, testbase.XMLTestC
 # ===============================================================================
 
 
-
-
-class WPS20DescribeProcessTC06MinimalValidProcess(ContentTypeCheckMixIn, testbase.XMLTestCase):
+class WPS20DescribeProcessTC06MinimalValidProcess(
+    ContentTypeCheckMixIn, testbase.XMLTestCase
+):
     expectedContentType = XML_CONTENT_TYPE
+
     def getRequest(self):
         params = "service=WPS&version=2.0.0&request=DescribeProcess&identifier=Test06MinimalValidProcess"
         return (params, "kvp")
+
+
+# ===============================================================================
+# WPS 2.0 Execute
+# ===============================================================================
+
+
+class WPS20ExecuteTC06MinimalValidProcess(ContentTypeCheckMixIn, testbase.XMLTestCase):
+    expectedContentType = XML_CONTENT_TYPE
+
+    def getRequest(self):
+        params = """<wps:Execute
+        version="2.0.0"
+        service="WPS"
+        response="raw"
+        mode="sync"
+        xmlns:wps="http://www.opengis.net/wps/2.0"
+        xmlns:ows="http://www.opengis.net/ows/2.0" >
+          <ows:Identifier>Test06MinimalValidProcess</ows:Identifier>
+          <wps:Input id="input">
+            <wps:Data>Test string.</wps:Data>
+          </wps:Input>
+          <wps:Output id="input">
+          </wps:Output>
+        </wps:Execute>
+        """
+        return (params, "xml")
