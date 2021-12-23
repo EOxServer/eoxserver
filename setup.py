@@ -100,6 +100,7 @@ setup(
         'psycopg2',
         'lxml',
         'pycql==0.0.8',
+        'pyows',  # TODO: will need to merge branch to actually pass tests
     ],
     extras_require={
         'dev': ['scipy'],
