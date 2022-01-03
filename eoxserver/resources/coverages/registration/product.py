@@ -136,6 +136,10 @@ class ProductRegistrator(base.BaseRegistrator):
                 simplify_footprint_tolerance, preserve_topology=True
             )
 
+        # try to fix invalid footprint geometry via convex_hull
+        if not footprint.valid:
+            footprint = footprint.convex_hull
+
         replaced = False
         if replace:
             try:
