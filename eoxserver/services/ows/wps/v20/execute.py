@@ -4,7 +4,7 @@
 # Authors: Bernhard Mallinger <bernhard.mallinger@eox.at>
 #
 # -------------------------------------------------------------------------------
-# Copyright (C) 2021 EOX IT Services GmbH
+# Copyright (C) 2022 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -25,20 +25,12 @@
 # THE SOFTWARE.
 # -------------------------------------------------------------------------------
 
-import dataclasses
 import typing
 from logging import getLogger
 
 from eoxserver.services.ows.wps.util import get_process_by_identifier
 from eoxserver.services.ows.wps.interfaces import ProcessInterface
-from eoxserver.services.ows.wps.exceptions import NoSuchProcessError
-from eoxserver.services.ows.wps.v20.common import encode_process_summary
-from eoxserver.services.ows.wps.parameters import (
-    fix_parameter,
-    LiteralData,
-    ComplexData,
-    BoundingBoxData,
-)
+from eoxserver.services.ows.wps.exceptions import OperationNotSupportedError
 
 from ows.wps.v20 import encoders, decoders
 import ows.wps.v20.types as pyows_types
@@ -52,40 +44,48 @@ class WPS20ExecuteHandler(object):
     request = "Execute"
     methods = ["POST"]
 
-
     def handle(self, request):
         """Handle HTTP request."""
         logger = getLogger(__name__)
 
-        request: pyows_types.ExecuteRequest = decoders.XMLExecuteDecoder(request.body).decode()
-        process: ProcessInterface = get_process_by_identifier(request.process_id)
+        execute_request: pyows_types.ExecuteRequest = decoders.XMLExecuteDecoder(
+            request.body
+        ).decode()
+        process: ProcessInterface = get_process_by_identifier(
+            execute_request.process_id
+        )
 
         inputs = {
-            input_.identifier: _input_value(input_) for input_ in request.inputs
+            input_.identifier: _input_value(input_) for input_ in execute_request.inputs
         }
 
         # TODO: tests for all cases
-        if request.mode == pyows_types.ExecutionMode.sync:
-            logger.debug("Execute process %s", request.process_id)
+        if execute_request.mode == pyows_types.ExecutionMode.sync:
+            logger.debug("Execute process %s", execute_request.process_id)
             response = process.execute(**inputs)
-        elif request.mode == pyows_types.ExecutionMode.async_:
-            ...
+        elif execute_request.mode == pyows_types.ExecutionMode.async_:
+            raise OperationNotSupportedError("Async mode not implemented")
         else:  # auto
-            ...
+            raise OperationNotSupportedError("Auto mode not implemented")
 
-        if request.response == pyows_types.ResponseType.raw:
-            return response, "", 200  # TODO: content type?
+        if execute_request.response == pyows_types.ResponseType.raw:
+            content_type = None
+            # TODO: proper output encoding
+            if len(execute_request.output_definitions) == 1:
+                content_type = (
+                    execute_request.output_definitions[0].mime_type
+                    or "text/plain; charset=utf-8"
+                )
+
+            return response, content_type, 200
         else:  # document
-            ...  # TODO: implement in pyows?
-
-        # TODO:
-        request.output_definitions
-
+            raise OperationNotSupportedError("Document mode not implemented")
 
 
 def _input_value(input_: pyows_types.Input) -> typing.Any:
     if isinstance(input_.data, pyows_types.Data):
         return input_.data.value
+        # TODO: how to deal with pyows Data?
     else:
         # TODO: how do we deal with references?
         raise NotImplementedError

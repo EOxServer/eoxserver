@@ -66,6 +66,13 @@ Copyright (C) European Space Agency - ESA</ows:Abstract>
                 </ows:HTTP>
             </ows:DCP>
         </ows:Operation>
+        <ows:Operation name="Execute">
+          <ows:DCP>
+            <ows:HTTP>
+              <ows:Post xlink:href="http://testserver/ows"/>
+            </ows:HTTP>
+          </ows:DCP>
+        </ows:Operation>
         <ows:Operation name="GetCapabilities">
             <ows:DCP>
                 <ows:HTTP>
@@ -137,6 +144,11 @@ Copyright (C) European Space Agency - ESA</ows:Abstract>
             <ows:Title>Test Case 07: Request parameter.</ows:Title>
             <ows:Abstract>This test process demonstrates use of the RequestParameters input. The request parameter is a special input which passes meta-data extracted from the Django HTTPRequest object to the executed process.</ows:Abstract>
             <ows:Identifier>TC07:request-parameter</ows:Identifier>
+        </wps:ProcessSummary>
+        <wps:ProcessSummary jobControlOptions="" outputTransmission="" processVersion="1.0.0">
+          <ows:Title>Test Case GetStatistics</ows:Title>
+          <ows:Abstract>Test processes mimicking real world get statistics process</ows:Abstract>
+          <ows:Identifier>TC:GetStatistics</ows:Identifier>
         </wps:ProcessSummary>
     </wps:Contents>
 
