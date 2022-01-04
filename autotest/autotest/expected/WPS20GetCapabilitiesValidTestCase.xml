@@ -89,6 +89,21 @@ Copyright (C) European Space Agency - ESA</ows:Abstract>
             <ows:Identifier>getTimeData</ows:Identifier>
         </wps:ProcessSummary>
         <wps:ProcessSummary jobControlOptions="" outputTransmission="" processVersion="1.0.0">
+          <ows:Title>Get the hight profile for a coverage</ows:Title>
+          <ows:Abstract>provides a height profile between 2 points within a coverage.</ows:Abstract>
+          <ows:Identifier>GetHeightProfile</ows:Identifier>
+        </wps:ProcessSummary>
+        <wps:ProcessSummary jobControlOptions="" outputTransmission="" processVersion="1.0.0">
+          <ows:Title>Get statistics for a coverage/s that intersects with the input bbox</ows:Title>
+          <ows:Abstract>provides statistics of all the coverages whithin a provided bounding box.</ows:Abstract>
+          <ows:Identifier>GetStatistics</ows:Identifier>
+        </wps:ProcessSummary>
+        <wps:ProcessSummary jobControlOptions="" outputTransmission="" processVersion="1.0.0">
+          <ows:Title>Dem Processing (hillshade, aspect, relief...)for a coverage/s that intersects with the input bbox</ows:Title>
+          <ows:Abstract>provides processed results of all the coverages whithin a provided bounding box.  The processes returns hillshade, aspect/ratio, slope and contour.</ows:Abstract>
+          <ows:Identifier>DemProcessing</ows:Identifier>
+        </wps:ProcessSummary>
+        <wps:ProcessSummary jobControlOptions="" outputTransmission="" processVersion="1.0.0">
             <ows:Title>Test Case 00: Literal data identity.</ows:Title>
             <ows:Abstract> Test identity process (the outputs are copies of the inputs)
     demonstrating various features of the literal data inputs and outputs.
