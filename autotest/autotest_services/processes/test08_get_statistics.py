@@ -41,7 +41,7 @@ class Test08GetStatistics(Component):
     implements(ProcessInterface)
 
     identifier = "TC:GetStatistics"
-    title = "Test Case GetStatistics"
+    title = "TC08: Test Case GetStatistics"
 
     inputs = [
         (
@@ -61,9 +61,9 @@ class Test08GetStatistics(Component):
         ),
     ]
 
-    def execute(self, **inputs):
+    def execute(self, bbox, collection):
         return json.dumps(
             {
-                "data": 13,
+                "data": sum(bbox[0]) + sum(bbox[1]),
             }
         )

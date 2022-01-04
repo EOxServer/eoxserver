@@ -161,7 +161,7 @@ Copyright (C) European Space Agency - ESA</ows:Abstract>
             <ows:Identifier>TC07:request-parameter</ows:Identifier>
         </wps:ProcessSummary>
         <wps:ProcessSummary jobControlOptions="" outputTransmission="" processVersion="1.0.0">
-          <ows:Title>Test Case GetStatistics</ows:Title>
+          <ows:Title>TC08: Test Case GetStatistics</ows:Title>
           <ows:Abstract>Test processes mimicking real world get statistics process</ows:Abstract>
           <ows:Identifier>TC:GetStatistics</ows:Identifier>
         </wps:ProcessSummary>

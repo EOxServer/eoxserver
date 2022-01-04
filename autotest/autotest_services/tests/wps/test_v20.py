@@ -75,6 +75,8 @@ class WPS20ExecuteTC06MinimalValidProcess(
     expectedContentType = "text/plain; charset=utf-8"
 
     def getRequest(self):
+        # example as defined in
+        # http://schemas.opengis.net/wps/2.0/xml-examples/wpsExecuteRequestExample.xml
         params = """<wps:Execute
         version="2.0.0"
         service="WPS"
