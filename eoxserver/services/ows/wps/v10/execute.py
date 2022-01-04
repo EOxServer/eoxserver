@@ -33,10 +33,10 @@ from eoxserver.services.ows.wps.interfaces import (
     ProcessInterface, AsyncBackendInterface,
 )
 from eoxserver.services.ows.wps.util import (
-    parse_named_parts, InMemoryURLResolver, get_processes
+    parse_named_parts, InMemoryURLResolver, get_process_by_identifier
 )
 from eoxserver.services.ows.wps.exceptions import (
-    NoSuchProcessError, InvalidParameterValue, StorageNotSupported,
+    InvalidParameterValue, StorageNotSupported,
 )
 from eoxserver.services.ows.wps.v10.encoders import (
     WPS10ExecuteResponseXMLEncoder, WPS10ExecuteResponseRawEncoder
@@ -78,16 +78,6 @@ class WPS10ExecuteHandler(object):
                 return WPS10ExecuteXMLDecoder(data)
             return WPS10ExecuteXMLDecoder(request.body)
 
-    def get_process(self, identifier):
-        """ Get process component matched by the identifier. """
-        for process in get_processes():
-            process_identifier = (
-                getattr(process, 'identifier', None) or type(process).__name__
-            )
-            if process_identifier == identifier:
-                return process
-        raise NoSuchProcessError(identifier)
-
     def get_async_backend(self):
         """ Get available asynchronous back-end matched by the service version.
         """
@@ -107,7 +97,7 @@ class WPS10ExecuteHandler(object):
         extra_parts = parse_named_parts(request)
 
         # get the process and convert input/output definitions to a common format
-        process = self.get_process(decoder.identifier)
+        process = get_process_by_identifier(decoder.identifier)
         logger.debug("Execute process %s", decoder.identifier)
         input_defs = parse_params(process.inputs)
         output_defs = parse_params(process.outputs)

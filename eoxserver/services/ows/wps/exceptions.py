@@ -122,3 +122,9 @@ class MissingRequiredInputError(InvalidParameterValue):
 class ExecuteError(NoApplicableCode):
     def __init__(self, message="", locator="process.execute()"):
         NoApplicableCode.__init__(self, message, locator)
+
+
+# This is defined in OGC 06-121r9 (referenced by WPS 2.0), not sure if also applicable in WPS 1.0
+class OperationNotSupportedError(OWS10Exception):
+    def __init__(self, message, locator=None):
+        OWS10Exception.__init__(self, code="OperationNotSupported", locator=None, message=message)

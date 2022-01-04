@@ -465,20 +465,28 @@ def create_product_type_from_stac_item(stac_item, product_type_name=None,
     properties = stac_item['properties']
     assets = stac_item['assets']
 
+    # set to see which assets are referenced in the coverage mapping
+    mapping_assets = set()
+    for mapping in coverage_mapping.values():
+        mapping_assets |= set(mapping['assets'])
+
     # list of Asset ID + bands
     bands_list = []
 
     if coverage_mapping:
         for asset_name, asset in assets.items():
-            if asset_name in coverage_mapping['assets']:
-                bands_list.append(
-                    (
-                        asset_name,
-                        asset['eo:bands']
-                        if isinstance(asset['eo:bands'], list) else
-                        [asset['eo:bands']]
+            if asset_name in mapping_assets:
+                if 'eo:bands' in assets:
+                    bands_list.append(
+                        (
+                            asset_name,
+                            asset['eo:bands']
+                            if isinstance(asset['eo:bands'], list) else
+                            [asset['eo:bands']]
+                        )
                     )
-                )
+                else:
+                    bands_list.append((asset_name, [{'name': asset_name}]))
     else:
         for asset_name, asset in assets.items():
             if 'eo:bands' in asset:

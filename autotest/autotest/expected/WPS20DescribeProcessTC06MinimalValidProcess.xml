@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wps:ProcessOfferings
+    xmlns:ows="http://www.opengis.net/ows/2.0"
+    xmlns:wps="http://www.opengis.net/wps/2.0"
+    xmlns:xlink="http://www.w3.org/1999/xlink"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.opengis.net/wps/2.0 ../wps.xsd"
+
+    service="WPS"
+    version="2.0.1">
+
+
+<wps:ProcessOffering jobControlOptions="sync-execute async-execute dismiss" outputTransmission="value reference">
+    <wps:Process>
+
+        <ows:Title>Test06MinimalValidProcess</ows:Title>
+        <ows:Identifier>Test06MinimalValidProcess</ows:Identifier>
+
+
+        <!-- TODO: figure out format for missing data and add it -->
+
+        <wps:Input>
+            <ows:Title>input</ows:Title>
+            <ows:Identifier>input</ows:Identifier>
+            <wps:LiteralData>
+                <wps:LiteralDataDomain default="true">
+                    <ows:AnyValue/>
+                </wps:LiteralDataDomain>
+            </wps:LiteralData>
+        </wps:Input>
+
+
+        <wps:Output>
+            <ows:Title>output</ows:Title>
+            <ows:Identifier>output</ows:Identifier>
+            <wps:LiteralData/>
+        </wps:Output>
+
+    </wps:Process>
+</wps:ProcessOffering>
+
+
+
+</wps:ProcessOfferings>

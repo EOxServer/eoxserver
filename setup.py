@@ -101,6 +101,7 @@ setup(
         'lxml',
         'pycql==0.0.8',
         'matplotlib',
+        'pyows>=0.2.5',
     ],
     extras_require={
         'dev': ['scipy'],
