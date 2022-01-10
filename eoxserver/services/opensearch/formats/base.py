@@ -139,15 +139,17 @@ ns_dc = NameSpace("http://purl.org/dc/elements/1.1/", "dc")
 ns_georss = NameSpace("http://www.georss.org/georss", "georss")
 ns_media = NameSpace("http://search.yahoo.com/mrss/", "media")
 ns_owc = NameSpace("http://www.opengis.net/owc/1.0", "owc")
+ns_eoxs = NameSpace("http://eoxserver.org/eoxs/1.0", "eoxs")
 
-nsmap = NameSpaceMap(ns_atom, ns_dc, ns_georss, ns_media, ns_owc)
+nsmap = NameSpaceMap(ns_atom, ns_dc, ns_georss, ns_media, ns_owc, ns_eoxs)
 
-ATOM = ElementMaker(namespace=ns_atom.uri)
-OS = ElementMaker(namespace=ns_opensearch.uri)
+ATOM = ElementMaker(namespace=ns_atom.uri, nsmap=nsmap)
+OS = ElementMaker(namespace=ns_opensearch.uri, nsmap=nsmap)
 DC = ElementMaker(namespace=ns_dc.uri, nsmap=nsmap)
 GEORSS = ElementMaker(namespace=ns_georss.uri, nsmap=nsmap)
 MEDIA = ElementMaker(namespace=ns_media.uri, nsmap=nsmap)
 OWC = ElementMaker(namespace=ns_owc.uri, nsmap=nsmap)
+EOXS = ElementMaker(namespace=ns_eoxs.uri, nsmap=nsmap)
 
 
 class BaseFeedResultFormat(object):
@@ -388,6 +390,12 @@ class BaseFeedResultFormat(object):
                     request, coverage
                 )
             )
+        ]
+
+    def encode_coverage_ids(self, coverages):
+        return [
+            EOXS("coverageId", coverage.identifier)
+            for coverage in coverages
         ]
 
     def encode_spatio_temporal(self, item):
