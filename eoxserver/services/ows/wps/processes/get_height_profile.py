@@ -28,7 +28,6 @@
 
 import csv
 from uuid import uuid4
-import os
 
 from math import radians, cos, sin, asin, sqrt
 
@@ -42,9 +41,8 @@ except ImportError:
 
 from eoxserver.contrib import gdal
 
-from eoxserver.core import Component, implements
+from eoxserver.core import Component
 
-from eoxserver.services.ows.wps.interfaces import ProcessInterface
 from eoxserver.services.ows.wps.parameters import (
     LiteralData, ComplexData, FormatText, CDAsciiTextBuffer,
     CDByteBuffer, FormatBinaryRaw, FormatBinaryBase64,
@@ -70,6 +68,7 @@ def haversine(lon1, lat1, lon2, lat2):
     c = 2 * asin(sqrt(a))
     r = 6378137.0
     return c * r
+
 
 class GetHeightProfileProcess(Component):
     """ GetHeightProfileProcess defines a WPS process for getting Height

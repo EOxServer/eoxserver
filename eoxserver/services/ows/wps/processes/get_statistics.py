@@ -68,8 +68,8 @@ class GetStatisticsProcess(Component):
     }
 
     outputs = {
-        "statistic": ComplexData(
-            "statistic",
+        "statistics": ComplexData(
+            "statistics",
             title="output statistics",
             abstract="coverage/s statistics in json format.",
             formats=FormatJSON()
@@ -97,7 +97,8 @@ class GetStatisticsProcess(Component):
                 | Q(footprint__isnull=True, parent_product__footprint__intersects=parsed_bbox))
             )
 
-        report = []
+        report = {
+            "result": []}
         for coverage in coverages:
 
             coverage_id = coverage.identifier
@@ -140,7 +141,7 @@ class GetStatisticsProcess(Component):
                     }
                 stats_json["bands"].append(band_data)
 
-            report.append(stats_json)
+            report["result"].append(stats_json)
 
         _output = CDObject(
             report, format=FormatJSON(),
