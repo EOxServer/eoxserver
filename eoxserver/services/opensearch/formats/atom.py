@@ -38,7 +38,7 @@ from eoxserver.core.util.xmltools import etree, NameSpace, NameSpaceMap, typemap
 from eoxserver.core.util.timetools import isoformat
 from eoxserver.resources.coverages import models
 from eoxserver.services.opensearch.formats.base import (
-    BaseFeedResultFormat, ns_georss, ns_media, ns_owc
+    BaseFeedResultFormat, ns_georss, ns_media, ns_owc, ns_eoxs
 )
 from eoxserver.services.opensearch.config import (
     DEFAULT_EOXS_OPENSEARCH_SUMMARY_TEMPLATE
@@ -52,7 +52,7 @@ ns_gml = NameSpace("http://www.opengis.net/gml", "gml")
 ns_dc = NameSpace("http://purl.org/dc/elements/1.1/", "dc")
 
 # namespace map
-nsmap = NameSpaceMap(ns_atom, ns_opensearch, ns_dc, ns_georss, ns_media, ns_owc)
+nsmap = NameSpaceMap(ns_atom, ns_opensearch, ns_dc, ns_georss, ns_media, ns_owc, ns_eoxs)
 
 # Element factories
 ATOM = ElementMaker(namespace=ns_atom.uri, nsmap=nsmap, typemap=typemap)
@@ -104,6 +104,8 @@ class AtomResultFormat(BaseFeedResultFormat):
         )
         entry.extend(self.encode_item_links(request, collection_id, item))
         entry.append(self.encode_summary(request, collection_id, item))
+        if isinstance(item, models.Product):
+            entry.extend(self.encode_coverage_ids(item.coverages.all()))
         return entry
 
     def encode_summary(self, request, collection_id, item):

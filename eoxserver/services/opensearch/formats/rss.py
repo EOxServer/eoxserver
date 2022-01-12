@@ -38,8 +38,10 @@ from django.utils.http import urlencode
 from eoxserver.core.util.xmltools import etree, NameSpace, NameSpaceMap, typemap
 from eoxserver.core.util.timetools import isoformat
 from eoxserver.services.opensearch.formats.base import (
-    BaseFeedResultFormat, ns_opensearch, ns_dc, ns_atom, ns_media, ns_owc
+    BaseFeedResultFormat, ns_opensearch, ns_dc, ns_atom, ns_media, ns_owc,
+    ns_eoxs
 )
+from eoxserver.resources.coverages import models
 
 
 # namespace declarations
@@ -48,7 +50,8 @@ ns_gml = NameSpace("http://www.opengis.net/gml", "gml")
 
 # namespace map
 nsmap = NameSpaceMap(
-    ns_georss, ns_gml, ns_opensearch, ns_dc, ns_atom, ns_media, ns_owc
+    ns_georss, ns_gml, ns_opensearch, ns_dc, ns_atom, ns_media, ns_owc,
+    ns_eoxs
 )
 
 # Element factories
@@ -78,7 +81,9 @@ class RSSResultFormat(BaseFeedResultFormat):
                 *chain(
                     self.encode_opensearch_elements(search_context),
                     self.encode_feed_links(request, search_context), [
-                        self.encode_item(request, item, search_context)
+                        self.encode_item(
+                            request, collection_id, item, search_context
+                        )
                         for item in queryset
                     ]
                 )
@@ -87,7 +92,7 @@ class RSSResultFormat(BaseFeedResultFormat):
         )
         return etree.tostring(tree, pretty_print=True)
 
-    def encode_item(self, request, item, search_context):
+    def encode_item(self, request, collection_id, item, search_context):
         link_url = request.build_absolute_uri(
             "%s?%s" % (
                 reverse("ows"), urlencode(dict(
@@ -110,7 +115,7 @@ class RSSResultFormat(BaseFeedResultFormat):
         else:
             rss_item.append(RSS("guid", item.identifier, isPermaLink="false"))
 
-        rss_item.extend(self.encode_item_links(request, item))
+        rss_item.extend(self.encode_item_links(request, collection_id, item))
 
         # TODO: remove this for the general dc:date?
         if item.begin_time and item.end_time:
@@ -123,4 +128,6 @@ class RSSResultFormat(BaseFeedResultFormat):
             )
 
         rss_item.extend(self.encode_spatio_temporal(item))
+        if isinstance(item, models.Product):
+            rss_item.extend(self.encode_coverage_ids(item.coverages.all()))
         return rss_item
