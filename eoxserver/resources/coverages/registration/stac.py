@@ -379,6 +379,10 @@ def register_stac_product(stac_item, product_type=None, storage=None,
                 coverage_type.name, identifier
             )
         )
+        
+        if storage:
+            path = path.partition("/")[2]
+
         report = registrator.register(
             data_locations=[([storage.name] if storage else []) + [path]],
             metadata_locations=[],
