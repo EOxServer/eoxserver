@@ -91,10 +91,14 @@ class GetStatisticsProcess(Component):
         collection = models.Collection.objects.get(identifier=collection)
 
         coverages = models.Coverage.objects.filter(
-            Q(collections=collection.id) &
-            (
-                Q(footprint__intersects=parsed_bbox)
-                | Q(footprint__isnull=True, parent_product__footprint__intersects=parsed_bbox))
+                (
+                    Q(collections=collection)
+                    | Q(parent_product__collections=collection)
+                ) &
+                (
+                    Q(footprint__intersects=parsed_bbox)
+                    | Q(footprint__isnull=True, parent_product__footprint__intersects=parsed_bbox)
+                )
             )
 
         report = {
