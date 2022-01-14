@@ -186,7 +186,7 @@ class DemProcessingProcess(Component):
             else:
                 logger.error('The provided bbox is not inside or intersecting with the coverage')
 
-        output_filename = "/opt/data/result" + extension
+        output_filename = "/result" + extension
         tmp_ds = '/vsimem/%s.tif' % uuid4().hex
         ds = gdal.Warp(tmp_ds, original_ds, dstSRS=original_ds.GetProjection(), outputBounds=values, format='Gtiff')
 
