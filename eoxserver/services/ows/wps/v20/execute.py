@@ -70,11 +70,14 @@ class WPS20ExecuteHandler(object):
 
         if execute_request.response == pyows_types.ResponseType.raw:
             content_type = None
-            # TODO: proper output encoding
             if len(execute_request.output_definitions) == 1:
                 content_type = (
                     execute_request.output_definitions[0].mime_type
                     or "text/plain; charset=utf-8"
+                )
+            else:
+                raise OperationNotSupportedError(
+                    "Only exactly 1 output definition is currently supported"
                 )
 
             return response, content_type, 200
