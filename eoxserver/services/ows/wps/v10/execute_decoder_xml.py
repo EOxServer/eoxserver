@@ -58,12 +58,11 @@ def _parse_input(element):
     elif elem_data is not None:
         if len(elem_data) != 1:
             raise ValueError("Invalid input content of the 'wps:Data' element!")
-        # pylint: disable=redefined-variable-type
         value = _parse_input_data(elem_data[0], id_, title, abstract)
 
     else:
         raise ValueError(
-            "Neither 'wps:Data' not 'wps:Reference' elements provided!"
+            "Neither 'wps:Data' nor 'wps:Reference' element provided!"
         )
 
     return id_, value
