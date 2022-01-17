@@ -86,7 +86,7 @@ class WPS20ExecuteTC06MinimalValidProcess(
         xmlns:ows="http://www.opengis.net/ows/2.0" >
           <ows:Identifier>Test06MinimalValidProcess</ows:Identifier>
           <wps:Input id="input">
-            <wps:Data>Test string.</wps:Data>
+            <wps:Data>Teststring.</wps:Data>
           </wps:Input>
           <wps:Output id="input">
           </wps:Output>
@@ -110,10 +110,10 @@ class WPS20ExecuteGetStatisticsRaw(ContentTypeCheckMixIn, testbase.PlainTextTest
           <ows:Identifier>TC:GetStatistics</ows:Identifier>
           <wps:Input id="bbox">
              <wps:Data>
-                <wps:BoundingBoxData crs="http://www.opengis.net/def/crs/EPSG/0/4326">
-                <ows:LowerCorner>44.0972 38.4119</ows:LowerCorner>
-                <ows:UpperCorner>48.8435 42.4293</ows:UpperCorner>
-              </wps:BoundingBoxData>
+                <ows:BoundingBox crs="EPSG:4326">
+                  <ows:LowerCorner>44.0972 38.4119</ows:LowerCorner>
+                  <ows:UpperCorner>48.8435 42.4293</ows:UpperCorner>
+                </ows:BoundingBox>
             </wps:Data>
           </wps:Input>
           <wps:Input id="collection">

@@ -34,6 +34,7 @@ from eoxserver.services.ows.wps.exceptions import OperationNotSupportedError
 
 from ows.wps.v20 import decoders
 import ows.wps.v20.types as pyows_types
+import ows.common.types as pyows_common_types
 
 
 class WPS20ExecuteHandler(object):
@@ -59,7 +60,6 @@ class WPS20ExecuteHandler(object):
             input_.identifier: _input_value(input_) for input_ in execute_request.inputs
         }
 
-        # TODO: tests for all cases
         if execute_request.mode == pyows_types.ExecutionMode.sync:
             logger.debug("Execute process %s", execute_request.process_id)
             response = process.execute(**inputs)
@@ -85,38 +85,14 @@ class WPS20ExecuteHandler(object):
 def _input_value(input_: pyows_types.Input) -> typing.Any:
     if isinstance(input_.data, pyows_types.Data):
 
-        value = input_.data.value
+        data_value = input_.data.value
 
-
-        # TODO: figure out what types can really be used here. judging by the examples it can be a
-        #       wild mix of xml tags or just literal data without even a LiteralData tag.
-        if isinstance(value, str):
-            return value
-
-        elem = value[0]
-
-        # TODO: we need something like eoxserver.services.ows.wps.v10.execute_decoder_xml._parse_input
-        #       here. Either generalize this to namespace for 2.0 or implement in pyows (what are the
-        #       differences between wps 1.0 and 2.0 here?)
-        if elem.tag == "{http://www.opengis.net/wps/2.0}BoundingBoxData":
-
-            # ad hoc reimplementation of _parse_input_bbox to get call to work now
-            def parse_corner(corner):
-                return [float(x) for x in corner.split(" ")]
-
-            lower_corner = elem.findtext(
-                "./{http://www.opengis.net/ows/2.0}LowerCorner"
-            )
-            upper_corner = elem.findtext(
-                "./{http://www.opengis.net/ows/2.0}UpperCorner"
-            )
-            return (
-                parse_corner(lower_corner),
-                parse_corner(upper_corner),
-                # elem.attrib.get("crs"),  # NOTE: crs seems to be decoded for wps 1.0, but then disappears somewhere
-            )
+        # TODO: use pattern matching as soon as we can require python 3.10
+        if isinstance(data_value, pyows_types.LiteralValue):
+            return data_value.value
+        elif isinstance(data_value, pyows_common_types.BoundingBox):
+            return data_value
         else:
-            return elem
+            raise OperationNotSupportedError("Unsupported input element")
     else:
-        # TODO: how do we deal with references?
         raise OperationNotSupportedError("References as input are not implemented")
