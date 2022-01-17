@@ -61,6 +61,11 @@ def _parse_input(element):
         # pylint: disable=redefined-variable-type
         value = _parse_input_data(elem_data[0], id_, title, abstract)
 
+    else:
+        raise ValueError(
+            "Neither 'wps:Data' not 'wps:Reference' elements provided!"
+        )
+
     return id_, value
 
 
@@ -178,13 +183,13 @@ def _create_output(identifier, attrs, title=None, abstract=None):
 
 class WPS10ExecuteXMLDecoder(xml.Decoder):
     """ WPS 1.0 POST/XML Execute request decoder class. """
+    namespaces = nsmap
     identifier = xml.Parameter("ows:Identifier/text()")
-    _inputs = xml.Parameter(
-        "wps:DataInputs/wps:Input", type=_parse_input, num="*", default=[]
-    )
-    _response_form = xml.Parameter(
-        "wps:ResponseForm", type=_parse_response_form, num="?"
-    )
+
+    @property
+    def inputs(self):
+        """ Get the raw data inputs as a dictionary. """
+        return dict(self._inputs)
 
     @property
     def response_form(self):
@@ -192,9 +197,9 @@ class WPS10ExecuteXMLDecoder(xml.Decoder):
         resp_form = self._response_form
         return resp_form if resp_form is not None else ResponseDocument()
 
-    @property
-    def inputs(self):
-        """ Get the raw data inputs as a dictionary. """
-        return dict(self._inputs)
-
-    namespaces = nsmap
+    _inputs = xml.Parameter(
+        "wps:DataInputs/wps:Input", type=_parse_input, num="*", default=[]
+    )
+    _response_form = xml.Parameter(
+        "wps:ResponseForm", type=_parse_response_form, num="?"
+    )
