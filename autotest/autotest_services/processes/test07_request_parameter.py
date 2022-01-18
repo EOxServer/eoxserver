@@ -30,10 +30,12 @@ from eoxserver.core import Component, implements
 from eoxserver.services.ows.wps.interfaces import ProcessInterface
 from eoxserver.services.ows.wps.parameters import LiteralData, RequestParameter
 
-def get_header(name):
+
+def get_header(header_name):
     """ Second order function extracting user defined HTTP request header. """
+    cgi_header_name = "HTTP_" + header_name.upper().replace("-", "_")
     def _get_header(request):
-        return request.META.get(name)
+        return request.META.get(cgi_header_name)
     return _get_header
 
 

@@ -691,18 +691,18 @@ class WPS10ExecuteComplexDataJPGRawOutputTestCase(ContentTypeCheckMixIn, Content
         return (params, "xml")
 
 #===============================================================================
-# response parameter input test
+# request parameter input test
 #===============================================================================
 
-class WPS10ResponseParameterProcessDescriptionTestCase(ContentTypeCheckMixIn, testbase.XMLTestCase):
+class WPS10RequestParameterProcessDescriptionTestCase(ContentTypeCheckMixIn, testbase.XMLTestCase):
     expectedContentType = XML_CONTENT_TYPE
     def getRequest(self):
         params = "service=WPS&version=1.0.0&request=DescribeProcess&identifier=TC07:request-parameter"
         return (params, "kvp")
 
 
-class WPS10ResponseParameterExecuteTestCase(ContentTypeCheckMixIn, WPS10ExecuteMixIn, testbase.XMLTestCase):
+class WPS10RequestParameterExecuteTestCase(ContentTypeCheckMixIn, WPS10ExecuteMixIn, testbase.XMLTestCase):
     expectedContentType = XML_CONTENT_TYPE
     def getRequest(self):
         params = "service=WPS&version=1.0.0&request=Execute&identifier=TC07:request-parameter&lineage=true"
-        return (params, "kvp", {"X-Test-Header": "Test-Header-Value"})
+        return (params, "kvp", {"HTTP_X_TEST_HEADER": "Test-Header-Value"})
