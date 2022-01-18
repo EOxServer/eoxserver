@@ -34,6 +34,7 @@ from eoxserver.core import Component
 import eoxserver.render.browse.functions as functions
 
 from eoxserver.contrib import gdal
+from eoxserver.contrib.vsi import open as vsi_open
 
 from eoxserver.services.ows.wps.parameters import (
     LiteralData, ComplexData, FormatJSON, CDObject,
@@ -136,16 +137,16 @@ class DemProcessingProcess(Component):
         data_format = "raster"
         # output format selection
         if result['mime_type'] == "image/png":
-            extension = ".png"
+            extension = "png"
             driver = gdal.GetDriverByName("PNG")
         elif result['mime_type'] == "image/jpeg":
-            extension = ".jpg"
+            extension = "jpg"
             driver = gdal.GetDriverByName("JPEG")
         elif result['mime_type'] == "image/tiff":
-            extension = ".tif"
+            extension = "tif"
             driver = gdal.GetDriverByName("GTiff")
         else:
-            extension = ".geojson"
+            extension = "geojson"
             data_format = "vector"
             driver = gdal.GetDriverByName("GeoJSON")
 
@@ -186,7 +187,7 @@ class DemProcessingProcess(Component):
             else:
                 logger.error('The provided bbox is not inside or intersecting with the coverage')
 
-        output_filename = "/result" + extension
+        output_filename = '/vsimem/%s.%s' % (uuid4().hex, extension)
         tmp_ds = '/vsimem/%s.tif' % uuid4().hex
         ds = gdal.Warp(tmp_ds, original_ds, dstSRS=original_ds.GetProjection(), outputBounds=values, format='Gtiff')
 
@@ -211,23 +212,19 @@ class DemProcessingProcess(Component):
         del out_ds
         if extension == ".geojson":
 
-            with open(output_filename) as f:
+            with vsi_open(output_filename) as f:
 
                 _output = CDObject(
                     json.load(f), format=FormatJSON(),
                     filename=("identity_complex.json")
                 )
-            # _output = CDObject(
-            #     json.dumps(out_ds), format=FormatJSON(),
-            #     filename=("identity_complex.json")
-            # )
 
         else:
 
-            with open(output_filename, 'rb') as fid:
+            with vsi_open(output_filename, 'rb') as fid:
                 _output = CDByteBuffer(
                     fid.read(), filename=output_filename,
                 )
         gdal.Unlink(output_filename)
-        del tmp_ds
+        gdal.Unlink(tmp_ds)
         return _output
