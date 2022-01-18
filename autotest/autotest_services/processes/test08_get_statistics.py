@@ -62,4 +62,4 @@ class Test08GetStatistics(Component):
     ]
 
     def execute(self, bbox, collection):
-        return json.dumps({"data": sum(bbox.bbox)})
+        return json.dumps({"data": sum(bbox.lower) + sum(bbox.upper)})

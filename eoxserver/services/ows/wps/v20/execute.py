@@ -31,6 +31,7 @@ from logging import getLogger
 from eoxserver.services.ows.wps.util import get_process_by_identifier
 from eoxserver.services.ows.wps.interfaces import ProcessInterface
 from eoxserver.services.ows.wps.exceptions import OperationNotSupportedError
+from eoxserver.services.ows.wps.parameters import BoundingBox
 
 from ows.wps.v20 import decoders
 import ows.wps.v20.types as pyows_types
@@ -94,7 +95,10 @@ def _input_value(input_: pyows_types.Input) -> typing.Any:
         if isinstance(data_value, pyows_types.LiteralValue):
             return data_value.value
         elif isinstance(data_value, pyows_common_types.BoundingBox):
-            return data_value
+            return BoundingBox(
+                bbox=(data_value.bbox[:2], data_value.bbox[2:]),
+                crs=data_value.crs,
+            )
         else:
             raise OperationNotSupportedError("Unsupported input element")
     else:
