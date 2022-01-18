@@ -216,7 +216,7 @@ class DemProcessingProcess(Component):
 
                 _output = CDObject(
                     json.load(f), format=FormatJSON(),
-                    filename=("identity_complex.json")
+                    filename=("contours.json")
                 )
 
         else:
