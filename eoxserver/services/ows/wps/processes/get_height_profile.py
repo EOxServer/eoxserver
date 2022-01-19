@@ -132,6 +132,9 @@ class GetHeightProfileProcess(Component):
             model = models.Coverage.objects.get(
                 identifier=coverage)
 
+            product = models.Product.objects.get(id=model.parent_product_id)
+
+
         except models.Coverage.DoesNotExist:
             raise InvalidInputValueError(
                 "coverage", "Invalid coverage name '%s'!" % coverage
@@ -196,6 +199,14 @@ class GetHeightProfileProcess(Component):
             output_filename = 'height_profile.%s' % extension
             fig = plt.figure()
             plt.plot(x, y)
+            title = "Height Profile \n Product: %s \n " % product.identifier
+            plt.title(title + "start coordinates: (%s, %s), end coordinates: (%s, %s)"
+                      % tuple("{:7.4f}".format(point) for point in line),
+                      fontsize=10)
+            plt.xlabel("Distance (Km)")
+            plt.ylabel("Elevation (m)")
+            plt.grid(color='green', linestyle='--', linewidth=0.5)
+
             image_data = BytesIO()
             fig.savefig(image_data, format=extension)
             image_data.seek(0)
