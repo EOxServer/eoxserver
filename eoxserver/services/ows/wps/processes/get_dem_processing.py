@@ -201,7 +201,7 @@ class DemProcessingProcess(Component):
             args = [ds, z_factor, scale, azimuth, altitude, algorithm]
         elif identifier == 'aspect':
             args = [ds, False, False, algorithm]
-        elif identifier == 'slope':
+        elif identifier == 'slopeshade':
             args = [ds, scale, algorithm]
         elif identifier == 'contours':
             interval = int(interval) if interval is not None else 100
