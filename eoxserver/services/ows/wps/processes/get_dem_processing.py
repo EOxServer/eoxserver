@@ -106,6 +106,12 @@ class DemProcessingProcess(Component):
             title="Elevation interval between contours.",
             abstract="Optional Elevation interval between contours., only for contour."
         ),
+        "algorithm": LiteralData(
+            "algorithm",
+            optional=True,
+            title="Dem Processing algorithm.",
+            abstract="Optional Dem Processing algorithm to be performed,it varies depending on the process."
+        ),
     }
 
     outputs = {
@@ -126,7 +132,7 @@ class DemProcessingProcess(Component):
     }
 
     @staticmethod
-    def execute(coverage, identifier, bbox, result, z_factor, interval, scale, azimuth, altitude):
+    def execute(coverage, identifier, bbox, result, z_factor, interval, scale, azimuth, altitude, algorithm):
         """ The main execution function for the process.
         """
 
@@ -192,11 +198,11 @@ class DemProcessingProcess(Component):
         ds = gdal.Warp(tmp_ds, original_ds, dstSRS=original_ds.GetProjection(), outputBounds=values, format='Gtiff')
 
         if identifier == 'hillshade':
-            args = [ds, z_factor, scale, azimuth, altitude]
+            args = [ds, z_factor, scale, azimuth, altitude, algorithm]
         elif identifier == 'aspect':
-            args = [ds, scale]
+            args = [ds, False, False, algorithm]
         elif identifier == 'slope':
-            args = [ds]
+            args = [ds, scale, algorithm]
         elif identifier == 'contours':
             interval = int(interval) if interval is not None else 100
             args = [ds, 0, interval, -9999, data_format]
