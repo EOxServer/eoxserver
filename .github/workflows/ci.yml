@@ -7,12 +7,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-        - os: ubuntu
-          python: py2
-          db: postgis
-          django: "1.11.26"
-          python_bin: python
-          pip_bin: pip
         # TODO: deactivated as django 1.11 does not seem to work with the GEOS version supplied by Ubuntu 20.04
         # - os: ubuntu
         #   python: py3

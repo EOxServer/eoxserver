@@ -51,7 +51,7 @@ class GetTimeDataProcess(Component):
 
     identifier = "getTimeData"
     title = "Get times of collection coverages."
-    decription = ("Query collection and get list of coverages and their times "
+    description = ("Query collection and get list of coverages and their times "
                   "and spatial extents. The process is used by the "
                   "time-slider of the EOxClient (web client).")
 

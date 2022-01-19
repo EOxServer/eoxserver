@@ -1,0 +1,30 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<wps:ExecuteResponse xmlns:ows="http://www.opengis.net/ows/1.1" xmlns:wps="http://www.opengis.net/wps/2.0.0" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.0.0" xml:lang="en-US" service="WPS" serviceInstance="http://testserver/ows?service=WPS&amp;version=2.0.0&amp;request=GetCapabilities" xsi:schemaLocation="wps http://schemas.opengis.net/wps/2.0.0/wpsAll.xsd">
+
+    <!-- TODO: copies from wps 1.0.0, probably needs changes -->
+  <wps:Process wps:processVersion="2.0.0">
+    <ows:Identifier>Test06MinimalValidProcess</ows:Identifier>
+    <ows:Title>Test06MinimalValidProcess</ows:Title>
+  </wps:Process>
+  <wps:Status creationTime="2000-01-01T00:00:00.000000Z">
+    <wps:ProcessSucceeded>The processes execution completed successfully.</wps:ProcessSucceeded>
+  </wps:Status>
+  <wps:DataInputs>
+    <wps:Input>
+      <ows:Identifier>input</ows:Identifier>
+      <wps:Data>
+        <wps:LiteralData dataType="string">TEST</wps:LiteralData>
+      </wps:Data>
+    </wps:Input>
+  </wps:DataInputs>
+  <wps:OutputDefinitions/>
+  <wps:ProcessOutputs>
+    <wps:Output>
+      <ows:Identifier>output</ows:Identifier>
+      <ows:Title>output</ows:Title>
+      <wps:Data>
+        <wps:LiteralData dataType="string">TEST</wps:LiteralData>
+      </wps:Data>
+    </wps:Output>
+  </wps:ProcessOutputs>
+</wps:ExecuteResponse>

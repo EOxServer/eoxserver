@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wps:Capabilities
+    xmlns:ows="http://www.opengis.net/ows/2.0"
+    xmlns:wps="http://www.opengis.net/wps/2.0"
+    xmlns:xlink="http://www.w3.org/1999/xlink"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.opengis.net/wps/2.0 ../wps.xsd"
+
+    service="WPS"
+    version="2.0.1">
+
+    <ows:ServiceIdentification>
+        <ows:Title>Test configuration of MapServer used to demonstrate EOxServer</ows:Title>
+        <ows:Abstract>Test configuration of MapServer used to demonstrate EOxServer
+The MERIS test data is produced from the following ESA remote sensing data:
+MERIS L1b sample data available at: http://earth.esa.int/object/index.cfm?fobjectid=4320
+Copyright (C) European Space Agency - ESA</ows:Abstract>
+        <ows:Keywords>
+            <ows:Keyword>EO-WCS</ows:Keyword>
+            <ows:Keyword>WCS EO-AP</ows:Keyword>
+            <ows:Keyword>WCS 2.0</ows:Keyword>
+            <ows:Keyword>WCS</ows:Keyword>
+            <ows:Keyword>WMS</ows:Keyword>
+            <ows:Keyword>EO-WMS</ows:Keyword>
+            <ows:Keyword>MERIS</ows:Keyword>
+            <ows:Keyword>ASAR</ows:Keyword>
+            <ows:Keyword>Envisat</ows:Keyword>
+        </ows:Keywords>
+        <ows:ServiceType>WPS</ows:ServiceType>
+        <ows:ServiceTypeVersion>2.0.0</ows:ServiceTypeVersion>
+        <ows:Fees>None</ows:Fees>
+        <ows:AccessConstraints>None</ows:AccessConstraints>
+    </ows:ServiceIdentification>
+    <ows:ServiceProvider>
+        <ows:ProviderName>EOX IT Services GmbH - HG Wien - FN 312068z - UID ATU64265057</ows:ProviderName>
+        <ows:ProviderSite xlink:href="http://eoxserver.org" />
+        <ows:ServiceContact>
+            <ows:IndividualName>Stephan Meissl</ows:IndividualName>
+            <ows:PositionName>Senior IT Consultant</ows:PositionName>
+            <ows:ContactInfo>
+                <ows:Phone>
+                    <ows:Voice>Provided on request</ows:Voice>
+                    <ows:Facsimile>None</ows:Facsimile>
+                </ows:Phone>
+                <ows:Address>
+                    <ows:DeliveryPoint>Thurngasse 8/4</ows:DeliveryPoint>
+                    <ows:City>Wien</ows:City>
+                    <ows:AdministrativeArea>Vienna</ows:AdministrativeArea>
+                    <ows:PostalCode>1090</ows:PostalCode>
+                    <ows:Country>Austria</ows:Country>
+                    <ows:ElectronicMailAddress>office@eox.at</ows:ElectronicMailAddress>
+                </ows:Address>
+                <ows:OnlineResource xlink:href="http://eoxserver.org"/>
+                <ows:HoursOfService>Mon - Fri 10:30 - 17:00 CET and CEST respectively excl. Austrian holidays</ows:HoursOfService>
+                <ows:ContactInstructions>E-mails are usually answered within 3 working days.</ows:ContactInstructions>
+            </ows:ContactInfo>
+            <ows:Role>Service provider</ows:Role>
+        </ows:ServiceContact>
+    </ows:ServiceProvider>
+    <ows:OperationsMetadata>
+        <ows:Operation name="DescribeProcess">
+            <ows:DCP>
+                <ows:HTTP>
+                    <ows:Get xlink:href="http://testserver/ows"/>
+                    <ows:Post xlink:href="http://testserver/ows"/>
+                </ows:HTTP>
+            </ows:DCP>
+        </ows:Operation>
+        <ows:Operation name="Execute">
+          <ows:DCP>
+            <ows:HTTP>
+              <ows:Post xlink:href="http://testserver/ows"/>
+            </ows:HTTP>
+          </ows:DCP>
+        </ows:Operation>
+        <ows:Operation name="GetCapabilities">
+            <ows:DCP>
+                <ows:HTTP>
+                    <ows:Get xlink:href="http://testserver/ows"/>
+                    <ows:Post xlink:href="http://testserver/ows"/>
+                </ows:HTTP>
+            </ows:DCP>
+        </ows:Operation>
+    </ows:OperationsMetadata>
+    <wps:Contents>
+        <wps:ProcessSummary jobControlOptions="" outputTransmission="" processVersion="1.0.0">
+            <ows:Title>Get times of collection coverages.</ows:Title>
+            <ows:Abstract>Query collection and get list of coverages and their times and spatial extents. The process is used by the time-slider of the EOxClient (web client).</ows:Abstract>
+            <ows:Identifier>getTimeData</ows:Identifier>
+        </wps:ProcessSummary>
+        <wps:ProcessSummary jobControlOptions="" outputTransmission="" processVersion="1.0.0">
+          <ows:Title>Get the hight profile for a coverage</ows:Title>
+          <ows:Abstract>provides a height profile between 2 points within a coverage.</ows:Abstract>
+          <ows:Identifier>GetHeightProfile</ows:Identifier>
+        </wps:ProcessSummary>
+        <wps:ProcessSummary jobControlOptions="" outputTransmission="" processVersion="1.0.0">
+          <ows:Title>Get statistics for a coverage/s that intersects with the input bbox</ows:Title>
+          <ows:Abstract>provides statistics of all the coverages whithin a provided bounding box.</ows:Abstract>
+          <ows:Identifier>GetStatistics</ows:Identifier>
+        </wps:ProcessSummary>
+        <wps:ProcessSummary jobControlOptions="" outputTransmission="" processVersion="1.0.0">
+          <ows:Title>Dem Processing (hillshade, aspect, relief...)for a coverage/s that intersects with the input bbox</ows:Title>
+          <ows:Abstract>provides processed results of all the coverages whithin a provided bounding box.  The processes returns hillshade, aspect/ratio, slope and contour.</ows:Abstract>
+          <ows:Identifier>DemProcessing</ows:Identifier>
+        </wps:ProcessSummary>
+        <wps:ProcessSummary jobControlOptions="" outputTransmission="" processVersion="1.0.0">
+            <ows:Title>Test Case 00: Literal data identity.</ows:Title>
+            <ows:Abstract> Test identity process (the outputs are copies of the inputs)
+    demonstrating various features of the literal data inputs and outputs.
+    </ows:Abstract>
+            <ows:Identifier>TC00:identity:literal</ows:Identifier>
+            <ows:Metadata href="http://www.metadata.com/test-metadata" about="test-metadata"/>
+        </wps:ProcessSummary>
+        <wps:ProcessSummary jobControlOptions="" outputTransmission="" processVersion="1.0.0">
+            <ows:Title>Test Case 01: Bounding box data identity.</ows:Title>
+            <ows:Abstract> Test identity process (the output is a copy of the input)
+    demonstrating various features of the bounding box data inputs and outputs.
+    </ows:Abstract>
+            <ows:Identifier>TC01:identity:bbox</ows:Identifier>
+            <ows:Metadata href="http://www.metadata.com/test-metadata" about="test-metadata"/>
+        </wps:ProcessSummary>
+        <wps:ProcessSummary jobControlOptions="" outputTransmission="" processVersion="1.0.0">
+            <ows:Title>Test Case 02: Complex data identity.</ows:Title>
+            <ows:Abstract> Test identity process (the outputs are copies of the inputs)
+    demonstrating various features of the complex data inputs and outputs.
+    </ows:Abstract>
+            <ows:Identifier>TC02:identity:complex</ows:Identifier>
+            <ows:Metadata href="http://www.metadata.com/test-metadata" about="test-metadata"/>
+        </wps:ProcessSummary>
+        <wps:ProcessSummary jobControlOptions="" outputTransmission="" processVersion="1.0.0">
+            <ows:Title>Test Case 03: Complex data binary output with format selection.</ows:Title>
+            <ows:Abstract>Test process generating binary complex data output (an image).</ows:Abstract>
+            <ows:Identifier>TC03:image_generator:complex</ows:Identifier>
+            <ows:Metadata href="http://www.metadata.com/test-metadata" about="test-metadata"/>
+        </wps:ProcessSummary>
+        <wps:ProcessSummary jobControlOptions="" outputTransmission="" processVersion="1.0.0">
+            <ows:Title>Test Case 04: Literal input date-time time-zone test.</ows:Title>
+            <ows:Abstract> Test processes testing time-zone aware date-time input data-type
+    with automatic time-zone conversion.
+    </ows:Abstract>
+            <ows:Identifier>TC04:identity:literal:datetime</ows:Identifier>
+        </wps:ProcessSummary>
+        <wps:ProcessSummary jobControlOptions="" outputTransmission="" processVersion="1.0.0">
+            <ows:Title>Test Case 05: Literal output date-time time-zone test.</ows:Title>
+            <ows:Abstract> Test processes testing time-zone aware date-time input data-type
+    with automatic time-zone conversion.
+    </ows:Abstract>
+            <ows:Identifier>TC05:identity:literal:datetime</ows:Identifier>
+        </wps:ProcessSummary>
+        <wps:ProcessSummary jobControlOptions="" outputTransmission="" processVersion="1.0.0">
+            <ows:Title>Test06MinimalValidProcess</ows:Title>
+            <ows:Identifier>Test06MinimalValidProcess</ows:Identifier>
+        </wps:ProcessSummary>
+        <wps:ProcessSummary jobControlOptions="" outputTransmission="" processVersion="1.0.0">
+            <ows:Title>Test06MinimalAllowedProcess</ows:Title>
+            <ows:Identifier>Test06MinimalAllowedProcess</ows:Identifier>
+        </wps:ProcessSummary>
+        <wps:ProcessSummary jobControlOptions="" outputTransmission="" processVersion="1.0.0">
+            <ows:Title>Test Case 07: Request parameter.</ows:Title>
+            <ows:Abstract>This test process demonstrates use of the RequestParameters input. The request parameter is a special input which passes meta-data extracted from the Django HTTPRequest object to the executed process.</ows:Abstract>
+            <ows:Identifier>TC07:request-parameter</ows:Identifier>
+        </wps:ProcessSummary>
+        <wps:ProcessSummary jobControlOptions="" outputTransmission="" processVersion="1.0.0">
+          <ows:Title>TC08: Test Case GetStatistics</ows:Title>
+          <ows:Abstract>Test processes mimicking real world get statistics process</ows:Abstract>
+          <ows:Identifier>TC:GetStatistics</ows:Identifier>
+        </wps:ProcessSummary>
+    </wps:Contents>
+
+</wps:Capabilities>
