@@ -33,10 +33,9 @@ from ows.common.types import Metadata
 
 
 def encode_process_summary(process: ProcessInterface) -> ProcessSummary:
+    identifier = getattr(process, "identifier", type(process).__name__)
     return ProcessSummary(
-        identifier=(
-            identifier := getattr(process, "identifier", type(process).__name__)
-        ),
+        identifier=identifier,
         title=getattr(process, "title", identifier),
         abstract=getattr(process, "description", process.__doc__),
         keywords=[],  # TODO: which value to use?
