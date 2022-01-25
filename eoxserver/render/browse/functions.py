@@ -117,7 +117,7 @@ def roughness(data):
     )
 
 
-def contours(data, offset=0, interval=100, fill_value=-9999):
+def contours(data, offset=0, interval=100, fill_value=-9999, format='raster'):
     in_band = data.GetRasterBand(1)
     vec_filename = '/tmp/%s.shp' % uuid4().hex
     out_filename = '/vsimem/%s.tif' % uuid4().hex
@@ -148,32 +148,35 @@ def contours(data, offset=0, interval=100, fill_value=-9999):
 
         del contour_layer
         del contour_datasource
-
         vector_ds = gdal.OpenEx(vec_filename, gdal.OF_VECTOR)
-        vector_layer = vector_ds.GetLayer(0)
+        if format == 'raster':
+            vector_layer = vector_ds.GetLayer(0)
 
-        gt = data.GetGeoTransform()
-        gdal.Rasterize(
-            out_filename,
-            vector_ds,
-            width=data.RasterXSize,
-            height=data.RasterYSize,
-            format='GTiff',
-            attribute='value',
-            layers=[vector_layer.GetName()],
-            outputType=gdal.GDT_Float32,
-            initValues=fill_value,
-            xRes=gt[1],
-            yRes=gt[5],
-        )
+            gt = data.GetGeoTransform()
+            gdal.Rasterize(
+                out_filename,
+                vector_ds,
+                width=data.RasterXSize,
+                height=data.RasterYSize,
+                format='GTiff',
+                attribute='value',
+                layers=[vector_layer.GetName()],
+                outputType=gdal.GDT_Float32,
+                initValues=fill_value,
+                xRes=gt[1],
+                yRes=gt[5],
+            )
 
-        out_ds = gdal.Open(out_filename)
-        band = out_ds.GetRasterBand(1)
-        out_data = gdal_array.OpenNumPyArray(band.ReadAsArray(), False)
-        del out_ds
+            out_ds = gdal.Open(out_filename)
+            band = out_ds.GetRasterBand(1)
+            out_data = gdal_array.OpenNumPyArray(band.ReadAsArray(), False)
+            del out_ds
+            gdal.Unlink(out_filename)
+        elif format == 'vector':
+            out_data = vector_ds
+
     finally:
         vector_driver.DeleteDataSource(vec_filename)
-        gdal.Unlink(out_filename)
 
     return out_data
 

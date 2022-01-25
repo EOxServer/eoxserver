@@ -256,6 +256,7 @@ EOXS_PROCESSES = DEFAULT_EOXS_PROCESSES + [
     'autotest_services.processes.test06_minimal_process.Test06MinimalValidProcess',
     'autotest_services.processes.test06_minimal_process.Test06MinimalAllowedProcess',
     'autotest_services.processes.test07_request_parameter.Test07RequestParameterTest',
+    'autotest_services.processes.test08_get_statistics.Test08GetStatistics',
 ]
 
 

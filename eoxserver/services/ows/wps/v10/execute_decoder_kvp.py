@@ -55,7 +55,7 @@ def _parse_inputs(raw_string):
             )
         else:
             #NOTE: KVP Bounding box cannot be safely detected and parsed.
-            input_ = InputData( # pylint: disable=redefined-variable-type
+            input_ = InputData(
                 data=value,
                 identifier=id_,
                 uom=param.get("uom"),
@@ -82,10 +82,10 @@ def _parse_param(raw_string):
 
 def _parse_outputs(raw_string):
     """ Parse ResponseDocument parameter. """
-    outputs = []
-    for output in raw_string.split(";"):
-        outputs.append(_create_output(*_parse_param(output)))
-    return outputs
+    return [
+        _create_output(*_parse_param(output))
+        for output in raw_string.split(";")
+    ]
 
 
 def _parse_raw_output(raw_string):
@@ -125,39 +125,44 @@ class WPS10ExecuteKVPDecoder(kvp.Decoder):
     """ WPS 1.0 Execute HTTP/GET KVP request decoder. """
     #pylint: disable=too-few-public-methods
     identifier = kvp.Parameter()
-    inputs = kvp.Parameter(
-        "DataInputs", type=_parse_inputs, num="?", default={}
-    )
-    outputs = kvp.Parameter(
-        "ResponseDocument", type=_parse_outputs, num="?", default=[]
-    )
-    raw_response = kvp.Parameter(
-        "RawDataOutput", type=_parse_raw_output, num="?"
-    )
-    status = kvp.Parameter(
-        "status", type=parse_bool, num="?", default=False
-    )
-    lineage = kvp.Parameter(
-        "lineage", type=parse_bool, num="?", default=False
-    )
-    store_response = kvp.Parameter(
-        "storeExecuteResponse", type=parse_bool, num="?", default=False
-    )
+
+    @property
+    def inputs(self):
+        """ Get the raw data inputs as a dictionary. """
+        return self._inputs or {}
 
     @property
     def response_form(self):
         """ Get response unified form parsed either from ResponseDocument or
         RawDataOutput parameters.
         """
-        raw_response = self.raw_response
+        raw_response = self._raw_response
         if raw_response:
             return raw_response
 
         resp_doc = ResponseDocument(
-            lineage=self.lineage,
-            status=self.status,
-            store_response=self.store_response
+            lineage=self._lineage,
+            status=self._status,
+            store_response=self._store_response
         )
-        for output in self.outputs: # pylint: disable=not-an-iterable
+        for output in self._outputs: # pylint: disable=not-an-iterable
             resp_doc.set_output(output)
         return resp_doc
+
+
+    _inputs = kvp.Parameter("DataInputs", type=_parse_inputs, num="?")
+    _outputs = kvp.Parameter(
+        "ResponseDocument", type=_parse_outputs, num="?", default=()
+    )
+    _raw_response = kvp.Parameter(
+        "RawDataOutput", type=_parse_raw_output, num="?"
+    )
+    _status = kvp.Parameter(
+        "status", type=parse_bool, num="?", default=False
+    )
+    _lineage = kvp.Parameter(
+        "lineage", type=parse_bool, num="?", default=False
+    )
+    _store_response = kvp.Parameter(
+        "storeExecuteResponse", type=parse_bool, num="?", default=False
+    )
