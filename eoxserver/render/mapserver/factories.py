@@ -827,7 +827,9 @@ def _create_raster_style(name, layer, minvalue=0, maxvalue=255,
             (minvalue + next_perc * interval)
         ))
         cls.group = name
-        cls.name = "%s - %s" % (prev_perc, next_perc)
+        cls.name = "%s - %s" % (
+            (minvalue + prev_perc * interval),
+            (minvalue + next_perc * interval))
 
         style = ms.styleObj()
         style.mincolor = ms.colorObj(*prev_color)
