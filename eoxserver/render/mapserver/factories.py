@@ -344,7 +344,8 @@ class BrowseLayerMixIn(object):
                         map_.width, map_.height,
                         map_.bbox,
                         map_.crs,
-                        filename_generator
+                        filename_generator,
+                        browse.variables,
                     )
                 layer_objs = _create_raster_layer_objs(
                     map_obj, browse.extent, browse.spatial_reference,

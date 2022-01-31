@@ -13,8 +13,8 @@
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
-# The above copyright notice and this permission notice shall be included in all
-# copies of this Software or works derived from this Software.
+# The above copyright notice and this permission notice shall be included in
+# all copies of this Software or works derived from this Software.
 #
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -34,7 +34,6 @@ def parse_bbox(string):
         bbox = [float(v) for v in string.split(",")]
     except ValueError:
         raise InvalidParameterException("Invalid 'BBOX' parameter.", "bbox")
-
 
     if len(bbox) != 4:
         raise InvalidParameterException(
@@ -61,3 +60,21 @@ def int_or_str(string):
         return int(string)
     except ValueError:
         return string
+
+
+def float_or_str(string):
+    try:
+        return float(string)
+    except ValueError:
+        return string
+
+
+def parse_render_variables(raw):
+    items = [
+        item.partition("=")[::2]
+        for item in raw.split(',')
+    ]
+    return dict(
+        (item[0], float_or_str(item[1]))
+        for item in items
+    )
