@@ -26,6 +26,7 @@
 # THE SOFTWARE.
 # -----------------------------------------------------------------------------
 
+from uuid import uuid4
 import numpy as np
 
 from eoxserver.core import Component
@@ -121,6 +122,23 @@ class GetStatisticsProcess(Component):
                             )
 
                 ds = gdal_open(array_data_item, False)
+                geoTransform = ds.GetGeoTransform()
+                minx = geoTransform[0]
+                maxy = geoTransform[3]
+                maxx = minx + geoTransform[1] * ds.RasterXSize
+                miny = maxy + geoTransform[5] * ds.RasterYSize
+                coverage_bbox = Polygon.from_bbox((minx, miny, maxx, maxy))
+
+                if not parsed_bbox.contains(coverage_bbox):
+                    values_bbox = coverage_bbox.intersection(parsed_bbox)
+                    if values_bbox.area > 0:
+                        values = list(values_bbox.extent)
+                    else:
+                        logger.error('The provided bbox is not inside or intersecting with the coverage')
+
+                    tmp_ds = '/vsimem/%s.tif' % uuid4().hex
+                    ds = gdal.Warp(tmp_ds, ds, dstSRS=ds.GetProjection(), outputBounds=values, format='Gtiff')
+                    gdal.Unlink(tmp_ds)
 
                 band_number = array_data_item.field_index - field_idx + 1
 
