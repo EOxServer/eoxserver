@@ -34,6 +34,9 @@ try:
     from django.core.urlresolvers import reverse
 except ImportError:
     from django.urls import reverse
+
+from django.conf import settings
+from django.utils.module_loading import import_string
 from django.utils.http import urlencode
 
 from eoxserver.contrib import ogr, vsi
@@ -41,6 +44,9 @@ from eoxserver.core.util.timetools import isoformat
 from eoxserver.core.util.xmltools import NameSpace, NameSpaceMap
 from eoxserver.resources.coverages import models
 from eoxserver.services.gml.v32.encoders import GML32Encoder
+from eoxserver.services.opensearch.config import (
+    DEFAULT_EOXS_RESULT_ITEM_FEED_LINK_GENERATORS
+)
 
 
 class BaseOGRResultFormat(object):
@@ -150,6 +156,23 @@ GEORSS = ElementMaker(namespace=ns_georss.uri, nsmap=nsmap)
 MEDIA = ElementMaker(namespace=ns_media.uri, nsmap=nsmap)
 OWC = ElementMaker(namespace=ns_owc.uri, nsmap=nsmap)
 EOXS = ElementMaker(namespace=ns_eoxs.uri, nsmap=nsmap)
+
+
+RESULT_ITEM_FEED_LINK_GENERATORS = None
+
+
+def get_result_item_feed_link_generators():
+    global RESULT_ITEM_FEED_LINK_GENERATORS
+    if RESULT_ITEM_FEED_LINK_GENERATORS is None:
+        specifiers = getattr(
+            settings,
+            'EOXS_RESULT_ITEM_FEED_LINK_GENERATORS',
+            DEFAULT_EOXS_RESULT_ITEM_FEED_LINK_GENERATORS
+        )
+        RESULT_ITEM_FEED_LINK_GENERATORS = [
+            import_string(specifier) for specifier in specifiers
+        ]
+    return RESULT_ITEM_FEED_LINK_GENERATORS
 
 
 class BaseFeedResultFormat(object):
@@ -371,6 +394,12 @@ class BaseFeedResultFormat(object):
                 semantic__in=semantic_to_rel.keys()
             )
         ])
+
+        for generator in get_result_item_feed_link_generators():
+            links.extend([
+                ATOM("link", rel=rel, href=href)
+                for rel, href in generator.get_links(request, item)
+            ])
 
         return links
 
