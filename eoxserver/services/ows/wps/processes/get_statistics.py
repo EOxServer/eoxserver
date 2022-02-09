@@ -145,17 +145,21 @@ class GetStatisticsProcess(Component):
 
                 band = ds.GetRasterBand(band_number)
                 image_array = band.ReadAsArray()
+                data_array = image_array
                 no_data_list = []
                 for no_data in nill_values:
                     no_data_list.append(np.sum(image_array == no_data))
+                    data_array = data_array[data_array != no_data]
                 # if the image is empty GetStatistics will throw an error
                 # so we check if the number of the image pixels is greater
                 # than the number of noData pixels
                 nodata_number = sum(no_data_list).item()
                 if ((image_array.size - nodata_number) > 0):
                     stats = ds.GetRasterBand(band_number).GetStatistics(0, 1)
+                    interval = (np.amax(data_array) - np.amin(data_array)) / 25
 
-                    bin_array, hist = np.histogram(image_array, bins=np.arange(int(stats[0]), int(stats[1]), 20, int))
+                    bin_array, hist = np.histogram(data_array, bins=np.arange(
+                        int(stats[0]), int(stats[1]), interval, int))
 
                     band_data = {
                         "BAND_ID": band_number,
@@ -170,8 +174,8 @@ class GetStatisticsProcess(Component):
                     stats_json["bands"].append(band_data)
 
             if len(stats_json["bands"]) >= 1:
-
                 report["result"].append(stats_json)
+
         _output = CDObject(
             report, format=FormatJSON(),
             filename=("identity_complex.json")
