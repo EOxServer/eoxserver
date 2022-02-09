@@ -41,6 +41,8 @@ DEFAULT_EOXS_OPENSEARCH_FORMATS = [
 
 ]
 
+DEFAULT_EOXS_RESULT_ITEM_FEED_LINK_GENERATORS = []
+
 # default for EOXS_OPENSEARCH_EXTENSIONS
 DEFAULT_EOXS_OPENSEARCH_EXTENSIONS = [
     'eoxserver.services.opensearch.extensions.eo.EarthObservationExtension',
