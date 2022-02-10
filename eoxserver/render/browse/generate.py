@@ -237,8 +237,14 @@ def generate_browse(band_expressions, fields_and_coverages,
 
     if not is_simple:
         return _generate_browse_complex(
-            parsed_expressions, fields_and_coverages,
-            width, height, bbox, crs, generator, variables
+            parsed_expressions,
+            fields_and_coverages,
+            width,
+            height,
+            bbox,
+            crs,
+            generator,
+            variables if variables is not None else {}
         ), generator, True
 
     single_filename, env, bands = single_file_and_indices(
