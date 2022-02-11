@@ -47,10 +47,7 @@ from eoxserver.render.map.renderer import (
 from eoxserver.render.map.objects import Map
 from eoxserver.resources.coverages import crss
 from eoxserver.resources.coverages import models
-from eoxserver.services.ows.wms.util import (
-    parse_bbox, parse_time, int_or_str
-)
-from eoxserver.services.ows.wms.parsing import parse_render_variables
+from eoxserver.services.ows.wms.util import parse_bbox, parse_time, int_or_str
 from eoxserver.services.ows.common.config import CapabilitiesConfigReader
 from eoxserver.services.ows.wms.exceptions import InvalidCRS
 from eoxserver.services.ecql import parse, to_filter, get_field_mapping_for_model
@@ -206,9 +203,7 @@ class WMSBaseGetMapHandler(object):
             name, suffix = layer_mapper.split_layer_suffix_name(layer_name)
             layer = layer_mapper.lookup_layer(
                 name, suffix, style,
-                filter_expressions, sort_by, zoom=zoom,
-                variables=decoder.variables,
-                **dimensions
+                filter_expressions, sort_by, zoom=zoom, **dimensions
             )
             layers.append(layer)
 
@@ -216,7 +211,7 @@ class WMSBaseGetMapHandler(object):
             width=decoder.width, height=decoder.height, format=decoder.format,
             bbox=(minx, miny, maxx, maxy), crs=crs,
             bgcolor=decoder.bgcolor, transparent=decoder.transparent,
-            layers=layers,
+            layers=layers
         )
 
         result_bytes, content_type, filename = map_renderer.render_map(map_)
@@ -386,7 +381,6 @@ class WMSBaseGetMapDecoder(kvp.Decoder):
     dim_range = kvp.Parameter(type=parse_ranges, num="?")
 
     cql = kvp.Parameter(num="?")
-    variables = kvp.Parameter(type=parse_render_variables, num="?")
 
     sort_by = kvp.Parameter('sortBy', type=parse_sort_by, num="?")
 

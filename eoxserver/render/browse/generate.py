@@ -208,7 +208,7 @@ def single_file_and_indices(band_expressions, fields_and_coverages):
 
 
 def generate_browse(band_expressions, fields_and_coverages,
-                    width, height, bbox, crs, generator=None, variables=None):
+                    width, height, bbox, crs, generator=None):
     """ Produce a temporary VRT file describing how transformation of the
         coverages to browses.
 
@@ -237,14 +237,8 @@ def generate_browse(band_expressions, fields_and_coverages,
 
     if not is_simple:
         return _generate_browse_complex(
-            parsed_expressions,
-            fields_and_coverages,
-            width,
-            height,
-            bbox,
-            crs,
-            generator,
-            variables if variables is not None else {}
+            parsed_expressions, fields_and_coverages,
+            width, height, bbox, crs, generator
         ), generator, True
 
     single_filename, env, bands = single_file_and_indices(
@@ -329,7 +323,7 @@ def thread_warp(coverages, field_name, bbox, crs, width, height):
 
 
 def _generate_browse_complex(parsed_exprs, fields_and_coverages,
-                             width, height, bbox, crs, generator, variables):
+                             width, height, bbox, crs, generator):
 
     # TODO: get the pixel buffer and adjust accordingly
     # buffer = get_buffer()
@@ -368,7 +362,7 @@ def _generate_browse_complex(parsed_exprs, fields_and_coverages,
     for band_index, parsed_expr in enumerate(parsed_exprs, start=1):
         with np.errstate(divide='ignore', invalid='ignore'):
             out_data = _evaluate_expression(
-                parsed_expr, fields_and_datasets, variables, cache
+                parsed_expr, fields_and_datasets, generator, cache
             )
 
         if isinstance(out_data, (int, float)):
@@ -433,7 +427,7 @@ operator_map = {
 }
 
 
-def _evaluate_expression(expr, fields_and_datasets, variables, cache):
+def _evaluate_expression(expr, fields_and_datasets, generator, cache):
     key = ast.dump(expr)
     if key in cache:
         return cache[key]
@@ -443,11 +437,11 @@ def _evaluate_expression(expr, fields_and_datasets, variables, cache):
 
     elif isinstance(expr, _ast.BinOp):
         left_data = _evaluate_expression(
-            expr.left, fields_and_datasets, variables, cache
+            expr.left, fields_and_datasets, generator, cache
         )
 
         right_data = _evaluate_expression(
-            expr.right, fields_and_datasets, variables, cache
+            expr.right, fields_and_datasets, generator, cache
         )
 
         op = operator_map[type(expr.op)]
@@ -457,21 +451,19 @@ def _evaluate_expression(expr, fields_and_datasets, variables, cache):
         if not isinstance(expr.func, _ast.Name):
             raise BrowseGenerationError('Invalid function call')
 
+        func = get_function(expr.func.id)
+
         args_data = [
             _evaluate_expression(
-                arg, fields_and_datasets, variables, cache
+                arg, fields_and_datasets, generator, cache
             ) for arg in expr.args
         ]
-        if expr.func.id == 'var':
-            result = variables.get(*args_data)
-        else:
-            func = get_function(expr.func.id)
-            res = func(*args_data)
-            result = res
+        res = func(*args_data)
+        result = res
 
     elif isinstance(expr, _ast.Subscript):
         value = _evaluate_expression(
-            expr.value, fields_and_datasets, variables, cache
+            expr.value, fields_and_datasets, generator, cache
         )
         # assume that we will only use a single index
         slice_ = expr.slice.value.value
