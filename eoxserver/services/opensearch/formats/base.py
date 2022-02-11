@@ -170,7 +170,7 @@ def get_result_item_feed_link_generators():
             DEFAULT_EOXS_RESULT_ITEM_FEED_LINK_GENERATORS
         )
         RESULT_ITEM_FEED_LINK_GENERATORS = [
-            import_string(specifier) for specifier in specifiers
+            import_string(specifier)() for specifier in specifiers
         ]
     return RESULT_ITEM_FEED_LINK_GENERATORS
 
