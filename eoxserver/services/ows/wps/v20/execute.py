@@ -31,7 +31,13 @@ from logging import getLogger
 from eoxserver.services.ows.wps.util import get_process_by_identifier
 from eoxserver.services.ows.wps.interfaces import ProcessInterface
 from eoxserver.services.ows.wps.exceptions import OperationNotSupportedError
-from eoxserver.services.ows.wps.parameters import BoundingBox
+from eoxserver.services.ows.wps.parameters import BoundingBox, ResponseForm
+
+from eoxserver.services.ows.wps.v10.execute_util import (
+    pack_outputs as pack_outputs_v10,
+    parse_params as parse_params_v10,
+)
+from eoxserver.services.ows.wps.v10.encoders import WPS10ExecuteResponseRawEncoder
 
 from ows.wps.v20 import decoders
 import ows.wps.v20.types as pyows_types
@@ -63,25 +69,30 @@ class WPS20ExecuteHandler(object):
 
         if execute_request.mode == pyows_types.ExecutionMode.sync:
             logger.debug("Execute process %s", execute_request.process_id)
-            response = process.execute(**inputs)
+            outputs = process.execute(**inputs)
         elif execute_request.mode == pyows_types.ExecutionMode.async_:
             raise OperationNotSupportedError("Async mode not implemented")
         else:  # auto
             raise OperationNotSupportedError("Auto mode not implemented")
 
         if execute_request.response == pyows_types.ResponseType.raw:
-            content_type = None
-            if len(execute_request.output_definitions) == 1:
-                content_type = (
-                    execute_request.output_definitions[0].mime_type
-                    or "text/plain; charset=utf-8"
-                )
-            else:
-                raise OperationNotSupportedError(
-                    "Only exactly 1 output definition is currently supported"
-                )
 
-            return response, content_type, 200
+            # reuse wps 1.0 encoding
+            resp_form = ResponseForm()
+            for output in execute_request.output_definitions:
+                resp_form.set_output(output)
+                # there's no uom in pyows, so we set this for compatiblity
+                output.uom = None
+
+            packed_outputs = pack_outputs_v10(
+                outputs,
+                response_form=resp_form,
+                output_defs=parse_params_v10(process.outputs),
+            )
+            encoder = WPS10ExecuteResponseRawEncoder(resp_form=resp_form)
+            response = encoder.encode_response(packed_outputs)
+            return encoder.serialize(response)
+
         else:  # document
             raise OperationNotSupportedError("Document mode not implemented")
 
