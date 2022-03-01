@@ -88,7 +88,7 @@ class GetHeightProfileProcess(Component):
             "line",
             title="horizontal axis of the height profile."
         ),
-        "interpolation_method": LiteralData(
+        "method": LiteralData(
             "method",
             title="Interpolation method (a.k.a. near, avarage ... etc)."),
         "interval": LiteralData(
@@ -118,7 +118,7 @@ class GetHeightProfileProcess(Component):
 
 
     @staticmethod
-    def execute(coverage, line, interval, interpolation_method, profile, **kwarg):
+    def execute(coverage, line, interval, method, profile, **kwarg):
         """ The main execution function for the process.
         """
 
@@ -162,7 +162,7 @@ class GetHeightProfileProcess(Component):
         tmp_ds = '/vsimem/%s' % uuid4().hex
 
         profile_ds = gdal.Warp(tmp_ds, ds, dstSRS=proj_wkt, outputBounds=bbox,
-                        height=1, width=num_samples, resampleAlg=interpolation_method,
+                        height=1, width=num_samples, resampleAlg=method,
                         format='Gtiff')
 
         array_out = profile_ds.GetRasterBand(1).ReadAsArray()
