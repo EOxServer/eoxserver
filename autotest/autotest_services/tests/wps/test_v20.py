@@ -165,3 +165,28 @@ class WPS20ExecuteHandleDefaultAndOptionalParameters(
         </wps:Execute>
         """
         return (params, "xml")
+
+
+class WPS20ExecuteHandleMimeType(
+    ContentTypeCheckMixIn, ContentDispositionCheckMixIn, testbase.WPS10BinaryComparison
+):
+    expectedContentType = "image/jpeg"
+    expectedContentDisposition = 'attachment; filename="test03_binary_complex.jpg"'
+
+    def getFileExtension(self, file_type):
+        return "jpg"
+
+    def getRequest(self):
+        # The default is png, so we request jpeg here
+        params = """<wps:Execute
+        version="2.0.0"
+        service="WPS"
+        response="raw"
+        mode="sync"
+        xmlns:wps="http://www.opengis.net/wps/2.0"
+        xmlns:ows="http://www.opengis.net/ows/2.0" >
+          <ows:Identifier>TC03:image_generator:complex</ows:Identifier>
+          <wps:Output id="TC03:output00" mimeType="image/jpeg"></wps:Output>
+        </wps:Execute>
+        """
+        return (params, "xml")
