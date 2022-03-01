@@ -61,7 +61,7 @@ class Test09GetStatisticsComplex(Component):
         ),
     }
 
-    def execute(self, bbox, collection):
+    def execute(self, bbox, collection, **kwargs):
         return CDObject(
             {"data": 5},
             format=FormatJSON(),

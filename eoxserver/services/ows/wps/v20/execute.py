@@ -36,6 +36,7 @@ from eoxserver.services.ows.wps.parameters import BoundingBox, ResponseForm
 from eoxserver.services.ows.wps.v10.execute_util import (
     pack_outputs as pack_outputs_v10,
     parse_params as parse_params_v10,
+    decode_output_requests as decode_output_requests_v10,
 )
 from eoxserver.services.ows.wps.v10.encoders import WPS10ExecuteResponseRawEncoder
 
@@ -63,9 +64,29 @@ class WPS20ExecuteHandler(object):
             execute_request.process_id
         )
 
+        input_defs = parse_params_v10(process.inputs)
+        output_defs = parse_params_v10(process.outputs)
+
+        # reuse wps 1.0 encoding
+        resp_form = ResponseForm()
+        for output in execute_request.output_definitions:
+            resp_form.set_output(output)
+            # these fields are not present in pyows, we set them for compatibility
+            output.uom = None
+            output.as_reference = None
+
         inputs = {
-            input_.identifier: _input_value(input_) for input_ in execute_request.inputs
+            name: getattr(optional_input, "default", None)
+            for (name, optional_input) in input_defs.values()
+            if optional_input.is_optional
         }
+        inputs.update(decode_output_requests_v10(resp_form, output_defs))
+        inputs.update(
+            {
+                input_.identifier: _input_value(input_)
+                for input_ in execute_request.inputs
+            }
+        )
 
         if execute_request.mode == pyows_types.ExecutionMode.sync:
             logger.debug("Execute process %s", execute_request.process_id)
@@ -76,18 +97,10 @@ class WPS20ExecuteHandler(object):
             raise OperationNotSupportedError("Auto mode not implemented")
 
         if execute_request.response == pyows_types.ResponseType.raw:
-
-            # reuse wps 1.0 encoding
-            resp_form = ResponseForm()
-            for output in execute_request.output_definitions:
-                resp_form.set_output(output)
-                # there's no uom in pyows, so we set this for compatiblity
-                output.uom = None
-
             packed_outputs = pack_outputs_v10(
                 outputs,
                 response_form=resp_form,
-                output_defs=parse_params_v10(process.outputs),
+                output_defs=output_defs,
             )
             encoder = WPS10ExecuteResponseRawEncoder(resp_form=resp_form)
             response = encoder.encode_response(packed_outputs)
