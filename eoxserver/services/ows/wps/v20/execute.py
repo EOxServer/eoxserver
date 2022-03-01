@@ -62,10 +62,19 @@ class WPS20ExecuteHandler(object):
         process: ProcessInterface = get_process_by_identifier(
             execute_request.process_id
         )
+        input_defs = parse_params_v10(process.inputs)
 
         inputs = {
-            input_.identifier: _input_value(input_) for input_ in execute_request.inputs
+            name: getattr(optional_input, "default", None)
+            for (name, optional_input) in input_defs.values()
+            if optional_input.is_optional
         }
+        inputs.update(
+            {
+                input_.identifier: _input_value(input_)
+                for input_ in execute_request.inputs
+            }
+        )
 
         if execute_request.mode == pyows_types.ExecutionMode.sync:
             logger.debug("Execute process %s", execute_request.process_id)

@@ -142,3 +142,26 @@ class WPS20ExecuteGetStatisticsComplexRaw(
             GET_STATISTICS_REQUEST.format(identifier="TC:GetStatisticsComplex"),
             "xml",
         )
+
+
+class WPS20ExecuteHandleDefaultAndOptionalParameters(
+    ContentTypeCheckMixIn, testbase.PlainTextTestCase
+):
+    expectedContentType = "text/plain; charset=utf-8"
+
+    def getRequest(self):
+        params = """<wps:Execute
+        version="2.0.0"
+        service="WPS"
+        response="raw"
+        mode="sync"
+        xmlns:wps="http://www.opengis.net/wps/2.0"
+        xmlns:ows="http://www.opengis.net/ows/2.0" >
+          <ows:Identifier>TC00:identity:literal</ows:Identifier>
+          <wps:Input id="input00">
+            <wps:Data>Teststring.</wps:Data>
+          </wps:Input>
+          <wps:Output id="TC00:output02" ></wps:Output>
+        </wps:Execute>
+        """
+        return (params, "xml")

@@ -118,7 +118,7 @@ class TestProcess00(Component):
         """ WPS Process execute handler. """
         return {
             'output00': inputs['input00'],
-            'output01': inputs.get('input01'),
+            'output01': inputs['input01'],
             'output02': inputs['input02'],
             'output03': inputs['input03'],
             'output04': inputs['input04'],
