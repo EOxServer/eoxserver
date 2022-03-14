@@ -332,7 +332,7 @@ class EOObject(models.Model):
         return self.identifier
 
     class Meta:
-        unique_together = [['begin_time', 'end_time']]
+        index_together = [['begin_time', 'end_time']]
 
 
 class Collection(EOObject):
