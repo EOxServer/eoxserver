@@ -25,7 +25,7 @@
 # THE SOFTWARE.
 # -----------------------------------------------------------------------------
 
-from django.db.models import Q
+from itertools import chain
 
 from eoxserver.core.decoders import xml, kvp, typelist, lower
 from eoxserver.resources.coverages import models
@@ -103,31 +103,28 @@ class WCS20GetCapabilitiesHandler(WCSGetCapabilitiesHandlerBase):
                 )
                 ast = parse(cql_text)
                 filter_expressions = to_filter(ast, mapping, mapping_choices)
-                qs = qs.filter(filter_expressions)
+            else:
+                filter_expressions = {}
 
-            dataset_series_qs = models.EOObject.objects.filter(
-                Q(
-                    product__isnull=False,
+            dataset_series = chain(
+                models.Collection.objects.exclude(
+                    service_visibility__service='wcs',
+                    service_visibility__visibility=False
+                ).filter(**filter_expressions).only(
+                    "identifier", "begin_time", "end_time", "footprint"
+                ),
+                models.Product.objects.filter(
                     service_visibility__service='wcs',
                     service_visibility__visibility=True
-                ) | Q(
-                    collection__isnull=False
-                )
-            ).exclude(
-                collection__isnull=False,
-                service_visibility__service='wcs',
-                service_visibility__visibility=False
-            )
-
-            # reduce data transfer by only selecting required elements
-            dataset_series_qs = dataset_series_qs.only(
-                "identifier", "begin_time", "end_time", "footprint"
+                ).filter(**filter_expressions).only(
+                    "identifier", "begin_time", "end_time", "footprint"
+                ),
             )
 
         else:
-            dataset_series_qs = models.EOObject.objects.none()
+            dataset_series = models.EOObject.objects.none()
 
-        return coverages, dataset_series_qs
+        return coverages, dataset_series
 
     def get_params(self, models, decoder):
         coverages, dataset_series = models

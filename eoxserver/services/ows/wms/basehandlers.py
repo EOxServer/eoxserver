@@ -1,10 +1,10 @@
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
 #          Stephan Meissl <stephan.meissl@eox.at>
 #
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Copyright (C) 2013 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -14,8 +14,8 @@
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
-# The above copyright notice and this permission notice shall be included in all
-# copies of this Software or works derived from this Software.
+# The above copyright notice and this permission notice shall be included in
+# all copies of this Software or works derived from this Software.
 #
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -24,25 +24,26 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 """\
-This module contains a set of handler base classes which shall help to implement
-a specific handler. Interface methods need to be overridden in order to work,
-default methods can be overidden.
+This module contains a set of handler base classes which shall help to
+implement a specific handler. Interface methods need to be overridden in order
+to work, default methods can be overidden.
 """
+
+from itertools import chain
 import math
 import re
 
 from django.conf import settings
-from django.db.models import Q
 from django.urls import reverse
 from django.http import HttpResponse
 
 from eoxserver.core.decoders import kvp, typelist, InvalidParameterException
 from eoxserver.core.config import get_eoxserver_config
 from eoxserver.render.map.renderer import (
-    get_map_renderer, # get_feature_info_renderer
+    get_map_renderer,  # get_feature_info_renderer
 )
 from eoxserver.render.map.objects import Map
 from eoxserver.resources.coverages import crss
@@ -53,7 +54,9 @@ from eoxserver.services.ows.wms.util import (
 from eoxserver.services.ows.wms.parsing import parse_render_variables
 from eoxserver.services.ows.common.config import CapabilitiesConfigReader
 from eoxserver.services.ows.wms.exceptions import InvalidCRS
-from eoxserver.services.ecql import parse, to_filter, get_field_mapping_for_model
+from eoxserver.services.ecql import (
+    parse, to_filter, get_field_mapping_for_model
+)
 from eoxserver.services import filters
 from eoxserver.services.ows.wms.layermapper import LayerMapper
 from eoxserver.services import views
@@ -77,34 +80,32 @@ class WMSBaseGetCapabilitiesHandler(object):
 
         cql_text = decoder.cql
         if cql_text:
-            mapping, mapping_choices = filters.get_field_mapping_for_model(qs.model)
+            mapping, mapping_choices = filters.get_field_mapping_for_model(
+                qs.model
+            )
             ast = parse(cql_text)
             filter_expressions = to_filter(ast, mapping, mapping_choices)
             qs = qs.filter(filter_expressions)
 
+            eo_objects = qs.select_subclasses()
+
         else:
             # lookup Collections, Products and Coverages
-            qs = models.EOObject.objects.filter(
-                Q(  # include "WMS-visible" Products
-                    product__isnull=False,
+            eo_objects = chain(
+                models.Collection.objects.exclude(
+                    service_visibility__service='wms',
+                    service_visibility__visibility=False
+                ),
+                models.Product.objects.filter(
                     service_visibility__service='wms',
                     service_visibility__visibility=True
-                ) | Q(  # include "WMS-visible" Coverages
-                    coverage__isnull=False,
+                ),
+                models.Coverage.objects.filter(
                     service_visibility__service='wms',
                     service_visibility__visibility=True
-                ) | Q(  # include all Collections, exclude "WMS-invisible" later
-                    collection__isnull=False
                 )
-            ).exclude(
-                collection__isnull=False,
-                service_visibility__service='wms',
-                service_visibility__visibility=False
             )
 
-        qs = qs.select_subclasses()
-
-        #
         map_renderer = get_map_renderer()
         raster_styles = map_renderer.get_raster_styles()
         geometry_styles = map_renderer.get_geometry_styles()
@@ -114,7 +115,7 @@ class WMSBaseGetCapabilitiesHandler(object):
             layer_mapper.get_layer_description(
                 eo_object, raster_styles, geometry_styles
             )
-            for eo_object in qs
+            for eo_object in eo_objects
         ]
 
         encoder = self.get_encoder()
@@ -223,7 +224,8 @@ class WMSBaseGetMapHandler(object):
 
         response = HttpResponse(result_bytes, content_type=content_type)
         if filename:
-            response['Content-Disposition'] = 'inline; filename="%s"' % filename
+            response['Content-Disposition'] = \
+                'inline; filename="%s"' % filename
 
         return response
 
@@ -327,11 +329,13 @@ class WMSBaseGetFeatureInfoHandler(object):
             layers=layers
         )
 
-        result_bytes, content_type, filename = feature_info_renderer.render_feature_info(map_)
+        result_bytes, content_type, filename = \
+            feature_info_renderer.render_feature_info(map_)
 
         response = HttpResponse(result_bytes, content_type=content_type)
         if filename:
-            response['Content-Disposition'] = 'inline; filename="%s"' % filename
+            response['Content-Disposition'] = \
+                'inline; filename="%s"' % filename
 
         return response
 

@@ -331,6 +331,9 @@ class EOObject(models.Model):
     def __str__(self):
         return self.identifier
 
+    class Meta:
+        index_together = [['begin_time', 'end_time']]
+
 
 class Collection(EOObject):
     collection_type = models.ForeignKey(CollectionType, related_name='collections', **optional_protected)

@@ -57,12 +57,23 @@ DEFAULT_EOXS_OPENSEARCH_SUMMARY_TEMPLATE = "opensearch/summary.html"
 # default for the EOXS_OPENSEARCH_RECORD_MODEL
 DEFAULT_EOXS_OPENSEARCH_RECORD_MODEL = "eoxserver.resources.coverages.models.EOObject"
 
+# default ordering (field name) for opensearch queries
+DEFAULT_EOXS_OPENSEARCH_DEFAULT_ORDERING = None
+
 
 def get_opensearch_record_model():
     class_name = getattr(
         settings, 'EOXS_OPENSEARCH_RECORD_MODEL', DEFAULT_EOXS_OPENSEARCH_RECORD_MODEL
     )
     return import_string(class_name)
+
+
+def get_opensearch_default_ordering():
+    return getattr(
+        settings,
+        'EOXS_OPENSEARCH_DEFAULT_ORDERING',
+        DEFAULT_EOXS_OPENSEARCH_DEFAULT_ORDERING
+    )
 
 
 class OpenSearchConfigReader(config.Reader):
