@@ -13,6 +13,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='productmetadata',
             name='polarization_channels',
-            field=models.PositiveSmallIntegerField(blank=True, choices=[(0, 'HV'), (1, 'HV, VH'), (2, 'VH'), (3, 'VV'), (4, 'HH, VV'), (5, 'HH, VH'), (6, 'HH, HV'), (7, 'VH, VV'), (8, 'VH, HV'), (9, 'VV, HV'), (10, 'VV, VH'), (11, 'HH'), (12, 'HH, HV, VH, VV'), (13, 'HH, VH, HV, VV'), (14, 'HH, VV, HV, VH'), (15, 'HH, VV, VH, HV'), (16, 'UNDEFINED')], db_index=True, null=True),
+            field=models.PositiveSmallIntegerField(blank=True, choices=[(0, 'HV'), (1, 'HV, VH'), (2, 'VH'), (3, 'VV'), (4, 'HH, VV'), (5, 'HH, VH'), (6, 'HH, HV'), (7, 'VH, VV'), (8, 'VH, HV'), (9, 'VV, HV'), (10, 'VV, VH'), (11, 'HH'), (12, 'HH, HV, VH, VV'), (13, 'UNDEFINED'), (14, 'HH, VH, HV, VV'), (15, 'HH, VV, HV, VH'), (16, 'HH, VV, VH, HV')], db_index=True, null=True),
         ),
     ]
