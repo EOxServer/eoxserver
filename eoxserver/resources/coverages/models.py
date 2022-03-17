@@ -624,6 +624,9 @@ class ProductMetadata(models.Model):
         (11, "HH"),
         (12, "HH, HV, VH, VV"),
         (13, "UNDEFINED"),
+        (14, "HH, VH, HV, VV"),
+        (15, "HH, VV, HV, VH"),
+        (16, "HH, VV, VH, HV"),
     )
 
     ANTENNA_LOOK_DIRECTION_CHOICES = (
