@@ -68,7 +68,8 @@ class BaseRegistrator(object):
                  coverage_type_name=None, footprint_from_extent=False,
                  overrides=None, identifier_template=None,
                  highest_resolution=False, replace=False, cache=None,
-                 use_subdatasets=False, simplify_footprint_tolerance=None):
+                 use_subdatasets=False, simplify_footprint_tolerance=None,
+                 statistics=None):
         """ Main registration method
 
             :param data_locations:
@@ -107,7 +108,12 @@ class BaseRegistrator(object):
 
         # prepare ArrayDataItems for each given location
         arraydata_items = []
-        for location in data_locations:
+        arraydata_item_statistics = []
+        statistics = statistics or [None] * len(data_locations)
+        if len(statistics) != len(data_locations):
+            raise ValueError("Invalid number of statistics passed")
+
+        for location, stats in zip(data_locations, statistics):
             # handle storages and/or subdataset specifiers
             path = location[-1]
             # parts = path.split(':')
@@ -134,6 +140,23 @@ class BaseRegistrator(object):
                     subdataset_locator=subdataset_locator,
                 )
             )
+
+            band_stats = None
+            if stats:
+                band_stats = []
+                for i, stat in enumerate(stats, start=1):
+                    band_stats.append(
+                        models.BandStatistics(
+                            band_index=i,
+                            mean=stat.get('mean'),
+                            minimum=stat.get('minimum'),
+                            maximum=stat.get('maximum'),
+                            stdev=stat.get('stdev'),
+                            valid_percent=stat.get('valid_percent'),
+                            histogram=stat.get('histogram'),
+                        )
+                    )
+            arraydata_item_statistics.append(band_stats)
 
         metadata_parsers = []
 
@@ -246,6 +269,7 @@ class BaseRegistrator(object):
 
             arraydata_items=arraydata_items,
             metadata_items=metadata_items,
+            arraydata_item_statistics=arraydata_item_statistics,
         )
 
         # when we replaced the coverage, re-insert the newly created coverage
@@ -312,7 +336,8 @@ class BaseRegistrator(object):
 
     def _create_coverage(self, identifier, footprint, begin_time, end_time,
                          size, origin, grid, coverage_type_name,
-                         arraydata_items, metadata_items):
+                         arraydata_items, metadata_items,
+                         arraydata_item_statistics):
 
         coverage_type = None
         if coverage_type_name:
@@ -364,10 +389,17 @@ class BaseRegistrator(object):
             metadata_item.full_clean()
             metadata_item.save()
 
-        for arraydata_item in arraydata_items:
+        for arraydata_item, band_statistics in \
+                zip(arraydata_items, arraydata_item_statistics):
             arraydata_item.coverage = coverage
             arraydata_item.full_clean()
             arraydata_item.save()
+
+            if band_statistics:
+                for band_stats in band_statistics:
+                    band_stats.arraydata_item = arraydata_item
+                    band_stats.full_clean()
+                    band_stats.save()
 
         return coverage
 

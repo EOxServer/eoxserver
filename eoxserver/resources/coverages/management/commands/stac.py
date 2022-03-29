@@ -69,6 +69,14 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             )
         )
         register_parser.add_argument(
+            '--create-type', '-c', dest='create_type',
+            action="store_true", default=False,
+            help=(
+                'Whether to automatically create a product type from the STAC '
+                'Item. Optional.'
+            )
+        )
+        register_parser.add_argument(
             "--replace", "-r",
             dest="replace", action="store_true", default=False,
             help=(
@@ -113,7 +121,7 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
         elif subcommand == "types":
             self.handle_types(*args, **kwargs)
 
-    def handle_register(self, location, stdin, type_name, replace,
+    def handle_register(self, location, stdin, type_name, create_type, replace,
                         *args, **kw):
         if stdin:
             location = '.'
@@ -123,8 +131,15 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             with open(location) as f:
                 values = json.load(f)
 
+        if create_type:
+            product_type, is_new = \
+                create_product_type_from_stac_item(values, type_name)
+            self.print_msg("Created new product type %s" % product_type.name)
+            type_name = product_type.name
+
         product, replaced = register_stac_product(
-            location, values, type_name, replace=replace
+            values, type_name, replace=replace,
+            file_href=location if not stdin else None,
         )
         self.print_msg(
             "Successfully %s product %s" % (
