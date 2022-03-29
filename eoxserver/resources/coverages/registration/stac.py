@@ -367,10 +367,10 @@ def register_stac_product(stac_item, product_type=None, storage=None,
         epsg = asset.get('proj:epsg') or properties.get('proj:epsg')
 
         if shape:
-            overrides['size'] = shape
+            overrides['size'] = [shape[1], shape[0]]
 
         if transform:
-            overrides['origin'] = [transform[2], transform[5]]
+            overrides['origin'] = [transform[1], transform[5]]
 
         if epsg and transform:
             sr = osr.SpatialReference(epsg)
@@ -396,13 +396,15 @@ def register_stac_product(stac_item, product_type=None, storage=None,
             footprint_from_extent=False,
             overrides=overrides,
             replace=replace,
-            statistics=[[
-                dict(
-                    histogram=band.get("histogram", {}).get("buckets"),
-                    **band.get("statistics", {})
-                )
-                for band in asset.get("raster:bands", [])
-            ]],
+            statistics=[
+                [
+                    dict(
+                        histogram=band.get("histogram", {}).get("buckets"),
+                        **band.get("statistics", {})
+                    )
+                    for band in asset.get("raster:bands", [])
+                ]
+            ],
         )
 
         models.product_add_coverage(product, report.coverage)
@@ -458,12 +460,30 @@ def register_browse_for_asset(asset, file_href, product, storage, browse_type):
         product=product,
         browse_type=browse_type,
     )
-    ds = gdal_open(browse)
-    browse.width = ds.RasterXSize
-    browse.height = ds.RasterYSize
-    browse.coordinate_reference_system = ds.GetProjection()
-    extent = gdal.get_extent(ds)
-    browse.min_x, browse.min_y, browse.max_x, browse.max_y = extent
+    epsg = asset.get('proj:epsg')
+    shape = asset.get('proj:shape')
+    transform = asset.get('proj:transform')
+
+    if epsg and shape and transform:
+        sr = osr.SpatialReference(epsg)
+        browse.width = shape[1]
+        browse.height = shape[0]
+        browse.coordinate_reference_system = sr.wkt
+
+        x_a = transform[0]
+        x_b = transform[0] + transform[1] * browse.width
+        y_a = transform[3]
+        y_b = transform[3] + transform[5] * browse.height
+
+        extent = (min(x_a, x_b), min(y_a, y_b), max(x_a, x_b), max(y_a, y_b))
+        browse.min_x, browse.min_y, browse.max_x, browse.max_y = extent
+    else:
+        ds = gdal_open(browse)
+        browse.width = ds.RasterXSize
+        browse.height = ds.RasterYSize
+        browse.coordinate_reference_system = ds.GetProjection()
+        extent = gdal.get_extent(ds)
+        browse.min_x, browse.min_y, browse.max_x, browse.max_y = extent
 
     browse.full_clean()
     browse.save()
