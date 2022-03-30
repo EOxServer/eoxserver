@@ -109,7 +109,7 @@ ALLOWED_NODE_TYPES = (
     _ast.Subscript,
     _ast.Slice,
     _ast.Load,
-    _ast.Index,
+    _ast.Index if hasattr(_ast, 'Num') else _ast.Subscript,
 
     _ast.Mult,
     _ast.Div,
@@ -262,7 +262,8 @@ def generate_browse(band_expressions, fields_and_coverages,
     else:
         return _generate_browse_complex(
             parsed_expressions, fields_and_coverages,
-            width, height, bbox, crs, generator
+            width, height, bbox, crs, generator,
+            variables={}
         ), generator, True
 
     # iterate over the input band expressions
