@@ -20,7 +20,7 @@ class Migration(migrations.Migration):
                 ('mean', models.FloatField(blank=True, null=True)),
                 ('minimum', models.FloatField(blank=True, null=True)),
                 ('maximum', models.FloatField(blank=True, null=True)),
-                ('stdev', models.FloatField(blank=True, null=True)),
+                ('stddev', models.FloatField(blank=True, null=True)),
                 ('valid_percent', models.FloatField(blank=True, null=True)),
                 ('histogram', jsonfield.fields.JSONField(blank=True, null=True)),
                 ('arraydata_item', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='array_statistics', to='coverages.ArrayDataItem')),

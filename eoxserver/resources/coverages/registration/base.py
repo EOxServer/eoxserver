@@ -151,7 +151,7 @@ class BaseRegistrator(object):
                             mean=stat.get('mean'),
                             minimum=stat.get('minimum'),
                             maximum=stat.get('maximum'),
-                            stdev=stat.get('stdev'),
+                            stddev=stat.get('stddev'),
                             valid_percent=stat.get('valid_percent'),
                             histogram=stat.get('histogram'),
                         )

@@ -491,7 +491,7 @@ class BandStatistics(models.Model):
     mean = models.FloatField(**optional)
     minimum = models.FloatField(**optional)
     maximum = models.FloatField(**optional)
-    stdev = models.FloatField(**optional)
+    stddev = models.FloatField(**optional)
     valid_percent = models.FloatField(**optional)
     histogram = JSONField(**optional)
 
