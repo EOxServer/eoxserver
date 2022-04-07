@@ -109,7 +109,7 @@ ALLOWED_NODE_TYPES = (
     _ast.Subscript,
     _ast.Slice,
     _ast.Load,
-    _ast.Index if hasattr(_ast, 'Num') else _ast.Subscript,
+    _ast.Index if hasattr(_ast, 'Index') else _ast.Subscript,
 
     _ast.Mult,
     _ast.Div,
