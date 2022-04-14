@@ -126,25 +126,15 @@ class GetProductHandler(object):
                     coverage.arraydata_items.all(),
                     coverage.metadata_items.all()
                 )
-
                 for data_item in items:
-                    # faster encoding when local files. Fallback on VSI API otherwise
-                    if not data_item.storage:
-                        zip_stream.write(
-                            data_item.location,
-                            join(
-                                product.identifier, coverage.identifier,
-                                basename(data_item.location)
-                            )
-                        )
-                    else:
-                        zip_stream.write_iter(
-                            join(
-                                product.identifier, coverage.identifier,
-                                basename(data_item.location)
-                            ),
-                            _iter_data_item(data_item)
-                        )
+                    add_item_to_zipstream(data_item, zip_stream, product, coverage)
+
+            # add product metadata
+            product_items = chain(
+                product.metadata_items.all()
+            )
+            for metadata_item in product_items:
+                add_item_to_zipstream(metadata_item, zip_stream, product, None)
 
             response = StreamingHttpResponse(
                 zip_stream, content_type='application/octet-stream'
@@ -164,6 +154,31 @@ def _iter_data_item(data_item, chunk_size=65535):
                 yield data
             else:
                 break
+
+
+def add_item_to_zipstream(data_item, zip_stream, product, coverage):
+    if coverage:
+        filepath = join(
+            product.identifier,
+            coverage.identifier,
+            basename(data_item.location)
+        )
+    else:
+        filepath = join(
+            product.identifier,
+            basename(data_item.location)
+        )
+    # faster encoding when local files. Fallback on VSI API otherwise
+    if not data_item.storage:
+        zip_stream.write(
+            data_item.location,
+            filepath
+        )
+    else:
+        zip_stream.write_iter(
+            filepath,
+            _iter_data_item(data_item)
+        )
 
 
 class GetCapabilitiesKVPDecoder(kvp.Decoder):
