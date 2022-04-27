@@ -152,7 +152,9 @@ def contours(data, offset=0, interval=100, fill_value=-9999, format='raster'):
         if format == 'raster':
             vector_layer = vector_ds.GetLayer(0)
 
-            gt = data.GetGeoTransform()
+            xmin, xres, _, ymax, _, yres = data.GetGeoTransform()
+            xmax = xmin + (data.RasterXSize * xres)
+            ymin = ymax + (data.RasterYSize * yres)
             gdal.Rasterize(
                 out_filename,
                 vector_ds,
@@ -163,8 +165,9 @@ def contours(data, offset=0, interval=100, fill_value=-9999, format='raster'):
                 layers=[vector_layer.GetName()],
                 outputType=gdal.GDT_Float32,
                 initValues=fill_value,
-                xRes=gt[1],
-                yRes=gt[5],
+                xRes=xres,
+                yRes=yres,
+                outputBounds=[xmin, ymin, xmax, ymax],
             )
 
             out_ds = gdal.Open(out_filename)
