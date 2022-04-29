@@ -25,7 +25,10 @@
 # THE SOFTWARE.
 # ------------------------------------------------------------------------------
 
+from itertools import zip_longest
 import json
+from multiprocessing.sharedctypes import Value
+import statistics
 from urllib.parse import urljoin, urlparse, urlunparse
 import logging
 
@@ -436,19 +439,23 @@ def register_stac_product(stac_item, product_type=None, storage=None,
         for asset_name, asset in browse_assets.items():
             browse_type = None
             if len(browse_assets) == 1:
-                browse_type = product_type.browse_types.filter(
-                    name=''
-                ).first()
-
-            if browse_type is None:
-                browse_type = product_type.browse_types.filter(
-                    name=asset_name
-                ).first()
-
-            if browse_type:
+                # browse_type = None
+                # # browse_type = product_type.browse_types.filter(
+                # #     name=''
+                # # ).first()
                 register_browse_for_asset(
-                    asset, file_href, product, storage, browse_type
+                    asset, file_href, product, storage, None
                 )
+            else:
+                if browse_type is None:
+                    browse_type = product_type.browse_types.filter(
+                        name=asset_name
+                    ).first()
+
+                if browse_type:
+                    register_browse_for_asset(
+                        asset, file_href, product, storage, browse_type
+                    )
 
     return (product, replaced)
 
@@ -600,6 +607,67 @@ def create_product_type_from_stac_item(stac_item, product_type_name=None,
                 wavelength=band.get('center_wavelength'),
             )
 
+    # create browse types from virtual assets
+    virtual_assets = stac_item.get('virtual:assets', {})
+    for name, asset in virtual_assets.items():
+        hrefs = asset['hrefs']
+        expression = asset.get('processing:expression')
+        bands = asset.get('raster:bands')
+
+        browse_def = {'name': name}
+        if expression:
+            # TODO: take hrefs into account
+            browse_def['red_or_grey_expression'] = expression.get('expression')
+            if bands:
+                stats = bands[0].get('statistics', {})
+                browse_def['red_or_grey_range_min'] = stats.get('minimum')
+                browse_def['red_or_grey_range_max'] = stats.get('maximum')
+
+        else:
+            if len(hrefs) not in (1, 3, 4):
+                raise ValueError(
+                    'Virtual asset %s: Invalid number of hrefs' % name
+                )
+
+            out_bands = []
+            for href, band in zip_longest(hrefs, bands, fillvalue={}):
+                if not href.startswith('#'):
+                    raise ValueError(
+                        'Virtual asset %s: HREF %s is not relative to this '
+                        'item' % (
+                            name, href
+                        )
+                    )
+                href = href[1:]
+                data_asset = data_assets.get(href)
+                if data_asset:
+                    band_name = data_asset.get(
+                        'eo:bands', properties.get('eo:bands')
+                    )[0]['name']
+                else:
+                    # TODO: make sure that a data asset with that band exists
+                    band_name = href
+
+                stats = band.get('statistics', {})
+                out_bands.append({
+                    'expression': band_name,
+                    'min': stats.get('minimum'),
+                    'max': stats.get('maximum'),
+                    'nodata': band.get('nodata'),
+                })
+
+            prefixes = ['red_or_grey', 'green', 'blue', 'alpha']
+            for pre, out_band in zip(prefixes, out_bands):
+                browse_def[pre + '_expression'] = out_band['expression']
+                browse_def[pre + '_range_min'] = out_band['min']
+                browse_def[pre + '_range_max'] = out_band['max']
+                browse_def[pre + '_nodata_value'] = out_band['nodata']
+
+        models.BrowseType.objects.create(
+            product_type=product_type,
+            **browse_def,
+        )
+
     # create browse types
     browse_defs = properties.get('brow:browses', {})
     if browse_defs:
@@ -637,10 +705,11 @@ def create_product_type_from_stac_item(stac_item, product_type_name=None,
             )
 
     if len(browse_assets) == 1 and not browse_defs:
-        models.BrowseType.objects.create(
-            product_type=product_type,
-            name='',
-        )
+        # models.BrowseType.objects.create(
+        #     product_type=product_type,
+        #     name='',
+        # )
+        pass
     else:
         for name, asset in browse_assets.items():
             models.BrowseType.objects.create(
