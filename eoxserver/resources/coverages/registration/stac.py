@@ -399,7 +399,7 @@ def register_stac_product(stac_item, product_type=None, storage=None,
             statistics=[
                 [
                     dict(
-                        histogram=band.get("histogram", {}).get("buckets"),
+                        histogram=band.get("histogram", {}),
                         **band.get("statistics", {})
                     )
                     for band in asset.get("raster:bands", [])
