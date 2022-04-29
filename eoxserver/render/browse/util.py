@@ -40,6 +40,20 @@ def warp_fields(coverages, field_name, bbox, crs, width, height):
 
     out_ds.SetProjection(sr.ExportToWkt())
 
+    # set initial statistics
+    stats = coverages[0].get_statistics_for_field(field_name)
+    if stats:
+        out_ds.SetStatistics(
+            stats.minimum, stats.maximum, stats.mean, stats.stddev
+        )
+        histogram = stats.histogram
+        if histogram:
+            out_ds.SetDefaultHistogram(
+                histogram.min,
+                histogram.max,
+                histogram.buckets,
+            )
+
     for coverage in coverages:
         location = coverage.get_location_for_field(field_name)
         band_index = coverage.get_band_index_for_field(field_name)
