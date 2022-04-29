@@ -136,8 +136,7 @@ class Browse(object):
 
 class GeneratedBrowse(Browse):
     def __init__(self, name, band_expressions, ranges, nodata_values,
-                 fields_and_coverages, field_list, footprint, variables, 
-                 histograms):
+                 fields_and_coverages, field_list, footprint, variables):
         self._name = name
         self._band_expressions = band_expressions
         self._ranges = ranges
@@ -146,7 +145,6 @@ class GeneratedBrowse(Browse):
         self._field_list = field_list
         self._footprint = footprint
         self._variables = variables
-        self._histograms = histograms
 
     @property
     def name(self):

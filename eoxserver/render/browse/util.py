@@ -20,8 +20,8 @@ def warp_fields(coverages, field_name, bbox, crs, width, height):
         field.data_type
     )
     nil_value = None
+    band = out_ds.GetRasterBand(1)
     if field.nil_values:
-        band = out_ds.GetRasterBand(1)
         nil_value = float(field.nil_values[0][0])
         band.SetNoDataValue(nil_value)
         band.Fill(nil_value)
@@ -43,14 +43,17 @@ def warp_fields(coverages, field_name, bbox, crs, width, height):
     # set initial statistics
     stats = coverages[0].get_statistics_for_field(field_name)
     if stats:
-        out_ds.SetStatistics(
-            stats.minimum, stats.maximum, stats.mean, stats.stddev
+        band.SetStatistics(
+            stats.minimum or 0,
+            stats.maximum or 0,
+            stats.mean or 0,
+            stats.stddev or 0,
         )
         histogram = stats.histogram
         if histogram:
-            out_ds.SetDefaultHistogram(
-                histogram.min,
-                histogram.max,
+            band.SetDefaultHistogram(
+                histogram.min or 0,
+                histogram.max or 0,
                 histogram.buckets,
             )
 

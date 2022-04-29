@@ -596,20 +596,24 @@ class Coverage(object):
         elif self.footprint:
             return self.footprint.extent
 
-    def get_location_for_field(self, field_or_identifier):
+    def lookup_field(self, field_or_identifier):
         if isinstance(field_or_identifier, Field):
             field = field_or_identifier
             if field not in self.range_type:
                 return None
+            return field
         else:
             try:
-                field = next(
+                return next(
                     field
                     for field in self.range_type
                     if field.identifier == field_or_identifier
                 )
             except StopIteration:
                 return None
+
+    def get_location_for_field(self, field_or_identifier):
+        field = self.lookup_field(field_or_identifier)
 
         index = field.index
         for location in self.arraydata_locations:
@@ -617,24 +621,17 @@ class Coverage(object):
                 return location
 
     def get_band_index_for_field(self, field_or_identifier):
-        if isinstance(field_or_identifier, Field):
-            field = field_or_identifier
-            if field not in self.range_type:
-                return None
-        else:
-            try:
-                field = next(
-                    field
-                    for field in self.range_type
-                    if field.identifier == field_or_identifier
-                )
-            except StopIteration:
-                return None
+        field = self.lookup_field(field_or_identifier)
 
         index = field.index
         for location in self.arraydata_locations:
             if index >= location.start_field and index <= location.end_field:
                 return index - location.start_field + 1
+
+    def get_statistics_for_field(self, field_or_identifier):
+        field = self.lookup_field(field_or_identifier)
+        location = self.get_location_for_field(field)
+        return location.field_statistics(field.index)
 
     @classmethod
     def from_model(cls, model):

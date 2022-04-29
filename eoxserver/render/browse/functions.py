@@ -210,7 +210,7 @@ def percentile(ds, perc):
     band = ds.GetRasterBand(1)
     min_, max_, _, buckets = band.GetDefaultHistogram()
     bucket_diff = (max_ - min_) / len(buckets)
-    nodata = band.GetNodataValue()
+    nodata = band.GetNoDataValue()
     if nodata is not None:
         # Set bucket of nodata value to 0
         buckets[round((nodata - min_) / bucket_diff)] = 0
@@ -241,6 +241,14 @@ def statistics_stddev(ds):
     band = ds.GetRasterBand(1)
     _, _, _, stddev = band.GetStatistics(True, False)
     return stddev
+
+
+def interpolate(ds, x1, x2, y1, y2):
+    """Perform linear interpolation for x between (x1,y1) and (x2,y2) """
+    band = ds.GetRasterBand(1)
+    x = band.ReadAsArray()
+    x = ((y2 - y1) * x + x2 * y1 - x1 * y2) / (x2 - x1)
+    return gdal_array.OpenNumPyArray(x, True)
 
 
 def wrap_numpy_func(function):
@@ -294,6 +302,7 @@ function_map = {
     'statistics_max': statistics_max,
     'statistics_mean': statistics_mean,
     'statistics_stddev': statistics_stddev,
+    'interpolate': interpolate,
 }
 
 
