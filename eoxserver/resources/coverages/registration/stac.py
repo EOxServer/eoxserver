@@ -27,8 +27,6 @@
 
 from itertools import zip_longest
 import json
-from multiprocessing.sharedctypes import Value
-import statistics
 from urllib.parse import urljoin, urlparse, urlunparse
 import logging
 
