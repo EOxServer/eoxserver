@@ -213,6 +213,8 @@ class GetHeightProfileProcess(Component):
 
             _output = CDByteBuffer(
                     image_data.read(), filename=output_filename,)
+            if getattr(_output, 'mime_type', None) is None:
+                setattr(_output, 'mime_type', profile['mime_type'])
             tmp_ds = None
             return _output
 

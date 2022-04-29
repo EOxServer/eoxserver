@@ -232,6 +232,8 @@ class DemProcessingProcess(Component):
                 _output = CDByteBuffer(
                     fid.read(), filename=output_filename,
                 )
+                if getattr(_output, 'mime_type', None) is None:
+                    setattr(_output, 'mime_type', result['mime_type'])
         gdal.Unlink(output_filename)
         gdal.Unlink(tmp_ds)
         return _output
