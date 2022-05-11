@@ -184,7 +184,7 @@ class LayerMapper(object):
 
     def lookup_layer(self, layer_name, suffix, style, filters_expressions,
                      sort_by, time, ranges, bands, wavelengths, elevation,
-                     zoom, variables):
+                     zoom, variables, limit=None):
         """ Lookup the layer from the registered objects.
         """
         reader = LayerMapperConfigReader(get_eoxserver_config())
