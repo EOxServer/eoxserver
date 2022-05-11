@@ -5,7 +5,7 @@
 #          Mussab Abdalla<mussab.abdalla@eox.at>
 #
 # -----------------------------------------------------------------------------
-# Copyright (C) 2014 EOX IT Services GmbH
+# Copyright (C) 2022 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -26,6 +26,7 @@
 # THE SOFTWARE.
 # -----------------------------------------------------------------------------
 
+from uuid import uuid4
 import numpy as np
 
 from eoxserver.core import Component
@@ -121,31 +122,59 @@ class GetStatisticsProcess(Component):
                             )
 
                 ds = gdal_open(array_data_item, False)
+                geoTransform = ds.GetGeoTransform()
+                minx = geoTransform[0]
+                maxy = geoTransform[3]
+                maxx = minx + geoTransform[1] * ds.RasterXSize
+                miny = maxy + geoTransform[5] * ds.RasterYSize
+                coverage_bbox = Polygon.from_bbox((minx, miny, maxx, maxy))
+
+                if not parsed_bbox.contains(coverage_bbox):
+                    values_bbox = coverage_bbox.intersection(parsed_bbox)
+                    if round(values_bbox.area, 2) > 0:
+                        values = list(values_bbox.extent)
+                    else:
+                        logger.error('The provided bbox is not inside or intersecting with the coverage')
+                        continue
+
+                    tmp_ds = '/vsimem/%s.tif' % uuid4().hex
+                    ds = gdal.Warp(tmp_ds, ds, dstSRS=ds.GetProjection(), outputBounds=values, format='Gtiff')
+                    gdal.Unlink(tmp_ds)
 
                 band_number = array_data_item.field_index - field_idx + 1
 
                 band = ds.GetRasterBand(band_number)
                 image_array = band.ReadAsArray()
-                stats = ds.GetRasterBand(band_number).GetStatistics(0, 1)
-                bin_array, hist = np.histogram(image_array, bins=np.arange(int(stats[0]), int(stats[1]), 20, int))
-
+                data_array = image_array
                 no_data_list = []
                 for no_data in nill_values:
-                    no_data_list.append(np.where(np.any(image_array == no_data,
-                                        axis=1))[0].size)
-                band_data = {
-                    "BAND_ID": band_number,
-                    "MINIMUM": stats[0],
-                    "MAXIMUM": stats[1],
-                    "MEAN": stats[2],
-                    "STDDEV": stats[3],
-                    "HISTOGRAM_FREQUENCY": bin_array.tolist(),
-                    "HISTOGRAM_PIXEL_VALUES": hist.tolist(),
-                    "NUMBER_OF_NODATA_PIXELS": sum(no_data_list)
-                    }
-                stats_json["bands"].append(band_data)
+                    no_data_list.append(np.sum(image_array == no_data))
+                    data_array = data_array[data_array != no_data]
+                # if the image is empty GetStatistics will throw an error
+                # so we check if the number of the image pixels is greater
+                # than the number of noData pixels
+                nodata_number = sum(no_data_list).item()
+                if ((image_array.size - nodata_number) > 0):
+                    stats = ds.GetRasterBand(band_number).GetStatistics(0, 1)
+                    interval = (np.amax(data_array) - np.amin(data_array)) / 25
 
-            report["result"].append(stats_json)
+                    bin_array, hist = np.histogram(data_array, bins=np.arange(
+                        int(stats[0]), int(stats[1]), interval, int))
+
+                    band_data = {
+                        "BAND_ID": band_number,
+                        "MINIMUM": stats[0],
+                        "MAXIMUM": stats[1],
+                        "MEAN": stats[2],
+                        "STDDEV": stats[3],
+                        "HISTOGRAM_FREQUENCY": bin_array.tolist(),
+                        "HISTOGRAM_PIXEL_VALUES": hist.tolist(),
+                        "NUMBER_OF_NODATA_PIXELS": nodata_number
+                        }
+                    stats_json["bands"].append(band_data)
+
+            if len(stats_json["bands"]) >= 1:
+                report["result"].append(stats_json)
 
         _output = CDObject(
             report, format=FormatJSON(),

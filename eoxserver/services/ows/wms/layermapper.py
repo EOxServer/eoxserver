@@ -184,7 +184,7 @@ class LayerMapper(object):
 
     def lookup_layer(self, layer_name, suffix, style, filters_expressions,
                      sort_by, time, ranges, bands, wavelengths, elevation,
-                     zoom, limit=None):
+                     zoom, variables):
         """ Lookup the layer from the registered objects.
         """
         reader = LayerMapperConfigReader(get_eoxserver_config())
@@ -284,7 +284,7 @@ class LayerMapper(object):
                         ).first()
                         if browse_type:
                             browse = _generate_browse_from_browse_type(
-                                product, browse_type
+                                product, browse_type, variables
                             )
                             if browse:
                                 browses.append(browse)
@@ -414,7 +414,7 @@ class LayerMapper(object):
                             masked_browses.append(
                                 MaskedBrowse(
                                     browse=_generate_browse_from_browse_type(
-                                        product, browse_type
+                                        product, browse_type, variables
                                     ),
                                     mask=Mask.from_model(mask, mask_type)
                                 )
@@ -447,7 +447,7 @@ class LayerMapper(object):
                         # browse type
                         else:
                             browse = _generate_browse_from_browse_type(
-                                product, browse_type
+                                product, browse_type, variables
                             )
                             if browse:
                                 browses.append(browse)
@@ -622,7 +622,7 @@ class LayerMapperConfigReader(config.Reader):
     color = config.Option(type=str, default='grey')
 
 
-def _generate_browse_from_browse_type(product, browse_type):
+def _generate_browse_from_browse_type(product, browse_type, variables):
     if not browse_type.red_or_grey_expression:
         return None
 
@@ -679,6 +679,7 @@ def _generate_browse_from_browse_type(product, browse_type):
             nodata_values,
             fields_and_coverages,
             product,
+            variables,
         )
     return None
 

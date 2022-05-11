@@ -1,4 +1,4 @@
-# -----------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
@@ -31,11 +31,12 @@ This module contains a set of handler base classes which shall help to
 implement a specific handler. Interface methods need to be overridden in order
 to work, default methods can be overidden.
 """
+
+from itertools import chain
 import math
 import re
 
 from django.conf import settings
-from django.db.models import Q
 from django.urls import reverse
 from django.http import HttpResponse
 
@@ -47,7 +48,10 @@ from eoxserver.render.map.renderer import (
 from eoxserver.render.map.objects import Map, Legend
 from eoxserver.resources.coverages import crss
 from eoxserver.resources.coverages import models
-from eoxserver.services.ows.wms.util import parse_bbox, parse_time, int_or_str
+from eoxserver.services.ows.wms.util import (
+    parse_bbox, parse_time, int_or_str
+)
+from eoxserver.services.ows.wms.parsing import parse_render_variables
 from eoxserver.services.ows.common.config import CapabilitiesConfigReader
 from eoxserver.services.ows.wms.exceptions import InvalidCRS
 from eoxserver.services.ecql import (
@@ -83,30 +87,28 @@ class WMSBaseGetCapabilitiesHandler(object):
             filter_expressions = to_filter(ast, mapping, mapping_choices)
             qs = qs.filter(filter_expressions)
 
+            eo_objects = qs.select_subclasses()
+
         else:
             # lookup Collections, Products and Coverages
-            qs = models.EOObject.objects.filter(
-                Q(  # include "WMS-visible" Products
-                    product__isnull=False,
+            eo_objects = chain(
+                models.Collection.objects.exclude(
+                    service_visibility__service='wms',
+                    service_visibility__visibility=False
+                ),
+                models.Product.objects.filter(
                     service_visibility__service='wms',
                     service_visibility__visibility=True
-                ) | Q(  # include "WMS-visible" Coverages
-                    coverage__isnull=False,
+                ),
+                models.Coverage.objects.filter(
                     service_visibility__service='wms',
                     service_visibility__visibility=True
                 ) | Q(  # include all Collections, exclude "WMS-invisible"
                         # later
                     collection__isnull=False
                 )
-            ).exclude(
-                collection__isnull=False,
-                service_visibility__service='wms',
-                service_visibility__visibility=False
             )
 
-        qs = qs.select_subclasses()
-
-        #
         map_renderer = get_map_renderer()
         raster_styles = map_renderer.get_raster_styles()
         geometry_styles = map_renderer.get_geometry_styles()
@@ -116,7 +118,7 @@ class WMSBaseGetCapabilitiesHandler(object):
             layer_mapper.get_layer_description(
                 eo_object, raster_styles, geometry_styles
             )
-            for eo_object in qs
+            for eo_object in eo_objects
         ]
 
         encoder = self.get_encoder()
@@ -208,7 +210,9 @@ class WMSBaseGetMapHandler(object):
             name, suffix = layer_mapper.split_layer_suffix_name(layer_name)
             layer = layer_mapper.lookup_layer(
                 name, suffix, style,
-                filter_expressions, sort_by, zoom=zoom, **dimensions
+                filter_expressions, sort_by, zoom=zoom,
+                variables=decoder.variables,
+                **dimensions
             )
             layers.append(layer)
 
@@ -216,7 +220,7 @@ class WMSBaseGetMapHandler(object):
             width=decoder.width, height=decoder.height, format=decoder.format,
             bbox=(minx, miny, maxx, maxy), crs=crs,
             bgcolor=decoder.bgcolor, transparent=decoder.transparent,
-            layers=layers
+            layers=layers,
         )
 
         result_bytes, content_type, filename = map_renderer.render_map(map_)
@@ -436,6 +440,7 @@ class WMSBaseGetMapDecoder(kvp.Decoder):
     dim_range = kvp.Parameter(type=parse_ranges, num="?")
 
     cql = kvp.Parameter(num="?")
+    variables = kvp.Parameter(type=parse_render_variables, num="?")
 
     sort_by = kvp.Parameter('sortBy', type=parse_sort_by, num="?")
 

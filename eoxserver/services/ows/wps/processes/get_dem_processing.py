@@ -5,7 +5,7 @@
 #          Mussab Abdalla<mussab.abdalla@eox.at>
 #
 # -----------------------------------------------------------------------------
-# Copyright (C) 2014 EOX IT Services GmbH
+# Copyright (C) 2022 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -212,11 +212,12 @@ class DemProcessingProcess(Component):
 
         out_ds = driver.CreateCopy(output_filename, res_ds, 0)
 
-        if extension == '.tif':
+        if extension == 'tif':
             out_ds.SetGeoTransform(ds.GetGeoTransform())
             out_ds.SetProjection(ds.GetProjection())
         del out_ds
-        if extension == ".geojson":
+
+        if extension == "geojson":
 
             with vsi_open(output_filename) as f:
 
@@ -231,6 +232,8 @@ class DemProcessingProcess(Component):
                 _output = CDByteBuffer(
                     fid.read(), filename=output_filename,
                 )
+                if getattr(_output, 'mime_type', None) is None:
+                    setattr(_output, 'mime_type', result['mime_type'])
         gdal.Unlink(output_filename)
         gdal.Unlink(tmp_ds)
         return _output

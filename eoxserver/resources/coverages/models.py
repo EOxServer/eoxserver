@@ -331,6 +331,9 @@ class EOObject(models.Model):
     def __str__(self):
         return self.identifier
 
+    class Meta:
+        index_together = [['begin_time', 'end_time']]
+
 
 class Collection(EOObject):
     collection_type = models.ForeignKey(CollectionType, related_name='collections', **optional_protected)
@@ -621,6 +624,9 @@ class ProductMetadata(models.Model):
         (11, "HH"),
         (12, "HH, HV, VH, VV"),
         (13, "UNDEFINED"),
+        (14, "HH, VH, HV, VV"),
+        (15, "HH, VV, HV, VH"),
+        (16, "HH, VV, VH, HV"),
     )
 
     ANTENNA_LOOK_DIRECTION_CHOICES = (

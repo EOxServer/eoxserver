@@ -25,23 +25,23 @@
 # THE SOFTWARE.
 # -------------------------------------------------------------------------------
 
-import json
-
 from eoxserver.core import Component, implements
 from eoxserver.services.ows.wps.interfaces import ProcessInterface
 from eoxserver.services.ows.wps.parameters import (
-    LiteralData,
+    ComplexData,
+    FormatJSON,
+    CDObject,
     BoundingBoxData,
 )
 
 
-class Test08GetStatistics(Component):
-    """Test processes mimicking real world get statistics process"""
+class Test09GetStatisticsComplex(Component):
+    """Test processes mimicking real world get statistics with complex output"""
 
     implements(ProcessInterface)
 
-    identifier = "TC:GetStatistics"
-    title = "TC08: Test Case GetStatistics"
+    identifier = "TC:GetStatisticsComplex"
+    title = "TC09: Test Case GetStatistics Complex"
 
     inputs = [
         (
@@ -52,14 +52,18 @@ class Test08GetStatistics(Component):
         ),
     ]
 
-    outputs = [
-        (
+    outputs = {
+        "statistics": ComplexData(
             "statistics",
-            LiteralData(
-                "statistics",
-            ),
+            title="output statistics",
+            abstract="coverage/s statistics in json format.",
+            formats=FormatJSON(),
         ),
-    ]
+    }
 
-    def execute(self, bbox, collection):
-        return json.dumps({"data": sum(bbox.lower) + sum(bbox.upper)})
+    def execute(self, bbox, collection, **kwargs):
+        return CDObject(
+            {"data": 5},
+            format=FormatJSON(),
+            filename="foo.json",
+        )

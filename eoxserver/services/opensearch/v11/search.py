@@ -35,7 +35,8 @@ from eoxserver.core.decoders import kvp
 from eoxserver.core.util.xmltools import NameSpaceMap
 from eoxserver.resources.coverages import models
 from eoxserver.services.opensearch.config import (
-    get_opensearch_record_model, OpenSearchConfigReader
+    get_opensearch_record_model, OpenSearchConfigReader,
+    get_opensearch_default_ordering,
 )
 from eoxserver.services.opensearch.formats import get_formats
 from eoxserver.services.opensearch.extensions import get_extensions
@@ -118,8 +119,10 @@ class OpenSearch11SearchHandler(object):
             namespaces.add(search_extension.namespace)
             all_parameters[search_extension.namespace.prefix] = params
 
-        if not qs.ordered:
-            qs = qs.order_by('begin_time')
+        # apply default ordering (which is None by default)
+        default_ordering = get_opensearch_default_ordering()
+        if not qs.ordered and default_ordering is not None:
+            qs = qs.order_by(default_ordering)
 
         # use [:] here, otherwise the queryset would be evaluated and return
         # lists upon slicing
@@ -141,6 +144,10 @@ class OpenSearch11SearchHandler(object):
             qs = qs[start_index:start_index+requested_count]
 
         result_count = qs[:].count()
+
+        # shortcut to eliminate possible very long DB query
+        if result_count == 0:
+            qs = qs.model.objects.none()
 
         try:
             result_format = next(

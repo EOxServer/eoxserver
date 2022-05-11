@@ -67,3 +67,14 @@ class ResultFormatInterface(object):
             :class:`ResultItem <eoxserver.services.result.ResultItem>` containing
             the encoded result.
         """
+
+
+class ResultItemFeedLinkGenerator(object):
+    """ Interface to allow extending the search items links.
+    """
+
+    def get_links(self, request, item):
+        """ Returns the available additional links for this item as a list of
+            2-tuples: rel and href
+        """
+        pass

@@ -88,40 +88,105 @@ class WPS20ExecuteTC06MinimalValidProcess(
           <wps:Input id="input">
             <wps:Data>Teststring.</wps:Data>
           </wps:Input>
-          <wps:Output id="input">
+          <wps:Output id="output" >
           </wps:Output>
         </wps:Execute>
         """
         return (params, "xml")
 
 
+GET_STATISTICS_REQUEST = """<wps:Execute service="WPS" version="2.0.0"
+  xmlns:wps="http://www.opengis.net/wps/2.0"
+  xmlns:ows="http://www.opengis.net/ows/2.0"
+  xmlns:xlink="http://www.w3.org/1999/xlink"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.opengis.net/wps/2.0 http://schemas.opengis.net/wps/2.0/wpsExecute.xsd"
+  response="raw"
+  mode="sync"
+>
+  <ows:Identifier>{identifier}</ows:Identifier>
+  <wps:Input id="bbox">
+     <wps:Data>
+        <ows:BoundingBox crs="EPSG:4326">
+          <ows:LowerCorner>44.0972 38.4119</ows:LowerCorner>
+          <ows:UpperCorner>48.8435 42.4293</ows:UpperCorner>
+        </ows:BoundingBox>
+    </wps:Data>
+  </wps:Input>
+  <wps:Input id="collection">
+    <wps:Data mimeType="text/xml">
+      <wps:LiteralValue>DEM</wps:LiteralValue>
+    </wps:Data>
+  </wps:Input>
+  <wps:Output id="statistics" transmission="value" mimeType="application/json"></wps:Output>
+</wps:Execute>
+"""
+
+
 class WPS20ExecuteGetStatisticsRaw(ContentTypeCheckMixIn, testbase.PlainTextTestCase):
-    expectedContentType = "application/json"
+    expectedContentType = "application/json; charset=utf-8"
 
     def getRequest(self):
-        params = """<wps:Execute service="WPS" version="2.0.0"
-          xmlns:wps="http://www.opengis.net/wps/2.0"
-          xmlns:ows="http://www.opengis.net/ows/2.0"
-          xmlns:xlink="http://www.w3.org/1999/xlink"
-          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.opengis.net/wps/2.0 http://schemas.opengis.net/wps/2.0/wpsExecute.xsd"
-          response="raw"
-          mode="sync"
-        >
-          <ows:Identifier>TC:GetStatistics</ows:Identifier>
-          <wps:Input id="bbox">
-             <wps:Data>
-                <ows:BoundingBox crs="EPSG:4326">
-                  <ows:LowerCorner>44.0972 38.4119</ows:LowerCorner>
-                  <ows:UpperCorner>48.8435 42.4293</ows:UpperCorner>
-                </ows:BoundingBox>
-            </wps:Data>
+        return (
+            GET_STATISTICS_REQUEST.format(identifier="TC:GetStatistics"),
+            "xml",
+        )
+
+
+class WPS20ExecuteGetStatisticsComplexRaw(
+    ContentTypeCheckMixIn, testbase.PlainTextTestCase
+):
+    expectedContentType = "application/json; charset=utf-8"
+
+    def getRequest(self):
+        return (
+            GET_STATISTICS_REQUEST.format(identifier="TC:GetStatisticsComplex"),
+            "xml",
+        )
+
+
+class WPS20ExecuteHandleDefaultAndOptionalParameters(
+    ContentTypeCheckMixIn, testbase.PlainTextTestCase
+):
+    expectedContentType = "text/plain; charset=utf-8"
+
+    def getRequest(self):
+        params = """<wps:Execute
+        version="2.0.0"
+        service="WPS"
+        response="raw"
+        mode="sync"
+        xmlns:wps="http://www.opengis.net/wps/2.0"
+        xmlns:ows="http://www.opengis.net/ows/2.0" >
+          <ows:Identifier>TC00:identity:literal</ows:Identifier>
+          <wps:Input id="input00">
+            <wps:Data>Teststring.</wps:Data>
           </wps:Input>
-          <wps:Input id="collection">
-            <wps:Data mimeType="text/xml">
-              <wps:LiteralValue>DEM</wps:LiteralValue>
-            </wps:Data>
-          </wps:Input>
-          <wps:Output id="statistics" transmission="value" mimeType="application/json"></wps:Output>
+          <wps:Output id="TC00:output02" ></wps:Output>
+        </wps:Execute>
+        """
+        return (params, "xml")
+
+
+class WPS20ExecuteHandleMimeType(
+    ContentTypeCheckMixIn, ContentDispositionCheckMixIn, testbase.WPS10BinaryComparison
+):
+    expectedContentType = "image/jpeg"
+    expectedContentDisposition = 'attachment; filename="test03_binary_complex.jpg"'
+
+    def getFileExtension(self, file_type):
+        return "jpg"
+
+    def getRequest(self):
+        # The default is png, so we request jpeg here
+        params = """<wps:Execute
+        version="2.0.0"
+        service="WPS"
+        response="raw"
+        mode="sync"
+        xmlns:wps="http://www.opengis.net/wps/2.0"
+        xmlns:ows="http://www.opengis.net/ows/2.0" >
+          <ows:Identifier>TC03:image_generator:complex</ows:Identifier>
+          <wps:Output id="TC03:output00" mimeType="image/jpeg"></wps:Output>
         </wps:Execute>
         """
         return (params, "xml")

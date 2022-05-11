@@ -5,7 +5,7 @@
 #          Mussab Abdalla<mussab.abdalla@eox.at>
 #
 # -----------------------------------------------------------------------------
-# Copyright (C) 2014 EOX IT Services GmbH
+# Copyright (C) 2022 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -88,7 +88,7 @@ class GetHeightProfileProcess(Component):
             "line",
             title="horizontal axis of the height profile."
         ),
-        "interpolation_method": LiteralData(
+        "method": LiteralData(
             "method",
             title="Interpolation method (a.k.a. near, avarage ... etc)."),
         "interval": LiteralData(
@@ -118,7 +118,7 @@ class GetHeightProfileProcess(Component):
 
 
     @staticmethod
-    def execute(coverage, line, interval, interpolation_method, profile, **kwarg):
+    def execute(coverage, line, interval, method, profile, **kwarg):
         """ The main execution function for the process.
         """
 
@@ -162,7 +162,7 @@ class GetHeightProfileProcess(Component):
         tmp_ds = '/vsimem/%s' % uuid4().hex
 
         profile_ds = gdal.Warp(tmp_ds, ds, dstSRS=proj_wkt, outputBounds=bbox,
-                        height=1, width=num_samples, resampleAlg=interpolation_method,
+                        height=1, width=num_samples, resampleAlg=method,
                         format='Gtiff')
 
         array_out = profile_ds.GetRasterBand(1).ReadAsArray()
@@ -213,6 +213,8 @@ class GetHeightProfileProcess(Component):
 
             _output = CDByteBuffer(
                     image_data.read(), filename=output_filename,)
+            if getattr(_output, 'mime_type', None) is None:
+                setattr(_output, 'mime_type', profile['mime_type'])
             tmp_ds = None
             return _output
 
