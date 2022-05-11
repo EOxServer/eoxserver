@@ -233,112 +233,112 @@ class WMSBaseGetMapHandler(object):
         return response
 
 
-# class WMSBaseGetFeatureInfoHandler(object):
-#     methods = ['GET']
-#     service = "WMS"
-#     request = "GetFeatureInfo"
+class WMSBaseGetFeatureInfoHandler(object):
+    methods = ['GET']
+    service = "WMS"
+    request = "GetFeatureInfo"
 
-#     def handle(self, request):
-#         decoder = self.get_decoder(request)
+    def handle(self, request):
+        decoder = self.get_decoder(request)
 
-#         minx, miny, maxx, maxy = decoder.bbox
-#         x = decoder.x
-#         y = decoder.y
-#         time = decoder.time
-#         crs = decoder.srs
-#         layer_names = decoder.layers
+        minx, miny, maxx, maxy = decoder.bbox
+        x = decoder.x
+        y = decoder.y
+        time = decoder.time
+        crs = decoder.srs
+        layer_names = decoder.layers
 
-#         width = decoder.width
-#         height = decoder.height
+        width = decoder.width
+        height = decoder.height
 
-#         # calculate the zoomlevel
-#         zoom = calculate_zoom((minx, miny, maxx, maxy), width, height, crs)
+        # calculate the zoomlevel
+        zoom = calculate_zoom((minx, miny, maxx, maxy), width, height, crs)
 
-#         if not layer_names:
-#             raise InvalidParameterException("No layers specified", "layers")
+        if not layer_names:
+            raise InvalidParameterException("No layers specified", "layers")
 
-#         srid = crss.parseEPSGCode(
-#             crs, (crss.fromShortCode, crss.fromURN, crss.fromURL)
-#         )
-#         if srid is None:
-#             raise InvalidCRS(crs, "crs")
+        srid = crss.parseEPSGCode(
+            crs, (crss.fromShortCode, crss.fromURN, crss.fromURL)
+        )
+        if srid is None:
+            raise InvalidCRS(crs, "crs")
 
-#         field_mapping, mapping_choices = get_field_mapping_for_model(
-#             models.Product
-#         )
+        field_mapping, mapping_choices = get_field_mapping_for_model(
+            models.Product
+        )
 
-#         # calculate resolution
-#         # TODO: dateline
-#         resx = (maxx - minx) / width
-#         resy = (maxy - miny) / height
+        # calculate resolution
+        # TODO: dateline
+        resx = (maxx - minx) / width
+        resy = (maxy - miny) / height
 
-#         p_minx = x * resx
-#         p_miny = y * resy
-#         p_maxx = (x + 1) * resx
-#         p_maxy = (y + 1) * resy
+        p_minx = x * resx
+        p_miny = y * resy
+        p_maxx = (x + 1) * resx
+        p_maxy = (y + 1) * resy
 
-#         filter_expressions = filters.bbox(
-#             filters.attribute('footprint', field_mapping),
-#             p_minx, p_miny, p_maxx, p_maxy, crs, bboverlaps=False
-#         )
+        filter_expressions = filters.bbox(
+            filters.attribute('footprint', field_mapping),
+            p_minx, p_miny, p_maxx, p_maxy, crs, bboverlaps=False
+        )
 
-#         if time:
-#             filter_expressions &= filters.time_interval(time)
+        if time:
+            filter_expressions &= filters.time_interval(time)
 
-#         cql = getattr(decoder, 'cql', None)
-#         if cql:
-#             cql_filters = to_filter(
-#                 parse(cql), field_mapping, mapping_choices
-#             )
-#             filter_expressions &= cql_filters
+        cql = getattr(decoder, 'cql', None)
+        if cql:
+            cql_filters = to_filter(
+                parse(cql), field_mapping, mapping_choices
+            )
+            filter_expressions &= cql_filters
 
-#         # TODO: multiple sorts per layer?
-#         sort_by = getattr(decoder, 'sort_by', None)
-#         if sort_by:
-#             sort_by = (field_mapping.get(sort_by[0], sort_by[0]), sort_by[1])
+        # TODO: multiple sorts per layer?
+        sort_by = getattr(decoder, 'sort_by', None)
+        if sort_by:
+            sort_by = (field_mapping.get(sort_by[0], sort_by[0]), sort_by[1])
 
-#         styles = decoder.styles
+        styles = decoder.styles
 
-#         if styles:
-#             styles = styles.split(',')
-#         else:
-#             styles = [None] * len(layer_names)
+        if styles:
+            styles = styles.split(',')
+        else:
+            styles = [None] * len(layer_names)
 
-#         dimensions = {
-#             "time": time,
-#             "elevation": decoder.elevation,
-#             "ranges": decoder.dim_range,
-#             "bands": decoder.dim_bands,
-#             "wavelengths": decoder.dim_wavelengths,
-#         }
+        dimensions = {
+            "time": time,
+            "elevation": decoder.elevation,
+            "ranges": decoder.dim_range,
+            "bands": decoder.dim_bands,
+            "wavelengths": decoder.dim_wavelengths,
+        }
 
-#         feature_info_renderer = get_feature_info_renderer()
+        feature_info_renderer = get_feature_info_renderer()
 
-#         layer_mapper = LayerMapper(feature_info_renderer.get_supported_layer_types())
+        layer_mapper = LayerMapper(feature_info_renderer.get_supported_layer_types())
 
-#         layers = []
-#         for layer_name, style in zip(layer_names, styles):
-#             name, suffix = layer_mapper.split_layer_suffix_name(layer_name)
-#             layer = layer_mapper.lookup_layer(
-#                 name, suffix, style,
-#                 filter_expressions, sort_by, zoom=zoom, **dimensions
-#             )
-#             layers.append(layer)
+        layers = []
+        for layer_name, style in zip(layer_names, styles):
+            name, suffix = layer_mapper.split_layer_suffix_name(layer_name)
+            layer = layer_mapper.lookup_layer(
+                name, suffix, style,
+                filter_expressions, sort_by, zoom=zoom, **dimensions
+            )
+            layers.append(layer)
 
-#         map_ = Map(
-#             width=decoder.width, height=decoder.height, format=decoder.format,
-#             bbox=(minx, miny, maxx, maxy), crs=crs,
-#             bgcolor=decoder.bgcolor, transparent=decoder.transparent,
-#             layers=layers
-#         )
+        map_ = Map(
+            width=decoder.width, height=decoder.height, format=decoder.format,
+            bbox=(minx, miny, maxx, maxy), crs=crs,
+            bgcolor=decoder.bgcolor, transparent=decoder.transparent,
+            layers=layers
+        )
 
-#         result_bytes, content_type, filename = feature_info_renderer.render_feature_info(map_)
+        result_bytes, content_type, filename = feature_info_renderer.render_feature_info(map_)
 
-#         response = HttpResponse(result_bytes, content_type=content_type)
-#         if filename:
-#             response['Content-Disposition'] = 'inline; filename="%s"' % filename
+        response = HttpResponse(result_bytes, content_type=content_type)
+        if filename:
+            response['Content-Disposition'] = 'inline; filename="%s"' % filename
 
-#         return response
+        return response
 
 
 class WMSBaseGetLegendGraphicHandler(object):
