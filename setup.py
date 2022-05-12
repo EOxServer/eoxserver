@@ -102,6 +102,7 @@ setup(
         'pycql==0.0.8',
         'matplotlib',
         'pyows>=0.2.6',
+        'jsonfield',
     ],
     extras_require={
         'dev': ['scipy'],
