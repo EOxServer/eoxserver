@@ -206,41 +206,54 @@ def pansharpen(pan_ds, *spectral_dss):
     return out_ds
 
 
-def percentile(ds, perc):
+def percentile(ds, perc, default=0):
     band = ds.GetRasterBand(1)
-    min_, max_, _, buckets = band.GetDefaultHistogram()
-    bucket_diff = (max_ - min_) / len(buckets)
-    nodata = band.GetNoDataValue()
-    if nodata is not None:
-        # Set bucket of nodata value to 0
-        buckets[round((nodata - min_) / bucket_diff)] = 0
-    cumsum = np.cumsum(buckets)
-    bucket_index = np.searchsorted(cumsum, cumsum[-1] * (perc / 100))
-    return min_ + (bucket_index * bucket_diff)
+    histogram = band.GetDefaultHistogram()
+    if histogram:
+        min_, max_, _, buckets = histogram
+        bucket_diff = (max_ - min_) / len(buckets)
+        nodata = band.GetNoDataValue()
+        if nodata is not None:
+            # Set bucket of nodata value to 0
+            buckets[round((nodata - min_) / bucket_diff)] = 0
+        cumsum = np.cumsum(buckets)
+        bucket_index = np.searchsorted(cumsum, cumsum[-1] * (perc / 100))
+        return min_ + (bucket_index * bucket_diff)
+    return default
 
 
-def statistics_min(ds):
+def _has_stats(band):
+    return 'STATISTICS_MINIMUM' in band.GetMetadata()
+
+def statistics_min(ds, default=0):
     band = ds.GetRasterBand(1)
-    min_, _, _, _ = band.GetStatistics(True, False)
-    return min_
+    if _has_stats(band):
+        min_, _, _, _ = band.GetStatistics(True, False)
+        return min_
+    return default
 
 
-def statistics_max(ds):
+def statistics_max(ds, default=0):
     band = ds.GetRasterBand(1)
-    _, max_, _, _ = band.GetStatistics(True, False)
-    return max_
+    if _has_stats(band):
+        _, max_, _, _ = band.GetStatistics(True, False)
+        return max_
+    return default
 
-
-def statistics_mean(ds):
+def statistics_mean(ds, default=0):
     band = ds.GetRasterBand(1)
-    _, _, mean, _ = band.GetStatistics(True, False)
-    return mean
+    if _has_stats(band):
+        _, _, mean, _ = band.GetStatistics(True, False)
+        return mean
+    return default
 
 
-def statistics_stddev(ds):
+def statistics_stddev(ds, default=0):
     band = ds.GetRasterBand(1)
-    _, _, _, stddev = band.GetStatistics(True, False)
-    return stddev
+    if _has_stats(band):
+        _, _, _, stddev = band.GetStatistics(True, False)
+        return stddev
+    return default
 
 
 def interpolate(ds, x1, x2, y1, y2):
