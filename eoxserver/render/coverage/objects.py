@@ -660,8 +660,8 @@ class Coverage(object):
                     band_statistics.valid_percent,
                     Histogram(
                         band_statistics.histogram.get('min', 0),
-                        band_statistics.histogram('max', 0),
-                        band_statistics.histogram('buckets', []),
+                        band_statistics.histogram.get('max', 0),
+                        band_statistics.histogram.get('buckets', []),
                     ),
                 )
 
