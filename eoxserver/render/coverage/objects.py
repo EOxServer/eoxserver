@@ -489,7 +489,7 @@ class ArraydataLocation(Location):
 
     def field_index_to_band_index(self, field_index):
         return field_index - self.start_field
-    
+
     def field_statistics(self, field_index):
         band_index = self.field_index_to_band_index(field_index)
         return self._band_statistics[band_index]
@@ -659,9 +659,9 @@ class Coverage(object):
                     band_statistics.stddev,
                     band_statistics.valid_percent,
                     Histogram(
-                        band_statistics.histogram['min'],
-                        band_statistics.histogram['max'],
-                        band_statistics.histogram['buckets'],
+                        band_statistics.histogram.get('min', 0),
+                        band_statistics.histogram('max', 0),
+                        band_statistics.histogram('buckets', []),
                     ),
                 )
 
