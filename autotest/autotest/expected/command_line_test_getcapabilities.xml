@@ -72,8 +72,8 @@ Copyright (C) European Space Agency - ESA</ows:Abstract>
     <ows:Operation name="GetCapabilities">
       <ows:DCP>
         <ows:HTTP>
-          <ows:Get xlink:href="http://localhost:8000/ows" xlink:type="simple"/>
-          <ows:Post xlink:href="http://localhost:8000/ows" xlink:type="simple">
+          <ows:Get xlink:href="http://localhost:8000/ows?" xlink:type="simple"/>
+          <ows:Post xlink:href="http://localhost:8000/ows?" xlink:type="simple">
             <ows:Constraint name="PostEncoding">
               <ows:AllowedValues>
                 <ows:Value>XML</ows:Value>
@@ -86,8 +86,8 @@ Copyright (C) European Space Agency - ESA</ows:Abstract>
     <ows:Operation name="DescribeCoverage">
       <ows:DCP>
         <ows:HTTP>
-          <ows:Get xlink:href="http://localhost:8000/ows" xlink:type="simple"/>
-          <ows:Post xlink:href="http://localhost:8000/ows" xlink:type="simple">
+          <ows:Get xlink:href="http://localhost:8000/ows?" xlink:type="simple"/>
+          <ows:Post xlink:href="http://localhost:8000/ows?" xlink:type="simple">
             <ows:Constraint name="PostEncoding">
               <ows:AllowedValues>
                 <ows:Value>XML</ows:Value>
@@ -100,8 +100,8 @@ Copyright (C) European Space Agency - ESA</ows:Abstract>
     <ows:Operation name="GetCoverage">
       <ows:DCP>
         <ows:HTTP>
-          <ows:Get xlink:href="http://localhost:8000/ows" xlink:type="simple"/>
-          <ows:Post xlink:href="http://localhost:8000/ows" xlink:type="simple">
+          <ows:Get xlink:href="http://localhost:8000/ows?" xlink:type="simple"/>
+          <ows:Post xlink:href="http://localhost:8000/ows?" xlink:type="simple">
             <ows:Constraint name="PostEncoding">
               <ows:AllowedValues>
                 <ows:Value>XML</ows:Value>
@@ -114,8 +114,8 @@ Copyright (C) European Space Agency - ESA</ows:Abstract>
     <ows:Operation name="DescribeEOCoverageSet">
       <ows:DCP>
         <ows:HTTP>
-          <ows:Get xlink:href="http://localhost:8000/ows" xlink:type="simple"/>
-          <ows:Post xlink:href="http://localhost:8000/ows" xlink:type="simple">
+          <ows:Get xlink:href="http://localhost:8000/ows?" xlink:type="simple"/>
+          <ows:Post xlink:href="http://localhost:8000/ows?" xlink:type="simple">
             <ows:Constraint name="PostEncoding">
               <ows:AllowedValues>
                 <ows:Value>XML</ows:Value>
@@ -132,8 +132,8 @@ Copyright (C) European Space Agency - ESA</ows:Abstract>
     <ows:Operation name="GetEOCoverageSet">
       <ows:DCP>
         <ows:HTTP>
-          <ows:Get xlink:href="http://localhost:8000/ows" xlink:type="simple"/>
-          <ows:Post xlink:href="http://localhost:8000/ows" xlink:type="simple">
+          <ows:Get xlink:href="http://localhost:8000/ows?" xlink:type="simple"/>
+          <ows:Post xlink:href="http://localhost:8000/ows?" xlink:type="simple">
             <ows:Constraint name="PostEncoding">
               <ows:AllowedValues>
                 <ows:Value>XML</ows:Value>
