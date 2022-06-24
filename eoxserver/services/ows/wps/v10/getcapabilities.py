@@ -42,7 +42,7 @@ class WPS10GetCapabilitiesHandler(object):
     def handle(self, request):
         """ Handle HTTP request. """
         encoder = WPS10CapabilitiesXMLEncoder()
-        return encoder.serialize(encoder.encode_capabilities(get_processes()))
+        return encoder.serialize(encoder.encode_capabilities(get_processes(), request))
 
 
 class WPS10GetCapabilitiesKVPDecoder(kvp.Decoder):

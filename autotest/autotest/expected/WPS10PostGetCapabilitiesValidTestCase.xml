@@ -48,24 +48,24 @@ Copyright (C) European Space Agency - ESA</ows:Abstract>
     <ows:Operation name="DescribeProcess">
       <ows:DCP>
         <ows:HTTP>
-          <ows:Get xlink:href="http://testserver/ows"/>
-          <ows:Post xlink:href="http://testserver/ows"/>
+          <ows:Get xlink:href="http://localhost:8000/ows"/>
+          <ows:Post xlink:href="http://localhost:8000/ows"/>
         </ows:HTTP>
       </ows:DCP>
     </ows:Operation>
     <ows:Operation name="Execute">
       <ows:DCP>
         <ows:HTTP>
-          <ows:Get xlink:href="http://testserver/ows"/>
-          <ows:Post xlink:href="http://testserver/ows"/>
+          <ows:Get xlink:href="http://localhost:8000/ows"/>
+          <ows:Post xlink:href="http://localhost:8000/ows"/>
         </ows:HTTP>
       </ows:DCP>
     </ows:Operation>
     <ows:Operation name="GetCapabilities">
       <ows:DCP>
         <ows:HTTP>
-          <ows:Get xlink:href="http://testserver/ows"/>
-          <ows:Post xlink:href="http://testserver/ows"/>
+          <ows:Get xlink:href="http://localhost:8000/ows"/>
+          <ows:Post xlink:href="http://localhost:8000/ows"/>
         </ows:HTTP>
       </ows:DCP>
     </ows:Operation>
