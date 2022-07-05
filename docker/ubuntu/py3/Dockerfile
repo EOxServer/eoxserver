@@ -1,4 +1,4 @@
-FROM ubuntu:20.04
+FROM ubuntu:22.04
 
 ARG DJANGO=4.0.5
 ARG TZ=UTC
