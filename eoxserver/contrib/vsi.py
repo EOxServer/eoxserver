@@ -111,7 +111,14 @@ class VSIFile(object):
         """
 
         value = VSIFReadL(1, size, self._handle)
-        return value if value is not None else ''
+        if isinstance(value, bytes):
+            return value
+        elif isinstance(value, bytearray):
+            return bytes(value)
+        elif value is None:
+            return b''
+        else:
+            raise ValueError(value)
 
     @_ensure_open
     def write(self, data):
