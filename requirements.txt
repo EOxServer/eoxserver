@@ -1,5 +1,5 @@
-gunicorn
-eventlet==0.33.1
+https://github.com/benoitc/gunicorn/archive/refs/heads/master.zip#egg=gunicorn==20.1.0
+https://github.com/eventlet/eventlet/archive/master.zip
 greenlet>=0.4.14
 django-utils-six==2.0
 tzdata
