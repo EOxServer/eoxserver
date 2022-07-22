@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<wcseo:RectifiedDataset xmlns:crs="http://www.opengis.net/wcs/crs/1.0" xmlns:eop="http://www.opengis.net/eop/2.0" xmlns:gml="http://www.opengis.net/gml/3.2" xmlns:gmlcov="http://www.opengis.net/gmlcov/1.0" xmlns:int="http://www.opengis.net/wcs/interpolation/1.0" xmlns:ogc="http://www.opengis.net/ogc" xmlns:om="http://www.opengis.net/om/2.0" xmlns:ows="http://www.opengis.net/ows/2.0" xmlns:rsub="http://www.opengis.net/wcs/range-subsetting/1.0" xmlns:scal="http://www.opengis.net/wcs/scaling/1.0" xmlns:swe="http://www.opengis.net/swe/2.0" xmlns:wcs="http://www.opengis.net/wcs/2.0" xmlns:wcseo="http://www.opengis.net/wcs/wcseo/1.0" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" gml:id="mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced" xsi:schemaLocation="http://www.opengis.net/wcs/wcseo/1.0 http://schemas.opengis.net/wcs/wcseo/1.0/wcsEOAll.xsd">
+<wcseo:RectifiedDataset xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:ogc="http://www.opengis.net/ogc" xmlns:ows="http://www.opengis.net/ows/2.0" xmlns:gml="http://www.opengis.net/gml/3.2" xmlns:gmlcov="http://www.opengis.net/gmlcov/1.0" xmlns:wcs="http://www.opengis.net/wcs/2.0" xmlns:crs="http://www.opengis.net/wcs/crs/1.0" xmlns:rsub="http://www.opengis.net/wcs/range-subsetting/1.0" xmlns:wcseo="http://www.opengis.net/wcs/wcseo/1.0" xmlns:om="http://www.opengis.net/om/2.0" xmlns:eop="http://www.opengis.net/eop/2.0" xmlns:swe="http://www.opengis.net/swe/2.0" xmlns:int="http://www.opengis.net/wcs/interpolation/1.0" xmlns:scal="http://www.opengis.net/wcs/scaling/1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" gml:id="mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced" xsi:schemaLocation="http://www.opengis.net/wcs/wcseo/1.0 http://schemas.opengis.net/wcs/wcseo/1.0/wcsEOAll.xsd">
   <gml:boundedBy>
-    <gml:Envelope axisLabels="lat long" srsName="http://www.opengis.net/def/crs/EPSG/0/4326" uomLabels="deg deg" srsDimension="2">
+    <gml:Envelope srsName="http://www.opengis.net/def/crs/EPSG/0/4326" axisLabels="lat long" uomLabels="deg deg" srsDimension="2">
       <gml:lowerCorner>43.13314500 11.33175500</gml:lowerCorner>
       <gml:upperCorner>46.26864500 14.46725500</gml:upperCorner>
     </gml:Envelope>
@@ -16,7 +16,7 @@
       </gml:limits>
       <gml:axisLabels>lat long</gml:axisLabels>
       <gml:origin>
-        <gml:Point srsName="http://www.opengis.net/def/crs/EPSG/0/4326" gml:id="mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced_grid_origin">
+        <gml:Point gml:id="mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced_grid_origin" srsName="http://www.opengis.net/def/crs/EPSG/0/4326">
           <gml:pos>46.26864500 11.33175500</gml:pos>
         </gml:Point>
       </gml:origin>
@@ -26,7 +26,7 @@
   </gml:domainSet>
   <gml:rangeSet>
     <gml:File>
-      <gml:rangeParameters xlink:href="cid:coverage/mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced.tif" xlink:arcrole="fileReference" xlink:role="http://www.opengis.net/spec/GMLCOV_geotiff-coverages/1.0/conf/geotiff-coverage"/>
+      <gml:rangeParameters xlink:arcrole="fileReference" xlink:href="cid:coverage/mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced.tif" xlink:role="http://www.opengis.net/spec/GMLCOV_geotiff-coverages/1.0/conf/geotiff-coverage"/>
       <gml:fileReference>cid:coverage/mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced.tif</gml:fileReference>
       <gml:fileStructure/>
       <gml:mimeType>image/tiff</gml:mimeType>
@@ -126,12 +126,12 @@
           <om:featureOfInterest>
             <eop:Footprint gml:id="footprint_mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced">
               <eop:multiExtentOf>
-                <gml:MultiSurface srsName="EPSG:4326" gml:id="multisurface_mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced">
+                <gml:MultiSurface gml:id="multisurface_mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced" srsName="EPSG:4326">
                   <gml:surfaceMember>
                     <gml:Polygon gml:id="polygon_mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced">
                       <gml:exterior>
                         <gml:LinearRing>
-                          <gml:posList>46.21655812 14.32257597 46.20366227 14.43590000 43.16450000 14.43590000 43.16450000 13.57936453 43.45033849 13.64731130 43.87974151 13.74919568 44.51595976 13.90424434 45.24715363 14.07617623 45.81257656 14.21561994 46.21655812 14.32257597</gml:posList>
+                          <gml:posList>46.20366227 14.43590000 43.16450000 14.43590000 43.16450000 13.57936453 43.45033849 13.64731130 43.87974151 13.74919568 44.51595976 13.90424434 45.24715363 14.07617623 45.81257656 14.21561994 46.21655812 14.32257597 46.20366227 14.43590000</gml:posList>
                         </gml:LinearRing>
                       </gml:exterior>
                     </gml:Polygon>
