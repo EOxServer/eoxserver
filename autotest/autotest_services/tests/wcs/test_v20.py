@@ -1642,15 +1642,11 @@ class WCS20DefaultErrorFormatIsXmlTestCase(testbase.OWSTestCase):
         return (params, "kvp")
 
     def testStatus(self):
-        # override base class test case because these results don't return 200 intentionally
         pass
 
     def testContentTypeIsXml(self):
         content_type = self.response.get("Content-Type")
-        self.assertEqual(
-            content_type,
-            "text/xml",
-        )
+        self.assertEqual(content_type, "text/xml")
 
 
 @tag('wcs', 'wcs20')
@@ -1660,15 +1656,11 @@ class WCS20ErrorFormatIsHtmlOnRequestTestCase(testbase.OWSTestCase):
         return (params, "kvp")
 
     def testStatus(self):
-        # override base class test case because these results don't return 200 intentionally
         pass
 
     def testContentTypeIsHtml(self):
         content_type = self.response.get("Content-Type")
-        self.assertEqual(
-            content_type,
-            "text/html",
-        )
+        self.assertEqual(content_type, "text/html")
 
     def testTemplateContainsErrorMessage(self):
         self.assertIn(
@@ -1676,9 +1668,39 @@ class WCS20ErrorFormatIsHtmlOnRequestTestCase(testbase.OWSTestCase):
             self.response.content.decode(),
         )
 
+@tag('wcs', 'wcs20')
+class WCS20PostDefaultErrorFormatIsXmlTestCase(testbase.OWSTestCase):
+    def getRequest(self):
+        params = """<ns:invalid updateSequence="u2001" service="WCS"
+          xmlns:ns="http://www.opengis.net/wcs/2.0"
+          xmlns:ns1="http://www.opengis.net/ows/2.0">
+            <ns1:AcceptVersions><ns1:Version>2.0.1</ns1:Version></ns1:AcceptVersions>
+          </ns:invalid>
+        """
+        return (params, "xml")
+
+    def testStatus(self):
+        pass
+
+    def testContentTypeIsHtml(self):
+        content_type = self.response.get("Content-Type")
+        self.assertEqual(content_type, "text/xml")
 
 
 @tag('wcs', 'wcs20')
-class WCS20POSTErrorFormatIsHtmlOnRequestTestCase(testbase.OWSTestCase):
-    def test_todo(self):
-        self.assertEqual(1, 2)
+class WCS20PostErrorFormatIsHtmlOnRequestTestCase(testbase.OWSTestCase):
+    def getRequest(self):
+        params = """<ns:invalid updateSequence="u2001" service="WCS" exceptions="text/html"
+          xmlns:ns="http://www.opengis.net/wcs/2.0"
+          xmlns:ns1="http://www.opengis.net/ows/2.0">
+            <ns1:AcceptVersions><ns1:Version>2.0.1</ns1:Version></ns1:AcceptVersions>
+          </ns:invalid>
+        """
+        return (params, "xml")
+
+    def testStatus(self):
+        pass
+
+    def testContentTypeIsHtml(self):
+        content_type = self.response.get("Content-Type")
+        self.assertEqual(content_type, "text/html")

@@ -55,8 +55,8 @@ class WCS20ExceptionHandlerKVPDecoder(kvp.Decoder):
     exceptions = kvp.Parameter(num="?", type=lower, default="application/xml")
 
 
-class WCS20ExceptionHandlerXMLDecoder(kvp.Decoder):
-    exceptions = xml.Parameter("TODO SELECTOR XPATH", num="?", type=lower, default="application/xml")
+class WCS20ExceptionHandlerXMLDecoder(xml.Decoder):
+    exceptions = xml.Parameter("@exceptions", num="?", type=lower, default="application/xml")
 
 
 class OWS20ExceptionHTMLEncoder(object):
