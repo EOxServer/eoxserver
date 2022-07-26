@@ -27,6 +27,7 @@
 
 
 from eoxserver.core import Component, implements
+from eoxserver.core.decoders import kvp, lower, xml
 from eoxserver.services.ows.interfaces import ExceptionHandlerInterface
 from eoxserver.services.ows.common.v20.encoders import OWS20ExceptionXMLEncoder
 from eoxserver.core.decoders import (
@@ -46,12 +47,45 @@ CODES_404 = frozenset((
 ))
 
 
+class WCS20ExceptionHandlerKVPDecoder(kvp.Decoder):
+    exceptions = kvp.Parameter(num="?", type=lower, default="application/xml")
+
+
+class WCS20ExceptionHandlerXMLDecoder(kvp.Decoder):
+    exceptions = xml.Parameter("TODO SELECTOR XPATH", num="?", type=lower, default="application/xml")
+
+
+class OWS20ExceptionHTMLEncoder(object):
+    @property
+    def content_type(self):
+        return "text/html"
+
+    def serialize(self, message):
+        # content is already str
+        return message
+
+    def encode_exception(self, message, version, code, locator=None):
+        # TODO: render template here?
+        return message
+
+
 class WCS20ExceptionHandler(Component):
     implements(ExceptionHandlerInterface)
 
     service = "WCS"
     versions = ("2.0.0", "2.0.1")
     request = None
+
+    def get_encoder(self, request):
+        if request.method == "GET":
+            decoder = WCS20ExceptionHandlerKVPDecoder(request.GET)
+        elif request.method == "POST":
+            decoder = WCS20ExceptionHandlerXMLDecoder(request.body)
+
+        if decoder.exceptions == "text/html":
+            return OWS20ExceptionHTMLEncoder()
+        else:
+            return OWS20ExceptionXMLEncoder()
 
     def handle_exception(self, request, exception):
         message = str(exception)
@@ -72,7 +106,7 @@ class WCS20ExceptionHandler(Component):
         elif code in ("OperationNotSupported", "OptionNotSupported"):
             status = 501
 
-        encoder = OWS20ExceptionXMLEncoder()
+        encoder = self.get_encoder(request)
         xml = encoder.serialize(
             encoder.encode_exception(message, "2.0.1", code, locator)
         )

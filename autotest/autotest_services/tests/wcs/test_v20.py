@@ -1633,3 +1633,46 @@ class WCS20GetCoverageDatasetGeoTIFFTilingInvalidTestCase(testbase.ExceptionTest
 
     def getExpectedExceptionCode(self):
         return "TilingInvalid"
+
+
+@tag('wcs', 'wcs20')
+class WCS20DefaultErrorFormatIsXmlTestCase(testbase.OWSTestCase):
+    def getRequest(self):
+        params = "service=WCS&version=2.0.1&request=invalid"
+        return (params, "kvp")
+
+    def testStatus(self):
+        # override base class test case because these results don't return 200 intentionally
+        pass
+
+    def testContentTypeIsXml(self):
+        content_type = self.response.get("Content-Type")
+        self.assertEqual(
+            content_type,
+            "text/xml",
+        )
+
+
+@tag('wcs', 'wcs20')
+class WCS20ErrorFormatIsHtmlOnRequestTestCase(testbase.OWSTestCase):
+    def getRequest(self):
+        params = "service=WCS&version=2.0.1&request=invalid&exceptions=text/html"
+        return (params, "kvp")
+
+    def testStatus(self):
+        # override base class test case because these results don't return 200 intentionally
+        pass
+
+    def testContentTypeIsHtml(self):
+        content_type = self.response.get("Content-Type")
+        self.assertEqual(
+            content_type,
+            "text/html",
+        )
+
+
+
+@tag('wcs', 'wcs20')
+class WCS20POSTErrorFormatIsHtmlOnRequestTestCase(testbase.OWSTestCase):
+    def test_todo(self):
+        self.assertEqual(1, 2)
