@@ -823,11 +823,11 @@ class WCS20GetCoverageSizeMosaicTestCase(testbase.RectifiedGridCoverageTestCase,
         params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=mosaic_MER_FRS_1P_reduced_RGB&format=image/tiff&scalesize=x(200),y(400)"
         return (params, "kvp")
 
-@tag('wcs', 'wcs20')
-class WCS20GetCoverageSubsetSizeDatasetTestCase(testbase.RectifiedGridCoverageTestCase, testbase.WCSBinaryComparison):
-    def getRequest(self):
-        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&subset=x(100,200)&subset=y(200,300)&subsettingCrs=imageCRS&scalesize=x(20),y(20)"
-        return (params, "kvp")
+# @tag('wcs', 'wcs20')
+# class WCS20GetCoverageSubsetSizeDatasetTestCase(testbase.RectifiedGridCoverageTestCase, testbase.WCSBinaryComparison):
+#     def getRequest(self):
+#         params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&subset=x(100,200)&subset=y(200,300)&subsettingCrs=imageCRS&scalesize=x(20),y(20)"
+#         return (params, "kvp")
 
 @tag('wcs', 'wcs20')
 class WCS20GetCoverageSubsetEPSG4326SizeDatasetTestCase(wcsbase.WCS20GetCoverageMixIn, testbase.WCS20GetCoverageRectifiedGridCoverageMultipartTestCase, testbase.WCSBinaryComparison):
