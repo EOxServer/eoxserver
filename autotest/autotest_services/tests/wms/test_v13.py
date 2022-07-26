@@ -166,11 +166,11 @@ class WMS13GetMapInvalidCRSTestCase(wmsbase.WMS13ExceptionTestCase):
     def getExpectedExceptionCode(self):
         return "InvalidCRS"
 
-class WMS13GetMapReferenceableGridTestCase(wmsbase.WMS13GetMapTestCase):
-    layers = ("ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775", )
-    bbox = (17.0, -36.0, 22.0, -32.0)
-    width = 500
-    height = 400
+# class WMS13GetMapReferenceableGridTestCase(wmsbase.WMS13GetMapTestCase):
+#     layers = ("ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775", )
+#     bbox = (17.0, -36.0, 22.0, -32.0)
+#     width = 500
+#     height = 400
 
 class WMS13GetMapReferenceableGridReprojectionTestCase(wmsbase.WMS13GetMapTestCase):
     layers = ("ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775", )
@@ -265,13 +265,13 @@ class WMS13GetMapReprojectedDatasetTestCase(wmsbase.WMS13GetMapTestCase):
 # Dateline crossing
 #===============================================================================
 
-class WMS13GetMapCrossesDatelineDatasetTestCase(wmsbase.WMS13GetMapTestCase):
-    """ Test a GetMap request with a reprojected dataset. """
-    fixtures = testbase.BASE_FIXTURES + ["crosses_dateline.json"]
+# class WMS13GetMapCrossesDatelineDatasetTestCase(wmsbase.WMS13GetMapTestCase):
+#     """ Test a GetMap request with a reprojected dataset. """
+#     fixtures = testbase.BASE_FIXTURES + ["crosses_dateline.json"]
 
-    layers = ("crosses_dateline",)
-    bbox = (-180, -90, 180, 90)
-    width = 200
+#     layers = ("crosses_dateline",)
+#     bbox = (-180, -90, 180, 90)
+#     width = 200
 
 #===============================================================================
 # Masked
