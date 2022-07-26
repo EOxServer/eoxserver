@@ -1670,6 +1670,12 @@ class WCS20ErrorFormatIsHtmlOnRequestTestCase(testbase.OWSTestCase):
             "text/html",
         )
 
+    def testTemplateContainsErrorMessage(self):
+        self.assertIn(
+            "Error: Operation &#39;INVALID&#39; is not supported",
+            self.response.content.decode(),
+        )
+
 
 
 @tag('wcs', 'wcs20')

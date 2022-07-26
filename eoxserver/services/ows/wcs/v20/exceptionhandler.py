@@ -26,10 +26,14 @@
 #-------------------------------------------------------------------------------
 
 
+from django.conf import settings
+from django.template.loader import render_to_string
+
 from eoxserver.core import Component, implements
 from eoxserver.core.decoders import kvp, lower, xml
 from eoxserver.services.ows.interfaces import ExceptionHandlerInterface
 from eoxserver.services.ows.common.v20.encoders import OWS20ExceptionXMLEncoder
+from eoxserver.services.ows.config import DEFAULT_EOXS_WCS_ERROR_HTML_TEMPLATE
 from eoxserver.core.decoders import (
     DecodingException, MissingParameterException
 )
@@ -64,9 +68,21 @@ class OWS20ExceptionHTMLEncoder(object):
         # content is already str
         return message
 
-    def encode_exception(self, message, version, code, locator=None):
-        # TODO: render template here?
-        return message
+    def encode_exception(self, message, version, code, locator=None, request=None, exception=None):
+        template_name = getattr(
+            settings,
+            'EOXS_ERROR_HTML_TEMPLATE',
+            DEFAULT_EOXS_WCS_ERROR_HTML_TEMPLATE,
+        )
+        template_params = {
+            "message": message,
+            "exception": exception,
+        }
+        return render_to_string(
+            template_name,
+            context=template_params,
+            request=request
+        )
 
 
 class WCS20ExceptionHandler(Component):
@@ -108,7 +124,7 @@ class WCS20ExceptionHandler(Component):
 
         encoder = self.get_encoder(request)
         xml = encoder.serialize(
-            encoder.encode_exception(message, "2.0.1", code, locator)
+            encoder.encode_exception(message, "2.0.1", code, locator, request=request, exception=exception)
         )
 
         return (xml, encoder.content_type, status)

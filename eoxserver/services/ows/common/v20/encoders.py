@@ -199,7 +199,7 @@ class OWS20Encoder(XMLEncoder):
 
 
 class OWS20ExceptionXMLEncoder(XMLEncoder):
-    def encode_exception(self, message, version, code, locator=None):
+    def encode_exception(self, message, version, code, locator=None, request=None, exception=None):
         exception_attributes = {
             "exceptionCode": str(code)
         }
