@@ -1690,10 +1690,14 @@ class WCS20PostDefaultErrorFormatIsXmlTestCase(testbase.OWSTestCase):
 @tag('wcs', 'wcs20')
 class WCS20PostErrorFormatIsHtmlOnRequestTestCase(testbase.OWSTestCase):
     def getRequest(self):
-        params = """<ns:invalid updateSequence="u2001" service="WCS" exceptions="text/html"
+        params = """<ns:invalid updateSequence="u2001" service="WCS"
           xmlns:ns="http://www.opengis.net/wcs/2.0"
-          xmlns:ns1="http://www.opengis.net/ows/2.0">
+          xmlns:ns1="http://www.opengis.net/ows/2.0"
+          xmlns:eoxs="http://eoxserver.org/eoxs/1.0">
             <ns1:AcceptVersions><ns1:Version>2.0.1</ns1:Version></ns1:AcceptVersions>
+            <ns:Extensions>
+                <eoxs:exceptions>text/html</eoxs:exceptions>
+            </ns:Extensions>
           </ns:invalid>
         """
         return (params, "xml")

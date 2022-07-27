@@ -34,9 +34,11 @@ from eoxserver.core.decoders import kvp, lower, xml
 from eoxserver.services.ows.interfaces import ExceptionHandlerInterface
 from eoxserver.services.ows.common.v20.encoders import OWS20ExceptionXMLEncoder
 from eoxserver.services.ows.config import DEFAULT_EOXS_WCS_ERROR_HTML_TEMPLATE
+from eoxserver.services.ows.wcs.v20.util import ns_wcs
 from eoxserver.core.decoders import (
     DecodingException, MissingParameterException
 )
+from eoxserver.core.util.xmltools import NameSpace, NameSpaceMap
 
 
 CODES_404 = frozenset((
@@ -56,7 +58,10 @@ class WCS20ExceptionHandlerKVPDecoder(kvp.Decoder):
 
 
 class WCS20ExceptionHandlerXMLDecoder(xml.Decoder):
-    exceptions = xml.Parameter("@exceptions", num="?", type=lower, default="application/xml")
+    namespaces = NameSpaceMap(
+        ns_wcs, NameSpace("http://eoxserver.org/eoxs/1.0", "eoxs")
+    )
+    exceptions = xml.Parameter("wcs:Extensions/eoxs:exceptions/text()", num="?", type=lower, default="application/xml")
 
 
 class OWS20ExceptionHTMLEncoder(object):
