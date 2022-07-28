@@ -60,6 +60,8 @@ DEFAULT_EOXS_OPENSEARCH_RECORD_MODEL = "eoxserver.resources.coverages.models.EOO
 # default ordering (field name) for opensearch queries
 DEFAULT_EOXS_OPENSEARCH_DEFAULT_ORDERING = None
 
+# when True, adds exceptions=text/html to all GetCoverage links in opensearch response
+EOXS_OPENSEARCH_GETCOVERAGE_HTML_EXCEPTION = False
 
 def get_opensearch_record_model():
     class_name = getattr(
