@@ -62,7 +62,7 @@ class WCS20ExceptionHandlerXMLDecoder(xml.Decoder):
     namespaces = NameSpaceMap(
         ns_wcs, NameSpace("http://eoxserver.org/eoxs/1.0", "eoxs")
     )
-    exceptions = xml.Parameter("wcs:Extensions/eoxs:exceptions/text()", num="?", type=lower, default="application/xml")
+    exceptions = xml.Parameter("wcs:Extension/eoxs:exceptions/text()", num="?", type=lower, default="application/xml")
 
 
 class OWS20ExceptionHTMLEncoder(object):
