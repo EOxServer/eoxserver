@@ -510,14 +510,18 @@ class BaseFeedResultFormat(object):
         return None
 
     def _create_coverage_link(self, request, coverage):
+        options = dict(
+            service="WCS",
+            version="2.0.1",
+            request="GetCoverage",
+            coverageId=coverage.identifier,
+        )
+        if getattr(settings, 'EOXS_OPENSEARCH_GETCOVERAGE_HTML_EXCEPTION', False):
+            options["exceptions"] = "text/html"
+
         return request.build_absolute_uri(
             "%s?%s" % (
-                reverse("ows"), urlencode(dict(
-                    service="WCS",
-                    version="2.0.1",
-                    request="GetCoverage",
-                    coverageId=coverage.identifier,
-                ))
+                reverse("ows"), urlencode(options)
             )
         )
 
