@@ -25,6 +25,7 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
+import traceback
 
 from django.conf import settings
 from django.template.loader import render_to_string
@@ -79,9 +80,15 @@ class OWS20ExceptionHTMLEncoder(object):
             'EOXS_ERROR_HTML_TEMPLATE',
             DEFAULT_EOXS_WCS_ERROR_HTML_TEMPLATE,
         )
+        # pass in original traceback and debug to allow usage in template
+        debug = getattr(settings, 'DEBUG', False)
+        stack_trace = traceback.format_exc()
+
         template_params = {
             "message": message,
             "exception": exception,
+            "debug": debug,
+            "stack_trace": stack_trace,
         }
         return render_to_string(
             template_name,
