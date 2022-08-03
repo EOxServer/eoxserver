@@ -1633,3 +1633,78 @@ class WCS20GetCoverageDatasetGeoTIFFTilingInvalidTestCase(testbase.ExceptionTest
 
     def getExpectedExceptionCode(self):
         return "TilingInvalid"
+
+
+@tag('wcs', 'wcs20')
+class WCS20DefaultErrorFormatIsXmlTestCase(testbase.OWSTestCase):
+    def getRequest(self):
+        params = "service=WCS&version=2.0.1&request=invalid"
+        return (params, "kvp")
+
+    def testStatus(self):
+        pass
+
+    def testContentTypeIsXml(self):
+        content_type = self.response.get("Content-Type")
+        self.assertEqual(content_type, "text/xml")
+
+
+@tag('wcs', 'wcs20')
+class WCS20ErrorFormatIsHtmlOnRequestTestCase(testbase.OWSTestCase):
+    def getRequest(self):
+        params = "service=WCS&version=2.0.1&request=invalid&exceptions=text/html"
+        return (params, "kvp")
+
+    def testStatus(self):
+        pass
+
+    def testContentTypeIsHtml(self):
+        content_type = self.response.get("Content-Type")
+        self.assertEqual(content_type, "text/html")
+
+    def testTemplateContainsErrorMessage(self):
+        self.assertIn(
+            "Error: Operation &#39;INVALID&#39; is not supported",
+            self.response.content.decode(),
+        )
+
+@tag('wcs', 'wcs20')
+class WCS20PostDefaultErrorFormatIsXmlTestCase(testbase.OWSTestCase):
+    def getRequest(self):
+        params = """<ns:invalid updateSequence="u2001" service="WCS"
+          xmlns:ns="http://www.opengis.net/wcs/2.0"
+          xmlns:ns1="http://www.opengis.net/ows/2.0">
+            <ns1:AcceptVersions><ns1:Version>2.0.1</ns1:Version></ns1:AcceptVersions>
+          </ns:invalid>
+        """
+        return (params, "xml")
+
+    def testStatus(self):
+        pass
+
+    def testContentTypeIsHtml(self):
+        content_type = self.response.get("Content-Type")
+        self.assertEqual(content_type, "text/xml")
+
+
+@tag('wcs', 'wcs20')
+class WCS20PostErrorFormatIsHtmlOnRequestTestCase(testbase.OWSTestCase):
+    def getRequest(self):
+        params = """<ns:invalid updateSequence="u2001" service="WCS"
+          xmlns:ns="http://www.opengis.net/wcs/2.0"
+          xmlns:ns1="http://www.opengis.net/ows/2.0"
+          xmlns:eoxs="http://eoxserver.org/eoxs/1.0">
+            <ns1:AcceptVersions><ns1:Version>2.0.1</ns1:Version></ns1:AcceptVersions>
+            <ns:Extension>
+                <eoxs:exceptions>text/html</eoxs:exceptions>
+            </ns:Extension>
+          </ns:invalid>
+        """
+        return (params, "xml")
+
+    def testStatus(self):
+        pass
+
+    def testContentTypeIsHtml(self):
+        content_type = self.response.get("Content-Type")
+        self.assertEqual(content_type, "text/html")

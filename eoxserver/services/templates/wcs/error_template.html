@@ -1,0 +1,17 @@
+<html>
+<head>
+    <title>Error: {{ message }}</title>
+</head>
+<body>
+  <h1>Error: {{ message }}</h1>
+  {% if exception.code == 404 %}
+      <p>Not found.</p>
+  {% endif %}
+  {% if debug %}
+      <h2>DEBUG: Full stack trace</h2>
+      <p>
+        {{ stack_trace }}
+      </p>
+  {% endif %}
+</body>
+</html>
