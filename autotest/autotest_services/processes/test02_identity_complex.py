@@ -37,7 +37,7 @@ from eoxserver.services.ows.wps.exceptions import InvalidOutputDefError
 from eoxserver.services.ows.wps.parameters import (
     ComplexData, CDObject, CDTextBuffer, FormatText, FormatXML, FormatJSON,
 )
-from django.utils.encoding import smart_text
+from django.utils.encoding import smart_str
 
 class TestProcess02(Component):
     """ Test identity process (the outputs are copies of the inputs)
@@ -117,7 +117,7 @@ class TestProcess02(Component):
                 filename=(output_filename_base + ".xml")
             )
             # text output also accepts Unicode strings
-            outputs['output01'] = smart_text(
+            outputs['output01'] = smart_str(
                 etree.tostring(
                     input00.data, encoding='utf-8', pretty_print=True
                 ), 'utf-8'

@@ -51,7 +51,7 @@ except ImportError:
 from lxml import etree
 from .base import Parameter
 from .formats import Format
-from django.utils.encoding import smart_text
+from django.utils.encoding import smart_str
 from django.utils.six import string_types, text_type, itervalues, binary_type
 
 #-------------------------------------------------------------------------------
@@ -172,7 +172,7 @@ class CDTextBuffer(StringIO, CDBase):
     """
     def __init__(self, data=u'', *args, **kwargs):
         # NOTE: StringIO is an old-style class and super cannot be used!
-        StringIO.__init__(self, smart_text(data))
+        StringIO.__init__(self, smart_str(data))
         CDBase.__init__(self, *args, **kwargs)
         self.text_encoding = kwargs.get('text_encoding', None)
 
@@ -183,9 +183,9 @@ class CDTextBuffer(StringIO, CDBase):
 
     def write(self, data):
         if self.text_encoding is None:
-            return StringIO.write(self, smart_text(data))
+            return StringIO.write(self, smart_str(data))
         else:
-            return StringIO.write(self, smart_text(data, self.text_encoding))
+            return StringIO.write(self, smart_str(data, self.text_encoding))
 
     def read(self, size=None):
         if size is None:
@@ -532,7 +532,7 @@ def _unicode(data, encoding):
     if isinstance(data, text_type):
         return data
     elif isinstance(data, bytes):
-        return smart_text(data, encoding)
+        return smart_str(data, encoding)
     raise TypeError(
         "Byte or Unicode string expected, %s received!" % type(data)
     )

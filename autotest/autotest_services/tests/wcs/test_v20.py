@@ -1664,7 +1664,15 @@ class WCS20ErrorFormatIsHtmlOnRequestTestCase(testbase.OWSTestCase):
 
     def testTemplateContainsErrorMessage(self):
         self.assertIn(
-            "Error: Operation &#39;INVALID&#39; is not supported",
+            "Error: Operation ",
+            self.response.content.decode(),
+        )
+        self.assertIn(
+            "is not supported",
+            self.response.content.decode(),
+        )
+        self.assertIn(
+            "INVALID",
             self.response.content.decode(),
         )
 

@@ -31,7 +31,7 @@ from eoxserver.resources.coverages.crss import (
     asURL, fromURL, fromURN, fromShortCode, validateEPSGCode, parseEPSGCode,
 )
 from .data_types import BaseType
-from django.utils.encoding import smart_text
+from django.utils.encoding import smart_str
 
 
 class CRSType(BaseType):
@@ -66,7 +66,7 @@ class CRSType(BaseType):
         if value == 0:
             return u'ImageCRS'
         elif validateEPSGCode(value):
-            return smart_text(asURL(value))
+            return smart_str(asURL(value))
         raise ValueError("Invalid CRS %r!" % value)
 
     @classmethod

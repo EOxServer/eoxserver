@@ -38,7 +38,7 @@ from .base import Parameter
 from .data_types import BaseType, String, DTYPES
 from .allowed_values import BaseAllowed, AllowedAny, AllowedEnum
 from .units import UnitOfMeasure, UnitLinear
-from django.utils.encoding import smart_text
+from django.utils.encoding import smart_str
 from django.utils.six import text_type
 
 
@@ -195,9 +195,9 @@ class LiteralData(Parameter):
             if isinstance(raw_value, text_type):
                 _value = raw_value
             elif isinstance(raw_value, str):
-                _value = smart_text(raw_value, encoding)
+                _value = smart_str(raw_value, encoding)
             else:
-                _value = smart_text(raw_value)
+                _value = smart_str(raw_value)
             _value = self._dtype.parse(raw_value)
             _value = self.strip_uom(_value, uom or self.default_uom)
             _value = self._allowed_values.verify(_value)
