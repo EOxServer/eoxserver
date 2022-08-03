@@ -72,8 +72,8 @@ class WCS10GetCoverageDatasetTestCase(testbase.RectifiedGridCoverageTestCase):
         params = "service=WCS&version=1.0.0&request=GetCoverage&coverage=mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced&crs=epsg:4326&bbox=-4,32,28,46.5&width=640&height=290&format=GeoTIFF"
         return (params, "kvp")
 
-# @tag('wcs', 'wcs10')
-# class WCS10GetCoverageMosaicTestCase(testbase.RectifiedGridCoverageTestCase):
-#     def getRequest(self):
-#         params = "service=WCS&version=1.0.0&request=GetCoverage&coverage=mosaic_MER_FRS_1P_reduced_RGB&crs=epsg:4326&bbox=-4,32,28,46.5&width=640&height=290&format=image/tiff"
-#         return (params, "kvp")
+@tag('wcs', 'wcs10')
+class WCS10GetCoverageMosaicTestCase(testbase.RectifiedGridCoverageTestCase):
+    def getRequest(self):
+        params = "service=WCS&version=1.0.0&request=GetCoverage&coverage=mosaic_MER_FRS_1P_reduced_RGB&crs=epsg:4326&bbox=-4,32,28,46.5&width=640&height=290&format=image/tiff"
+        return (params, "kvp")
