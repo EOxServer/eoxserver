@@ -93,7 +93,7 @@ setup(
         "tools/eoxserver-preprocess.py"
     ],
     install_requires=[
-        'django<5',
+        'django<4',
         'python-dateutil',
         'django-model-utils<5.0.0',
         'zipstream',
