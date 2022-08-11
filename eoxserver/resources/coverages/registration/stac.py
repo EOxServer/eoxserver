@@ -297,8 +297,14 @@ def register_stac_product(stac_item, product_type=None, storage=None,
 
     registrator = GDALRegistrator()
 
-    # handling coverages
+    if len(data_assets) == 0:
+        logger.info(
+            'No data assets found in STAC item for Product %s' % (
+                identifier,
+            )
+        )
 
+    # handling coverages
     for asset_name, asset in data_assets.items():
         overrides = {}
         coverage_type = None
@@ -312,6 +318,18 @@ def register_stac_product(stac_item, product_type=None, storage=None,
                     )
                     break
             else:
+                logger.info(
+                    '''Data asset "%s" was not mapped to any coverage_mapping %s.
+                    Asset will not be added as Coverage to Product %s''' % (
+                        asset_name,
+                        {
+                            coverage_type_name: mapping['assets']
+                            for coverage_type_name, mapping
+                            in coverage_mapping.items()
+                        },
+                        identifier,
+                    )
+                )
                 continue
 
         # if no mapping is defined, we try to figure out the coverage type via
@@ -319,6 +337,12 @@ def register_stac_product(stac_item, product_type=None, storage=None,
         else:
             bands = asset.get('eo:bands')
             if bands is None:
+                logger.info(
+                    '''No eo:bands information present in Item.
+                    Skipping data asset %s.''' % (
+                    asset_name,
+                    )
+                )
                 continue
 
             if not isinstance(bands, list):
