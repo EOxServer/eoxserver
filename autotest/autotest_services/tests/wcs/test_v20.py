@@ -1757,6 +1757,7 @@ class WCS20GetEOCoverageSetDatasetPagingTestCase(testbase.WCS20GetEOCoverageSetP
     """
     files_should_exist = ['MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed']
     files_should_not_exist = ['MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed']
+    expectedContentType = 'application/x-compressed-tar'
     def getRequest(self):
         params = 'service=WCS&version=2.0.1&request=GetEOCoverageSet&eoId=MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed,MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&count=1&startIndex=1'
         return (params, "kvp")
@@ -1769,6 +1770,7 @@ class WCS20GetEOCoverageSetDatasetPagingXMLTestCase(testbase.WCS20GetEOCoverageS
     """
     files_should_exist = ['MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed']
     files_should_not_exist = ['MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed']
+    expectedContentType = 'application/x-compressed-tar'
     def getRequest(self):
         params = """<wcseo:GetEOCoverageSet service="WCS" version="2.0.1"
            xmlns:wcseo="http://www.opengis.net/wcs/wcseo/1.1"
@@ -1780,8 +1782,6 @@ class WCS20GetEOCoverageSetDatasetPagingXMLTestCase(testbase.WCS20GetEOCoverageS
         </wcseo:GetEOCoverageSet>"""
         return (params, "xml")
 
-    def testHeader(self):
-        self.assertEqual(self.getResponseHeader("Content-Type"), 'application/x-compressed-tar')
 
 @tag('wcs', 'wcs20')
 class WCS20GetEOCoverageSetDatasetZIPXMLTestCase(testbase.WCS20GetEOCoverageSetPagingTestCase):
@@ -1789,6 +1789,7 @@ class WCS20GetEOCoverageSetDatasetZIPXMLTestCase(testbase.WCS20GetEOCoverageSetP
     Tests if a coverage is put in a ZIP archive. XML input.
     """
     files_should_exist = ['MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed']
+    expectedContentType = 'application/zip'
     def getRequest(self):
         params = """<wcseo:GetEOCoverageSet service="WCS" version="2.0.1"
            xmlns:wcseo="http://www.opengis.net/wcs/wcseo/1.1"
@@ -1797,6 +1798,3 @@ class WCS20GetEOCoverageSetDatasetZIPXMLTestCase(testbase.WCS20GetEOCoverageSetP
           <wcseo:packageFormat>application/zip</wcseo:packageFormat>
         </wcseo:GetEOCoverageSet>"""
         return (params, "xml")
-
-    def testHeader(self):
-        self.assertEqual(self.getResponseHeader("Content-Type"), 'application/zip')

@@ -1329,6 +1329,7 @@ class WCSGetEOCoverageArchiveTestCase(StreamingContentTestCase):
     """
     Base class for test cases that expects archive output.
     """
+    expectedContentType:str = None
     def getArchiveMembers(self):
         """returning archive FileInfo of files contained in the request archive
 
@@ -1355,7 +1356,9 @@ class WCSGetEOCoverageArchiveTestCase(StreamingContentTestCase):
             raise ValueError('Content-Type %s not recognized as archive' % (
                 content_type,
             ))
-    def 
+
+    def testHeader(self):
+        self.assertEqual(self.getResponseHeader("Content-Type"), self.expectedContentType)
 
     def fileExistsInArchive(self, f:str):
         """Returns if filepath is present in the archive
