@@ -48,7 +48,7 @@ from eoxserver.core.decoders import xml, kvp, typelist, enum
 from eoxserver.render.coverage import objects
 from eoxserver.resources.coverages import models
 from eoxserver.services.ows.wcs.v20.util import (
-    nsmap, parse_subset_kvp, parse_subset_xml, parse_scaleaxis_kvp,
+    nsmapGetEoCoverageSet, parse_subset_kvp, parse_subset_xml, parse_scaleaxis_kvp,
     parse_scaleaxis_xml, parse_scaleextent_kvp, parse_scaleextent_xml,
     parse_scalesize_kvp, parse_scalesize_xml, parse_interpolation
 )
@@ -391,26 +391,24 @@ class WCS20GetEOCoverageSetKVPDecoder(kvp.Decoder):
     interpolation = kvp.Parameter("interpolation", type=parse_interpolation, num="?")
     subsettingcrs = kvp.Parameter("subsettingcrs", num="?")
     outputcrs   = kvp.Parameter("outputcrs", num="?")
-    interpolation = kvp.Parameter("interpolation", type=parse_interpolation, num="?")
 
 
 class WCS20GetEOCoverageSetXMLDecoder(xml.Decoder):
     eo_ids      = xml.Parameter("wcseo11:eoId/text()", num="+", locator="eoid")
     subsets     = xml.Parameter("wcs:DimensionTrim", type=parse_subset_xml, num="*")
-    containment = xml.Parameter("wcseo11:containment/text()", type=containment_enum, locator="containment")
+    containment = xml.Parameter("wcseo11:containment/text()", num="?", type=containment_enum, locator="containment")
     count       = xml.Parameter("@count", type=pos_int, num="?", default=MAXSIZE, locator="count")
     start_index = xml.Parameter("@startIndex", type=pos_int, num="?", default=0, locator="startIndex")
     package_format = xml.Parameter("wcseo11:packageFormat/text()", type=parse_package_format, num="?", locator="packageFormat")
-    mediatype   = xml.Parameter("wcs:mediaType/text()", num="?", locator="mediatype")
+    mediatype   = xml.Parameter("wcseo11:mediaType/text()", num="?", locator="mediatype")
     format      = xml.Parameter("wcseo11:format/text()", num="?", locator="format")
     apply_subset = xml.Parameter("wcseo11:applySubset/text()", type=parse_apply_subset, num="?", locator="format")
-    scalefactor = xml.Parameter("scal:ScaleByFactor/scal:scaleFactor/text()", type=float, num="?", locator="scalefactor")
-    scaleaxes   = xml.Parameter("scal:ScaleByAxesFactor/scal:ScaleAxis", type=parse_scaleaxis_xml, num="*", default=(), locator="scaleaxes")
-    scalesize   = xml.Parameter("scal:ScaleToSize/scal:TargetAxisSize", type=parse_scalesize_xml, num="*", default=(), locator="scalesize")
-    scaleextent = xml.Parameter("scal:ScaleToExtent/scal:TargetAxisExtent", type=parse_scaleextent_xml, num="*", default=(), locator="scaleextent")
-    interpolation = xml.Parameter("int:Interpolation/int:globalInterpolation/text()", type=parse_interpolation, num="?", locator="interpolation")
-    subsettingcrs = xml.Parameter("crs:subsettingCrs/text()", num="?", locator="subsettingcrs")
-    outputcrs   = xml.Parameter("crs:outputCrs/text()", num="?", locator="outputcrs")
-    interpolation = xml.Parameter("int:Interpolation/int:globalInterpolation/text()", type=parse_interpolation, num="?", locator="interpolation")
+    scalefactor = xml.Parameter("wcs:Extension/scal:ScaleByFactor/scal:scaleFactor/text()", type=float, num="?", locator="scalefactor")
+    scaleaxes   = xml.Parameter("wcs:Extension/scal:ScaleByAxesFactor/scal:ScaleAxis", type=parse_scaleaxis_xml, num="*", default=(), locator="scaleaxes")
+    scalesize   = xml.Parameter("wcs:Extension/scal:ScaleToSize/scal:TargetAxisSize", type=parse_scalesize_xml, num="*", default=(), locator="scalesize")
+    scaleextent = xml.Parameter("wcs:Extension/scal:ScaleToExtent/scal:TargetAxisExtent", type=parse_scaleextent_xml, num="*", default=(), locator="scaleextent")
+    interpolation = xml.Parameter("wcs:Extension/int:Interpolation/int:globalInterpolation/text()", type=parse_interpolation, num="?", locator="interpolation")
+    subsettingcrs = xml.Parameter("wcs:Extension/crs:subsettingCrs/text()", num="?", locator="subsettingcrs")
+    outputcrs   = xml.Parameter("wcs:Extension/crs:outputCrs/text()", num="?", locator="outputcrs")
 
-    namespaces = nsmap
+    namespaces = nsmapGetEoCoverageSet

@@ -63,7 +63,10 @@ ns_scal = NameSpace("http://www.opengis.net/wcs/scaling/1.0", "scal")
 # namespace map
 nsmap = NameSpaceMap(
     ns_xlink, ns_ogc, ns_ows, ns_gml, ns_gmlcov, ns_wcs, ns_crs, ns_rsub,
-    ns_eowcs, ns_om, ns_eop, ns_swe, ns_int, ns_scal
+    ns_eowcs, ns_om, ns_eop, ns_swe, ns_int, ns_scal,
+)
+nsmapGetEoCoverageSet = NameSpaceMap(
+    ns_wcs, ns_crs, ns_int, ns_scal, ns_wcseo11
 )
 
 # Element factories
