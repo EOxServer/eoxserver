@@ -48,7 +48,7 @@ from eoxserver.core.decoders import xml, kvp, typelist, enum
 from eoxserver.render.coverage import objects
 from eoxserver.resources.coverages import models
 from eoxserver.services.ows.wcs.v20.util import (
-    nsmap, parse_subset_kvp, parse_subset_xml, parse_scaleaxis_kvp,
+    nsmapGetEoCoverageSet, parse_subset_kvp, parse_subset_xml, parse_scaleaxis_kvp,
     parse_scaleaxis_xml, parse_scaleextent_kvp, parse_scaleextent_xml,
     parse_scalesize_kvp, parse_scalesize_xml, parse_interpolation
 )
@@ -411,4 +411,4 @@ class WCS20GetEOCoverageSetXMLDecoder(xml.Decoder):
     subsettingcrs = xml.Parameter("wcs:Extension/crs:subsettingCrs/text()", num="?", locator="subsettingcrs")
     outputcrs   = xml.Parameter("wcs:Extension/crs:outputCrs/text()", num="?", locator="outputcrs")
 
-    namespaces = nsmap
+    namespaces = nsmapGetEoCoverageSet
