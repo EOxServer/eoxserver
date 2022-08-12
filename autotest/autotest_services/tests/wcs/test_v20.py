@@ -1718,34 +1718,6 @@ class WCS20PostErrorFormatIsHtmlOnRequestTestCase(testbase.OWSTestCase):
         self.assertEqual(content_type, "text/html")
 
 
-@tag('wcs', 'wcs20')
-class WCS20PostErrorFormatIsHtmlOnRequestTestCase(testbase.OWSTestCase):
-    """This test shall retrieve a valid WCS 2.0 EO-AP (EO-WCS) GetEOCoverageSet response
-    for a wcseo:RectifiedDatasetSeries via POST.
-    """
-    def getRequest(self):
-        params = """<wcseo:GetEOCoverageSet service="WCS" version="2.0.1"
-           xmlns:wcseo="http://www.opengis.net/wcs/wcseo/1.0"
-           xmlns:wcs="http://www.opengis.net/wcs/2.0">
-          <wcseo:eoId>MER_FRS_1P_reduced</wcseo:eoId>
-          <wcseo:containment>OVERLAPS</wcseo:containment>
-          <wcseo:Sections>
-            <wcseo:Section>All</wcseo:Section>
-          </wcseo:Sections>
-          <wcs:DimensionTrim>
-            <wcs:Dimension>Long</wcs:Dimension>
-            <wcs:TrimLow>16</wcs:TrimLow>
-            <wcs:TrimHigh>18</wcs:TrimHigh>
-          </wcs:DimensionTrim>
-          <wcs:DimensionTrim>
-            <wcs:Dimension>Lat</wcs:Dimension>
-            <wcs:TrimLow>46</wcs:TrimLow>
-            <wcs:TrimHigh>48</wcs:TrimHigh>
-          </wcs:DimensionTrim>
-        </wcseo:DescribeEOCoverageSet>"""
-        return (params, "xml")
-
-
 #===============================================================================
 # WCS GetEOCoverageSet 2.0.1: Paging testcases
 #===============================================================================
