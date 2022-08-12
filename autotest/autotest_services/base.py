@@ -34,6 +34,8 @@ import logging
 from lxml import etree
 import tempfile
 import mimetypes
+from zipfile import ZipFile, ZipInfo
+from tarfile import TarFile, TarInfo
 from base64 import b64decode
 import numpy as np
 try:
@@ -1143,6 +1145,7 @@ class WCS20DescribeEOCoverageSetPagingTestCase(XMLTestCase):
         )
         self.assertEqual(len(dss_ids), self.getExpectedDatasetSeriesCount())
 
+
 class WCS20DescribeEOCoverageSetSectionsTestCase(XMLTestCase):
     def getExpectedSections(self):
         return []
@@ -1309,3 +1312,74 @@ class WPS10BinaryComparison(GDALDatasetTestCase):
                 os.remove(self.tmppath)
             except AttributeError:
                 pass
+
+
+class StreamingContentTestCase(OWSTestCase):
+    """
+    Base class for test cases that expects streamed output.
+    """
+    def getResponseData(self):
+        if not hasattr(self, 'responseData'):
+            self.responseData = BytesIO(b''.join(self.response.streaming_content))
+        self.responseData.seek(0)
+        return self.responseData
+
+@tag('archive')
+class WCSGetEOCoverageArchiveTestCase(StreamingContentTestCase):
+    """
+    Base class for test cases that expects archive output.
+    """
+    def getArchiveMembers(self):
+        """returning archive FileInfo of files contained in the request archive
+
+        Raises:
+            ValueError: When content-type is not expected archive type.
+
+        Returns:
+            list: list of FileInfo (TarFile or ZipFile) objects.
+        """
+        response = self.getResponseData()
+        # check response type and use Class accordingly
+        content_type = self.getResponseHeader("Content-Type")
+        if content_type in ['application/zip']:
+            with ZipFile(response, 'r') as archive:
+                members = archive.infolist()
+                return members
+        elif content_type in ['application/x-compressed-tar']:
+            # if used as context-manager, compression modes (r:gz, r:bz2 are not allowed)
+            archive = TarFile.open(fileobj=response, mode='r')
+            members = archive.getmembers()
+            archive.close()
+            return members
+        else:
+            raise ValueError('Content-Type %s not recognized as archive' % (
+                content_type,
+            ))
+    def 
+
+    def fileExistsInArchive(self, f:str):
+        """Returns if filepath is present in the archive
+        Args:
+            f (str): filename to search
+        """
+        members = self.getArchiveMembers()
+        for member in members:
+            if isinstance(member, TarInfo) and f in member.name:
+                return True
+            if isinstance(member, ZipInfo) and f in member.filename:
+                return True
+        return False
+
+
+class WCS20GetEOCoverageSetPagingTestCase(WCSGetEOCoverageArchiveTestCase):
+    files_should_exist:list = []
+    files_should_not_exist:list = []
+
+    def testCoveragesPresent(self):
+        """
+        Tests expected present and missing files in archive.
+        """
+        for item in self.files_should_exist:
+            self.assertTrue(self.fileExistsInArchive(item))
+        for item in self.files_should_not_exist:
+            self.assertFalse(self.fileExistsInArchive(item))
