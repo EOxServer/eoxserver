@@ -479,6 +479,23 @@ def register_stac_product(stac_item, product_type=None, storage=None,
                         asset, file_href, product, storage, browse_type
                     )
 
+    # adding thumbnail image, which is the first one with role thumbnail
+    thumbnail_asset = next(
+        (
+            asset
+            for asset in assets
+            if 'thumbnail' in asset.get('roles')
+        ),
+        None
+    )
+    if thumbnail_asset:
+        models.MetaDataItem.objects.create(
+            eo_object=product,
+            semantic=models.MetaDataItem.semantic_names['thumbnail'],
+            storage=storage,
+            location=get_path_from_href(thumbnail_asset['href'], file_href),
+        )
+
     return (product, replaced)
 
 
