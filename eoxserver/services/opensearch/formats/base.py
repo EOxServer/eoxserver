@@ -300,7 +300,7 @@ class BaseFeedResultFormat(object):
                         )
                     )
 
-                if wms_small:
+                if thumbnail_link or wms_small:
                     # "Thumbnail" image
                     links.append(
                         MEDIA("content",
