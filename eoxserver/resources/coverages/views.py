@@ -21,6 +21,7 @@ from django.shortcuts import get_object_or_404
 
 from eoxserver.core.config import get_eoxserver_config
 from eoxserver.core.decoders import config
+from eoxserver.contrib.vsi import VSIFileResponse
 from eoxserver.backends.access import vsi_open
 from eoxserver.resources.coverages import models
 from eoxserver.resources.coverages.registration.product import (
@@ -90,8 +91,9 @@ def metadata(request, identifier, semantic):
 
     metadata_item = get_object_or_404(qs)
 
-    return FileResponse(
-        vsi_open(metadata_item), content_type=metadata_item.format
+    return VSIFileResponse(
+        vsi_open(metadata_item),
+        content_type=metadata_item.format
     )
 
 
