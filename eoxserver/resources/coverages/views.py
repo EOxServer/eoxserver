@@ -11,7 +11,8 @@ import mimetypes
 import shutil
 
 from django.http import (
-    HttpResponse, HttpResponseBadRequest, HttpResponseNotAllowed, FileResponse
+    HttpResponse, HttpResponseBadRequest, HttpResponseNotAllowed, FileResponse,
+    Http404
 )
 from django.contrib.gis.geos import GEOSGeometry
 from django.db import transaction
@@ -73,10 +74,13 @@ def metadata(request, identifier, semantic):
 
     frmt = request.GET.get('format')
 
-    semantic_code = {
-        name: code
-        for code, name in models.MetaDataItem.SEMANTIC_CHOICES
-    }[semantic]
+    try:
+        semantic_code = {
+            name: code
+            for code, name in models.MetaDataItem.SEMANTIC_CHOICES
+        }[semantic]
+    except KeyError as exc:
+        raise Http404(semantic) from exc
 
     qs = models.MetaDataItem.objects.filter(
         eo_object__identifier=identifier, semantic=semantic_code,

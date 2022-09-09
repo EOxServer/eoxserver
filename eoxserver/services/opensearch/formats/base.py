@@ -31,9 +31,9 @@ import uuid
 from django.http import QueryDict
 from lxml.builder import ElementMaker
 try:
-    from django.core.urlresolvers import reverse
+    from django.core.urlresolvers import reverse, NoReverseMatch
 except ImportError:
-    from django.urls import reverse
+    from django.urls import reverse, NoReverseMatch
 
 from django.conf import settings
 from django.utils.module_loading import import_string
@@ -594,12 +594,15 @@ class BaseFeedResultFormat(object):
     def _create_thumbail_link(self, request, item):
         semantic = models.MetaDataItem.semantic_codes['thumbnail']
         if item.metadata_items.filter(semantic=semantic).exists():
-            return request.build_absolute_uri(
-                reverse("metadata", kwargs={
-                    'identifier': item.identifier,
-                    'semantic': 'thumbnail'
-                })
-            )
+            try:
+                return request.build_absolute_uri(
+                    reverse("metadata", kwargs={
+                        'identifier': item.identifier,
+                        'semantic': 'thumbnail'
+                    })
+                )
+            except NoReverseMatch:
+                return None
 
     def _make_metadata_href(self, request, item, metadata_item):
         semantic_name = models.MetaDataItem.semantic_names[metadata_item.semantic]
