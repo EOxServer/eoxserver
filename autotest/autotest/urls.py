@@ -20,6 +20,9 @@ urlpatterns = [
     re_path(r'^ows', include("eoxserver.services.urls")),
     re_path(r'^opensearch/', include('eoxserver.services.opensearch.urls')),
 
+    # enable the coverage URLs
+    re_path(r'^coverages/', include('eoxserver.resources.coverages.urls')),
+
     # enable the client
     re_path(r'^client/', include('eoxserver.webclient.urls')),
 
