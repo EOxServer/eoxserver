@@ -491,7 +491,7 @@ def register_stac_product(stac_item, product_type=None, storage=None,
     if thumbnail_asset:
         models.MetaDataItem.objects.create(
             eo_object=product,
-            semantic=models.MetaDataItem.semantic_names['thumbnail'],
+            semantic=models.MetaDataItem.semantic_codes['thumbnail'],
             storage=storage,
             location=get_path_from_href(thumbnail_asset['href'], file_href),
         )
