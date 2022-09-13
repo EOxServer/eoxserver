@@ -28,6 +28,7 @@
 
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.cache import cache_control
 
 from eoxserver.services.opensearch.v11.description import (
     OpenSearch11DescriptionHandler
@@ -49,6 +50,7 @@ def description(request, collection_id=None):
     )
 
 
+@cache_control(max_age=60 * 60 * 24 * 7)
 @csrf_exempt
 def search(request, collection_id=None, format_name=None):
     content, content_type = OpenSearch11SearchHandler().handle(
