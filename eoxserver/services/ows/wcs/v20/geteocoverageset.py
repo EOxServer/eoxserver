@@ -91,6 +91,17 @@ def get_package_writers():
     return PACKAGE_WRITERS
 
 
+class CleaningStreamingHttpResponse(StreamingHttpResponse):
+    def __init__(self, file=None, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.file = file
+
+    def close(self):
+        super().close()
+        if os.path.exists(self.file):
+            os.remove(self.file)
+
+
 class WCS20GetEOCoverageSetHandler(object):
     service = "WCS"
     versions = ("2.0.0", "2.0.1")
@@ -324,8 +335,8 @@ class WCS20GetEOCoverageSetHandler(object):
         )
         writer.cleanup(package)
 
-        response = StreamingHttpResponse(
-            tempfile_iterator(pkg_filename), mime_type
+        response = CleaningStreamingHttpResponse(
+            pkg_filename, tempfile_iterator(pkg_filename), mime_type
         )
         response["Content-Disposition"] = 'inline; filename="ows%s"' % ext
         response["Content-Length"] = str(os.path.getsize(pkg_filename))
