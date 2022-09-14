@@ -91,15 +91,24 @@ def get_package_writers():
     return PACKAGE_WRITERS
 
 
-class CleaningStreamingHttpResponse(StreamingHttpResponse):
-    def __init__(self, file=None, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.file = file
+class TempfileIterator(object):
+    def __init__(self, filename, chunksize=2048, delete=True):
+        self.filename = filename
+        self.chunksize = chunksize
+        self.delete = delete
 
     def close(self):
-        super().close()
-        if os.path.exists(self.file):
-            os.remove(self.file)
+        if self.delete and os.path.exists(self.filename):
+            os.remove(self.filename)
+
+    def __iter__(self):
+        with open(self.filename, 'rb') as file_obj:
+            while True:
+                data = file_obj.read(self.chunksize)
+                if not data:
+                    break
+                yield data
+        self.close()
 
 
 class WCS20GetEOCoverageSetHandler(object):
@@ -334,26 +343,13 @@ class WCS20GetEOCoverageSetHandler(object):
             package, package_format, format_params
         )
         writer.cleanup(package)
-
-        response = CleaningStreamingHttpResponse(
-            pkg_filename, tempfile_iterator(pkg_filename), mime_type
+        response = StreamingHttpResponse(
+            TempfileIterator(pkg_filename), mime_type
         )
         response["Content-Disposition"] = 'inline; filename="ows%s"' % ext
         response["Content-Length"] = str(os.path.getsize(pkg_filename))
 
         return response
-
-
-def tempfile_iterator(filename, chunksize=2048, delete=True):
-    with open(filename, 'rb') as file_obj:
-        while True:
-            data = file_obj.read(chunksize)
-            if not data:
-                break
-            yield data
-
-    if delete:
-        os.remove(filename)
 
 
 def pos_int(value):
