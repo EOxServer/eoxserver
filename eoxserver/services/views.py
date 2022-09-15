@@ -33,6 +33,7 @@ function is :func:`ows` which handles all incoming OWS requests"""
 import logging
 import traceback
 
+from django.conf import settings
 from django.http import HttpResponse
 try:
     from django.http import StreamingHttpResponse
@@ -44,6 +45,7 @@ from django.views.decorators.cache import cache_control
 from django.utils.six import string_types
 
 from eoxserver.core import env
+from eoxserver.services import config
 from eoxserver.services.ows.component import ServiceComponent
 from eoxserver.services.exceptions import HTTPMethodNotAllowedError
 from eoxserver.services.ows.dispatch import (
@@ -54,7 +56,7 @@ from eoxserver.services.ows.dispatch import (
 logger = logging.getLogger(__name__)
 
 
-@cache_control(max_age=60 * 60 * 24 * 7)
+@cache_control(max_age=getattr(settings, "EOXS_RENDERER_CACHE_TIME", config.DEFAULT_EOXS_RENDERER_CACHE_TIME))
 @csrf_exempt
 def ows(request):
     """ Main entry point for OWS requests against EOxServer. It uses the
