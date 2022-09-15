@@ -29,7 +29,8 @@ import json
 from datetime import datetime
 
 from eoxserver.core import Component
-
+from eoxserver.resources.coverages import models
+from eoxserver.backends.access import gdal_open
 from eoxserver.services.ows.wps.parameters import (
     LiteralData,
     ComplexData,
@@ -87,6 +88,25 @@ class CloudCoverageProcess(Component):
         geometry,
         result,
     ):
+        # TODO: product, there are none in the test db
+
+        # TODO: geometry parameter currently can't be passed in https://eox.slack.com/archives/C02LX7L04NQ/p1663149294544739
+        qs = models.Coverage.objects.filter(
+            #parent_product_id=??,
+            begin_time__lte=end_time,
+            end_time__gte=begin_time,
+            #footprint__intersects=geometry,
+        )
+
+        for coverage in qs:
+
+            data_items = coverage.arraydata_items.all()
+
+            for data_item in data_items:
+                dataset = gdal_open(data_item)
+                breakpoint()
+                print(dataset)
+
         result = {"result": [{"a": "b"}]}
         return CDObject(
             result,
