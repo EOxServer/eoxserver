@@ -45,7 +45,8 @@ from eoxserver.core.util.xmltools import NameSpace, NameSpaceMap
 from eoxserver.resources.coverages import models
 from eoxserver.services.gml.v32.encoders import GML32Encoder
 from eoxserver.services.opensearch.config import (
-    DEFAULT_EOXS_RESULT_ITEM_FEED_LINK_GENERATORS
+    DEFAULT_EOXS_RESULT_ITEM_FEED_LINK_GENERATORS,
+    DEFAULT_EOXS_OPENSEARCH_GETCOVERAGE_HTML_EXCEPTION,
 )
 
 
@@ -516,7 +517,11 @@ class BaseFeedResultFormat(object):
             request="GetCoverage",
             coverageId=coverage.identifier,
         )
-        if getattr(settings, 'EOXS_OPENSEARCH_GETCOVERAGE_HTML_EXCEPTION', False):
+        if getattr(
+                settings,
+                'EOXS_OPENSEARCH_GETCOVERAGE_HTML_EXCEPTION',
+                DEFAULT_EOXS_OPENSEARCH_GETCOVERAGE_HTML_EXCEPTION,
+            ):
             options["exceptions"] = "text/html"
 
         return request.build_absolute_uri(
