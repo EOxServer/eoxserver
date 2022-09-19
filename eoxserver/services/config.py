@@ -25,4 +25,20 @@
 # THE SOFTWARE.
 # ------------------------------------------------------------------------------
 
-DEFAULT_EOXS_RENDERER_CACHE_TIME = 60 * 60 * 24 * 7
+import typing
+
+from django.conf import settings
+from django.views.decorators.cache import cache_control
+
+_cache_time_str = getattr(settings, "EOXS_RENDERER_CACHE_TIME", None)
+
+EOXS_RENDERER_CACHE_TIME: typing.Optional[int] = (
+    int(_cache_time_str) if _cache_time_str is not None else None
+)
+
+def apply_cache_header(view):
+    return (
+        cache_control(max_age=EOXS_RENDERER_CACHE_TIME)(view)
+        if EOXS_RENDERER_CACHE_TIME is not None
+        else view
+    )

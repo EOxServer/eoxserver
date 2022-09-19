@@ -41,11 +41,9 @@ except:
     class StreamingHttpResponse(object):
         pass
 from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.cache import cache_control
 from django.utils.six import string_types
 
 from eoxserver.core import env
-from eoxserver.services import config
 from eoxserver.services.ows.component import ServiceComponent
 from eoxserver.services.exceptions import HTTPMethodNotAllowedError
 from eoxserver.services.ows.dispatch import (
@@ -56,7 +54,6 @@ from eoxserver.services.ows.dispatch import (
 logger = logging.getLogger(__name__)
 
 
-@cache_control(max_age=getattr(settings, "EOXS_RENDERER_CACHE_TIME", config.DEFAULT_EOXS_RENDERER_CACHE_TIME))
 @csrf_exempt
 def ows(request):
     """ Main entry point for OWS requests against EOxServer. It uses the

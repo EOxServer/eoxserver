@@ -31,16 +31,20 @@ try:
 except ImportError:
     from django.urls import include, re_path
 
+from eoxserver.services.config import apply_cache_header
 from eoxserver.services.opensearch.views import description, search
+
+
+search_cached = apply_cache_header(search)
 
 app_name = 'opensearch'
 urlpatterns = [
     re_path(r'^$', description, name='description'),
-    re_path(r'^(?P<format_name>[^/]+)/$', search, name='search'),
+    re_path(r'^(?P<format_name>[^/]+)/$', search_cached, name='search'),
     re_path(r'^collections/(?P<collection_id>[^/]+)/', include(([
         re_path(r'^$', description, name='description'),
         re_path(
-            r'^(?P<format_name>[^/]+)/$', search,
+            r'^(?P<format_name>[^/]+)/$', search_cached,
             name='search'
         )
     ], 'collection')))
