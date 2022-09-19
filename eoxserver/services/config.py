@@ -1,10 +1,10 @@
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #
 # Project: EOxServer <http://eoxserver.org>
-# Authors: Fabian Schindler <fabian.schindler@eox.at>
+# Authors: Bernhard Mallinger <bernhard.mallinger@eox.at>
 #
-#-------------------------------------------------------------------------------
-# Copyright (C) 2014 EOX IT Services GmbH
+# ------------------------------------------------------------------------------
+# Copyright (C) 2022 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -23,32 +23,22 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
-try:
-    from django.conf.urls import url as re_path
-except ImportError:
-    from django.urls import re_path
-try:
-    from django.core.urlresolvers import reverse
-except ImportError:
-    from django.urls import reverse
+import typing
 
-from eoxserver.services import views
-from eoxserver.services.config import apply_cache_header
+from django.conf import settings
+from django.views.decorators.cache import cache_control
 
-urlpatterns = [
-    re_path(r'^$', apply_cache_header(views.ows), name='ows',)
-]
+_cache_time_str = getattr(settings, "EOXS_RENDERER_CACHE_TIME", None)
 
+EOXS_RENDERER_CACHE_TIME: typing.Optional[int] = (
+    int(_cache_time_str) if _cache_time_str is not None else None
+)
 
-def get_http_service_url(request=None):
-    """ Returns the URL the OWS view is available under. If a
-        :class:`django.http.HttpRequest` is passed, an absolute URL is
-        constructed with the request information.
-    """
-
-    http_service_url = reverse("ows")
-    if request:
-        http_service_url = request.build_absolute_uri(http_service_url)
-    return http_service_url
+def apply_cache_header(view):
+    return (
+        cache_control(max_age=EOXS_RENDERER_CACHE_TIME)(view)
+        if EOXS_RENDERER_CACHE_TIME is not None
+        else view
+    )

@@ -33,6 +33,7 @@ function is :func:`ows` which handles all incoming OWS requests"""
 import logging
 import traceback
 
+from django.conf import settings
 from django.http import HttpResponse
 try:
     from django.http import StreamingHttpResponse
