@@ -25,8 +25,10 @@
 # THE SOFTWARE.
 # -----------------------------------------------------------------------------
 
-import json
 from datetime import datetime
+import operator
+
+from osgeo import ogr
 
 from eoxserver.core import Component
 from eoxserver.resources.coverages import models
@@ -80,6 +82,10 @@ class CloudCoverageProcess(Component):
         ),
     }
 
+    SCL_LAYER_CLOUD_MEDIUM_PROBABILITY = 8
+    SCL_LAYER_CLOUD_HIGH_PROBABILITY = 9
+    SCL_LAYER_THIN_CIRRUS = 10
+
     @staticmethod
     def execute(
         begin_time,
@@ -91,25 +97,65 @@ class CloudCoverageProcess(Component):
         # TODO: product, there are none in the test db
 
         # TODO: geometry parameter currently can't be passed in https://eox.slack.com/archives/C02LX7L04NQ/p1663149294544739
-        qs = models.Coverage.objects.filter(
-            #parent_product_id=??,
+
+        geometry = "MULTIPOLYGON (((69.1714578 80.1407449, 69.1714578 80.1333736, 69.2069740 80.1333736, 69.2069740 80.1407449, 69.1714578 80.1407449)))"
+
+        coverages = models.Coverage.objects.filter(
+            # parent_product_id=??,
             begin_time__lte=end_time,
             end_time__gte=begin_time,
-            #footprint__intersects=geometry,
+            footprint__intersects=geometry,
         )
 
-        for coverage in qs:
+        ogr_geometry = ogr.CreateGeometryFromWkt(geometry)
 
-            data_items = coverage.arraydata_items.all()
+        cloud_coverage_ratios = {
+            coverage: cloud_coverage_ratio_in_geometry(
+                coverage.arraydata_items.get(
+                    field_index=0,  # TODO: how to get SCL band?
+                ),
+                ogr_geometry=ogr_geometry,
+            )
+            for coverage in coverages
+        }
+        # ds = gdal_open(coverages[0].arraydata_items.get())
 
-            for data_item in data_items:
-                dataset = gdal_open(data_item)
-                breakpoint()
-                print(dataset)
-
-        result = {"result": [{"a": "b"}]}
+        result = {
+            "result": [
+                # TODO: how to derive date from coverage/band?
+                {coverage.identifier: cloud_cover_ratio}
+                for coverage, cloud_cover_ratio in sorted(
+                    cloud_coverage_ratios.items(),
+                    key=operator.itemgetter(1),
+                )
+            ]
+        }
         return CDObject(
             result,
             format=FormatJSON(),
             filename=("cloud_coverage.json"),
         )
+
+
+def cloud_coverage_ratio_in_geometry(
+    data_item: models.ArrayDataItem,
+    ogr_geometry: ogr.Geometry,
+) -> float:
+    dataset = gdal_open(data_item)
+    histogram = dataset.GetRasterBand(1).GetHistogram()
+
+    # TODO: reduce dataset to geometry
+
+    num_cloud = sum(
+        histogram[scl_value]
+        for scl_value in [
+            CloudCoverageProcess.SCL_LAYER_CLOUD_MEDIUM_PROBABILITY,
+            CloudCoverageProcess.SCL_LAYER_CLOUD_HIGH_PROBABILITY,
+            CloudCoverageProcess.SCL_LAYER_THIN_CIRRUS,
+        ]
+    )
+
+    # TODO: this won't work for arbitrary geometry
+    num_pixels = dataset.RasterXSize * dataset.RasterYSize
+
+    return num_cloud / num_pixels
