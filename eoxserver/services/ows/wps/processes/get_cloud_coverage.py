@@ -27,10 +27,12 @@
 
 from datetime import datetime
 import operator
+from uuid import uuid4
 
-from osgeo import ogr
+from osgeo import ogr, osr
 
 from eoxserver.core import Component
+from eoxserver.contrib import gdal
 from eoxserver.resources.coverages import models
 from eoxserver.backends.access import gdal_open
 from eoxserver.services.ows.wps.parameters import (
@@ -99,6 +101,8 @@ class CloudCoverageProcess(Component):
         # TODO: geometry parameter currently can't be passed in https://eox.slack.com/archives/C02LX7L04NQ/p1663149294544739
 
         geometry = "MULTIPOLYGON (((69.1714578 80.1407449, 69.1714578 80.1333736, 69.2069740 80.1333736, 69.2069740 80.1407449, 69.1714578 80.1407449)))"
+        # geometry = "MULTIPOLYGON (((69.1904578 80.1407449, 69.1904578 80.1333736, 69.2069740 80.1333736, 69.2069740 80.1407449, 69.1904578 80.1407449)))"
+        geometry = "MULTIPOLYGON (((69.1714578 80.1407449, 69.2069740 80.1333736, 69.2069740 80.1407449, 69.1714578 80.1407449)))"
 
         coverages = models.Coverage.objects.filter(
             # parent_product_id=??,
@@ -107,18 +111,24 @@ class CloudCoverageProcess(Component):
             footprint__intersects=geometry,
         )
 
-        ogr_geometry = ogr.CreateGeometryFromWkt(geometry)
+        geometry_mem_path = f"/vsimem/{uuid4()}.shp"
+
+        _create_geometry_feature_in_memory(
+            wkt_geometry=geometry,
+            memory_path=geometry_mem_path,
+        )
 
         cloud_coverage_ratios = {
             coverage: cloud_coverage_ratio_in_geometry(
                 coverage.arraydata_items.get(
                     field_index=0,  # TODO: how to get SCL band?
                 ),
-                ogr_geometry=ogr_geometry,
+                geometry_mem_path=geometry_mem_path,
             )
             for coverage in coverages
         }
-        # ds = gdal_open(coverages[0].arraydata_items.get())
+
+        gdal.Unlink(geometry_mem_path)
 
         result = {
             "result": [
@@ -139,12 +149,21 @@ class CloudCoverageProcess(Component):
 
 def cloud_coverage_ratio_in_geometry(
     data_item: models.ArrayDataItem,
-    ogr_geometry: ogr.Geometry,
+    geometry_mem_path: str,
 ) -> float:
-    dataset = gdal_open(data_item)
-    histogram = dataset.GetRasterBand(1).GetHistogram()
+    tmp_ds = f"/vsimem/{uuid4()}.tif"
+    result_ds = gdal.Warp(
+        tmp_ds,
+        # TODO: ideally only cut relevant band. possibly retrieve
+        #       single band and only bbox with with gdal_translate
+        gdal_open(data_item),
+        options=gdal.WarpOptions(
+            cutlineDSName=geometry_mem_path,
+            cropToCutline=True,
+        ),
+    )
 
-    # TODO: reduce dataset to geometry
+    histogram = result_ds.GetRasterBand(1).GetHistogram()
 
     num_cloud = sum(
         histogram[scl_value]
@@ -155,7 +174,33 @@ def cloud_coverage_ratio_in_geometry(
         ]
     )
 
-    # TODO: this won't work for arbitrary geometry
-    num_pixels = dataset.RasterXSize * dataset.RasterYSize
+    num_pixels = sum(histogram)
+    cloud_coverage_ratio = num_cloud / num_pixels
 
-    return num_cloud / num_pixels
+    gdal.Unlink(tmp_ds)
+
+    return cloud_coverage_ratio
+
+
+def _create_geometry_feature_in_memory(wkt_geometry: str, memory_path: str) -> None:
+
+    ogr_geometry = ogr.CreateGeometryFromWkt(wkt_geometry)
+
+    drv = ogr.GetDriverByName("ESRI Shapefile")
+
+    feature_ds = drv.CreateDataSource(memory_path)
+
+    srs = osr.SpatialReference()
+    # TODO: always this value?
+    srs.ImportFromEPSG(4326)
+    feature_layer = feature_ds.CreateLayer("layer", srs, geom_type=ogr.wkbPolygon)
+
+    featureDefnHeaders = feature_layer.GetLayerDefn()
+
+    outFeature = ogr.Feature(featureDefnHeaders)
+
+    outFeature.SetGeometry(ogr_geometry)
+
+    feature_layer.CreateFeature(outFeature)
+
+    feature_ds.FlushCache()
