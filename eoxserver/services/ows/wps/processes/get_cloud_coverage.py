@@ -152,18 +152,24 @@ def cloud_coverage_ratio_in_geometry(
     geometry_mem_path: str,
 ) -> float:
     tmp_ds = f"/vsimem/{uuid4()}.tif"
+    original_ds = gdal_open(data_item)
     result_ds = gdal.Warp(
         tmp_ds,
+        original_ds,
         # TODO: ideally only cut relevant band. possibly retrieve
         #       single band and only bbox with with gdal_translate
-        gdal_open(data_item),
         options=gdal.WarpOptions(
             cutlineDSName=geometry_mem_path,
             cropToCutline=True,
         ),
     )
 
-    histogram = result_ds.GetRasterBand(1).GetHistogram()
+    # NOTE: using histogram is safe because it defaults to a bin distribution
+    # which captures integers
+    histogram = result_ds.GetRasterBand(1).GetHistogram(
+        approx_ok=False,
+        include_out_of_range=True,
+    )
 
     num_cloud = sum(
         histogram[scl_value]
