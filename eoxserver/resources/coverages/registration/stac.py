@@ -484,7 +484,7 @@ def register_stac_product(stac_item, product_type=None, storage=None,
         (
             asset
             for asset in assets.values()
-            if 'thumbnail' in asset.get('roles')
+            if 'thumbnail' in asset.get('roles', [])
         ),
         None
     )
