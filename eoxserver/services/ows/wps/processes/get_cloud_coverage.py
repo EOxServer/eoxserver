@@ -99,10 +99,12 @@ class CloudCoverageProcess(Component):
         # TODO: product, there are none in the test db
 
         # TODO: geometry parameter currently can't be passed in https://eox.slack.com/archives/C02LX7L04NQ/p1663149294544739
+        # https://github.com/EOxServer/pyows/issues/5
 
         geometry = "MULTIPOLYGON (((69.1714578 80.1407449, 69.1714578 80.1333736, 69.2069740 80.1333736, 69.2069740 80.1407449, 69.1714578 80.1407449)))"
+        # geometry = "MULTIPOLYGON (((69.1714578 80.1387449, 69.1714578 80.1333736, 69.1969740 80.1333736, 69.1714578 80.1387449)))"
         # geometry = "MULTIPOLYGON (((69.1904578 80.1407449, 69.1904578 80.1333736, 69.2069740 80.1333736, 69.2069740 80.1407449, 69.1904578 80.1407449)))"
-        geometry = "MULTIPOLYGON (((69.1714578 80.1407449, 69.2069740 80.1333736, 69.2069740 80.1407449, 69.1714578 80.1407449)))"
+        # geometry = "MULTIPOLYGON (((69.1714578 80.1407449, 69.2069740 80.1333736, 69.2069740 80.1407449, 69.1714578 80.1407449)))"
 
         coverages = models.Coverage.objects.filter(
             # parent_product_id=??,
