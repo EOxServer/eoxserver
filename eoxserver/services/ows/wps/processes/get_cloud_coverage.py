@@ -39,6 +39,7 @@ from eoxserver.services.ows.wps.parameters import (
     LiteralData,
     ComplexData,
     FormatJSON,
+    FormatText,
     CDObject,
 )
 import logging
@@ -69,9 +70,10 @@ class CloudCoverageProcess(Component):
             "product",
             title="Product identifier",
         ),
-        "geometry": LiteralData(
+        "geometry": ComplexData(
             "geometry",
             title="Geometry",
+            formats=[FormatText()],
         ),
     }
 
@@ -98,25 +100,19 @@ class CloudCoverageProcess(Component):
     ):
         # TODO: product, there are none in the test db
 
-        # TODO: geometry parameter currently can't be passed in https://eox.slack.com/archives/C02LX7L04NQ/p1663149294544739
-        # https://github.com/EOxServer/pyows/issues/5
-
-        geometry = "MULTIPOLYGON (((69.1714578 80.1407449, 69.1714578 80.1333736, 69.2069740 80.1333736, 69.2069740 80.1407449, 69.1714578 80.1407449)))"
-        # geometry = "MULTIPOLYGON (((69.1714578 80.1387449, 69.1714578 80.1333736, 69.1969740 80.1333736, 69.1714578 80.1387449)))"
-        # geometry = "MULTIPOLYGON (((69.1904578 80.1407449, 69.1904578 80.1333736, 69.2069740 80.1333736, 69.2069740 80.1407449, 69.1904578 80.1407449)))"
-        # geometry = "MULTIPOLYGON (((69.1714578 80.1407449, 69.2069740 80.1333736, 69.2069740 80.1407449, 69.1714578 80.1407449)))"
+        wkt_geometry = geometry[0].text
 
         coverages = models.Coverage.objects.filter(
             # parent_product_id=??,
             begin_time__lte=end_time,
             end_time__gte=begin_time,
-            footprint__intersects=geometry,
+            footprint__intersects=wkt_geometry,
         )
 
         geometry_mem_path = f"/vsimem/{uuid4()}.shp"
 
         _create_geometry_feature_in_memory(
-            wkt_geometry=geometry,
+            wkt_geometry=wkt_geometry,
             memory_path=geometry_mem_path,
         )
 

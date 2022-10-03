@@ -51,7 +51,11 @@ class WPS20ExecuteCloudCoverage(
           <wps:Input id="begin_time"><wps:Data>2020-01-01</wps:Data></wps:Input>
           <wps:Input id="end_time"><wps:Data>2020-05-31</wps:Data></wps:Input>
           <wps:Input id="product"><wps:Data>Teststring.</wps:Data></wps:Input>
-          <wps:Input id="geometry"><wps:Data>MULTIPOLYGON (((69.1714578 80.1407449, 69.1714578 80.1333736, 69.2069740 80.1333736, 69.2069740 80.1407449, 69.1714578 80.1407449)))</wps:Data></wps:Input>
+          <wps:Input id="geometry">
+            <wps:Data>
+              <wps:ComplexData mimeType="text/plain">MULTIPOLYGON (((69.1714578 80.1407449, 69.1714578 80.1333736, 69.2069740 80.1333736, 69.2069740 80.1407449, 69.1714578 80.1407449)))</wps:ComplexData>
+            </wps:Data>
+          </wps:Input>
           <wps:Output id="result" >
           </wps:Output>
         </wps:Execute>
@@ -78,7 +82,11 @@ class WPS20ExecuteCloudCoverageReducedGeometry(
           <wps:Input id="begin_time"><wps:Data>2020-01-01</wps:Data></wps:Input>
           <wps:Input id="end_time"><wps:Data>2020-05-31</wps:Data></wps:Input>
           <wps:Input id="product"><wps:Data>Teststring.</wps:Data></wps:Input>
-          <wps:Input id="geometry"><wps:Data>MULTIPOLYGON (((69.1714578 80.1387449, 69.1714578 80.1333736, 69.1969740 80.1333736, 69.1714578 80.1387449)))</wps:Data></wps:Input>
+          <wps:Input id="geometry">
+            <wps:Data>
+              <wps:ComplexData mimeType="text/plain">MULTIPOLYGON (((69.1714578 80.1387449, 69.1714578 80.1333736, 69.1969740 80.1333736, 69.1714578 80.1387449)))</wps:ComplexData>
+            </wps:Data>
+          </wps:Input>
           <wps:Output id="result" >
           </wps:Output>
         </wps:Execute>
