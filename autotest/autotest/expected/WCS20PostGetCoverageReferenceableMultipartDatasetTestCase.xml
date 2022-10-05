@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<wcseo:ReferenceableDataset xmlns:crs="http://www.opengis.net/wcs/crs/1.0" xmlns:eop="http://www.opengis.net/eop/2.0" xmlns:gml="http://www.opengis.net/gml/3.2" xmlns:gmlcov="http://www.opengis.net/gmlcov/1.0" xmlns:int="http://www.opengis.net/wcs/interpolation/1.0" xmlns:ogc="http://www.opengis.net/ogc" xmlns:om="http://www.opengis.net/om/2.0" xmlns:ows="http://www.opengis.net/ows/2.0" xmlns:rsub="http://www.opengis.net/wcs/range-subsetting/1.0" xmlns:scal="http://www.opengis.net/wcs/scaling/1.0" xmlns:swe="http://www.opengis.net/swe/2.0" xmlns:wcs="http://www.opengis.net/wcs/2.0" xmlns:wcseo="http://www.opengis.net/wcs/wcseo/1.0" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" gml:id="ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775" xsi:schemaLocation="http://www.opengis.net/wcs/wcseo/1.0 http://schemas.opengis.net/wcs/wcseo/1.0/wcsEOAll.xsd">
+<wcseo:ReferenceableDataset xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:ogc="http://www.opengis.net/ogc" xmlns:ows="http://www.opengis.net/ows/2.0" xmlns:gml="http://www.opengis.net/gml/3.2" xmlns:gmlcov="http://www.opengis.net/gmlcov/1.0" xmlns:wcs="http://www.opengis.net/wcs/2.0" xmlns:crs="http://www.opengis.net/wcs/crs/1.0" xmlns:rsub="http://www.opengis.net/wcs/range-subsetting/1.0" xmlns:wcseo="http://www.opengis.net/wcs/wcseo/1.0" xmlns:om="http://www.opengis.net/om/2.0" xmlns:eop="http://www.opengis.net/eop/2.0" xmlns:swe="http://www.opengis.net/swe/2.0" xmlns:int="http://www.opengis.net/wcs/interpolation/1.0" xmlns:scal="http://www.opengis.net/wcs/scaling/1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" gml:id="ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775" xsi:schemaLocation="http://www.opengis.net/wcs/wcseo/1.0 http://schemas.opengis.net/wcs/wcseo/1.0/wcsEOAll.xsd">
   <gml:boundedBy>
-    <gml:Envelope axisLabels="lat long" srsName="http://www.opengis.net/def/crs/EPSG/0/4326" uomLabels="deg deg" srsDimension="2">
+    <gml:Envelope srsName="http://www.opengis.net/def/crs/EPSG/0/4326" axisLabels="lat long" uomLabels="deg deg" srsDimension="2">
       <gml:lowerCorner>-33.70815500 21.29936199</gml:lowerCorner>
       <gml:upperCorner>-32.86247600 22.30240201</gml:upperCorner>
     </gml:Envelope>
@@ -19,7 +19,7 @@
   </gml:domainSet>
   <gml:rangeSet>
     <gml:File>
-      <gml:rangeParameters xlink:href="cid:coverage/ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775.tif" xlink:arcrole="fileReference" xlink:role="http://www.opengis.net/spec/GMLCOV_geotiff-coverages/1.0/conf/geotiff-coverage"/>
+      <gml:rangeParameters xlink:arcrole="fileReference" xlink:href="cid:coverage/ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775.tif" xlink:role="http://www.opengis.net/spec/GMLCOV_geotiff-coverages/1.0/conf/geotiff-coverage"/>
       <gml:fileReference>cid:coverage/ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775.tif</gml:fileReference>
       <gml:fileStructure/>
       <gml:mimeType>image/tiff</gml:mimeType>
@@ -66,12 +66,12 @@
           <om:featureOfInterest>
             <eop:Footprint gml:id="footprint_ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775">
               <eop:multiExtentOf>
-                <gml:MultiSurface srsName="EPSG:4326" gml:id="multisurface_ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775">
+                <gml:MultiSurface gml:id="multisurface_ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775" srsName="EPSG:4326">
                   <gml:surfaceMember>
                     <gml:Polygon gml:id="polygon_ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775">
                       <gml:exterior>
                         <gml:LinearRing>
-                          <gml:posList>-33.03804500 22.30240200 -33.70796443 22.08993873 -33.53119400 21.29936200 -32.86247600 21.51674100 -33.03804500 22.30240200</gml:posList>
+                          <gml:posList>-33.70796443 22.08993873 -33.53119400 21.29936200 -32.86247600 21.51674100 -33.03804500 22.30240200 -33.70796443 22.08993873</gml:posList>
                         </gml:LinearRing>
                       </gml:exterior>
                     </gml:Polygon>

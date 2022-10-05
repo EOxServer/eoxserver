@@ -25,8 +25,9 @@
 # THE SOFTWARE.
 # ------------------------------------------------------------------------------
 
+from itertools import zip_longest
 import json
-from urllib.parse import urlparse, urlunparse
+from urllib.parse import urljoin, urlparse, urlunparse
 import logging
 
 from django.contrib.gis.geos import GEOSGeometry
@@ -87,7 +88,7 @@ def get_product_type_name(stac_item):
         for _, asset in sorted(assets.items()):
             bands.extend(asset.get('eo:bands', []))
 
-    parts.extend({band['name'] for band in bands})
+    parts.extend([band['name'] for band in bands])
 
     if not parts:
         raise RegistrationError(
@@ -97,7 +98,7 @@ def get_product_type_name(stac_item):
     return '_'.join(parts)
 
 
-def get_path_from_href(href):
+def get_path_from_href(href, file_href=None):
     """ Extract the path from the given HREF. For S3 URLs this excludes
         the bucket name. Leading and trailing slashes will be stripped, so
         resulting paths are always relative.
@@ -109,6 +110,9 @@ def get_path_from_href(href):
         >>> get_path_from_href('https://www.example.com/path/to#res.ext')
         'path/to/res.ext'
     """
+    if file_href:
+        href = urljoin(file_href, href)
+
     parsed = urlparse(href)
     if parsed.scheme:
         parsed = parsed._replace(netloc='')
@@ -119,7 +123,8 @@ def get_path_from_href(href):
 @transaction.atomic
 def register_stac_product(stac_item, product_type=None, storage=None,
                           replace=False, coverage_mapping={},
-                          browse_mapping=None, metadata_asset_names=None):
+                          browse_mapping=None, metadata_asset_names=None,
+                          file_href=None):
     """ Registers a single parsed STAC item as a Product. The
         product type to be used can be specified via the product_type_name
         argument.
@@ -139,6 +144,11 @@ def register_stac_product(stac_item, product_type=None, storage=None,
     geometry = stac_item['geometry']
     properties = stac_item['properties']
     assets = stac_item['assets']
+    data_assets = dict(
+        (name, asset)
+        for name, asset in assets.items()
+        if 'data' in asset.get('roles', [])
+    )
 
     # fetch the product type by name, metadata or passed object
     if isinstance(product_type, models.ProductType):
@@ -195,7 +205,7 @@ def register_stac_product(stac_item, product_type=None, storage=None,
 
     metadata_items = [
         models.MetaDataItem(
-            location=get_path_from_href(asset['href']),
+            location=get_path_from_href(asset['href'], file_href),
             storage=storage,
         )
         for asset in metadata_assets
@@ -287,9 +297,15 @@ def register_stac_product(stac_item, product_type=None, storage=None,
 
     registrator = GDALRegistrator()
 
-    # handling coverages
+    if len(data_assets) == 0:
+        logger.info(
+            'No data assets found in STAC item for Product %s' % (
+                identifier,
+            )
+        )
 
-    for asset_name, asset in assets.items():
+    # handling coverages
+    for asset_name, asset in data_assets.items():
         overrides = {}
         coverage_type = None
         # if we have an explicit mapping defined, we only pick the coverages
@@ -302,6 +318,18 @@ def register_stac_product(stac_item, product_type=None, storage=None,
                     )
                     break
             else:
+                logger.info(
+                    '''Data asset "%s" was not mapped to any coverage_mapping %s.
+                    Asset will not be added as Coverage to Product %s''' % (
+                        asset_name,
+                        {
+                            coverage_type_name: mapping['assets']
+                            for coverage_type_name, mapping
+                            in coverage_mapping.items()
+                        },
+                        identifier,
+                    )
+                )
                 continue
 
         # if no mapping is defined, we try to figure out the coverage type via
@@ -309,6 +337,12 @@ def register_stac_product(stac_item, product_type=None, storage=None,
         else:
             bands = asset.get('eo:bands')
             if bands is None:
+                logger.info(
+                    '''No eo:bands information present in Item.
+                    Skipping data asset %s.''' % (
+                    asset_name,
+                    )
+                )
                 continue
 
             if not isinstance(bands, list):
@@ -338,7 +372,7 @@ def register_stac_product(stac_item, product_type=None, storage=None,
         overrides['identifier'] = '%s_%s' % (identifier, asset_name)
 
         # create the storage item
-        path = get_path_from_href(asset['href'])
+        path = get_path_from_href(asset['href'], file_href)
 
         coverage_footprint = None
 
@@ -358,10 +392,10 @@ def register_stac_product(stac_item, product_type=None, storage=None,
         epsg = asset.get('proj:epsg') or properties.get('proj:epsg')
 
         if shape:
-            overrides['size'] = shape
+            overrides['size'] = [shape[1], shape[0]]
 
         if transform:
-            overrides['origin'] = [transform[2], transform[5]]
+            overrides['origin'] = [transform[1], transform[5]]
 
         if epsg and transform:
             sr = osr.SpatialReference(epsg)
@@ -387,48 +421,118 @@ def register_stac_product(stac_item, product_type=None, storage=None,
             footprint_from_extent=False,
             overrides=overrides,
             replace=replace,
+            statistics=[
+                [
+                    dict(
+                        histogram=band.get("histogram", {}),
+                        **band.get("statistics", {})
+                    )
+                    for band in asset.get("raster:bands", [])
+                ]
+            ],
         )
 
         models.product_add_coverage(product, report.coverage)
 
     # Register browses
-
-    for asset_name, asset in assets.items():
-        browse_type = None
-        if browse_mapping is not None:
+    if browse_mapping is not None:
+        for asset_name, asset in assets.items():
             for browse_type_name, browse_type_def in browse_mapping.items():
                 if browse_type_def.get('asset') == asset_name:
                     browse_type = product_type.browse_types.get(
                         name=browse_type_name
                     )
+                    logger.debug(
+                        'Adding browse %s to Product %s' % (
+                            browse_type.name, identifier
+                        )
+                    )
+                    register_browse_for_asset(
+                        asset, file_href, product, storage, browse_type
+                    )
                     break
-        else:
-            # TODO: automatic detection?
-            pass
-
-        if browse_type is not None:
-            logger.debug(
-                'Adding browse %s to Product %s' % (
-                    browse_type.name, identifier
+    else:
+        browse_assets = dict(
+            (name, asset)
+            for name, asset in assets.items()
+            if 'overview' in asset.get('roles', [])
+            or 'thumbnail' in asset.get('roles', [])
+        )
+        for asset_name, asset in browse_assets.items():
+            browse_type = None
+            if len(browse_assets) == 1:
+                # browse_type = None
+                # # browse_type = product_type.browse_types.filter(
+                # #     name=''
+                # # ).first()
+                register_browse_for_asset(
+                    asset, file_href, product, storage, None
                 )
-            )
-            browse = models.Browse(
-                storage=storage,
-                location=get_path_from_href(asset['href']),
-                product=product,
-                browse_type=browse_type,
-            )
-            ds = gdal_open(browse)
-            browse.width = ds.RasterXSize
-            browse.height = ds.RasterYSize
-            browse.coordinate_reference_system = ds.GetProjection()
-            extent = gdal.get_extent(ds)
-            browse.min_x, browse.min_y, browse.max_x, browse.max_y = extent
+            else:
+                if browse_type is None:
+                    browse_type = product_type.browse_types.filter(
+                        name=asset_name
+                    ).first()
 
-            browse.full_clean()
-            browse.save()
+                if browse_type:
+                    register_browse_for_asset(
+                        asset, file_href, product, storage, browse_type
+                    )
+
+    # adding thumbnail image, which is the first one with role thumbnail
+    thumbnail_asset = next(
+        (
+            asset
+            for asset in assets.values()
+            if 'thumbnail' in asset.get('roles', [])
+        ),
+        None
+    )
+    if thumbnail_asset:
+        models.MetaDataItem.objects.create(
+            eo_object=product,
+            semantic=models.MetaDataItem.semantic_codes['thumbnail'],
+            storage=storage,
+            location=get_path_from_href(thumbnail_asset['href'], file_href),
+        )
 
     return (product, replaced)
+
+
+def register_browse_for_asset(asset, file_href, product, storage, browse_type):
+    browse = models.Browse(
+        storage=storage,
+        location=get_path_from_href(asset['href'], file_href),
+        product=product,
+        browse_type=browse_type,
+    )
+    epsg = asset.get('proj:epsg')
+    shape = asset.get('proj:shape')
+    transform = asset.get('proj:transform')
+
+    if epsg and shape and transform:
+        sr = osr.SpatialReference(epsg)
+        browse.width = shape[1]
+        browse.height = shape[0]
+        browse.coordinate_reference_system = sr.wkt
+
+        x_a = transform[0]
+        x_b = transform[0] + transform[1] * browse.width
+        y_a = transform[3]
+        y_b = transform[3] + transform[5] * browse.height
+
+        extent = (min(x_a, x_b), min(y_a, y_b), max(x_a, x_b), max(y_a, y_b))
+        browse.min_x, browse.min_y, browse.max_x, browse.max_y = extent
+    else:
+        ds = gdal_open(browse)
+        browse.width = ds.RasterXSize
+        browse.height = ds.RasterYSize
+        browse.coordinate_reference_system = ds.GetProjection()
+        extent = gdal.get_extent(ds)
+        browse.min_x, browse.min_y, browse.max_x, browse.max_y = extent
+
+    browse.full_clean()
+    browse.save()
 
 
 @transaction.atomic
@@ -465,6 +569,17 @@ def create_product_type_from_stac_item(stac_item, product_type_name=None,
 
     properties = stac_item['properties']
     assets = stac_item['assets']
+    data_assets = dict(
+        (name, asset)
+        for name, asset in assets.items()
+        if 'data' in asset.get('roles', [])
+    )
+    browse_assets = dict(
+        (name, asset)
+        for name, asset in assets.items()
+        if 'overview' in asset.get('roles', [])
+        or 'thumbnail' in asset.get('roles', [])
+    )
 
     # set to see which assets are referenced in the coverage mapping
     mapping_assets = set()
@@ -475,9 +590,9 @@ def create_product_type_from_stac_item(stac_item, product_type_name=None,
     bands_list = []
 
     if coverage_mapping:
-        for asset_name, asset in assets.items():
+        for asset_name, asset in data_assets.items():
             if asset_name in mapping_assets:
-                if 'eo:bands' in assets:
+                if 'eo:bands' in data_assets:
                     bands_list.append(
                         (
                             asset_name,
@@ -489,7 +604,7 @@ def create_product_type_from_stac_item(stac_item, product_type_name=None,
                 else:
                     bands_list.append((asset_name, [{'name': asset_name}]))
     else:
-        for asset_name, asset in assets.items():
+        for asset_name, asset in data_assets.items():
             if 'eo:bands' in asset:
                 bands_list.append(
                     (
@@ -527,7 +642,70 @@ def create_product_type_from_stac_item(stac_item, product_type_name=None,
                 index=i,
                 identifier=band['name'],
                 definition=band.get('common_name'),
+                description=band.get('description'),
+                wavelength=band.get('center_wavelength'),
             )
+
+    # create browse types from virtual assets
+    virtual_assets = stac_item.get('virtual:assets', {})
+    for name, asset in virtual_assets.items():
+        hrefs = asset['hrefs']
+        expression = asset.get('processing:expression')
+        bands = asset.get('raster:bands')
+
+        browse_def = {'name': name}
+        if expression:
+            # TODO: take hrefs into account
+            browse_def['red_or_grey_expression'] = expression.get('expression')
+            if bands:
+                stats = bands[0].get('statistics', {})
+                browse_def['red_or_grey_range_min'] = stats.get('minimum')
+                browse_def['red_or_grey_range_max'] = stats.get('maximum')
+
+        else:
+            if len(hrefs) not in (1, 3, 4):
+                raise ValueError(
+                    'Virtual asset %s: Invalid number of hrefs' % name
+                )
+
+            out_bands = []
+            for href, band in zip_longest(hrefs, bands, fillvalue={}):
+                if not href.startswith('#'):
+                    raise ValueError(
+                        'Virtual asset %s: HREF %s is not relative to this '
+                        'item' % (
+                            name, href
+                        )
+                    )
+                href = href[1:]
+                data_asset = data_assets.get(href)
+                if data_asset:
+                    band_name = data_asset.get(
+                        'eo:bands', properties.get('eo:bands')
+                    )[0]['name']
+                else:
+                    # TODO: make sure that a data asset with that band exists
+                    band_name = href
+
+                stats = band.get('statistics', {})
+                out_bands.append({
+                    'expression': band_name,
+                    'min': stats.get('minimum'),
+                    'max': stats.get('maximum'),
+                    'nodata': band.get('nodata'),
+                })
+
+            prefixes = ['red_or_grey', 'green', 'blue', 'alpha']
+            for pre, out_band in zip(prefixes, out_bands):
+                browse_def[pre + '_expression'] = out_band['expression']
+                browse_def[pre + '_range_min'] = out_band['min']
+                browse_def[pre + '_range_max'] = out_band['max']
+                browse_def[pre + '_nodata_value'] = out_band['nodata']
+
+        models.BrowseType.objects.create(
+            product_type=product_type,
+            **browse_def,
+        )
 
     # create browse types
     browse_defs = properties.get('brow:browses', {})
@@ -565,7 +743,17 @@ def create_product_type_from_stac_item(stac_item, product_type_name=None,
                 **browse_def,
             )
 
-    else:
+    if len(browse_assets) == 1 and not browse_defs:
+        # models.BrowseType.objects.create(
+        #     product_type=product_type,
+        #     name='',
+        # )
         pass
+    else:
+        for name, asset in browse_assets.items():
+            models.BrowseType.objects.create(
+                product_type=product_type,
+                name=name,
+            )
 
     return (product_type, True)

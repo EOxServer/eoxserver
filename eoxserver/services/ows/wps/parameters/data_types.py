@@ -30,7 +30,7 @@
 from datetime import datetime, date, time, timedelta
 from django.utils.dateparse import parse_date, parse_datetime, parse_time, utc
 from django.utils.six import PY2, PY3, string_types
-from django.utils.encoding import smart_text
+from django.utils.encoding import smart_str
 from eoxserver.core.util.timetools import parse_duration
 
 try:
@@ -68,7 +68,7 @@ class BaseType(object):
     @classmethod
     def encode(cls, value):
         """ Encode value to a Unicode string."""
-        return smart_text(value)
+        return smart_str(value)
 
     @classmethod
     def get_diff_dtype(cls):  # difference type - change if differs from the base
@@ -97,7 +97,7 @@ class Boolean(BaseType):
     def parse(cls, raw_value):
 
         if isinstance(raw_value, string_types):
-            raw_value = smart_text(raw_value.lower())
+            raw_value = smart_str(raw_value.lower())
             if raw_value in ('1', 'true'):
                 return True
             elif raw_value in ('0', 'false'):
@@ -130,7 +130,7 @@ class Integer(BaseType):
     @classmethod
     def encode(cls, value):
         """ Encode value to a Unicode string."""
-        return smart_text(int(value))
+        return smart_str(int(value))
 
     @classmethod
     def as_number(cls, value):
@@ -176,9 +176,9 @@ class String(BaseType):
     def encode(cls, value):
         """ Encode value to a Unicode string."""
         try:
-            return smart_text(value)
+            return smart_str(value)
         except UnicodeDecodeError:
-            return smart_text(value, cls.encoding)
+            return smart_str(value, cls.encoding)
 
     @classmethod
     def parse(cls, raw_value):
@@ -228,7 +228,7 @@ class Duration(BaseType):
             elif seconds != 0:
                 items.append('%dS' % seconds)
 
-        return smart_text("".join(items))
+        return smart_str("".join(items))
 
     @classmethod
     def as_number(cls, value):
@@ -261,7 +261,7 @@ class Date(BaseType):
     @classmethod
     def encode(cls, value):
         if isinstance(value, cls.dtype):
-            return smart_text(value.isoformat())
+            return smart_str(value.isoformat())
         raise ValueError("Invalid value type '%s'!" % type(value))
 
     @classmethod
@@ -292,7 +292,7 @@ class Time(BaseType):
     @classmethod
     def encode(cls, value):
         if isinstance(value, cls.dtype):
-            return smart_text(value.isoformat())
+            return smart_str(value.isoformat())
         raise ValueError("Invalid value type '%s'!" % type(value))
 
     @classmethod
@@ -329,7 +329,7 @@ class DateTime(BaseType):
     @classmethod
     def encode(cls, value):
         if isinstance(value, cls.dtype):
-            return smart_text(cls._isoformat(value))
+            return smart_str(cls._isoformat(value))
         raise ValueError("Invalid value type '%s'!" % type(value))
 
     @classmethod

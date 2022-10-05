@@ -42,8 +42,8 @@ from django.contrib.gis.geos import Polygon
 from django.db.models import Min, Max, Q, F, ExpressionWrapper
 from django.db.models.functions import Cast
 from django.utils.timezone import now
-from django.utils.encoding import python_2_unicode_compatible
 from model_utils.managers import InheritanceManager
+from jsonfield import JSONField
 
 from eoxserver.backends import models as backends
 from eoxserver.core.util.timetools import isoformat
@@ -313,7 +313,6 @@ def eo_object_identifier_validator(value):
         identifier_validators[0](value)
 
 
-@python_2_unicode_compatible
 class EOObject(models.Model):
     """ Base class for Collections, Products and Coverages
     """
@@ -435,7 +434,6 @@ class MetaDataItem(backends.DataItem):
         unique_together = [('eo_object', 'semantic')]
 
 
-
 class Browse(backends.DataItem):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='browses', **mandatory)
     browse_type = models.ForeignKey(BrowseType, on_delete=models.CASCADE, **optional)
@@ -484,6 +482,21 @@ class ArrayDataItem(backends.DataItem):
         unique_together = [('coverage', 'field_index')]
 
 
+class BandStatistics(models.Model):
+    arraydata_item = models.ForeignKey(ArrayDataItem, on_delete=models.CASCADE, related_name='array_statistics', **mandatory)
+    band_index = models.PositiveSmallIntegerField(default=1, **mandatory)
+
+    mean = models.FloatField(**optional)
+    minimum = models.FloatField(**optional)
+    maximum = models.FloatField(**optional)
+    stddev = models.FloatField(**optional)
+    valid_percent = models.FloatField(**optional)
+    histogram = JSONField(**optional)
+
+    class Meta:
+        unique_together = [('arraydata_item', 'band_index')]
+
+
 # ==============================================================================
 # Additional Metadata Models for Collections, Products and Coverages
 # ==============================================================================
@@ -515,7 +528,6 @@ class CollectionMetadata(models.Model):
 # ==============================================================================
 
 
-@python_2_unicode_compatible
 class AbstractCommonValue(models.Model):
     value = models.CharField(max_length=256, db_index=True, unique=True)
 

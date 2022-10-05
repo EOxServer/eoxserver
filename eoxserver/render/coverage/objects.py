@@ -451,11 +451,29 @@ class Location(object):
         return self._format
 
 
+class Histogram(object):
+    def __init__(self, min, max, buckets):
+        self.min = min
+        self.max = max
+        self.buckets = buckets
+
+
+class Statistics(object):
+    def __init__(self, mean, minimum, maximum, stddev, valid_percent, histogram):
+        self.mean = mean
+        self.minimum = minimum
+        self.maximum = maximum
+        self.stddev = stddev
+        self.valid_percent = valid_percent
+        self.histogram = histogram
+
+
 class ArraydataLocation(Location):
-    def __init__(self, path, env, format, start_field, end_field):
+    def __init__(self, path, env, format, start_field, end_field, band_statistics):
         super(ArraydataLocation, self).__init__(path, env, format)
         self._start_field = start_field
         self._end_field = end_field
+        self._band_statistics = band_statistics
 
     @property
     def start_field(self):
@@ -471,6 +489,10 @@ class ArraydataLocation(Location):
 
     def field_index_to_band_index(self, field_index):
         return field_index - self.start_field
+
+    def field_statistics(self, field_index):
+        band_index = self.field_index_to_band_index(field_index)
+        return self._band_statistics[band_index]
 
 
 class Coverage(object):
@@ -574,20 +596,24 @@ class Coverage(object):
         elif self.footprint:
             return self.footprint.extent
 
-    def get_location_for_field(self, field_or_identifier):
+    def lookup_field(self, field_or_identifier):
         if isinstance(field_or_identifier, Field):
             field = field_or_identifier
             if field not in self.range_type:
                 return None
+            return field
         else:
             try:
-                field = next(
+                return next(
                     field
                     for field in self.range_type
                     if field.identifier == field_or_identifier
                 )
             except StopIteration:
                 return None
+
+    def get_location_for_field(self, field_or_identifier):
+        field = self.lookup_field(field_or_identifier)
 
         index = field.index
         for location in self.arraydata_locations:
@@ -595,24 +621,17 @@ class Coverage(object):
                 return location
 
     def get_band_index_for_field(self, field_or_identifier):
-        if isinstance(field_or_identifier, Field):
-            field = field_or_identifier
-            if field not in self.range_type:
-                return None
-        else:
-            try:
-                field = next(
-                    field
-                    for field in self.range_type
-                    if field.identifier == field_or_identifier
-                )
-            except StopIteration:
-                return None
+        field = self.lookup_field(field_or_identifier)
 
         index = field.index
         for location in self.arraydata_locations:
             if index >= location.start_field and index <= location.end_field:
                 return index - location.start_field + 1
+
+    def get_statistics_for_field(self, field_or_identifier):
+        field = self.lookup_field(field_or_identifier)
+        location = self.get_location_for_field(field)
+        return location.field_statistics(field.index)
 
     @classmethod
     def from_model(cls, model):
@@ -629,13 +648,30 @@ class Coverage(object):
             footprint = model.parent_product.footprint
         eo_metadata = EOMetadata(begin_time, end_time, footprint)
 
-        arraydata_locations = [
-            ArraydataLocation(
-                get_vsi_path(item), get_vsi_env(item.storage), item.format,
-                item.field_index, item.field_index + (item.band_count - 1)
+        arraydata_locations = []
+        for item in model.arraydata_items.all():
+            statistics = [None] * item.band_count
+            for band_statistics in item.array_statistics.all():
+                statistics[band_statistics.band_index - 1] = Statistics(
+                    band_statistics.mean,
+                    band_statistics.minimum,
+                    band_statistics.maximum,
+                    band_statistics.stddev,
+                    band_statistics.valid_percent,
+                    Histogram(
+                        band_statistics.histogram.get('min', 0),
+                        band_statistics.histogram.get('max', 0),
+                        band_statistics.histogram.get('buckets', []),
+                    ),
+                )
+
+            arraydata_locations.append(
+                ArraydataLocation(
+                    get_vsi_path(item), get_vsi_env(item.storage), item.format,
+                    item.field_index, item.field_index + (item.band_count - 1),
+                    statistics
+                )
             )
-            for item in model.arraydata_items.all()
-        ]
 
         metadata_locations = [
             Location(

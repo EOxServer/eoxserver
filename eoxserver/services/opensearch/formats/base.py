@@ -31,9 +31,9 @@ import uuid
 from django.http import QueryDict
 from lxml.builder import ElementMaker
 try:
-    from django.core.urlresolvers import reverse
+    from django.core.urlresolvers import reverse, NoReverseMatch
 except ImportError:
-    from django.urls import reverse
+    from django.urls import reverse, NoReverseMatch
 
 from django.conf import settings
 from django.utils.module_loading import import_string
@@ -45,7 +45,8 @@ from eoxserver.core.util.xmltools import NameSpace, NameSpaceMap
 from eoxserver.resources.coverages import models
 from eoxserver.services.gml.v32.encoders import GML32Encoder
 from eoxserver.services.opensearch.config import (
-    DEFAULT_EOXS_RESULT_ITEM_FEED_LINK_GENERATORS
+    DEFAULT_EOXS_RESULT_ITEM_FEED_LINK_GENERATORS,
+    DEFAULT_EOXS_OPENSEARCH_GETCOVERAGE_HTML_EXCEPTION,
 )
 
 
@@ -300,7 +301,7 @@ class BaseFeedResultFormat(object):
                         )
                     )
 
-                if wms_small:
+                if thumbnail_link or wms_small:
                     # "Thumbnail" image
                     links.append(
                         MEDIA("content",
@@ -510,14 +511,22 @@ class BaseFeedResultFormat(object):
         return None
 
     def _create_coverage_link(self, request, coverage):
+        options = dict(
+            service="WCS",
+            version="2.0.1",
+            request="GetCoverage",
+            coverageId=coverage.identifier,
+        )
+        if getattr(
+                settings,
+                'EOXS_OPENSEARCH_GETCOVERAGE_HTML_EXCEPTION',
+                DEFAULT_EOXS_OPENSEARCH_GETCOVERAGE_HTML_EXCEPTION,
+            ):
+            options["exceptions"] = "text/html"
+
         return request.build_absolute_uri(
             "%s?%s" % (
-                reverse("ows"), urlencode(dict(
-                    service="WCS",
-                    version="2.0.1",
-                    request="GetCoverage",
-                    coverageId=coverage.identifier,
-                ))
+                reverse("ows"), urlencode(options)
             )
         )
 
@@ -590,12 +599,15 @@ class BaseFeedResultFormat(object):
     def _create_thumbail_link(self, request, item):
         semantic = models.MetaDataItem.semantic_codes['thumbnail']
         if item.metadata_items.filter(semantic=semantic).exists():
-            return request.build_absolute_uri(
-                reverse("metadata", kwargs={
-                    'identifier': item.identifier,
-                    'semantic': 'thumbnail'
-                })
-            )
+            try:
+                return request.build_absolute_uri(
+                    reverse("metadata", kwargs={
+                        'identifier': item.identifier,
+                        'semantic': 'thumbnail'
+                    })
+                )
+            except NoReverseMatch:
+                return None
 
     def _make_metadata_href(self, request, item, metadata_item):
         semantic_name = models.MetaDataItem.semantic_names[metadata_item.semantic]

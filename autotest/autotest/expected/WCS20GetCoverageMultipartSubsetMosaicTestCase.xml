@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<wcseo:RectifiedStitchedMosaic xmlns:crs="http://www.opengis.net/wcs/crs/1.0" xmlns:eop="http://www.opengis.net/eop/2.0" xmlns:gml="http://www.opengis.net/gml/3.2" xmlns:gmlcov="http://www.opengis.net/gmlcov/1.0" xmlns:int="http://www.opengis.net/wcs/interpolation/1.0" xmlns:ogc="http://www.opengis.net/ogc" xmlns:om="http://www.opengis.net/om/2.0" xmlns:ows="http://www.opengis.net/ows/2.0" xmlns:rsub="http://www.opengis.net/wcs/range-subsetting/1.0" xmlns:scal="http://www.opengis.net/wcs/scaling/1.0" xmlns:swe="http://www.opengis.net/swe/2.0" xmlns:wcs="http://www.opengis.net/wcs/2.0" xmlns:wcseo="http://www.opengis.net/wcs/wcseo/1.0" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" gml:id="mosaic_MER_FRS_1P_reduced_RGB" xsi:schemaLocation="http://www.opengis.net/wcs/wcseo/1.0 http://schemas.opengis.net/wcs/wcseo/1.0/wcsEOAll.xsd">
+<wcseo:RectifiedStitchedMosaic xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:ogc="http://www.opengis.net/ogc" xmlns:ows="http://www.opengis.net/ows/2.0" xmlns:gml="http://www.opengis.net/gml/3.2" xmlns:gmlcov="http://www.opengis.net/gmlcov/1.0" xmlns:wcs="http://www.opengis.net/wcs/2.0" xmlns:crs="http://www.opengis.net/wcs/crs/1.0" xmlns:rsub="http://www.opengis.net/wcs/range-subsetting/1.0" xmlns:wcseo="http://www.opengis.net/wcs/wcseo/1.0" xmlns:om="http://www.opengis.net/om/2.0" xmlns:eop="http://www.opengis.net/eop/2.0" xmlns:swe="http://www.opengis.net/swe/2.0" xmlns:int="http://www.opengis.net/wcs/interpolation/1.0" xmlns:scal="http://www.opengis.net/wcs/scaling/1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" gml:id="mosaic_MER_FRS_1P_reduced_RGB" xsi:schemaLocation="http://www.opengis.net/wcs/wcseo/1.0 http://schemas.opengis.net/wcs/wcseo/1.0/wcsEOAll.xsd">
   <gml:boundedBy>
-    <gml:Envelope axisLabels="lat long" srsName="http://www.opengis.net/def/crs/EPSG/0/4326" uomLabels="deg deg" srsDimension="2">
+    <gml:Envelope srsName="http://www.opengis.net/def/crs/EPSG/0/4326" axisLabels="lat long" uomLabels="deg deg" srsDimension="2">
       <gml:lowerCorner>43.13314500 -0.61450000</gml:lowerCorner>
       <gml:upperCorner>46.26864500 27.63635500</gml:upperCorner>
     </gml:Envelope>
@@ -16,7 +16,7 @@
       </gml:limits>
       <gml:axisLabels>lat long</gml:axisLabels>
       <gml:origin>
-        <gml:Point srsName="http://www.opengis.net/def/crs/EPSG/0/4326" gml:id="mosaic_MER_FRS_1P_reduced_RGB_grid_origin">
+        <gml:Point gml:id="mosaic_MER_FRS_1P_reduced_RGB_grid_origin" srsName="http://www.opengis.net/def/crs/EPSG/0/4326">
           <gml:pos>46.26864500 -0.61450000</gml:pos>
         </gml:Point>
       </gml:origin>
@@ -26,7 +26,7 @@
   </gml:domainSet>
   <gml:rangeSet>
     <gml:File>
-      <gml:rangeParameters xlink:href="cid:coverage/mosaic_MER_FRS_1P_reduced_RGB.tif" xlink:arcrole="fileReference" xlink:role="http://www.opengis.net/spec/GMLCOV_geotiff-coverages/1.0/conf/geotiff-coverage"/>
+      <gml:rangeParameters xlink:arcrole="fileReference" xlink:href="cid:coverage/mosaic_MER_FRS_1P_reduced_RGB.tif" xlink:role="http://www.opengis.net/spec/GMLCOV_geotiff-coverages/1.0/conf/geotiff-coverage"/>
       <gml:fileReference>cid:coverage/mosaic_MER_FRS_1P_reduced_RGB.tif</gml:fileReference>
       <gml:fileStructure/>
       <gml:mimeType>image/tiff</gml:mimeType>
@@ -107,12 +107,12 @@
           <om:featureOfInterest>
             <eop:Footprint gml:id="footprint_mosaic_MER_FRS_1P_reduced_RGB">
               <eop:multiExtentOf>
-                <gml:MultiSurface srsName="EPSG:4326" gml:id="multisurface_mosaic_MER_FRS_1P_reduced_RGB">
+                <gml:MultiSurface gml:id="multisurface_mosaic_MER_FRS_1P_reduced_RGB" srsName="EPSG:4326">
                   <gml:surfaceMember>
                     <gml:Polygon gml:id="polygon_mosaic_MER_FRS_1P_reduced_RGB">
                       <gml:exterior>
                         <gml:LinearRing>
-                          <gml:posList>46.21538204 11.45216500 46.07713899 12.56460057 45.89816055 13.88709473 45.84534235 14.22429484 46.21655812 14.32257597 46.15207604 14.88922127 46.04447482 15.71416334 45.87438426 16.93919622 45.70763714 18.04116793 45.43766069 19.69662128 45.18870831 21.06197914 44.98550234 22.14652968 44.81760105 22.97283899 44.54871930 24.21679437 44.35302578 25.07847119 44.22240051 25.61945433 43.86945268 27.09669055 43.64867759 27.96859077 43.16450000 27.73145892 43.16450000 2.52100000 45.76647167 2.52100000 45.73636264 2.73341976 45.39947038 4.81565704 45.00948175 6.89477580 44.75018472 8.15491357 44.41952395 9.63424584 44.12134692 10.93930058 44.65704022 11.06940218 45.55003942 11.28225456 46.21538204 11.45216500</gml:posList>
+                          <gml:posList>46.07713899 12.56460057 45.89816055 13.88709473 45.84534235 14.22429484 46.21655812 14.32257597 46.15207604 14.88922127 46.04447482 15.71416334 45.87438426 16.93919622 45.70763714 18.04116793 45.43766069 19.69662128 45.18870831 21.06197914 44.98550234 22.14652968 44.81760105 22.97283899 44.54871930 24.21679437 44.35302578 25.07847119 44.22240051 25.61945433 43.86945268 27.09669055 43.64867759 27.96859077 43.16450000 27.73145892 43.16450000 2.52100000 45.76647167 2.52100000 45.73636264 2.73341976 45.39947038 4.81565704 45.00948175 6.89477580 44.75018472 8.15491357 44.41952395 9.63424584 44.12134692 10.93930058 44.65704022 11.06940218 45.55003942 11.28225456 46.21538204 11.45216500 46.07713899 12.56460057</gml:posList>
                         </gml:LinearRing>
                       </gml:exterior>
                     </gml:Polygon>
@@ -145,12 +145,12 @@
       <wcseo:contributingFootprint>
         <eop:Footprint gml:id="footprint_mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced">
           <eop:multiExtentOf>
-            <gml:MultiSurface srsName="EPSG:4326" gml:id="multisurface_mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced">
+            <gml:MultiSurface gml:id="multisurface_mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced" srsName="EPSG:4326">
               <gml:surfaceMember>
                 <gml:Polygon gml:id="polygon_mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced">
                   <gml:exterior>
                     <gml:LinearRing>
-                      <gml:posList>45.76647167 2.52100000 45.73636264 2.73341976 45.39947038 4.81565704 45.00948175 6.89477580 44.75018472 8.15491357 44.41952395 9.63424584 44.12134692 10.93930058 43.56727383 10.80473516 43.16450000 10.71002408 43.16450000 2.52100000 45.76647167 2.52100000</gml:posList>
+                      <gml:posList>45.00948175 6.89477580 44.75018472 8.15491357 44.41952395 9.63424584 44.12134692 10.93930058 43.56727383 10.80473516 43.16450000 10.71002408 43.16450000 2.52100000 45.76647167 2.52100000 45.73636264 2.73341976 45.39947038 4.81565704 45.00948175 6.89477580</gml:posList>
                     </gml:LinearRing>
                   </gml:exterior>
                 </gml:Polygon>
@@ -165,12 +165,12 @@
       <wcseo:contributingFootprint>
         <eop:Footprint gml:id="footprint_mosaic_MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_RGB_reduced">
           <eop:multiExtentOf>
-            <gml:MultiSurface srsName="EPSG:4326" gml:id="multisurface_mosaic_MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_RGB_reduced">
+            <gml:MultiSurface gml:id="multisurface_mosaic_MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_RGB_reduced" srsName="EPSG:4326">
               <gml:surfaceMember>
                 <gml:Polygon gml:id="polygon_mosaic_MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_RGB_reduced">
                   <gml:exterior>
                     <gml:LinearRing>
-                      <gml:posList>46.21538204 11.45216500 46.07713899 12.56460057 45.89816055 13.88709473 45.84534235 14.22429484 45.81257656 14.21561994 45.24715363 14.07617623 44.51595976 13.90424434 43.87974151 13.74919568 43.45033849 13.64731130 43.16450000 13.57936453 43.16450000 10.71002408 43.56727383 10.80473516 44.65704022 11.06940218 45.55003942 11.28225456 46.21538204 11.45216500</gml:posList>
+                      <gml:posList>45.89816055 13.88709473 45.84534235 14.22429484 45.81257656 14.21561994 45.24715363 14.07617623 44.51595976 13.90424434 43.87974151 13.74919568 43.45033849 13.64731130 43.16450000 13.57936453 43.16450000 10.71002408 43.56727383 10.80473516 44.65704022 11.06940218 45.55003942 11.28225456 46.21538204 11.45216500 46.07713899 12.56460057 45.89816055 13.88709473</gml:posList>
                     </gml:LinearRing>
                   </gml:exterior>
                 </gml:Polygon>
@@ -185,12 +185,12 @@
       <wcseo:contributingFootprint>
         <eop:Footprint gml:id="footprint_mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced">
           <eop:multiExtentOf>
-            <gml:MultiSurface srsName="EPSG:4326" gml:id="multisurface_mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced">
+            <gml:MultiSurface gml:id="multisurface_mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced" srsName="EPSG:4326">
               <gml:surfaceMember>
                 <gml:Polygon gml:id="polygon_mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced">
                   <gml:exterior>
                     <gml:LinearRing>
-                      <gml:posList>46.21655812 14.32257597 46.15207604 14.88922127 46.04447482 15.71416334 45.87438426 16.93919622 45.70763714 18.04116793 45.43766069 19.69662128 45.18870831 21.06197914 44.98550234 22.14652968 44.81760105 22.97283899 44.54871930 24.21679437 44.35302578 25.07847119 44.22240051 25.61945433 43.86945268 27.09669055 43.64867759 27.96859077 43.16450000 27.73145892 43.16450000 13.57936453 43.45033849 13.64731130 43.87974151 13.74919568 44.51595976 13.90424434 45.24715363 14.07617623 45.81257656 14.21561994 46.21655812 14.32257597</gml:posList>
+                      <gml:posList>46.15207604 14.88922127 46.04447482 15.71416334 45.87438426 16.93919622 45.70763714 18.04116793 45.43766069 19.69662128 45.18870831 21.06197914 44.98550234 22.14652968 44.81760105 22.97283899 44.54871930 24.21679437 44.35302578 25.07847119 44.22240051 25.61945433 43.86945268 27.09669055 43.64867759 27.96859077 43.16450000 27.73145892 43.16450000 13.57936453 43.45033849 13.64731130 43.87974151 13.74919568 44.51595976 13.90424434 45.24715363 14.07617623 45.81257656 14.21561994 46.21655812 14.32257597 46.15207604 14.88922127</gml:posList>
                     </gml:LinearRing>
                   </gml:exterior>
                 </gml:Polygon>

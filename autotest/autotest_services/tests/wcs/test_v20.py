@@ -1633,3 +1633,140 @@ class WCS20GetCoverageDatasetGeoTIFFTilingInvalidTestCase(testbase.ExceptionTest
 
     def getExpectedExceptionCode(self):
         return "TilingInvalid"
+
+
+@tag('wcs', 'wcs20')
+class WCS20DefaultErrorFormatIsXmlTestCase(testbase.OWSTestCase):
+    def getRequest(self):
+        params = "service=WCS&version=2.0.1&request=invalid"
+        return (params, "kvp")
+
+    def testStatus(self):
+        pass
+
+    def testContentTypeIsXml(self):
+        content_type = self.response.get("Content-Type")
+        self.assertEqual(content_type, "text/xml")
+
+
+@tag('wcs', 'wcs20')
+class WCS20ErrorFormatIsHtmlOnRequestTestCase(testbase.OWSTestCase):
+    def getRequest(self):
+        params = "service=WCS&version=2.0.1&request=invalid&exceptions=text/html"
+        return (params, "kvp")
+
+    def testStatus(self):
+        pass
+
+    def testContentTypeIsHtml(self):
+        content_type = self.response.get("Content-Type")
+        self.assertEqual(content_type, "text/html")
+
+    def testTemplateContainsErrorMessage(self):
+        self.assertIn(
+            "Error: Operation ",
+            self.response.content.decode(),
+        )
+        self.assertIn(
+            "is not supported",
+            self.response.content.decode(),
+        )
+        self.assertIn(
+            "INVALID",
+            self.response.content.decode(),
+        )
+
+@tag('wcs', 'wcs20')
+class WCS20PostDefaultErrorFormatIsXmlTestCase(testbase.OWSTestCase):
+    def getRequest(self):
+        params = """<ns:invalid updateSequence="u2001" service="WCS"
+          xmlns:ns="http://www.opengis.net/wcs/2.0"
+          xmlns:ns1="http://www.opengis.net/ows/2.0">
+            <ns1:AcceptVersions><ns1:Version>2.0.1</ns1:Version></ns1:AcceptVersions>
+          </ns:invalid>
+        """
+        return (params, "xml")
+
+    def testStatus(self):
+        pass
+
+    def testContentTypeIsHtml(self):
+        content_type = self.response.get("Content-Type")
+        self.assertEqual(content_type, "text/xml")
+
+
+@tag('wcs', 'wcs20')
+class WCS20PostErrorFormatIsHtmlOnRequestTestCase(testbase.OWSTestCase):
+    def getRequest(self):
+        params = """<ns:invalid updateSequence="u2001" service="WCS"
+          xmlns:ns="http://www.opengis.net/wcs/2.0"
+          xmlns:ns1="http://www.opengis.net/ows/2.0"
+          xmlns:eoxs="http://eoxserver.org/eoxs/1.0">
+            <ns1:AcceptVersions><ns1:Version>2.0.1</ns1:Version></ns1:AcceptVersions>
+            <ns:Extension>
+                <eoxs:exceptions>text/html</eoxs:exceptions>
+            </ns:Extension>
+          </ns:invalid>
+        """
+        return (params, "xml")
+
+    def testStatus(self):
+        pass
+
+    def testContentTypeIsHtml(self):
+        content_type = self.response.get("Content-Type")
+        self.assertEqual(content_type, "text/html")
+
+
+#===============================================================================
+# WCS GetEOCoverageSet 2.0.1: Paging testcases
+#===============================================================================
+
+@tag('wcs', 'wcs20')
+class WCS20GetEOCoverageSetDatasetPagingTestCase(testbase.WCS20GetEOCoverageSetPagingTestCase):
+    """
+    Tests if only the second coverage is put in the archive when paging is used.
+    """
+    files_should_exist = ['MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed']
+    files_should_not_exist = ['MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed']
+    expectedContentType = 'application/x-compressed-tar'
+    def getRequest(self):
+        params = 'service=WCS&version=2.0.1&request=GetEOCoverageSet&eoId=MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed,MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&count=1&startIndex=1'
+        return (params, "kvp")
+
+
+@tag('wcs', 'wcs20')
+class WCS20GetEOCoverageSetDatasetPagingXMLTestCase(testbase.WCS20GetEOCoverageSetPagingTestCase):
+    """
+    Tests if only the second coverage is put in the archive when paging is used. XML input.
+    """
+    files_should_exist = ['MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed']
+    files_should_not_exist = ['MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed']
+    expectedContentType = 'application/x-compressed-tar'
+    def getRequest(self):
+        params = """<wcseo:GetEOCoverageSet service="WCS" version="2.0.1"
+           xmlns:wcseo="http://www.opengis.net/wcs/wcseo/1.1"
+           xmlns:wcs="http://www.opengis.net/wcs/2.0"
+           count="1"
+           startIndex="1">
+          <wcseo:eoId>MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed</wcseo:eoId>
+          <wcseo:eoId>MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed</wcseo:eoId>
+        </wcseo:GetEOCoverageSet>"""
+        return (params, "xml")
+
+
+@tag('wcs', 'wcs20')
+class WCS20GetEOCoverageSetDatasetZIPXMLTestCase(testbase.WCS20GetEOCoverageSetPagingTestCase):
+    """
+    Tests if a coverage is put in a ZIP archive. XML input.
+    """
+    files_should_exist = ['MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed']
+    expectedContentType = 'application/zip'
+    def getRequest(self):
+        params = """<wcseo:GetEOCoverageSet service="WCS" version="2.0.1"
+           xmlns:wcseo="http://www.opengis.net/wcs/wcseo/1.1"
+           xmlns:wcs="http://www.opengis.net/wcs/2.0">
+          <wcseo:eoId>MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed</wcseo:eoId>
+          <wcseo:packageFormat>application/zip</wcseo:packageFormat>
+        </wcseo:GetEOCoverageSet>"""
+        return (params, "xml")

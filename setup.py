@@ -93,15 +93,16 @@ setup(
         "tools/eoxserver-preprocess.py"
     ],
     install_requires=[
-        'django<3',
+        'django<4',
         'python-dateutil',
-        'django-model-utils<4.0.0',
+        'django-model-utils<5.0.0',
         'zipstream',
         'psycopg2',
         'lxml',
         'pycql==0.0.8',
         'matplotlib',
         'pyows>=0.2.6',
+        'jsonfield',
     ],
     extras_require={
         'dev': ['scipy'],

@@ -29,7 +29,6 @@
 
 from django.db import models
 from django.core.exceptions import ValidationError
-from django.utils.encoding import python_2_unicode_compatible
 
 from eoxserver.backends.storages import get_handler_class_by_name
 
@@ -43,7 +42,6 @@ mandatory = dict(null=False, blank=False)
 # ==============================================================================
 
 
-@python_2_unicode_compatible
 class StorageAuth(models.Model):
     """ Model to symbolize authorization for storages.
     """
@@ -59,7 +57,6 @@ class StorageAuth(models.Model):
         validate_storage_auth(self)
 
 
-@python_2_unicode_compatible
 class Storage(models.Model):
     """ Model to symbolize storages that provide file or other types of access
         to data items.
@@ -78,7 +75,6 @@ class Storage(models.Model):
         validate_storage(self)
 
 
-@python_2_unicode_compatible
 class DataItem(models.Model):
     """ Abstract model for locateable data items contributing to a dataset.
     """

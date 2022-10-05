@@ -1,9 +1,9 @@
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
 #
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Copyright (C) 2013 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -13,8 +13,8 @@
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
-# The above copyright notice and this permission notice shall be included in all
-# copies of this Software or works derived from this Software.
+# The above copyright notice and this permission notice shall be included in
+# all copies of this Software or works derived from this Software.
 #
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -23,7 +23,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 
 """ This module provides Python file-object like access to VSI files.
@@ -33,6 +33,11 @@
 import os
 from uuid import uuid4
 from functools import wraps
+import mimetypes
+from urllib.parse import quote
+
+from django.http import StreamingHttpResponse
+
 
 if os.environ.get('READTHEDOCS', None) != 'True':
     import numpy
@@ -111,7 +116,14 @@ class VSIFile(object):
         """
 
         value = VSIFReadL(1, size, self._handle)
-        return value if value is not None else ''
+        if isinstance(value, bytes):
+            return value
+        elif isinstance(value, bytearray):
+            return bytes(value)
+        elif value is None:
+            return b''
+        else:
+            raise ValueError(value)
 
     @_ensure_open
     def write(self, data):
@@ -291,3 +303,49 @@ def join(first, *paths):
         else:
             parts.extend(new)
     return '/'.join(parts)
+
+
+class VSIFileResponse(StreamingHttpResponse):
+    """ Subclass of StreamingHttpResponse, a replacement for Django's
+        FileResponse which does not work for VSIFiles in Django v3.2.15
+    """
+    # inspired from https://github.com/django/django/blob/bd062445cffd3f6cc6dcd20d13e2abed818fa173/django/http/response.py#L500
+
+    block_size = 4096
+
+    def __init__(self, *args, as_attachment=False, filename='', **kwargs):
+        self.as_attachment = as_attachment
+        self.filename = filename
+        super().__init__(*args, **kwargs)
+
+    def _set_streaming_content(self, value):
+        filelike = value
+        self._resource_closers.append(filelike.close)
+        value = iter(lambda: filelike.read(self.block_size), b'')
+        self.set_headers(filelike)
+        super()._set_streaming_content(value)
+
+    def set_headers(self, filelike):
+        self.headers["Content-Length"] = filelike.size
+        content_type, encoding = mimetypes.guess_type(filelike.name)
+        content_type = {
+            "bzip2": "application/x-bzip",
+            "gzip": "application/gzip",
+            "xz": "application/x-xz",
+        }.get(encoding, content_type)
+        self.headers["Content-Type"] = (
+            content_type or "application/octet-stream"
+        )
+
+        filename = self.filename or filelike.name
+        disposition = "attachment" if self.as_attachment else "inline"
+        try:
+            filename.encode("ascii")
+            file_expr = 'filename="{}"'.format(
+                filename.replace("\\", "\\\\").replace('"', r"\"")
+            )
+        except UnicodeEncodeError:
+            file_expr = "filename*=utf-8''{}".format(quote(filename))
+        self.headers["Content-Disposition"] = "{}; {}".format(
+            disposition, file_expr
+        )

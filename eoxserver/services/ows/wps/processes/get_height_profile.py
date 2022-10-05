@@ -28,6 +28,7 @@
 
 import csv
 from uuid import uuid4
+import json
 
 from math import radians, cos, sin, asin, sqrt
 
@@ -123,7 +124,7 @@ class GetHeightProfileProcess(Component):
         """
 
         if isinstance(line, str):
-            line = eval(line)
+            line = json.loads('[%s]' % line)
 
         line_distance = haversine(line[0], line[1], line[2], line[3])
 

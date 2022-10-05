@@ -67,3 +67,5 @@ DEFAULT_EOXS_OWS_EXCEPTION_HANDLERS = [
     'eoxserver.services.ows.wcs.v20.exceptionhandler.WCS20ExceptionHandler',
     'eoxserver.services.ows.wms.v13.exceptionhandler.WMS13ExceptionHandler',
 ]
+
+DEFAULT_EOXS_WCS_ERROR_HTML_TEMPLATE = "wcs/error_template.html"

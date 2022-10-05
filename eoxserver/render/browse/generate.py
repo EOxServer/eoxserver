@@ -475,7 +475,10 @@ def _evaluate_expression(expr, fields_and_datasets, variables, cache):
             expr.value, fields_and_datasets, variables, cache
         )
         # assume that we will only use a single index
-        slice_ = expr.slice.value.value
+        if isinstance(expr.slice.value, int):
+            slice_ = expr.slice.value  # python 3.10
+        else:
+            slice_ = expr.slice.value.value  # python 3.8
 
         # Get a copy of the selected band
         data = value.GetRasterBand(slice_ + 1).ReadAsArray()

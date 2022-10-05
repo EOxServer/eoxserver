@@ -11,7 +11,8 @@ import mimetypes
 import shutil
 
 from django.http import (
-    HttpResponse, HttpResponseBadRequest, HttpResponseNotAllowed, FileResponse
+    HttpResponse, HttpResponseBadRequest, HttpResponseNotAllowed, FileResponse,
+    Http404
 )
 from django.contrib.gis.geos import GEOSGeometry
 from django.db import transaction
@@ -20,6 +21,7 @@ from django.shortcuts import get_object_or_404
 
 from eoxserver.core.config import get_eoxserver_config
 from eoxserver.core.decoders import config
+from eoxserver.contrib.vsi import VSIFileResponse
 from eoxserver.backends.access import vsi_open
 from eoxserver.resources.coverages import models
 from eoxserver.resources.coverages.registration.product import (
@@ -73,10 +75,13 @@ def metadata(request, identifier, semantic):
 
     frmt = request.GET.get('format')
 
-    semantic_code = {
-        name: code
-        for code, name in models.MetaDataItem.SEMANTIC_CHOICES
-    }[semantic]
+    try:
+        semantic_code = {
+            name: code
+            for code, name in models.MetaDataItem.SEMANTIC_CHOICES
+        }[semantic]
+    except KeyError as exc:
+        raise Http404(semantic) from exc
 
     qs = models.MetaDataItem.objects.filter(
         eo_object__identifier=identifier, semantic=semantic_code,
@@ -86,8 +91,9 @@ def metadata(request, identifier, semantic):
 
     metadata_item = get_object_or_404(qs)
 
-    return FileResponse(
-        vsi_open(metadata_item), content_type=metadata_item.format
+    return VSIFileResponse(
+        vsi_open(metadata_item),
+        content_type=metadata_item.format
     )
 
 

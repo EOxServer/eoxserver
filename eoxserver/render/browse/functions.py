@@ -206,6 +206,64 @@ def pansharpen(pan_ds, *spectral_dss):
     return out_ds
 
 
+def percentile(ds, perc, default=0):
+    band = ds.GetRasterBand(1)
+    histogram = band.GetDefaultHistogram()
+    if histogram:
+        min_, max_, _, buckets = histogram
+        bucket_diff = (max_ - min_) / len(buckets)
+        nodata = band.GetNoDataValue()
+        if nodata is not None:
+            # Set bucket of nodata value to 0
+            buckets[round((nodata - min_) / bucket_diff)] = 0
+        cumsum = np.cumsum(buckets)
+        bucket_index = np.searchsorted(cumsum, cumsum[-1] * (perc / 100))
+        return min_ + (bucket_index * bucket_diff)
+    return default
+
+
+def _has_stats(band):
+    return 'STATISTICS_MINIMUM' in band.GetMetadata()
+
+def statistics_min(ds, default=0):
+    band = ds.GetRasterBand(1)
+    if _has_stats(band):
+        min_, _, _, _ = band.GetStatistics(True, False)
+        return min_
+    return default
+
+
+def statistics_max(ds, default=0):
+    band = ds.GetRasterBand(1)
+    if _has_stats(band):
+        _, max_, _, _ = band.GetStatistics(True, False)
+        return max_
+    return default
+
+def statistics_mean(ds, default=0):
+    band = ds.GetRasterBand(1)
+    if _has_stats(band):
+        _, _, mean, _ = band.GetStatistics(True, False)
+        return mean
+    return default
+
+
+def statistics_stddev(ds, default=0):
+    band = ds.GetRasterBand(1)
+    if _has_stats(band):
+        _, _, _, stddev = band.GetStatistics(True, False)
+        return stddev
+    return default
+
+
+def interpolate(ds, x1, x2, y1, y2):
+    """Perform linear interpolation for x between (x1,y1) and (x2,y2) """
+    band = ds.GetRasterBand(1)
+    x = band.ReadAsArray()
+    x = ((y2 - y1) * x + x2 * y1 - x1 * y2) / (x2 - x1)
+    return gdal_array.OpenNumPyArray(x, True)
+
+
 def wrap_numpy_func(function):
     @wraps(function)
     def inner(ds, *args, **kwargs):
@@ -252,6 +310,12 @@ function_map = {
     'roughness': roughness,
     'contours': contours,
     'pansharpen': pansharpen,
+    'percentile': percentile,
+    'statistics_min': statistics_min,
+    'statistics_max': statistics_max,
+    'statistics_mean': statistics_mean,
+    'statistics_stddev': statistics_stddev,
+    'interpolate': interpolate,
 }
 
 
