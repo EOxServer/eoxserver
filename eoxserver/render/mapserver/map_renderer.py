@@ -69,6 +69,20 @@ class MapserverMapRenderer(object):
     def get_supported_formats(self):
         return getFormatRegistry().getSupportedFormatsWMS()
 
+    def getOutputFormat(self, layer_format):
+        frmt = getFormatRegistry().getFormatByMIME(layer_format)
+        outputformat_obj = ms.outputFormatObj(frmt.driver)
+        outputformat_obj.mimetype = frmt.mimeType
+
+        if frmt.defaultExt:
+            if frmt.defaultExt.startswith('.'):
+                extension = frmt.defaultExt[1:]
+            else:
+                extension = frmt.defaultExt
+
+            outputformat_obj.extension = extension
+        return outputformat_obj
+
     def render_map(self, render_map):
         layers = render_map.layers
         format_ = render_map.format
@@ -96,9 +110,7 @@ class MapserverMapRenderer(object):
                 with vsi.open(tmp_name) as f:
                     image_bytes = f.read()
                 vsi.unlink(tmp_name)
-
-            outputformat_obj = map_obj.getOutputFormat(0)
-
+            outputformat_obj = self.getOutputFormat(format_)
             extension = outputformat_obj.extension
             if extension:
                 if len(render_map.layers) == 1:
@@ -115,7 +127,7 @@ class MapserverMapRenderer(object):
     def render_legend(self, legend):
         layers = [legend.layer]
         with self._prepare_map(layers, legend.format) as map_obj:
-            outputformat_obj = map_obj.getOutputFormat(0)
+            outputformat_obj = self.getOutputFormat(legend.format)
 
             map_obj.setExtent(-180, -90, 180, 90)
             map_obj.setSize(1000, 500)
@@ -146,7 +158,6 @@ class MapserverMapRenderer(object):
                     filename = 'legend.%s' % extension
             else:
                 filename = None
-
         return image_bytes, outputformat_obj.mimetype, filename
 
     @contextmanager
