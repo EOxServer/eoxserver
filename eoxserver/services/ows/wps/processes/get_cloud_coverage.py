@@ -104,9 +104,10 @@ class CloudCoverageProcess(Component):
 
         coverages = models.Coverage.objects.filter(
             # parent_product_id=??,
-            begin_time__lte=end_time,
-            end_time__gte=begin_time,
+            parent_product__begin_time__lte=end_time,
+            parent_product__end_time__gte=begin_time,
             footprint__intersects=wkt_geometry,
+            coverage_type__name="SCL",
         )
 
         geometry_mem_path = f"/vsimem/{uuid4()}.shp"
@@ -118,9 +119,7 @@ class CloudCoverageProcess(Component):
 
         cloud_coverage_ratios = {
             coverage: cloud_coverage_ratio_in_geometry(
-                coverage.arraydata_items.get(
-                    field_index=0,  # TODO: how to get SCL band?
-                ),
+                coverage.arraydata_items.get(),
                 geometry_mem_path=geometry_mem_path,
             )
             for coverage in coverages
@@ -130,8 +129,8 @@ class CloudCoverageProcess(Component):
 
         result = {
             "result": [
-                # TODO: how to derive date from coverage/band?
-                {coverage.identifier: cloud_cover_ratio}
+                # TODO: discuss what to return here
+                {coverage.parent_product.begin_time: cloud_cover_ratio}
                 for coverage, cloud_cover_ratio in sorted(
                     cloud_coverage_ratios.items(),
                     key=operator.itemgetter(1),
