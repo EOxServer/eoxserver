@@ -49,12 +49,14 @@ from eoxserver.services.exceptions import HTTPMethodNotAllowedError
 from eoxserver.services.ows.dispatch import (
     query_service_handler, query_exception_handler
 )
+from eoxserver.services.config import apply_cache_header
 
 
 logger = logging.getLogger(__name__)
 
 
 @csrf_exempt
+@apply_cache_header
 def ows(request):
     """ Main entry point for OWS requests against EOxServer. It uses the
     :class:`ServiceComponent
@@ -112,3 +114,8 @@ def ows(request):
         )
     except ValueError:
         pass
+
+
+# NOTE: we need to apply caching here because the name `views.ows`
+# is being url-reversed at some point, so this name needs to be registered
+# with django

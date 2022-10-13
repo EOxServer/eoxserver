@@ -35,10 +35,9 @@ except ImportError:
     from django.urls import reverse
 
 from eoxserver.services import views
-from eoxserver.services.config import apply_cache_header
 
 urlpatterns = [
-    re_path(r'^$', apply_cache_header(views.ows), name='ows',)
+    re_path(r'^$', views.ows, name='ows',)
 ]
 
 
