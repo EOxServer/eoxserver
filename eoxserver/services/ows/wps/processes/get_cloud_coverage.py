@@ -84,6 +84,7 @@ class CloudCoverageProcess(Component):
     SCL_LAYER_CLOUD_MEDIUM_PROBABILITY = 8
     SCL_LAYER_CLOUD_HIGH_PROBABILITY = 9
     SCL_LAYER_THIN_CIRRUS = 10
+    SCL_LAYER_SATURATED_OR_DEFECTIVE = 1
 
     @staticmethod
     def execute(
@@ -164,6 +165,7 @@ def cloud_coverage_ratio_in_geometry(
             CloudCoverageProcess.SCL_LAYER_CLOUD_MEDIUM_PROBABILITY,
             CloudCoverageProcess.SCL_LAYER_CLOUD_HIGH_PROBABILITY,
             CloudCoverageProcess.SCL_LAYER_THIN_CIRRUS,
+            CloudCoverageProcess.SCL_LAYER_SATURATED_OR_DEFECTIVE,
         ]
     )
 
