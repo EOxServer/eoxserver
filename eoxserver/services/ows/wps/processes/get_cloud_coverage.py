@@ -26,7 +26,6 @@
 # -----------------------------------------------------------------------------
 
 from datetime import datetime
-import operator
 from uuid import uuid4
 
 from osgeo import ogr, osr
@@ -123,13 +122,10 @@ class CloudCoverageProcess(Component):
         gdal.Unlink(geometry_mem_path)
 
         result = {
-            "result": [
-                {coverage.parent_product.begin_time.isoformat(): cloud_cover_ratio}
-                for coverage, cloud_cover_ratio in sorted(
-                    cloud_coverage_ratios.items(),
-                    key=operator.itemgetter(1),
-                )
-            ]
+            "result": {
+                coverage.parent_product.begin_time.isoformat(): cloud_cover_ratio
+                for coverage, cloud_cover_ratio in cloud_coverage_ratios.items()
+            }
         }
         return CDObject(
             result,
