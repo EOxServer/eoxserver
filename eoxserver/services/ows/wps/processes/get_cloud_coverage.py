@@ -66,10 +66,6 @@ class CloudCoverageProcess(Component):
             datetime,
             title="End of the time interval.",
         ),
-        "product": LiteralData(
-            "product",
-            title="Product identifier",
-        ),
         "geometry": ComplexData(
             "geometry",
             title="Geometry",
@@ -94,16 +90,13 @@ class CloudCoverageProcess(Component):
     def execute(
         begin_time,
         end_time,
-        product,
         geometry,
         result,
     ):
-        # TODO: product, there are none in the test db
 
         wkt_geometry = geometry[0].text
 
         coverages = models.Coverage.objects.filter(
-            # parent_product_id=??,
             parent_product__begin_time__lte=end_time,
             parent_product__end_time__gte=begin_time,
             footprint__intersects=wkt_geometry,
