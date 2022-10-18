@@ -103,6 +103,8 @@ class CloudCoverageProcess(Component):
             coverage_type__name="SCL",
         )
 
+        logger.info("Matched %s coverages for cloud coverage", coverages.count())
+
         geometry_mem_path = f"/vsimem/{uuid4()}.shp"
 
         _create_geometry_feature_in_memory(
