@@ -129,8 +129,7 @@ class CloudCoverageProcess(Component):
 
         result = {
             "result": [
-                # TODO: discuss what to return here
-                {coverage.parent_product.begin_time: cloud_cover_ratio}
+                {coverage.parent_product.begin_time.isoformat(): cloud_cover_ratio}
                 for coverage, cloud_cover_ratio in sorted(
                     cloud_coverage_ratios.items(),
                     key=operator.itemgetter(1),
