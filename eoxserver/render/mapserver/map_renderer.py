@@ -87,17 +87,20 @@ class MapserverMapRenderer(object):
         layers = render_map.layers
         format_ = render_map.format
         transparent = render_map.transparent
-        with self._prepare_map(layers, format_, transparent) as map_obj:
+        with self._prepare_map(
+            layers,
+            format_,
+            render_map.width,
+            render_map.height,
+            (render_map.bbox),
+            render_map.crs,
+            transparent
+                ) as map_obj:
+
             if render_map.bgcolor:
                 map_obj.imagecolor.setHex("#" + render_map.bgcolor.lower())
             else:
                 map_obj.imagecolor.setRGB(0, 0, 0)
-
-            #
-            map_obj.setExtent(*render_map.bbox)
-            map_obj.setSize(render_map.width, render_map.height)
-            map_obj.setProjection(render_map.crs)
-            map_obj.setConfigOption('MS_NONSQUARE', 'yes')
 
             # actually render the map
             image_obj = map_obj.draw()
@@ -128,12 +131,6 @@ class MapserverMapRenderer(object):
         layers = [legend.layer]
         with self._prepare_map(layers, legend.format) as map_obj:
             outputformat_obj = self.getOutputFormat(legend.format)
-
-            map_obj.setExtent(-180, -90, 180, 90)
-            map_obj.setSize(1000, 500)
-            map_obj.setProjection('EPSG:4326')
-            map_obj.setConfigOption('MS_NONSQUARE', 'yes')
-
             legend_obj = map_obj.legend
             legend_obj.width = legend.width or 1000
             legend_obj.height = legend.height or 1000
@@ -161,10 +158,22 @@ class MapserverMapRenderer(object):
         return image_bytes, outputformat_obj.mimetype, filename
 
     @contextmanager
-    def _prepare_map(self, layers, format_, transparent=False):
+    def _prepare_map(
+        self,
+        layers,
+        format_,
+        width=1000,
+        height=500,
+        bbox=(-180, -90, 180, 90),
+        crs='EPSG:4326',
+        transparent=False
+            ):
         # TODO: get layer creators for each layer type in the map
         map_obj = ms.mapObj()
-
+        map_obj.setExtent(*bbox)
+        map_obj.setSize(width, height)
+        map_obj.setProjection(crs)
+        map_obj.setConfigOption('MS_NONSQUARE', 'yes')
         layers_plus_factories = self._get_layers_plus_factories(layers)
         layers_plus_factories_plus_data = [
             (layer, factory, factory.create(map_obj, layer))
