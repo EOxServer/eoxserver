@@ -25,6 +25,7 @@
 # THE SOFTWARE.
 # -----------------------------------------------------------------------------
 
+import contextlib
 from datetime import datetime
 from uuid import uuid4
 
@@ -93,7 +94,6 @@ class CloudCoverageProcess(Component):
         geometry,
         result,
     ):
-
         wkt_geometry = geometry[0].text
 
         coverages = models.Coverage.objects.filter(
@@ -105,22 +105,13 @@ class CloudCoverageProcess(Component):
 
         logger.info("Matched %s coverages for cloud coverage", coverages.count())
 
-        geometry_mem_path = f"/vsimem/{uuid4()}.shp"
-
-        _create_geometry_feature_in_memory(
-            wkt_geometry=wkt_geometry,
-            memory_path=geometry_mem_path,
-        )
-
         cloud_coverage_ratios = {
             coverage: cloud_coverage_ratio_in_geometry(
                 coverage.arraydata_items.get(),
-                geometry_mem_path=geometry_mem_path,
+                wkt_geometry=wkt_geometry,
             )
             for coverage in coverages
         }
-
-        gdal.Unlink(geometry_mem_path)
 
         result = {
             "result": {
@@ -137,21 +128,24 @@ class CloudCoverageProcess(Component):
 
 def cloud_coverage_ratio_in_geometry(
     data_item: models.ArrayDataItem,
-    geometry_mem_path: str,
+    wkt_geometry: str,
 ) -> float:
+
     tmp_ds = f"/vsimem/{uuid4()}.tif"
     original_ds = gdal_open(data_item)
-    result_ds = gdal.Warp(
-        tmp_ds,
-        original_ds,
-        # TODO: ideally only cut relevant band. possibly retrieve
-        #       single band and only bbox with with gdal_translate
-        options=gdal.WarpOptions(
-            cutlineDSName=geometry_mem_path,
-            cropToCutline=True,
-            warpOptions=["CUTLINE_ALL_TOUCHED=TRUE"],
-        ),
-    )
+
+    with _create_geometry_feature_in_memory(wkt_geometry) as geometry_mem_path:
+        result_ds = gdal.Warp(
+            tmp_ds,
+            original_ds,
+            # TODO: ideally only cut relevant band. possibly retrieve
+            #       single band and only bbox with with gdal_translate
+            options=gdal.WarpOptions(
+                cutlineDSName=geometry_mem_path,
+                cropToCutline=True,
+                warpOptions=["CUTLINE_ALL_TOUCHED=TRUE"],
+            ),
+        )
 
     # NOTE: using histogram is safe because it defaults to a bin distribution
     # which captures integers
@@ -178,7 +172,9 @@ def cloud_coverage_ratio_in_geometry(
     return cloud_coverage_ratio
 
 
-def _create_geometry_feature_in_memory(wkt_geometry: str, memory_path: str) -> None:
+@contextlib.contextmanager
+def _create_geometry_feature_in_memory(wkt_geometry: str):
+    memory_path = f"/vsimem/{uuid4()}.shp"
 
     ogr_geometry = ogr.CreateGeometryFromWkt(wkt_geometry)
 
@@ -200,3 +196,7 @@ def _create_geometry_feature_in_memory(wkt_geometry: str, memory_path: str) -> N
     feature_layer.CreateFeature(outFeature)
 
     feature_ds.FlushCache()
+
+    yield memory_path
+
+    gdal.Unlink(memory_path)
