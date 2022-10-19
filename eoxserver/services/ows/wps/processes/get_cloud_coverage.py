@@ -171,7 +171,7 @@ def cloud_coverage_ratio_in_geometry(
     )
 
     num_pixels = sum(histogram)
-    cloud_coverage_ratio = num_cloud / num_pixels
+    cloud_coverage_ratio = num_cloud / num_pixels if num_pixels != 0 else 0
 
     gdal.Unlink(tmp_ds)
 
