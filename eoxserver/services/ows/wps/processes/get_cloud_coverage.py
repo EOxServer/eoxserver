@@ -26,6 +26,8 @@
 # -----------------------------------------------------------------------------
 
 import contextlib
+import concurrent
+import functools
 from datetime import datetime
 from uuid import uuid4
 
@@ -105,18 +107,19 @@ class CloudCoverageProcess(Component):
 
         logger.info("Matched %s coverages for cloud coverage", coverages.count())
 
-        cloud_coverage_ratios = {
-            coverage: cloud_coverage_ratio_in_geometry(
-                coverage.arraydata_items.get(),
-                wkt_geometry=wkt_geometry,
+        with concurrent.futures.ThreadPoolExecutor(max_workers=5) as e:
+            cloud_coverage_ratios = e.map(
+                functools.partial(
+                    cloud_coverage_ratio_in_geometry,
+                    wkt_geometry=wkt_geometry,
+                ),
+                [coverage.arraydata_items.get() for coverage in coverages],
             )
-            for coverage in coverages
-        }
 
         result = {
             "result": {
                 coverage.parent_product.begin_time.isoformat(): cloud_cover_ratio
-                for coverage, cloud_cover_ratio in cloud_coverage_ratios.items()
+                for coverage, cloud_cover_ratio in zip(coverages, cloud_coverage_ratios)
             }
         }
         return CDObject(
@@ -130,6 +133,8 @@ def cloud_coverage_ratio_in_geometry(
     data_item: models.ArrayDataItem,
     wkt_geometry: str,
 ) -> float:
+    # NOTE: this is executed in threads, but all gdal operations are contained
+    #       in here, so each thread has separate gdal data
 
     tmp_ds = f"/vsimem/{uuid4()}.tif"
     original_ds = gdal_open(data_item)
