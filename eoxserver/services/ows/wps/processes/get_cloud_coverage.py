@@ -149,6 +149,7 @@ def cloud_coverage_ratio_in_geometry(
         options=gdal.WarpOptions(
             cutlineDSName=geometry_mem_path,
             cropToCutline=True,
+            warpOptions=["CUTLINE_ALL_TOUCHED=TRUE"],
         ),
     )
 

@@ -82,7 +82,37 @@ class WPS20ExecuteCloudCoverageReducedGeometry(
           <wps:Input id="end_time"><wps:Data>2020-05-31</wps:Data></wps:Input>
           <wps:Input id="geometry">
             <wps:Data>
-              <wps:ComplexData mimeType="text/plain">MULTIPOLYGON (((69.1714578 80.1387449, 69.1714578 80.1333736, 69.1969740 80.1333736, 69.1714578 80.1387449)))</wps:ComplexData>
+              <wps:ComplexData mimeType="text/plain">POLYGON((69.1714578 80.1407449,69.1714578 80.1333736,69.17170295145417 80.1333745192212,69.17164930727387 80.14073755166672,69.1714578 80.1407449))</wps:ComplexData>
+            </wps:Data>
+          </wps:Input>
+          <wps:Output id="result" >
+          </wps:Output>
+        </wps:Execute>
+        """
+        return (params, "xml")
+
+
+class WPS20ExecuteCloudCoverageTinyGeometry(
+    ContentTypeCheckMixIn, testbase.JSONTestCase
+):
+    fixtures = testbase.JSONTestCase.fixtures + ["cloud_coverages.json"]
+
+    expectedContentType = "application/json; charset=utf-8"
+
+    def getRequest(self):
+        params = """<wps:Execute
+        version="2.0.0"
+        service="WPS"
+        response="raw"
+        mode="sync"
+        xmlns:wps="http://www.opengis.net/wps/2.0"
+        xmlns:ows="http://www.opengis.net/ows/2.0" >
+          <ows:Identifier>CloudCoverage</ows:Identifier>
+          <wps:Input id="begin_time"><wps:Data>2020-01-01</wps:Data></wps:Input>
+          <wps:Input id="end_time"><wps:Data>2020-05-31</wps:Data></wps:Input>
+          <wps:Input id="geometry">
+            <wps:Data>
+              <wps:ComplexData mimeType="text/plain">POLYGON((69.1714578 80.1407449,69.17148193988112 80.14073878013805,69.17149910356903 80.1407419147403,69.1714578 80.1407449))</wps:ComplexData>
             </wps:Data>
           </wps:Input>
           <wps:Output id="result" >
