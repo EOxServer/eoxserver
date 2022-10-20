@@ -403,7 +403,7 @@ class WMS13GetFeatureInfoEOOMTestCase(testbase.XMLTestCase):
 #===============================================================================
 # Legend Graphic
 #===============================================================================
-class WMS13GetLegendGraphicTestCase(testbase.WMS11GetLegendTestCase):
+class WMS13GetLegendGraphicTestCase(testbase.WMS13GetLegendTestCase):
     """ Test a GetLegendGraphic request for a dataset with an associated style. """
 
     def getRequest(self):
@@ -413,7 +413,7 @@ class WMS13GetLegendGraphicTestCase(testbase.WMS11GetLegendTestCase):
     def getFileExtension(self, file_type):
         return "png"
 
-class WMS13GetLegendGraphicStyledTestCase(testbase.WMS11GetLegendTestCase):
+class WMS13GetLegendGraphicStyledTestCase(testbase.WMS13GetLegendTestCase):
     """ Test a GetLegendGraphic request for a dataset with an associated style. """
 
     def getRequest(self):

@@ -156,8 +156,8 @@ class WMSTIFFComparison(WMS13GetMapTestCase, testbase.GDALDatasetTestCase):
                 regress_result = linregress(array1,array2)
                 self.assertGreaterEqual(regress_result.rvalue, 0.9)
 
-@tag('wms')
-class WMS11GetLegendTestCase(testbase.RasterTestCase):
+@tag('wms', 'wms13')
+class WMS13GetLegendTestCase(testbase.RasterTestCase):
     layers = []
     styles = []
     frmt = "image/png"
