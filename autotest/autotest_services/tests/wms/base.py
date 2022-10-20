@@ -155,3 +155,25 @@ class WMSTIFFComparison(WMS13GetMapTestCase, testbase.GDALDatasetTestCase):
                 array2 = np.array(res_band.ReadAsArray()).flatten()
                 regress_result = linregress(array1,array2)
                 self.assertGreaterEqual(regress_result.rvalue, 0.9)
+
+@tag('wms')
+class WMS11GetLegendTestCase(testbase.RasterTestCase):
+    layers = []
+    styles = []
+    frmt = "image/png"
+
+    def getFileExtension(self, part=None):
+        try:
+            return format_to_extension[self.frmt]
+        except KeyError:
+            return testbase.mimetypes.guess_extension(self.frmt, False)[1:]
+
+    def getRequest(self):
+        params = "service=WMS&request=GetMap&version=1.1.1&" \
+                 "layers=%s&styles=%s&format=%s" % (
+                     ",".join(self.layers), ",".join(self.styles), self.frmt
+                 )
+        if self.httpHeaders is None:
+            return (params, "kvp")
+        else:
+            return (params, "kvp", self.httpHeaders)
