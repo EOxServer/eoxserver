@@ -30,15 +30,16 @@ import typing
 from django.conf import settings
 from django.views.decorators.cache import cache_control
 
-_cache_time_str = getattr(settings, "EOXS_RENDERER_CACHE_TIME", None)
 
-EOXS_RENDERER_CACHE_TIME: typing.Optional[int] = (
-    int(_cache_time_str) if _cache_time_str is not None else None
-)
+def _get_cache_time() -> typing.Optional[int]:
+    _cache_time_str = getattr(settings, "EOXS_RENDERER_CACHE_TIME", None)
+    return int(_cache_time_str) if _cache_time_str is not None else None
+
 
 def apply_cache_header(view):
+    cache_time = _get_cache_time()
     return (
-        cache_control(max_age=EOXS_RENDERER_CACHE_TIME)(view)
-        if EOXS_RENDERER_CACHE_TIME is not None
+        cache_control(max_age=cache_time)(view)
+        if cache_time is not None
         else view
     )

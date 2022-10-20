@@ -25,11 +25,17 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
+import http
 from textwrap import dedent
+import importlib
+import sys
 
-from django.test import TestCase, TransactionTestCase
+
+from django.conf import settings
+from django.test import TestCase, TransactionTestCase, Client, override_settings
 from django.contrib.gis.geos import Polygon, MultiPolygon
 from django.utils.six import assertCountEqual, b
+from django.urls import clear_url_caches
 
 from eoxserver.core.util import multiparttools as mp
 from eoxserver.core.util.timetools import parse_iso8601
@@ -37,6 +43,9 @@ from eoxserver.core.config import get_eoxserver_config
 from eoxserver.services.subset import Subsets, Trim, Slice
 from eoxserver.services.result import result_set_from_raw_data
 from eoxserver.resources.coverages import models
+import eoxserver.services.config
+import eoxserver.services.views
+
 
 
 class MultipartTest(TestCase):
@@ -738,3 +747,28 @@ class TemporalSubsetsTestCase(TransactionTestCase):
         self.evaluate_subsets(
             self.make_subsets("2000-01-01T00:00:40Z"), "contains", ("H",)
         )
+
+class CachingTest(TestCase):
+    def _reload_ows_views(self):
+        # NOTE: we have to do this dance because the setting
+        #       is read at import time
+        importlib.reload(eoxserver.services.views)
+        importlib.reload(eoxserver.services.urls)
+        importlib.reload(sys.modules[settings.ROOT_URLCONF])
+        clear_url_caches()
+
+
+    def test_ows_view_not_cached_by_default(self):
+        response = Client().get("/ows", {"service": "WMS", "request": "GetCapabilities"})
+        self.assertEqual(response.status_code, http.HTTPStatus.OK)
+        self.assertNotIn('Cache-Control', response)
+
+    def test_ows_view_cached_if_configured(self):
+        with override_settings(EOXS_RENDERER_CACHE_TIME="3"):
+            self._reload_ows_views()
+            response = Client().get("/ows", {"service": "WMS", "request": "GetCapabilities"})
+
+        self._reload_ows_views()
+
+        self.assertEqual(response.status_code, http.HTTPStatus.OK)
+        self.assertEqual(response['Cache-Control'], "max-age=3")
