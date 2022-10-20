@@ -39,6 +39,7 @@ import re
 from django.conf import settings
 from django.urls import reverse
 from django.http import HttpResponse
+from django.db.models import Q
 
 from eoxserver.core.decoders import kvp, typelist, InvalidParameterException
 from eoxserver.core.config import get_eoxserver_config
@@ -372,6 +373,7 @@ class WMSBaseGetLegendGraphicHandler(object):
             elevation=None,
             zoom=decoder.scale,
             limit=1,
+            variables={},
         )
 
         legend = Legend(
