@@ -403,7 +403,7 @@ class WMS13GetFeatureInfoEOOMTestCase(testbase.XMLTestCase):
 #===============================================================================
 # Legend Graphic
 #===============================================================================
-class WMS13GetLegendGraphicTestCase(testbase.WMS13GetLegendTestCase):
+class WMS13GetLegendGraphicTestCase(wmsbase.WMS13GetLegendTestCase):
     """ Test a GetLegendGraphic request for a dataset with an associated style. """
 
     def getRequest(self):
