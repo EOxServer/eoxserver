@@ -413,7 +413,7 @@ class WMS13GetLegendGraphicTestCase(testbase.WMS13GetLegendTestCase):
     def getFileExtension(self, file_type):
         return "png"
 
-class WMS13GetLegendGraphicStyledTestCase(testbase.WMS13GetLegendTestCase):
+class WMS13GetLegendGraphicStyledTestCase(wmsbase.WMS13GetLegendTestCase):
     """ Test a GetLegendGraphic request for a dataset with an associated style. """
 
     def getRequest(self):
@@ -425,7 +425,7 @@ class WMS13GetLegendGraphicStyledTestCase(testbase.WMS13GetLegendTestCase):
 
 # currently disabled because of segfaults in MapServer
 
-class WMS13GetLegendGraphicDatasetStyledTestCase(testbase.RasterTestCase):
+class WMS13GetLegendGraphicDatasetStyledTestCase(wmsbase.RasterTestCase):
     """ Test a GetLegendGraphic request for a dataset with an associated style. """
 
     fixtures = wmsbase.WMS13GetMapTestCase.fixtures + [
