@@ -84,6 +84,7 @@ class CloudCoverageProcess(Component):
         ),
     }
 
+    SCL_LAYER_NO_DATA = 0
     SCL_LAYER_CLOUD_MEDIUM_PROBABILITY = 8
     SCL_LAYER_CLOUD_HIGH_PROBABILITY = 9
     SCL_LAYER_THIN_CIRRUS = 10
@@ -169,7 +170,10 @@ def cloud_coverage_ratio_in_geometry(
         ]
     )
 
-    num_pixels = sum(histogram)
+    num_no_data = histogram[CloudCoverageProcess.SCL_LAYER_NO_DATA]
+
+    num_pixels = sum(histogram) - num_no_data
+
     cloud_coverage_ratio = num_cloud / num_pixels if num_pixels != 0 else 0
 
     gdal.Unlink(tmp_ds)
