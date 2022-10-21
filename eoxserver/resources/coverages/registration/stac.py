@@ -380,8 +380,6 @@ def register_stac_product(stac_item, product_type=None, storage=None,
             coverage_footprint = GEOSGeometry(
                 json.dumps(asset['proj:geometry'])
             )
-        if footprint:
-            coverage_footprint = footprint
 
         if coverage_footprint:
             overrides['footprint'] = coverage_footprint.wkt
