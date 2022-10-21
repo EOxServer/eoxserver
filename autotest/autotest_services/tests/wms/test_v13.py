@@ -425,7 +425,7 @@ class WMS13GetLegendGraphicStyledTestCase(wmsbase.WMS13GetLegendTestCase):
 
 # currently disabled because of segfaults in MapServer
 
-class WMS13GetLegendGraphicDatasetStyledTestCase(wmsbase.RasterTestCase):
+class WMS13GetLegendGraphicDatasetStyledTestCase(testbase.RasterTestCase):
     """ Test a GetLegendGraphic request for a dataset with an associated style. """
 
     fixtures = wmsbase.WMS13GetMapTestCase.fixtures + [
