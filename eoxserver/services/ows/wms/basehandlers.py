@@ -102,11 +102,13 @@ class WMSBaseGetCapabilitiesHandler(object):
                     service_visibility__visibility=True
                 ),
                 models.Coverage.objects.filter(
-                    service_visibility__service='wms',
-                    service_visibility__visibility=True
-                ) | Q(  # include all Collections, exclude "WMS-invisible"
-                        # later
-                    collection__isnull=False
+                    Q(
+                        service_visibility__service='wms',
+                        service_visibility__visibility=True
+                    ) | Q(  # include all Collections, exclude "WMS-invisible"
+                            # later
+                       collections__isnull=False
+                    )
                 )
             )
 
