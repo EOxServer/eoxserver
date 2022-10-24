@@ -137,7 +137,7 @@ class WCS20DescribeEOCoverageSetHandler(object):
         # referenced
         all_dataset_series_qs = models.EOObject.objects.filter(
             Q(  # directly referenced Collections
-                collections__isnull=False,
+                collection__isnull=False,
                 identifier__in=[
                     collection.identifier for collection in collections
                 ],
