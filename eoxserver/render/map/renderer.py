@@ -28,10 +28,13 @@
 from django.conf import settings
 from django.utils.module_loading import import_string
 
-from eoxserver.render.map.config import DEFAULT_EOXS_MAP_RENDERER
+from eoxserver.render.map.config import (
+    DEFAULT_EOXS_MAP_RENDERER, DEFAULT_EOXS_LEGEND_RENDERER
+)
 
 
 MAP_RENDERER = None
+LEGEND_RENDERER = None
 
 
 def get_map_renderer():
@@ -44,3 +47,16 @@ def get_map_renderer():
         MAP_RENDERER = import_string(specifier)()
 
     return MAP_RENDERER
+
+
+def get_legend_renderer():
+    global LEGEND_RENDERER
+    if LEGEND_RENDERER is None:
+        specifier = getattr(
+            settings, 'EOXS_LEGEND_RENDERER', DEFAULT_EOXS_LEGEND_RENDERER
+        )
+
+        LEGEND_RENDERER = import_string(specifier)()
+
+    return LEGEND_RENDERER
+

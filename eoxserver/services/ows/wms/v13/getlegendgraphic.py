@@ -39,9 +39,6 @@ from eoxserver.services.result import to_http_response
 
 
 class WMS13GetLegendGraphicHandler(Component):
-    implements(ServiceHandlerInterface)
-    implements(GetServiceHandlerInterface)
-
     renderer = UniqueExtensionPoint(WMSLegendGraphicRendererInterface)
 
     service = "WMS"

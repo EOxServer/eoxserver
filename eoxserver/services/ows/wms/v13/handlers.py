@@ -13,8 +13,8 @@
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
-# The above copyright notice and this permission notice shall be included in all
-# copies of this Software or works derived from this Software.
+# The above copyright notice and this permission notice shall be included in
+# all copies of this Software or works derived from this Software.
 #
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -30,7 +30,8 @@ from eoxserver.resources.coverages import crss
 from eoxserver.services.ows.wms.util import parse_bbox
 from eoxserver.services.ows.wms.exceptions import InvalidCRS
 from eoxserver.services.ows.wms.basehandlers import (
-    WMSBaseGetCapabilitiesHandler, WMSBaseGetMapHandler, WMSBaseGetMapDecoder
+    WMSBaseGetCapabilitiesHandler, WMSBaseGetMapHandler, WMSBaseGetMapDecoder,
+    WMSBaseGetLegendGraphicDecoder, WMSBaseGetLegendGraphicHandler
 )
 from eoxserver.services.ows.wms.v13.encoders import WMS13Encoder
 
@@ -73,3 +74,15 @@ class WMS13GetMapDecoder(WMSBaseGetMapDecoder):
     crs = kvp.Parameter(num=1)
 
     srs = property(lambda self: self.crs)
+
+
+class WMS13GetLegendGraphicHandler(WMSBaseGetLegendGraphicHandler):
+    service = ("WMS", None)
+    versions = ("1.3.0", "1.3")
+
+    def get_decoder(self, request):
+        return WMS13GetLegendGraphicDecoder(request.GET)
+
+
+class WMS13GetLegendGraphicDecoder(WMSBaseGetLegendGraphicDecoder):
+    pass
