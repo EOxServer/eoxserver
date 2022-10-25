@@ -32,7 +32,7 @@ from autotest_services.tests.wps.base import (
 )
 
 
-class WPS20ExecuteCloudCoverage(
+class WPS20ExecuteCloudCoverageNonCloudy(
     ContentTypeCheckMixIn, testbase.JSONTestCase
 ):
     fixtures = testbase.JSONTestCase.fixtures + ["cloud_coverages.json"]
@@ -52,7 +52,7 @@ class WPS20ExecuteCloudCoverage(
           <wps:Input id="end_time"><wps:Data>2020-05-31</wps:Data></wps:Input>
           <wps:Input id="geometry">
             <wps:Data>
-              <wps:ComplexData mimeType="text/plain">MULTIPOLYGON (((69.1714578 80.1407449, 69.1714578 80.1333736, 69.2069740 80.1333736, 69.2069740 80.1407449, 69.1714578 80.1407449)))</wps:ComplexData>
+              <wps:ComplexData mimeType="text/plain">POLYGON ((69.19913354922439908 80.1406125504016984, 69.19921132386413376 80.13719046625288911, 69.20360559100976161 80.13719046625288911, 69.20364447832963606 80.14065143772157285, 69.20364447832963606 80.14065143772157285, 69.19913354922439908 80.1406125504016984))</wps:ComplexData>
             </wps:Data>
           </wps:Input>
           <wps:Output id="result" >
@@ -62,7 +62,7 @@ class WPS20ExecuteCloudCoverage(
         return (params, "xml")
 
 
-class WPS20ExecuteCloudCoverageReducedGeometry(
+class WPS20ExecuteCloudCoverageCloudyGeometry(
     ContentTypeCheckMixIn, testbase.JSONTestCase
 ):
     fixtures = testbase.JSONTestCase.fixtures + ["cloud_coverages.json"]
@@ -82,7 +82,7 @@ class WPS20ExecuteCloudCoverageReducedGeometry(
           <wps:Input id="end_time"><wps:Data>2020-05-31</wps:Data></wps:Input>
           <wps:Input id="geometry">
             <wps:Data>
-              <wps:ComplexData mimeType="text/plain">POLYGON((69.1714578 80.1407449,69.1714578 80.1333736,69.17170295145417 80.1333745192212,69.17164930727387 80.14073755166672,69.1714578 80.1407449))</wps:ComplexData>
+              <wps:ComplexData mimeType="text/plain">POLYGON ((69.19753916910960356 80.14057366308182395, 69.19757805642947801 80.13960148008500539, 69.20484998524568709 80.13956259276513094, 69.20481109792581265 80.1405347757619495, 69.20481109792581265 80.1405347757619495, 69.19753916910960356 80.14057366308182395))</wps:ComplexData>
             </wps:Data>
           </wps:Input>
           <wps:Output id="result" >
