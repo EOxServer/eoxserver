@@ -124,6 +124,7 @@ def _input_value(input_: pyows_types.Input) -> typing.Any:
                 crs=data_value.crs,
             )
         else:
-            raise OperationNotSupportedError("Unsupported input element")
+            # not a common type, process needs to handle it on its own
+            return data_value
     else:
         raise OperationNotSupportedError("References as input are not implemented")
