@@ -216,7 +216,7 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
 
         discover_parser.add_argument(
                 'identifier', default=None,
-                help='The identifier of the product to descover.'
+                help='The identifier of the product to discover.'
             )
 
         discover_parser.add_argument(
