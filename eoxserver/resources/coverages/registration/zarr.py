@@ -25,32 +25,84 @@
 # THE SOFTWARE.
 # ------------------------------------------------------------------------------
 
-from eoxserver.resources.coverages import models
-from osgeo.osr import SpatialReference, CoordinateTransformation
-from django.contrib.gis.geos import Polygon
-from eoxserver.contrib.gdal import open_with_env, get_extent
-from eoxserver.contrib import gdal
-import numpy as np
-
 import re
 import datetime
+import logging
+
+from eoxserver.resources.coverages.registration.exceptions import (
+    RegistrationError
+)
+from eoxserver.contrib.gdal import open_with_env
+from eoxserver.contrib import gdal
+from eoxserver.resources.coverages import models
+from eoxserver.resources.coverages.registration.registrators.gdal import (
+    GDALRegistrator
+)
+from osgeo.osr import SpatialReference, CoordinateTransformation
+from django.contrib.gis.geos import Polygon
+
+import numpy as np
+
+logger = logging.getLogger()
 
 
-def extract_products_values(dimension, extent):
-    identifier = dimension['identifier']
-    nodata_value = dimension['nodata_value']
-    footprint = reproject_extent(dimension, extent)
+def create_product(item_id, time, footprint, band_arrays,
+                   xyz_dimensions, product_type, replace, path):
 
-    pass
+    product_identifier = '%s_%s' % (item_id, time)
+    # TODO: figure out how to compute/pass nodata
+    # nodata_value = dim['nodata_value']
 
+    product_type = models.ProductType.objects.get(name=product_type)
+    # check if the product already exists
+    replaced = False
 
-def create_product(item_id, time, extent, metadata_arrays, xyz_dimensions):
-    for dim in metadata_arrays:
+    logger.debug('Registering STAC Item %s' % product_identifier)
+
+    if models.Product.objects.filter(
+            identifier=product_identifier).exists():
+        if replace:
+            logger.debug('Deleting existing Product %s' % product_identifier)
+            models.Product.objects.filter(
+                identifier=product_identifier).delete()
+            replaced = True
+        else:
+            raise RegistrationError(
+                'Product %s already exists' % product_identifier)
+
+    product = models.Product.objects.create(
+        identifier=product_identifier,
+        begin_time=time,
+        end_time=time,
+        footprint=footprint,
+        product_type=product_type,
+    )
+
+    registrator = GDALRegistrator()
+
+    # adding coverages:
+    for dim in band_arrays:
         if dim not in xyz_dimensions:
-            metadata_arrays[dim]["identifier"] = '%s_%s' % (item_id, dim)
-            # TODO: register product
-            # product_register(metadata_arrays[dim], extent)
-    pass
+            overrides = {}
+            coverage_type = None
+            overrides['identifier'] = '%s_%s' % (product_identifier, dim)
+            overrides['footprint'] = footprint.wkt
+
+            # nodata_value = dim['nodata_value']
+            file_path = ('%s:/%s' % path, dim)
+            # coverage types should be configured with a name that matches
+            # the key value (dim)
+            report = registrator.register(
+                data_locations=[file_path],
+                metadata_locations=[],
+                coverage_type_name=coverage_type.name,
+                footprint_from_extent=False,
+                overrides=overrides,
+                replace=replace,
+            )
+
+    models.product_add_coverage(product, report.coverage)
+    return (product, replaced)
 
 
 def reproject_extent(dimension, extent):
@@ -78,9 +130,9 @@ def reproject_extent(dimension, extent):
     return footprint.wkt
 
 
-def compute_extent(path):
-    x_ds = gdal.Open('%s:/X' % path)
-    y_ds = gdal.Open('%s:/Y' % path)
+def compute_extent(path, env):
+    x_ds = open_with_env('%s:/X' % path, env)
+    y_ds = open_with_env('%s:/Y' % path, env)
     minmax_x = compute_min_max(x_ds)
     minmax_y = compute_min_max(y_ds)
     bbox = [minmax_x[0], minmax_y[0], minmax_x[1], minmax_y[1]]
@@ -88,8 +140,8 @@ def compute_extent(path):
     return bbox
 
 
-def create_dates_array(path, begin_time):
-    time_ds = gdal.Open('%s:/time' % path)
+def create_dates_array(path, env, begin_time):
+    time_ds = open_with_env('%s:/time' % path, env)
     ds_arr = np.nditer(time_ds.ReadAsArray(), flags=['f_index'])
     dates_array = []
 
@@ -115,7 +167,9 @@ def compute_min_max(dim):
     return [dimension[0, 0], dimension[0, dimension.size-1]]
 
 
-def register_zarr_item(zarr_item, collection_type=None, storage=None,):
+def register_zarr_item(zarr_item, collection_type=None, storage=None,
+                       product_type=None, replace=False, file_href=None,
+                       env={}):
     """ Registers a single zarr item as a Collection. The
         collection_type to be used can be specified via the product_type_name
         argument.
@@ -131,9 +185,7 @@ def register_zarr_item(zarr_item, collection_type=None, storage=None,):
 
     # TODO: Open the zarr item and read the time dimension
 
-    path = ''
-
-    metadata = gdal.MultiDimInfo(path)
+    metadata = gdal.MultiDimInfo(file_href, env)
 
     fixed_dimensions = []
     for dimension in metadata['dimensions']:
@@ -141,7 +193,7 @@ def register_zarr_item(zarr_item, collection_type=None, storage=None,):
 
     # footprint is the same for all ?
 
-    extent = compute_extent(path)
+    extent = compute_extent(file_href, env)
 
     # get the start-date
     time_string = metadata['arrays']['time']['unit']
@@ -149,8 +201,18 @@ def register_zarr_item(zarr_item, collection_type=None, storage=None,):
     start_date = datetime.datetime.strptime(match.group(), '%Y-%m-%d').date()
 
     # TODO: create time array with date values
-    date_array = create_dates_array(path, start_date)
+    date_array = create_dates_array(file_href, env, start_date)
+
+    # create footprint, assuming that all bands share the same footprint and
+    # projection the first band is the only one that is needed
+    for dim in metadata['arrays']:
+        if dim not in fixed_dimensions:
+            footprint = reproject_extent(metadata[dim], extent)
+            if isinstance(footprint.wkt, str):
+                break
+
     for time in date_array:
 
         create_product(
-            zarr_item, time, extent, metadata['arrays'], fixed_dimensions)
+            zarr_item, date_array[time], footprint, metadata['arrays'],
+            fixed_dimensions, product_type, replace, file_href)
