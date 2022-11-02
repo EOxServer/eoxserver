@@ -40,6 +40,7 @@ from eoxserver.resources.coverages.registration.registrators.gdal import (
 )
 from osgeo.osr import SpatialReference, CoordinateTransformation
 from django.contrib.gis.geos import Polygon
+from django.core.management.base import CommandError
 
 import numpy as np
 
@@ -54,11 +55,11 @@ def create_product(item_id, time, footprint, band_arrays,
     # nodata_value = dim['nodata_value']
 
     product_type = models.ProductType.objects.get(name=product_type)
-    # check if the product already exists
+
     replaced = False
 
     logger.debug('Registering STAC Item %s' % product_identifier)
-
+    # check if the product already exists
     if models.Product.objects.filter(
             identifier=product_identifier).exists():
         if replace:
@@ -89,9 +90,17 @@ def create_product(item_id, time, footprint, band_arrays,
             overrides['footprint'] = footprint.wkt
 
             # nodata_value = dim['nodata_value']
-            file_path = ('%s:/%s' % path, dim)
-            # coverage types should be configured with a name that matches
-            # the key value (dim)
+            file_path = ('ZARR:"%s":/%s' % path, dim)
+            # TODO: coverage types created ? or configured and
+            # all needed is the name?
+            try:
+                coverage_type = models.CoverageType.objects.get(
+                    name=dim
+                )
+            except models.CoverageType.DoesNotExist:
+                raise CommandError(
+                    "Coverage type %r does not exist." % dim
+                )
             report = registrator.register(
                 data_locations=[file_path],
                 metadata_locations=[],
@@ -131,8 +140,8 @@ def reproject_extent(dimension, extent):
 
 
 def compute_extent(path, env):
-    x_ds = open_with_env('%s:/X' % path, env)
-    y_ds = open_with_env('%s:/Y' % path, env)
+    x_ds = open_with_env('ZARR:"%s":/X' % path, env)
+    y_ds = open_with_env('ZARR:"%s":/Y', env)
     minmax_x = compute_min_max(x_ds)
     minmax_y = compute_min_max(y_ds)
     bbox = [minmax_x[0], minmax_y[0], minmax_x[1], minmax_y[1]]
@@ -175,15 +184,13 @@ def register_zarr_item(zarr_item, collection_type=None, storage=None,
         argument.
     """
 
-    # TODO: Create a collection with the zarr item name
+    # Create a collection with the zarr item name
     # check if the collection does not already exist ?
 
     models.Collection.objects.create(
                 identifier=zarr_item,
                 collection_type=None, grid=None
             )
-
-    # TODO: Open the zarr item and read the time dimension
 
     metadata = gdal.MultiDimInfo(file_href, env)
 
@@ -200,7 +207,7 @@ def register_zarr_item(zarr_item, collection_type=None, storage=None,
     match = re.search('\d{4}-\d{2}-\d{2}', time_string)
     start_date = datetime.datetime.strptime(match.group(), '%Y-%m-%d').date()
 
-    # TODO: create time array with date values
+    # create time array with date values
     date_array = create_dates_array(file_href, env, start_date)
 
     # create footprint, assuming that all bands share the same footprint and
