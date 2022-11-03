@@ -114,8 +114,8 @@ def create_product(item_id, time, footprint, band_arrays, storage,
                 overrides=overrides,
                 replace=replace,
             )
+            models.product_add_coverage(product, report.coverage)
 
-    models.product_add_coverage(product, report.coverage)
     logger.debug('successfully Created coverage %s' % overrides['identifier'])
     return (product, replaced)
 
