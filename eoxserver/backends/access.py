@@ -143,7 +143,16 @@ def get_vsi_path(data_item):
     location = data_item.location
     storage = data_item.storage
 
-    return get_vsi_storage_path(storage, location)
+    vsi_path = get_vsi_storage_path(storage, location)
+    subdataset_type = getattr(data_item, 'subdataset_type', None)
+    subdataset_locator = getattr(data_item, 'subdataset_locator', None)
+
+    if subdataset_type:
+        vsi_path = '%s:"%s"' % (subdataset_type, vsi_path)
+    if subdataset_locator:
+        vsi_path = '%s:%s' % (vsi_path, subdataset_locator)
+
+    return vsi_path
 
 
 def get_vsi_storage_path(storage, location=None):
