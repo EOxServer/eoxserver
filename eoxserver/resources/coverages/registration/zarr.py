@@ -2,9 +2,10 @@
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Mussab Abdalla <mussab.abdalla@eox.at>
+#          Fabian Schindler <fabian.schindler@eox.at>
 #
 # ------------------------------------------------------------------------------
-# Copyright (C) 2020 EOX IT Services GmbH
+# Copyright (C) 2022 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -29,6 +30,15 @@ import re
 import datetime
 import logging
 
+
+from osgeo.osr import SpatialReference, CoordinateTransformation
+from django.db import transaction
+from django.contrib.gis.geos import Polygon
+from django.core.management.base import CommandError
+import numpy as np
+
+from eoxserver.backends.access import get_vsi_env, get_vsi_storage_path
+from eoxserver.contrib.gdal import config_env
 from eoxserver.resources.coverages.registration.exceptions import (
     RegistrationError
 )
@@ -39,23 +49,25 @@ from eoxserver.backends import models as backends
 from eoxserver.resources.coverages.registration.registrators.gdal import (
     GDALRegistrator
 )
-from osgeo.osr import SpatialReference, CoordinateTransformation
-from django.contrib.gis.geos import Polygon
-from django.core.management.base import CommandError
-
-import numpy as np
 
 logger = logging.getLogger()
 
 
-def create_product(item_id, time, footprint, band_arrays, storage,
-                   xyz_dimensions, product_type, replace, path, index):
-
-    product_identifier = '%s_slice_%s' % (item_id, index+1)
-    # TODO: figure out how to compute/pass nodata
-    # nodata_value = dim['nodata_value']
-
-    product_type = models.ProductType.objects.get(name=product_type)
+def create_product(
+    collection,
+    begin_time,
+    end_time,
+    footprint,
+    product_type,
+    coverage_type_mapping,
+    replace,
+    driver_name,
+    storage,
+    path,
+    index,
+    all_overrides,
+):
+    product_identifier = '%s_%d' % (collection.identifier, index)
 
     replaced = False
 
@@ -63,67 +75,75 @@ def create_product(item_id, time, footprint, band_arrays, storage,
     if models.Product.objects.filter(
             identifier=product_identifier).exists():
         if replace:
-            logger.debug('Deleting existing Product %s' % product_identifier)
+            logger.debug('Deleting existing Product %s', product_identifier)
             models.Product.objects.filter(
                 identifier=product_identifier).delete()
             replaced = True
         else:
             raise RegistrationError(
-                'Product %s already exists' % product_identifier)
+                'Product %s already exists' % product_identifier
+            )
 
     product = models.Product.objects.create(
         identifier=product_identifier,
-        begin_time=time['begin_time'],
-        end_time=time['end_time'],
+        begin_time=begin_time,
+        end_time=end_time,
         footprint=footprint,
         product_type=product_type,
     )
-    collection = models.Collection.objects.get(identifier=item_id)
     models.collection_insert_eo_object(collection, product)
 
-    logger.debug('successfully Created product %s' % product_identifier)
+    logger.debug('Successfully created product %s', product_identifier)
 
     registrator = GDALRegistrator()
 
     # adding coverages:
-    for dim in band_arrays:
-        if dim not in xyz_dimensions:
-            overrides = {}
-            coverage_type = None
-            overrides['identifier'] = '%s_%s' % (product_identifier, dim)
-            overrides['footprint'] = footprint
+    for dim_name, coverage_type_name in coverage_type_mapping.items():
+        overrides = dict(all_overrides)
+        coverage_type = None
+        overrides['identifier'] = '%s_%s' % (product_identifier, coverage_type_name)
+        overrides['footprint'] = footprint
 
-            # nodata_value = dim['nodata_value']
-            file_path = 'ZARR:"%s":/%s:%s' % (path, dim, index)
-            # TODO: coverage types created ? or configured and
-            # all needed is the name?
-            try:
-                coverage_type = models.CoverageType.objects.get(
-                    name=dim
-                )
-            except models.CoverageType.DoesNotExist:
-                raise CommandError(
-                    "Coverage type %r does not exist." % dim
-                )
-            report = registrator.register(
-                data_locations=[([
-                    storage.name] if storage else []) + [file_path]],
-                metadata_locations=[],
-                coverage_type_name=coverage_type.name,
-                footprint_from_extent=False,
-                overrides=overrides,
-                replace=replace,
+        file_path = '%s:"%s":%s:%s' % (driver_name, path, dim_name, index)
+
+        # TODO: coverage types created ? or configured and
+        # all needed is the name?
+        try:
+            coverage_type = models.CoverageType.objects.get(
+                name=coverage_type_name
             )
-            models.product_add_coverage(product, report.coverage)
+        except models.CoverageType.DoesNotExist:
+            raise CommandError(
+                "Coverage type %r does not exist." % coverage_type_name
+            )
 
-    logger.debug('successfully Created coverage %s' % overrides['identifier'])
+        report = registrator.register(
+            data_locations=[([
+                storage.name] if storage else []) + [file_path]],
+            metadata_locations=[],
+            coverage_type_name=coverage_type.name,
+            footprint_from_extent=False,
+            overrides=overrides,
+            replace=replace,
+            use_subdatasets=True,
+        )
+        models.product_add_coverage(product, report.coverage)
+
+        # cache grid, size and origin, as it will be the same for all slices
+        if not all_overrides:
+            coverage = report.coverage
+            all_overrides['grid'] = coverage.grid
+            all_overrides['size'] = coverage.size
+            all_overrides['origin'] = coverage.origin
+
+        logger.debug('Successfully created coverage %s' % overrides['identifier'])
+
     return (product, replaced)
 
 
-def reproject_extent(dimension, extent):
-    dscrs = dimension['srs']['wkt']
+def extent_to_footprint(crs_wkt, extent):
     dcrs = SpatialReference()
-    dcrs.ImportFromWkt(dscrs)
+    dcrs.ImportFromWkt(crs_wkt)
 
     wgs84 = SpatialReference()
     wgs84.ImportFromEPSG(4326)
@@ -142,40 +162,7 @@ def reproject_extent(dimension, extent):
         )
     )
 
-    return footprint.wkt
-
-
-def compute_extent(path, env):
-    x_ds = open_with_env('ZARR:"%s":/X' % path, env)
-    y_ds = open_with_env('ZARR:"%s":/Y' % path, env)
-    minmax_x = compute_min_max(x_ds)
-    minmax_y = compute_min_max(y_ds)
-    bbox = [minmax_x[0], minmax_y[0], minmax_x[1], minmax_y[1]]
-
-    return bbox
-
-
-def create_dates_array(path, env, begin_time):
-    time_ds = open_with_env('ZARR:"%s":/time' % path, env)
-    ds_arr = np.nditer(time_ds.ReadAsArray(), flags=['f_index'])
-    dates_array = []
-
-    for time in ds_arr:
-        date_value = begin_time + datetime.timedelta(days=time.item())
-        dates_array.append(date_value)
-
-    products_time_spans = []
-
-    for i in range(len(dates_array)):
-        products_time_spans.append({
-            # TODO: figure out a way to compute begin time and end time
-            'begin_time': dates_array[i].strftime('%Y-%m-%dT%H:%M:%SZ'),
-            'end_time': (
-                dates_array[i] + datetime.timedelta(days=1)
-                ).strftime('%Y-%m-%dT%H:%M:%SZ')
-        })
-
-    return products_time_spans
+    return footprint
 
 
 def compute_min_max(dim):
@@ -183,55 +170,100 @@ def compute_min_max(dim):
     return [dimension[0, 0], dimension[0, dimension.size-1]]
 
 
-def register_zarr_item(zarr_item, product_type, file_href=None,
-                       env={}, storage=None, replace=False,):
-    """ Registers a single zarr item as a Collection. The
-        collection_type to be used can be specified via the product_type_name
-        argument.
-    """
+def compute_extent(x_path, y_path):
+    x_ds = open_with_env(x_path, {})
+    y_ds = open_with_env(y_path, {})
 
-    # Create a collection with the zarr item name
-    # check if the collection does not already exist ?
+    minmax_x = compute_min_max(x_ds)
+    minmax_y = compute_min_max(y_ds)
+    bbox = [minmax_x[0], minmax_y[0], minmax_x[1], minmax_y[1]]
 
-    models.Collection.objects.create(
-                identifier=zarr_item,
-                collection_type=None, grid=None
-            )
+    return bbox
 
-    # TODO: get metadata with env
-    metadata = gdal.MultiDimInfo('ZARR:"%s"' % file_href)
+
+def create_dates_array(time_path, begin_time):
+    time_ds = open_with_env(time_path, {})
+    ds_arr = np.nditer(time_ds.ReadAsArray(), flags=['f_index'])
+    dates_array = []
+
+    begin_dt = datetime.datetime.combine(begin_time, datetime.time.min, datetime.timezone.utc)
+    for time in ds_arr:
+        dt = begin_dt + datetime.timedelta(days=time.item())
+        dates_array.append(dt)
+
+    return [
+        (dt, dt + datetime.timedelta(days=1))
+        for dt in dates_array
+    ]
+
+
+@transaction.atomic
+def register_time_series(identifier, storage, path, collection_type_name, product_type_name, coverage_type_mapping, x_dim_name, y_dim_name, time_dim_name, replace=True):
+    collection = models.Collection.objects.create(
+        identifier=identifier,
+        collection_type=(
+            models.CollectionType.objects.get(name=collection_type_name)
+            if collection_type_name is not None else None
+        ),
+        grid=None
+    )
 
     if isinstance(storage, str):
         storage = backends.Storage.objects.get(name=storage)
-    if metadata is None:
-        raise RegistrationError(
-                'Could not find metadata for item %s' % file_href)
-    fixed_dimensions = []
-    for dimension in metadata['dimensions']:
-        fixed_dimensions.append(dimension['name'])
 
-    # footprint is the same for all ?
+    with config_env(get_vsi_env(storage)):
+        vsi_path = get_vsi_storage_path(storage, path)
+        metadata = gdal.MultiDimInfo(vsi_path)
+        driver_name = metadata['driver'].upper()
 
-    extent = compute_extent(file_href, env)
+        # TODO: get time array dynamically
+        match = re.search('\d{4}-\d{2}-\d{2}', metadata['arrays']['time']['unit'])
+        start_date = datetime.datetime.strptime(match.group(), '%Y-%m-%d').date()
 
-    # get the start-date
-    time_string = metadata['arrays']['time']['unit']
-    match = re.search('\d{4}-\d{2}-\d{2}', time_string)
-    start_date = datetime.datetime.strptime(match.group(), '%Y-%m-%d').date()
+        fixed_dimensions = []
+        for dimension in metadata['dimensions']:
+            fixed_dimensions.append(dimension['name'])
 
-    # create time array with date values
-    date_array = create_dates_array(file_href, env, start_date)
+        # footprint is the same for all ?
 
-    # create footprint, assuming that all bands share the same footprint and
-    # projection the first band is the only one that is needed
-    for dim in metadata['arrays']:
-        if dim not in fixed_dimensions:
-            footprint = reproject_extent(metadata['arrays'][dim], extent)
-            if isinstance(footprint, str):
+        extent = compute_extent(
+            '%s:"%s":%s' % (driver_name, vsi_path, x_dim_name),
+            '%s:"%s":%s' % (driver_name, vsi_path, y_dim_name),
+        )
+
+        for dim_name, dim in metadata['arrays'].items():
+            if dim_name not in fixed_dimensions:
+                footprint = extent_to_footprint(dim['srs']['wkt'], extent)
                 break
 
-    for i in range(len(date_array)):
+        # create time array with date values
+        date_array = create_dates_array(
+            '%s:"%s":%s' % (driver_name, vsi_path, time_dim_name),
+            start_date
+        )
 
+    product_type = models.ProductType.objects.get(name=product_type_name)
+
+    overrides = {}
+    for i, (begin_time, end_time) in enumerate(date_array):
         create_product(
-            zarr_item, date_array[i], footprint, metadata['arrays'], storage,
-            fixed_dimensions, product_type, replace, file_href, i)
+            collection,
+            begin_time,
+            end_time,
+            footprint,
+            product_type,
+            coverage_type_mapping,
+            replace,
+            driver_name,
+            storage,
+            path,
+            i,
+            overrides
+        )
+
+# python3 manage.py shell -c "from eoxserver.resources.coverages.registration.zarr import register_time_series; register_time_series('test', 's3', 'filtered_zarr/32N.zarr', 'sample_collection', 'sample_type', {});"
+
+# register_time_series('test', 's3', 'filtered_zarr/32N.zarr', 'sample_collection', 'sample_type', {'/Band1': 'Band1', '/Band2': 'Band2', '/Band3': 'Band3', '/Band4': 'Band4', '/Band5': 'Band5'}, '/X', '/Y', '/time');
+
+
+# python3 manage.py shell -c "from eoxserver.resources.coverages.registration.zarr import register_time_series ; register_time_series('test', 's3', 'filtered_zarr/32N.zarr', 'sample_collection', 'sample_type', {'/Band1': 'Band1', '/Band2': 'Band2', '/Band3': 'Band3', '/Band4': 'Band4', '/Band5': 'Band5'}, '/X', '/Y', '/time');"
