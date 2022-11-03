@@ -78,6 +78,9 @@ def create_product(item_id, time, footprint, band_arrays, storage,
         footprint=footprint,
         product_type=product_type,
     )
+    collection = models.Collection.objects.get(identifier=item_id)
+    models.collection_insert_eo_object(collection, product)
+
     logger.debug('successfully Created product %s' % product_identifier)
 
     registrator = GDALRegistrator()
@@ -126,18 +129,18 @@ def reproject_extent(dimension, extent):
     wgs84.ImportFromEPSG(4326)
 
     dcrs2wgs84 = CoordinateTransformation(dcrs, wgs84)
-    wgs84_extent = dcrs2wgs84.TransformBounds(
-        extent[0], extent[1], extent[2], extent[3], 21
-        )
+    ll = dcrs2wgs84.TransformPoint(extent[0], extent[1])
+    ur = dcrs2wgs84.TransformPoint(extent[2], extent[3])
+
     footprint = Polygon(
-            (
-                (wgs84_extent[1], wgs84_extent[0]),
-                (wgs84_extent[3], wgs84_extent[0]),
-                (wgs84_extent[3], wgs84_extent[2]),
-                (wgs84_extent[1], wgs84_extent[2]),
-                (wgs84_extent[1], wgs84_extent[0]),
-            )
+        (
+            (ll[1], ll[0]),
+            (ur[1], ll[0]),
+            (ur[1], ur[0]),
+            (ll[1], ur[0]),
+            (ll[1], ll[0]),
         )
+    )
 
     return footprint.wkt
 
@@ -180,7 +183,7 @@ def compute_min_max(dim):
     return [dimension[0, 0], dimension[0, dimension.size-1]]
 
 
-def register_zarr_item(zarr_item, file_href=None,
+def register_zarr_item(zarr_item, product_type, file_href=None,
                        env={}, storage=None, replace=False,):
     """ Registers a single zarr item as a Collection. The
         collection_type to be used can be specified via the product_type_name
@@ -200,7 +203,9 @@ def register_zarr_item(zarr_item, file_href=None,
 
     if isinstance(storage, str):
         storage = backends.Storage.objects.get(name=storage)
-
+    if metadata is None:
+        raise RegistrationError(
+                'Could not find metadata for item %s' % file_href)
     fixed_dimensions = []
     for dimension in metadata['dimensions']:
         fixed_dimensions.append(dimension['name'])
@@ -226,7 +231,7 @@ def register_zarr_item(zarr_item, file_href=None,
                 break
 
     for i in range(len(date_array)):
-        product_type = "%s_time%s" % (zarr_item, i+1)
+
         create_product(
             zarr_item, date_array[i], footprint, metadata['arrays'], storage,
             fixed_dimensions, product_type, replace, file_href, i)
