@@ -59,7 +59,6 @@ from eoxserver.services.ecql import (
 )
 from eoxserver.services import filters
 from eoxserver.services.ows.wms.layermapper import LayerMapper
-from eoxserver.services import views
 
 
 class WMSBaseGetCapabilitiesHandler(object):
@@ -122,7 +121,7 @@ class WMSBaseGetCapabilitiesHandler(object):
         conf = CapabilitiesConfigReader(get_eoxserver_config())
         return encoder.serialize(
             encoder.encode_capabilities(
-                conf, request.build_absolute_uri(reverse(views.ows)),
+                conf, request.build_absolute_uri(reverse('ows')),
                 crss.getSupportedCRS_WMS(format_function=crss.asShortCode),
                 map_renderer.get_supported_formats(), [],
                 layer_descriptions
