@@ -434,6 +434,8 @@ def get_grid(definition):
             raise RegistrationError(
                 'Grid %r does not exist' % definition
             )
+    elif isinstance(definition, models.Grid):
+        grid = definition
     elif definition:
         axis_names = definition.get('axis_names', [])
         axis_types = definition['axis_types']

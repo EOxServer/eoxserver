@@ -621,7 +621,7 @@ def create_product_type_from_stac_item(stac_item, product_type_name=None,
 
     if not bands_list:
         raise RegistrationError(
-            'Failed to extract band defintion from STAC Item'
+            'Failed to extract band definition from STAC Item'
         )
 
     # create product type itself
