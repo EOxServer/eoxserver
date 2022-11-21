@@ -70,7 +70,6 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
         )
         register_parser.add_argument(
             "--storage",
-            required=True,
             help="The storage to use",
         )
         register_parser.add_argument(
