@@ -31,6 +31,7 @@ except ImportError:
     from itertools import zip_longest as izip_longest
 
 from copy import deepcopy
+import typing
 
 from django.utils.six import string_types
 from eoxserver.core.util.timetools import parse_iso8601, parse_duration
@@ -63,7 +64,7 @@ class Field(object):
         self._data_type_range = data_type_range
 
     @property
-    def index(self):
+    def index(self) -> int:
         return self._index
 
     @property
@@ -476,11 +477,11 @@ class ArraydataLocation(Location):
         self._band_statistics = band_statistics
 
     @property
-    def start_field(self):
+    def start_field(self) -> int:
         return self._start_field
 
     @property
-    def end_field(self):
+    def end_field(self) -> int:
         return self._end_field
 
     @property
@@ -539,7 +540,7 @@ class Coverage(object):
         return self._origin
 
     @property
-    def grid(self):
+    def grid(self) -> Grid:
         return self._grid
 
     @property
@@ -555,7 +556,7 @@ class Coverage(object):
         )
 
     @property
-    def arraydata_locations(self):
+    def arraydata_locations(self) -> typing.List[ArraydataLocation]:
         return self._arraydata_locations
 
     @property
@@ -596,7 +597,9 @@ class Coverage(object):
         elif self.footprint:
             return self.footprint.extent
 
-    def lookup_field(self, field_or_identifier):
+    def lookup_field(
+        self, field_or_identifier: typing.Union[Field, str]
+    ) -> typing.Optional[Field]:
         if isinstance(field_or_identifier, Field):
             field = field_or_identifier
             if field not in self.range_type:
@@ -612,7 +615,9 @@ class Coverage(object):
             except StopIteration:
                 return None
 
-    def get_location_for_field(self, field_or_identifier):
+    def get_location_for_field(
+        self, field_or_identifier: typing.Union[Field, str],
+    ) -> typing.Optional[ArraydataLocation]:
         field = self.lookup_field(field_or_identifier)
 
         index = field.index
@@ -738,7 +743,7 @@ class Mosaic(object):
         return self._eo_metadata.end_time if self._eo_metadata else None
 
     @property
-    def range_type(self):
+    def range_type(self) -> RangeType:
         return self._range_type
 
     @property
