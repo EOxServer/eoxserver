@@ -31,7 +31,7 @@ except ImportError:
     from itertools import zip_longest as izip_longest
 
 from copy import deepcopy
-import typing
+from typing import List, Optional, Union
 
 from django.utils.six import string_types
 from eoxserver.core.util.timetools import parse_iso8601, parse_duration
@@ -556,7 +556,7 @@ class Coverage(object):
         )
 
     @property
-    def arraydata_locations(self) -> typing.List[ArraydataLocation]:
+    def arraydata_locations(self) -> List[ArraydataLocation]:
         return self._arraydata_locations
 
     @property
@@ -598,8 +598,8 @@ class Coverage(object):
             return self.footprint.extent
 
     def lookup_field(
-        self, field_or_identifier: typing.Union[Field, str]
-    ) -> typing.Optional[Field]:
+        self, field_or_identifier: Union[Field, str]
+    ) -> Optional[Field]:
         if isinstance(field_or_identifier, Field):
             field = field_or_identifier
             if field not in self.range_type:
@@ -616,8 +616,8 @@ class Coverage(object):
                 return None
 
     def get_location_for_field(
-        self, field_or_identifier: typing.Union[Field, str],
-    ) -> typing.Optional[ArraydataLocation]:
+        self, field_or_identifier: Union[Field, str],
+    ) -> Optional[ArraydataLocation]:
         field = self.lookup_field(field_or_identifier)
 
         index = field.index

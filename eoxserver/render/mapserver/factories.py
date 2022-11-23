@@ -26,7 +26,7 @@
 # ------------------------------------------------------------------------------
 
 from os.path import join
-import typing
+from typing import List, Type, Iterable, Tuple
 from uuid import uuid4
 try:
     from itertools import izip_longest
@@ -67,10 +67,10 @@ logger = logging.getLogger(__name__)
 
 
 class BaseMapServerLayerFactory(object):
-    handled_layer_types: typing.List[typing.Type[Layer]] = []
+    handled_layer_types: List[Type[Layer]] = []
 
     @classmethod
-    def supports(self, layer_type: typing.Type[Layer]):
+    def supports(self, layer_type: Type[Layer]):
         return layer_type in self.handled_layer_types
 
     def create(self, map_obj: Map, layer: Layer):
@@ -84,8 +84,8 @@ class CoverageLayerFactoryMixIn(object):
     """ Base class for factories dealing with coverages.
     """
     def get_fields(
-        self, fields: typing.Iterable[Field], bands, wavelengths
-    ) -> typing.List[Field]:
+        self, fields: Iterable[Field], bands, wavelengths
+    ) -> List[Field]:
         """ Get the field subset for the given bands/wavelengths selection
         """
         if bands:
@@ -117,7 +117,7 @@ class CoverageLayerFactoryMixIn(object):
 
         return fields
 
-    def create_coverage_layer(self, map_obj: Map, coverage: Coverage, fields: typing.List[Field],
+    def create_coverage_layer(self, map_obj: Map, coverage: Coverage, fields: List[Field],
                               style=None, ranges=None):
         """ Creates a mapserver layer object for the given coverage
         """
@@ -637,7 +637,7 @@ class OutlinesLayerFactory(BaseMapServerLayerFactory):
 
 
 def _create_raster_layer_objs(map_obj, extent, sr, data, filename_generator,
-                              resample=None) -> typing.List[ms.layerObj]:
+                              resample=None) -> List[ms.layerObj]:
     layer_obj = ms.layerObj(map_obj)
     layer_obj.type = ms.MS_LAYER_RASTER
     layer_obj.status = ms.MS_ON
@@ -858,7 +858,7 @@ def _create_raster_style(name, layer, minvalue=0, maxvalue=255,
         layer.insertClass(cls)
 
 
-def _get_range(field: Field, range_=None) -> typing.Tuple[int, int]:
+def _get_range(field: Field, range_=None) -> Tuple[int, int]:
     """ Gets the numeric range of a field
     """
     if range_:
@@ -890,7 +890,7 @@ def _setup_factories():
     ]
 
 
-def get_layer_factories() -> typing.List[BaseMapServerLayerFactory]:
+def get_layer_factories() -> List[BaseMapServerLayerFactory]:
     if LAYER_FACTORIES is None:
         _setup_factories()
     return LAYER_FACTORIES

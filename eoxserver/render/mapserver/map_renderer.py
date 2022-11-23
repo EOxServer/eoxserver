@@ -27,7 +27,7 @@
 
 import logging
 import tempfile
-import typing
+from typing import List, Tuple, Type
 from uuid import uuid4
 
 from eoxserver.contrib import mapserver as ms
@@ -158,7 +158,7 @@ class MapserverMapRenderer(object):
     def _get_layers_plus_factories(
         self,
         render_map: Map,
-    ) -> typing.List[typing.Tuple[Layer, BaseMapServerLayerFactory]]:
+    ) -> List[Tuple[Layer, BaseMapServerLayerFactory]]:
         layers_plus_factories = []
         type_to_layer_factory = {}
         for layer in render_map.layers:
@@ -173,7 +173,7 @@ class MapserverMapRenderer(object):
 
         return layers_plus_factories
 
-    def _get_layer_factory(self, layer_type: typing.Type[Layer]):
+    def _get_layer_factory(self, layer_type: Type[Layer]):
         for factory in get_layer_factories():
             if factory.supports(layer_type):
                 return factory
