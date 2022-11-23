@@ -51,7 +51,7 @@ from eoxserver.resources.coverages.metadata.component import (
 )
 
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 
 def get_product_type_name(stac_item):
