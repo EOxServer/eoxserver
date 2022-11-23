@@ -50,7 +50,7 @@ from eoxserver.resources.coverages.registration.registrators.gdal import (
     GDALRegistrator
 )
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 
 def create_product(
