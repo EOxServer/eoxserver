@@ -148,7 +148,7 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
         replace,
         **kwargs,
     ):
-        product, replaced = register_time_series(
+        timeseries_path, replaced = register_time_series(
             collection=collection,
             storage=storage,
             path=path,
@@ -161,7 +161,12 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             replace=replace,
         )
 
-        self.print_msg(f"Successfully registered product {product}")
+        self.print_msg(
+            (
+                f"Successfully {'replaced' if replaced else 'registered'}"
+                f" timeseries {timeseries_path}"
+            )
+        )
 
     def handle_deregister(self, **kwargs):
         raise NotImplementedError()

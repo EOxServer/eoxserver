@@ -280,6 +280,8 @@ def register_time_series(
             product_template
         )
 
+    return path, replace
+
 # python3 manage.py shell -c "from eoxserver.resources.coverages.registration.zarr import register_time_series; register_time_series('test', 's3', 'filtered_zarr/32N.zarr', 'sample_collection', 'sample_type', {});"
 
 # register_time_series(Collection(),'s3', 'filtered_zarr/32N.zarr', 'sample_type', {'/Band1': 'Band1', '/Band2': 'Band2', '/Band3': 'Band3', '/Band4': 'Band4', '/Band5': 'Band5'}, '/X', '/Y', '/time', "{collection_identifier}_{file_identifier}_{index}");
