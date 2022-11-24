@@ -50,7 +50,7 @@ from eoxserver.resources.coverages.registration.registrators.gdal import (
     GDALRegistrator
 )
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 
 def create_product(
@@ -66,8 +66,19 @@ def create_product(
     path,
     index,
     all_overrides,
+    file_identifier,
+    product_template,
 ):
-    product_identifier = '%s_%d' % (collection.identifier, index)
+    template_values = {
+        "collection_identifier": collection.identifier,
+        "file_identifier": file_identifier,
+        "index": index,
+        "product_type": product_type,
+        "begin_time": begin_time,
+        "end_time": end_time
+    }
+
+    product_identifier = product_template.format(**template_values)
 
     replaced = False
 
@@ -75,7 +86,7 @@ def create_product(
     if models.Product.objects.filter(
             identifier=product_identifier).exists():
         if replace:
-            logger.debug('Deleting existing Product %s', product_identifier)
+            logger.info('Deleting existing Product %s', product_identifier)
             models.Product.objects.filter(
                 identifier=product_identifier).delete()
             replaced = True
@@ -93,7 +104,7 @@ def create_product(
     )
     models.collection_insert_eo_object(collection, product)
 
-    logger.debug('Successfully created product %s', product_identifier)
+    logger.info('Successfully created product %s', product_identifier)
 
     registrator = GDALRegistrator()
 
@@ -136,7 +147,7 @@ def create_product(
             all_overrides['size'] = coverage.size
             all_overrides['origin'] = coverage.origin
 
-        logger.debug('Successfully created coverage %s' % overrides['identifier'])
+        logger.info('Successfully created coverage %s' % overrides['identifier'])
 
     return (product, replaced)
 
@@ -167,7 +178,7 @@ def extent_to_footprint(crs_wkt, extent):
 
 def compute_min_max(dim):
     dimension = dim.ReadAsArray()
-    return [dimension[0, 0], dimension[0, dimension.size-1]]
+    return [dimension[0, 0], dimension[0, dimension.size - 1]]
 
 
 def compute_extent(x_path, y_path):
@@ -186,7 +197,8 @@ def create_dates_array(time_path, begin_time):
     ds_arr = np.nditer(time_ds.ReadAsArray(), flags=['f_index'])
     dates_array = []
 
-    begin_dt = datetime.datetime.combine(begin_time, datetime.time.min, datetime.timezone.utc)
+    begin_dt = datetime.datetime.combine(
+        begin_time, datetime.time.min, datetime.timezone.utc)
     for time in ds_arr:
         dt = begin_dt + datetime.timedelta(days=time.item())
         dates_array.append(dt)
@@ -198,15 +210,20 @@ def create_dates_array(time_path, begin_time):
 
 
 @transaction.atomic
-def register_time_series(identifier, storage, path, collection_type_name, product_type_name, coverage_type_mapping, x_dim_name, y_dim_name, time_dim_name, replace=True):
-    collection = models.Collection.objects.create(
-        identifier=identifier,
-        collection_type=(
-            models.CollectionType.objects.get(name=collection_type_name)
-            if collection_type_name is not None else None
-        ),
-        grid=None
-    )
+def register_time_series(
+    collection,
+    storage,
+    path,
+    product_type_name,
+    coverage_type_mapping,
+    x_dim_name,
+    y_dim_name,
+    time_dim_name,
+    product_template,
+    replace=True
+):
+
+    file_identifier = path.split("/")[-1].split(".")[0]
 
     if isinstance(storage, str):
         storage = backends.Storage.objects.get(name=storage)
@@ -217,7 +234,7 @@ def register_time_series(identifier, storage, path, collection_type_name, produc
         driver_name = metadata['driver'].upper()
 
         # TODO: get time array dynamically
-        match = re.search('\d{4}-\d{2}-\d{2}', metadata['arrays']['time']['unit'])
+        match = re.search(r'\d{4}-\d{2}-\d{2}', metadata['arrays']['time']['unit'])
         start_date = datetime.datetime.strptime(match.group(), '%Y-%m-%d').date()
 
         fixed_dimensions = []
@@ -258,12 +275,16 @@ def register_time_series(identifier, storage, path, collection_type_name, produc
             storage,
             path,
             i,
-            overrides
+            overrides,
+            file_identifier,
+            product_template
         )
+
+    return path, replace
 
 # python3 manage.py shell -c "from eoxserver.resources.coverages.registration.zarr import register_time_series; register_time_series('test', 's3', 'filtered_zarr/32N.zarr', 'sample_collection', 'sample_type', {});"
 
-# register_time_series('test', 's3', 'filtered_zarr/32N.zarr', 'sample_collection', 'sample_type', {'/Band1': 'Band1', '/Band2': 'Band2', '/Band3': 'Band3', '/Band4': 'Band4', '/Band5': 'Band5'}, '/X', '/Y', '/time');
+# register_time_series(Collection(),'s3', 'filtered_zarr/32N.zarr', 'sample_type', {'/Band1': 'Band1', '/Band2': 'Band2', '/Band3': 'Band3', '/Band4': 'Band4', '/Band5': 'Band5'}, '/X', '/Y', '/time', "{collection_identifier}_{file_identifier}_{index}");
 
 
 # python3 manage.py shell -c "from eoxserver.resources.coverages.registration.zarr import register_time_series ; register_time_series('test', 's3', 'filtered_zarr/32N.zarr', 'sample_collection', 'sample_type', {'/Band1': 'Band1', '/Band2': 'Band2', '/Band3': 'Band3', '/Band4': 'Band4', '/Band5': 'Band5'}, '/X', '/Y', '/time');"
