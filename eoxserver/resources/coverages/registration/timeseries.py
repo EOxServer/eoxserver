@@ -74,8 +74,8 @@ def create_product(
         "file_identifier": file_identifier,
         "index": index,
         "product_type": product_type,
-        "begin_time": begin_time,
-        "end_time": end_time
+        "begin_time": begin_time.strftime('%Y%m%d'),
+        "end_time": end_time.strftime('%Y%m%d')
     }
 
     product_identifier = product_template.format(**template_values)
