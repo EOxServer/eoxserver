@@ -400,9 +400,9 @@ class BrowseLayerMixIn(object):
 
                 else:
                     browse_iter = enumerate(
-                        zip(browse.field_list, browse.ranges), start=1
+                        zip(browse.field_list, browse.ranges, browse.nodata_values), start=1
                     )
-                    for i, (field, field_range) in browse_iter:
+                    for i, (field, field_range, nodata_value) in browse_iter:
                         if ranges:
                             if len(ranges) == 1:
                                 range_ = ranges[0]
@@ -414,10 +414,20 @@ class BrowseLayerMixIn(object):
                             range_ = _get_range(field)
 
                         for layer_obj in layer_objs:
-                            layer_obj.setProcessingKey(
-                                "SCALE_%d" % i,
-                                "%s,%s" % tuple(range_)
-                            )
+                            if browse.show_out_of_bounds_data and nodata_value == 0 and range_[0] >= 1:
+                                # NOTE: this trick only works with 0 as nodata value
+                                #       and if there actually is data below the min range
+
+                                # only need 1:1 mapping if that's not the min
+                                lut_start= ("1:1," if range_[0] > 1 else "")
+                                lut = f"{lut_start}%d:1,%d:255" % tuple(range_)
+
+                                layer_obj.setProcessingKey("LUT_%d" % i, lut)
+                            else:
+                                layer_obj.setProcessingKey(
+                                    "SCALE_%d" % i,
+                                    "%s,%s" % tuple(range_)
+                                )
 
             elif isinstance(browse, Browse):
                 layer_objs = _create_raster_layer_objs(
