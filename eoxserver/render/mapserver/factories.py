@@ -418,6 +418,10 @@ class BrowseLayerMixIn(object):
                                 # NOTE: this trick only works with 0 as nodata value
                                 #       and if there actually is data below the min range
 
+                                # TODO: currently we only have data with exactly this case (integer values,
+                                #       0 as no data value). We can generalize this to float and for coverages
+                                #       as necessary.
+
                                 # only need 1:1 mapping if that's not the min
                                 lut_start= ("1:1," if range_[0] > 1 else "")
                                 lut = f"{lut_start}%d:1,%d:255" % tuple(range_)
