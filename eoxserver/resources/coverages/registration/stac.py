@@ -393,7 +393,7 @@ def register_stac_product(stac_item, product_type=None, storage=None,
             overrides['size'] = [shape[1], shape[0]]
 
         if transform:
-            overrides['origin'] = [transform[1], transform[5]]
+            overrides['origin'] = [transform[2], transform[5]]
 
         if epsg and transform:
             sr = osr.SpatialReference(epsg)
