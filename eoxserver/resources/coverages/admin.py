@@ -93,7 +93,11 @@ class BrowseTypeInline(admin.StackedInline):
                 'alpha_expression', 'alpha_nodata_value',
                 ('alpha_range_min', 'alpha_range_max'),
             )
-        })
+        }),
+        ("Show out of bounds data", {
+            'classes': ('collapse', 'collapsed'),
+            'fields': ('show_out_of_bounds_data',),
+        }),
     )
 
 

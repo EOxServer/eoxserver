@@ -25,6 +25,8 @@
 # THE SOFTWARE.
 # ------------------------------------------------------------------------------
 
+from typing import List, Tuple, Optional, Union
+
 from django.contrib.gis.geos import Polygon
 from django.contrib.gis.gdal import SpatialReference, CoordTransform, DataSource
 
@@ -36,6 +38,9 @@ from eoxserver.render.coverage.objects import Coverage
 BROWSE_MODE_RGB = "rgb"
 BROWSE_MODE_RGBA = "rgba"
 BROWSE_MODE_GRAYSCALE = "grayscale"
+
+
+OptionalNumeric = Optional[Union[float, int]]
 
 
 class Browse(object):
@@ -136,7 +141,9 @@ class Browse(object):
 
 class GeneratedBrowse(Browse):
     def __init__(self, name, band_expressions, ranges, nodata_values,
-                 fields_and_coverages, field_list, footprint, variables):
+                 fields_and_coverages, field_list, footprint, variables,
+                 show_out_of_bounds_data=False,
+                 ):
         self._name = name
         self._band_expressions = band_expressions
         self._ranges = ranges
@@ -145,6 +152,7 @@ class GeneratedBrowse(Browse):
         self._field_list = field_list
         self._footprint = footprint
         self._variables = variables
+        self._show_out_of_bounds_data = show_out_of_bounds_data
 
     @property
     def name(self):
@@ -185,11 +193,11 @@ class GeneratedBrowse(Browse):
         return self._band_expressions
 
     @property
-    def ranges(self):
+    def ranges(self) -> List[Tuple[OptionalNumeric, OptionalNumeric]]:
         return self._ranges
 
     @property
-    def nodata_values(self):
+    def nodata_values(self) -> List[OptionalNumeric]:
         return self._nodata_values
 
     @property
@@ -204,10 +212,14 @@ class GeneratedBrowse(Browse):
     def variables(self):
         return self._variables
 
+    @property
+    def show_out_of_bounds_data(self) -> bool:
+        return self._show_out_of_bounds_data
+
     @classmethod
     def from_coverage_models(cls, band_expressions, ranges, nodata_values,
                              fields_and_coverage_models,
-                             product_model, variables):
+                             product_model, variables, show_out_of_bounds_data):
 
         fields_and_coverages = {
             field_name: [
@@ -230,6 +242,7 @@ class GeneratedBrowse(Browse):
             ],
             product_model.footprint,
             variables,
+            show_out_of_bounds_data,
         )
 
 

@@ -608,7 +608,7 @@ class LayerMapperConfigReader(config.Reader):
     color = config.Option(type=str, default='grey')
 
 
-def _generate_browse_from_browse_type(product, browse_type, variables):
+def _generate_browse_from_browse_type(product: models.Product, browse_type: models.BrowseType, variables):
     if not browse_type.red_or_grey_expression:
         return None
 
@@ -666,6 +666,7 @@ def _generate_browse_from_browse_type(product, browse_type, variables):
             fields_and_coverages,
             product,
             variables,
+            show_out_of_bounds_data=browse_type.show_out_of_bounds_data,
         )
     return None
 

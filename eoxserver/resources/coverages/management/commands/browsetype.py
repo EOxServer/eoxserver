@@ -104,6 +104,12 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             '--alpha-nodata', type=float,
             dest='alpha_nodata', default=None,
         )
+        create_parser.add_argument(
+            '--show-out-of-bounds-data',
+            action="store_true",
+            default=False,
+        )
+
 
         list_parser.add_argument(
             'product_type_name', nargs=1,
@@ -134,6 +140,7 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
                       blue_range=(None, None), alpha_range=(None, None),
                       red_or_grey_nodata=None, green_nodata=None,
                       blue_nodata=None, alpha_nodata=None,
+                      show_out_of_bounds_data=False,
                       *args, **kwargs):
         """ Handle the creation of a new browse type.
         """
@@ -171,6 +178,7 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             green_nodata_value=green_nodata,
             blue_nodata_value=blue_nodata,
             alpha_nodata_value=alpha_nodata,
+            show_out_of_bounds_data=show_out_of_bounds_data,
         )
 
         if not browse_type_name:
