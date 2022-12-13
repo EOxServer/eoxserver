@@ -212,10 +212,6 @@ def percentile(ds, perc, default=0):
     if histogram:
         min_, max_, _, buckets = histogram
         bucket_diff = (max_ - min_) / len(buckets)
-        nodata = band.GetNoDataValue()
-        if nodata is not None:
-            # Set bucket of nodata value to 0
-            buckets[round((nodata - min_) / bucket_diff)] = 0
         cumsum = np.cumsum(buckets)
         bucket_index = np.searchsorted(cumsum, cumsum[-1] * (perc / 100))
         return min_ + (bucket_index * bucket_diff)
