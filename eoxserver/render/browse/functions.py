@@ -259,11 +259,19 @@ def statistics_stddev(ds, default=0):
 def interpolate(ds, x1, x2, y1, y2):
     """Perform linear interpolation for x between (x1,y1) and (x2,y2) """
     band = ds.GetRasterBand(1)
-    x = band.ReadAsArray()
+    no_data_value = band.GetNoDataValue()
+
     # NOTE: this formula uses large numbers which lead to overflows on uint16
-    x = x.astype("int64")
-    x = ((y2 - y1) * x + x2 * y1 - x1 * y2) / (x2 - x1)
-    return gdal_array.OpenNumPyArray(x, True)
+    orig_image = band.ReadAsArray().astype("int64")
+
+    # save no_data pixels to be able to restore them after the calculation changes them
+    no_data_mask = (orig_image == no_data_value)
+
+    interpolated_image = ((y2 - y1) * orig_image + x2 * y1 - x1 * y2) / (x2 - x1)
+
+    fixed_interpolated_image = np.where(no_data_mask, no_data_value, interpolated_image)
+
+    return gdal_array.OpenNumPyArray(fixed_interpolated_image, True)
 
 
 def wrap_numpy_func(function):
