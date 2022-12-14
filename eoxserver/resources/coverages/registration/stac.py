@@ -124,7 +124,7 @@ def get_path_from_href(href, file_href=None):
 def register_stac_product(stac_item, product_type=None, storage=None,
                           replace=False, coverage_mapping={},
                           browse_mapping=None, metadata_asset_names=None,
-                          file_href=None):
+                          file_href=None, simplify_footprint_tolerance=None):
     """ Registers a single parsed STAC item as a Product. The
         product type to be used can be specified via the product_type_name
         argument.
@@ -419,6 +419,7 @@ def register_stac_product(stac_item, product_type=None, storage=None,
             footprint_from_extent=False,
             overrides=overrides,
             replace=replace,
+            simplify_footprint_tolerance=simplify_footprint_tolerance,
             statistics=[
                 [
                     dict(
