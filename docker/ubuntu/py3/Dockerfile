@@ -60,4 +60,4 @@ EXPOSE 8000
 
 ENTRYPOINT ["/opt/eoxserver/eoxserver-entrypoint.sh"]
 
-CMD ["gunicorn", "$GUNICORN_CMD_ARGS"]
+CMD "gunicorn" $GUNICORN_CMD_ARGS
