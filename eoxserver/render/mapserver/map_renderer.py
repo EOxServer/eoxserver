@@ -27,12 +27,14 @@
 
 import logging
 import tempfile
+from typing import List, Tuple, Type
 from uuid import uuid4
 
 from eoxserver.contrib import mapserver as ms
 from eoxserver.contrib import vsi
 from eoxserver.render.colors import BASE_COLORS, COLOR_SCALES
-from eoxserver.render.mapserver.factories import get_layer_factories
+from eoxserver.render.mapserver.factories import BaseMapServerLayerFactory, get_layer_factories
+from eoxserver.render.map.objects import Map, Layer
 from eoxserver.resources.coverages.formats import getFormatRegistry
 
 
@@ -68,7 +70,7 @@ class MapserverMapRenderer(object):
     def get_supported_formats(self):
         return getFormatRegistry().getSupportedFormatsWMS()
 
-    def render_map(self, render_map):
+    def render_map(self, render_map: Map):
         # TODO: get layer creators for each layer type in the map
         map_obj = ms.mapObj()
 
@@ -153,7 +155,10 @@ class MapserverMapRenderer(object):
             for layer, factory, data in layers_plus_factories_plus_data:
                 factory.destroy(map_obj, layer, data)
 
-    def _get_layers_plus_factories(self, render_map):
+    def _get_layers_plus_factories(
+        self,
+        render_map: Map,
+    ) -> List[Tuple[Layer, BaseMapServerLayerFactory]]:
         layers_plus_factories = []
         type_to_layer_factory = {}
         for layer in render_map.layers:
@@ -168,7 +173,7 @@ class MapserverMapRenderer(object):
 
         return layers_plus_factories
 
-    def _get_layer_factory(self, layer_type):
+    def _get_layer_factory(self, layer_type: Type[Layer]):
         for factory in get_layer_factories():
             if factory.supports(layer_type):
                 return factory

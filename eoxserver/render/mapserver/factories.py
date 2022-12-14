@@ -26,6 +26,7 @@
 # ------------------------------------------------------------------------------
 
 from os.path import join
+from typing import List, Type, Iterable, Tuple
 from uuid import uuid4
 try:
     from itertools import izip_longest
@@ -47,8 +48,10 @@ from eoxserver.render.browse.generate import (
 from eoxserver.render.map.objects import (
     CoverageLayer, CoveragesLayer, MosaicLayer, OutlinedCoveragesLayer,
     BrowseLayer, OutlinedBrowseLayer,
-    MaskLayer, MaskedBrowseLayer, OutlinesLayer
+    MaskLayer, MaskedBrowseLayer, OutlinesLayer,
+    Layer, Map,
 )
+from eoxserver.render.coverage.objects import Coverage, Field
 from eoxserver.render.mapserver.config import (
     DEFAULT_EOXS_MAPSERVER_LAYER_FACTORIES,
 )
@@ -64,23 +67,25 @@ logger = logging.getLogger(__name__)
 
 
 class BaseMapServerLayerFactory(object):
-    handled_layer_types = []
+    handled_layer_types: List[Type[Layer]] = []
 
     @classmethod
-    def supports(self, layer_type):
+    def supports(self, layer_type: Type[Layer]):
         return layer_type in self.handled_layer_types
 
-    def create(self, map_obj, layer):
+    def create(self, map_obj: Map, layer: Layer):
         pass
 
-    def destroy(self, map_obj, layer, data):
+    def destroy(self, map_obj: Map, layer: Layer, data):
         pass
 
 
 class CoverageLayerFactoryMixIn(object):
     """ Base class for factories dealing with coverages.
     """
-    def get_fields(self, fields, bands, wavelengths):
+    def get_fields(
+        self, fields: Iterable[Field], bands, wavelengths
+    ) -> List[Field]:
         """ Get the field subset for the given bands/wavelengths selection
         """
         if bands:
@@ -112,7 +117,7 @@ class CoverageLayerFactoryMixIn(object):
 
         return fields
 
-    def create_coverage_layer(self, map_obj, coverage, fields,
+    def create_coverage_layer(self, map_obj: Map, coverage: Coverage, fields: List[Field],
                               style=None, ranges=None):
         """ Creates a mapserver layer object for the given coverage
         """
@@ -270,7 +275,7 @@ class OutlinedCoverageLayerFactory(CoverageLayerFactoryMixIn,
                                    BaseMapServerLayerFactory):
     handled_layer_types = [OutlinedCoveragesLayer]
 
-    def create(self, map_obj, layer):
+    def create(self, map_obj, layer: CoveragesLayer):
         coverages = layer.coverages
         style = layer.style
 
@@ -311,7 +316,7 @@ class OutlinedCoverageLayerFactory(CoverageLayerFactoryMixIn,
 class MosaicLayerFactory(CoverageLayerFactoryMixIn, BaseMapServerLayerFactory):
     handled_layer_types = [MosaicLayer]
 
-    def create(self, map_obj, layer):
+    def create(self, map_obj, layer: MosaicLayer):
         mosaic = layer.mosaic
         fields = self.get_fields(
             mosaic.range_type, layer.bands, layer.wavelengths
@@ -395,9 +400,9 @@ class BrowseLayerMixIn(object):
 
                 else:
                     browse_iter = enumerate(
-                        zip(browse.field_list, browse.ranges), start=1
+                        zip(browse.field_list, browse.ranges, browse.nodata_values), start=1
                     )
-                    for i, (field, field_range) in browse_iter:
+                    for i, (field, field_range, nodata_value) in browse_iter:
                         if ranges:
                             if len(ranges) == 1:
                                 range_ = ranges[0]
@@ -409,10 +414,24 @@ class BrowseLayerMixIn(object):
                             range_ = _get_range(field)
 
                         for layer_obj in layer_objs:
-                            layer_obj.setProcessingKey(
-                                "SCALE_%d" % i,
-                                "%s,%s" % tuple(range_)
-                            )
+                            if browse.show_out_of_bounds_data and nodata_value == 0 and range_[0] >= 1:
+                                # NOTE: this trick only works with 0 as nodata value
+                                #       and if there actually is data below the min range
+
+                                # TODO: currently we only have data with exactly this case (integer values,
+                                #       0 as no data value). We can generalize this to float and for coverages
+                                #       as necessary.
+
+                                # only need 1:1 mapping if that's not the min
+                                lut_start= ("1:1," if range_[0] > 1 else "")
+                                lut = f"{lut_start}%d:1,%d:255" % tuple(range_)
+
+                                layer_obj.setProcessingKey("LUT_%d" % i, lut)
+                            else:
+                                layer_obj.setProcessingKey(
+                                    "SCALE_%d" % i,
+                                    "%s,%s" % tuple(range_)
+                                )
 
             elif isinstance(browse, Browse):
                 layer_objs = _create_raster_layer_objs(
@@ -632,7 +651,7 @@ class OutlinesLayerFactory(BaseMapServerLayerFactory):
 
 
 def _create_raster_layer_objs(map_obj, extent, sr, data, filename_generator,
-                              resample=None):
+                              resample=None) -> List[ms.layerObj]:
     layer_obj = ms.layerObj(map_obj)
     layer_obj.type = ms.MS_LAYER_RASTER
     layer_obj.status = ms.MS_ON
@@ -853,7 +872,7 @@ def _create_raster_style(name, layer, minvalue=0, maxvalue=255,
         layer.insertClass(cls)
 
 
-def _get_range(field, range_=None):
+def _get_range(field: Field, range_=None) -> Tuple[int, int]:
     """ Gets the numeric range of a field
     """
     if range_:
@@ -885,7 +904,7 @@ def _setup_factories():
     ]
 
 
-def get_layer_factories():
+def get_layer_factories() -> List[BaseMapServerLayerFactory]:
     if LAYER_FACTORIES is None:
         _setup_factories()
     return LAYER_FACTORIES

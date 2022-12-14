@@ -260,6 +260,8 @@ def interpolate(ds, x1, x2, y1, y2):
     """Perform linear interpolation for x between (x1,y1) and (x2,y2) """
     band = ds.GetRasterBand(1)
     x = band.ReadAsArray()
+    # NOTE: this formula uses large numbers which lead to overflows on uint16
+    x = x.astype("int64")
     x = ((y2 - y1) * x + x2 * y1 - x1 * y2) / (x2 - x1)
     return gdal_array.OpenNumPyArray(x, True)
 

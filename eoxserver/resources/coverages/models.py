@@ -201,6 +201,8 @@ class BrowseType(models.Model):
     blue_range_max = models.FloatField(**optional)
     alpha_range_max = models.FloatField(**optional)
 
+    show_out_of_bounds_data = models.BooleanField(default=False, **mandatory)
+
     def __str__(self):
         if self.name:
             return self.name

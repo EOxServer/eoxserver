@@ -26,9 +26,10 @@
 # ------------------------------------------------------------------------------
 
 from weakref import proxy
+from typing import List
 
 from eoxserver.render.coverage.objects import (
-    GRID_TYPE_TEMPORAL, GRID_TYPE_ELEVATION
+    GRID_TYPE_TEMPORAL, GRID_TYPE_ELEVATION, Coverage, Mosaic,
 )
 
 
@@ -71,7 +72,7 @@ class CoverageLayer(Layer):
         self._ranges = ranges
 
     @property
-    def coverage(self):
+    def coverage(self) -> Coverage:
         return self._coverage
 
     @property
@@ -109,7 +110,7 @@ class CoveragesLayer(Layer):
         self._ranges = ranges
 
     @property
-    def coverages(self):
+    def coverages(self) -> List[Coverage]:
         return self._coverages
 
     @property
@@ -184,7 +185,7 @@ class MosaicLayer(Layer):
         self._ranges = ranges
 
     @property
-    def mosaic(self):
+    def mosaic(self) -> Mosaic:
         return self._mosaic
 
     @property
@@ -295,7 +296,7 @@ class OutlinesLayer(Layer):
 class Map(object):
     """ Abstract interpretation of a map to be drawn.
     """
-    def __init__(self, layers, width, height, format, bbox, crs, bgcolor=None,
+    def __init__(self, layers: List[Layer], width, height, format, bbox, crs, bgcolor=None,
                  transparent=True, time=None, elevation=None):
         self._layers = layers
         self._width = int(width)
@@ -312,7 +313,7 @@ class Map(object):
             layer.map = self
 
     @property
-    def layers(self):
+    def layers(self) -> List[Layer]:
         return self._layers
 
     @property

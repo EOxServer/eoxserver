@@ -25,13 +25,13 @@
 # THE SOFTWARE.
 # ------------------------------------------------------------------------------
 
-import typing
+from typing import Optional
 
 from django.conf import settings
 from django.views.decorators.cache import cache_control
 
 
-def _get_cache_time() -> typing.Optional[int]:
+def _get_cache_time() -> Optional[int]:
     _cache_time_str = getattr(settings, "EOXS_RENDERER_CACHE_TIME", None)
     return int(_cache_time_str) if _cache_time_str is not None else None
 

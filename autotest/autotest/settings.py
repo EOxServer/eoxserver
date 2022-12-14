@@ -1,10 +1,10 @@
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Stephan Krause <stephan.krause@eox.at>
 #          Stephan Meissl <stephan.meissl@eox.at>
 #
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 # Copyright (C) 2011 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -24,7 +24,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 
 """
 Django settings for EOxServer's autotest instance.
@@ -301,9 +301,9 @@ LOGGING = {
             'filters': [],
         },
         'console': {
-            'level': 'DEBUG',
-            'filters': ['require_debug_true'],
             'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+            'filters': [],
         }
     },
     'loggers': {
@@ -331,3 +331,4 @@ FIXTURE_DIRS = (
 # Set this variable if the path to the instance cannot be resolved
 # automatically, e.g. in case of redirects
 #FORCE_SCRIPT_NAME="/path/to/instance/"
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
