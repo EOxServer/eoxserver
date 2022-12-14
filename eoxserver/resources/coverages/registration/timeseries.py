@@ -195,18 +195,21 @@ def compute_extent(x_path, y_path):
 def create_dates_array(time_path, begin_time):
     time_ds = open_with_env(time_path, {})
     ds_arr = np.nditer(time_ds.ReadAsArray(), flags=['f_index'])
+    time_array = []
     dates_array = []
 
     begin_dt = datetime.datetime.combine(
         begin_time, datetime.time.min, datetime.timezone.utc)
     for time in ds_arr:
         dt = begin_dt + datetime.timedelta(days=time.item())
-        dates_array.append(dt)
+        time_array.append(dt)
 
-    return [
-        (dt, dt + datetime.timedelta(days=1))
-        for dt in dates_array
-    ]
+    for i, dt in enumerate(time_array):
+        end_time = time_array[i + 1] - datetime.timedelta(seconds=1) if i + 1 < len(
+            time_array) else dt + datetime.timedelta(days=1)
+        dates_array.append((dt, end_time))
+
+    return dates_array
 
 
 @transaction.atomic
@@ -229,7 +232,7 @@ def register_time_series(
         storage = backends.Storage.objects.get(name=storage)
 
     with config_env(get_vsi_env(storage)):
-        vsi_path = get_vsi_storage_path(storage, path)
+        vsi_path = get_vsi_storage_path(storage, path) if storage else path
         metadata = gdal.MultiDimInfo(vsi_path)
         driver_name = metadata['driver'].upper()
 
