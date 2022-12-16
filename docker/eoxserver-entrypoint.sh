@@ -81,4 +81,4 @@ fi
 cd "${INSTANCE_DIR}"
 
 # run the initial command
-exec $@
+exec "$@"

@@ -27,7 +27,9 @@
 
 from itertools import zip_longest
 import json
-from urllib.parse import urljoin, urlparse, urlunparse
+from urllib.parse import (
+    urljoin, urlparse, urlunparse, uses_netloc, uses_relative
+)
 import logging
 
 from django.contrib.gis.geos import GEOSGeometry
@@ -98,6 +100,13 @@ def get_product_type_name(stac_item):
     return '_'.join(parts)
 
 
+# allow to urljoin s3:// URLs
+if 's3' not in uses_netloc:
+    uses_netloc.append('s3')
+if 's3' not in uses_relative:
+    uses_relative.append('s3')
+
+
 def get_path_from_href(href, file_href=None):
     """ Extract the path from the given HREF. For S3 URLs this excludes
         the bucket name. Leading and trailing slashes will be stripped, so
@@ -107,7 +116,7 @@ def get_path_from_href(href, file_href=None):
 
         >>> get_path_from_href('s3://bucket/prefix/file.ext')
         'prefix/file.ext'
-        >>> get_path_from_href('https://www.example.com/path/to#res.ext')
+        >>> get_path_from_href('https://www.example.com/path/to/res.ext')
         'path/to/res.ext'
     """
     if file_href:
@@ -515,7 +524,7 @@ def register_browse_for_asset(asset, file_href, product, storage, browse_type):
         browse.coordinate_reference_system = sr.wkt
 
         x_a = transform[0]
-        x_b = transform[0] + transform[1] * browse.width
+        x_b = transform[0] + transform[2] * browse.width
         y_a = transform[3]
         y_b = transform[3] + transform[5] * browse.height
 
