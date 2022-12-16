@@ -28,6 +28,7 @@
 
 import re
 import datetime
+import itertools
 import logging
 
 
@@ -192,24 +193,43 @@ def compute_extent(x_path, y_path):
     return bbox
 
 
-def create_dates_array(time_path, begin_time):
-    time_ds = open_with_env(time_path, {})
-    ds_arr = np.nditer(time_ds.ReadAsArray(), flags=['f_index'])
-    time_array = []
-    dates_array = []
+UNIT_RE = re.compile(r"(\w+) since (.*)")
 
-    begin_dt = datetime.datetime.combine(
-        begin_time, datetime.time.min, datetime.timezone.utc)
-    for time in ds_arr:
-        dt = begin_dt + datetime.timedelta(days=time.item())
-        time_array.append(dt)
 
-    for i, dt in enumerate(time_array):
-        end_time = time_array[i + 1] - datetime.timedelta(seconds=1) if i + 1 < len(
-            time_array) else dt + datetime.timedelta(days=1)
-        dates_array.append((dt, end_time))
+def get_time_offset_and_step(unit):
+    match = UNIT_RE.match(unit)
+    if match:
+        step_unit, offset = match.groups()
+        offset = datetime.datetime.fromisoformat(offset)
+        offset = offset.replace(tzinfo=datetime.timezone.utc)
+        step = datetime.timedelta(**{step_unit: 1})
+        return offset, step
+    raise ValueError("Failed to parse time unit")
 
-    return dates_array
+
+def pairwise(iterable):
+    # pairwise('ABCDEFG') --> AB BC CD DE EF FG
+    a, b = itertools.tee(iterable)
+    next(b, None)
+    return zip(a, b)
+
+
+def get_intervals(dates_array, unit):
+    datetimes = []
+    offset, step = get_time_offset_and_step(unit)
+
+    # create a list of datetime objects from the raw values
+    for value in np.nditer(dates_array):
+        datetimes.append(offset + (step * value))
+
+    # append the last end-datetime
+    datetimes.append(datetimes[-1] + (datetimes[-1] - datetimes[-2]))
+
+    # create the list of start/end-tuples
+    return [
+        (start, end - datetime.timedelta(seconds=1))
+        for start, end in pairwise(datetimes)
+    ]
 
 
 @transaction.atomic
@@ -236,10 +256,6 @@ def register_time_series(
         metadata = gdal.MultiDimInfo(vsi_path)
         driver_name = metadata['driver'].upper()
 
-        # TODO: get time array dynamically
-        match = re.search(r'\d{4}-\d{2}-\d{2}', metadata['arrays']['time']['unit'])
-        start_date = datetime.datetime.strptime(match.group(), '%Y-%m-%d').date()
-
         fixed_dimensions = []
         for dimension in metadata['dimensions']:
             fixed_dimensions.append(dimension['name'])
@@ -256,11 +272,10 @@ def register_time_series(
                 footprint = extent_to_footprint(dim['srs']['wkt'], extent)
                 break
 
-        # create time array with date values
-        date_array = create_dates_array(
-            '%s:"%s":%s' % (driver_name, vsi_path, time_dim_name),
-            start_date
-        )
+        time_path = '%s:"%s":%s' % (driver_name, vsi_path, time_dim_name)
+        time_ds = open_with_env(time_path, {})
+        date_array = get_intervals(
+            time_ds.ReadAsArray() , metadata['arrays']['time']['unit'])
 
     product_type = models.ProductType.objects.get(name=product_type_name)
 
