@@ -208,7 +208,6 @@ def get_time_offset_and_step(unit):
 
 
 def pairwise(iterable):
-    # pairwise('ABCDEFG') --> AB BC CD DE EF FG
     a, b = itertools.tee(iterable)
     next(b, None)
     return zip(a, b)
