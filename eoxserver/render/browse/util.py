@@ -1,7 +1,11 @@
 from uuid import uuid4
+import numpy as np
+import logging
 
 from eoxserver.contrib import gdal, osr
 from eoxserver.resources.coverages import crss
+
+logger = logging.getLogger(__name__)
 
 
 def create_mem_ds(width, height, data_type):
@@ -78,3 +82,27 @@ def warp_fields(coverages, field_name, bbox, crs, width, height):
             gdal.Unlink(vrt_filename)
 
     return out_ds
+
+
+def convert_dtype(dtype:np.dtype):
+    """Maps numpy dtype to a larger itemsize
+    to avoid value overflow during mathematical operations
+
+    Args:
+        dtype (np.dtype): input dtype
+
+    Returns:
+        dtype (np.dtype): either one size larger dtype or original dtype
+    """
+    mapping = {
+        np.dtype(np.int8): np.dtype(np.int16),
+        np.dtype(np.int16): np.dtype(np.int32),
+        np.dtype(np.int32): np.dtype(np.int64),
+        np.dtype(np.uint8): np.dtype(np.int16),
+        np.dtype(np.uint16): np.dtype(np.int32),
+        np.dtype(np.uint32): np.dtype(np.int64),
+        np.dtype(np.float16): np.dtype(np.float32),
+        np.dtype(np.float32): np.dtype(np.float64),
+    }
+    output_dtype = mapping.get(dtype, dtype)
+    return output_dtype

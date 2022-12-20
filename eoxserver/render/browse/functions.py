@@ -34,6 +34,7 @@ import numpy as np
 from eoxserver.contrib import gdal
 from eoxserver.contrib import ogr
 from eoxserver.contrib import gdal_array
+from eoxserver.render.browse.util import convert_dtype
 
 
 logger = logging.getLogger(__name__)
@@ -252,22 +253,27 @@ def statistics_stddev(ds, default=0):
     return default
 
 
-def interpolate(ds, x1, x2, y1, y2):
+def interpolate(ds, x1, x2, y1, y2, clamp=False):
     """Perform linear interpolation for x between (x1,y1) and (x2,y2) """
     band = ds.GetRasterBand(1)
     no_data_value = band.GetNoDataValue()
-
-    # NOTE: this formula uses large numbers which lead to overflows on uint16
-    orig_image = band.ReadAsArray().astype("int64")
-
-    # save no_data pixels to be able to restore them after the calculation changes them
-    no_data_mask = (orig_image == no_data_value)
-
+    orig_image = band.ReadAsArray()
+    # NOTE: the interpolate formula uses large numbers which lead to overflows on uint16
+    if orig_image.dtype != convert_dtype(orig_image.dtype):
+        orig_image = orig_image.astype(convert_dtype(orig_image.dtype))
     interpolated_image = ((y2 - y1) * orig_image + x2 * y1 - x1 * y2) / (x2 - x1)
+    if clamp:
+        # clamp values below min to min and above max to max
+        interpolated_image[interpolated_image < y1] = y1
+        interpolated_image[interpolated_image > y2] = y2
 
-    fixed_interpolated_image = np.where(no_data_mask, no_data_value, interpolated_image)
+    if no_data_value is not None:
+        # restore nodata pixels on interpolated array from original array
+        interpolated_image[orig_image == no_data_value] = no_data_value
 
-    return gdal_array.OpenNumPyArray(fixed_interpolated_image, True)
+    ds = gdal_array.OpenNumPyArray(interpolated_image, True)
+    ds.GetRasterBand(1).SetNoDataValue(no_data_value)
+    return ds
 
 
 def wrap_numpy_func(function):
