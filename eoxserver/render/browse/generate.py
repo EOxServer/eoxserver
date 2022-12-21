@@ -116,6 +116,7 @@ ALLOWED_NODE_TYPES = (
     _ast.Add,
     _ast.Sub,
     _ast.Num if hasattr(_ast, 'Num') else _ast.Constant,
+    _ast.List,
 
     _ast.BitAnd,
     _ast.BitOr,
@@ -490,6 +491,12 @@ def _evaluate_expression(expr, fields_and_datasets, variables, cache):
     elif hasattr(_ast, 'Constant') and isinstance(expr, _ast.Constant):
         result = expr.value
 
+    elif hasattr(_ast, 'List') and isinstance(expr, _ast.List):
+        result = [
+            _evaluate_expression(
+                item, fields_and_datasets, variables, cache,
+            ) for item in expr.elts
+        ]
     else:
         raise BandExpressionError('Invalid expression node %s' % expr)
 
