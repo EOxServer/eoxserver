@@ -484,6 +484,10 @@ def _evaluate_expression(expr, fields_and_datasets, variables, cache):
         # Get a copy of the selected band
         data = value.GetRasterBand(slice_ + 1).ReadAsArray()
         result = gdal_array.OpenNumPyArray(data, True)
+        # restore nodata on output
+        nodata_value = value.GetRasterBand(slice_ + 1).GetNoDataValue()
+        if nodata_value is not None:
+            result.GetRasterBand(1).SetNoDataValue(nodata_value)
 
     elif hasattr(_ast, 'Num') and isinstance(expr, _ast.Num):
         result = expr.n

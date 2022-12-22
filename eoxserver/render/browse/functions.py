@@ -55,15 +55,10 @@ def _dem_processing(data, processing, **kwargs):
             processing,
             **kwargs
         )
-
-        out_ds = gdal.Open(filename)
-        band = out_ds.GetRasterBand(1)
-        out_data = band.ReadAsArray()
-        del out_ds
-    finally:
+    except Exception:
         gdal.Unlink(filename)
-
-    return gdal_array.OpenNumPyArray(out_data, False)
+    out_ds = gdal.Open(filename)
+    return out_ds
 
 
 def hillshade(data, zfactor=1, scale=1, azimuth=315, altitude=45, alg='Horn'):
@@ -172,14 +167,11 @@ def contours(data, offset=0, interval=100, fill_value=-9999, format='raster'):
                 outputBounds=[xmin, ymin, xmax, ymax],
             )
 
-            out_ds = gdal.Open(out_filename)
-            band = out_ds.GetRasterBand(1)
-            out_data = gdal_array.OpenNumPyArray(band.ReadAsArray(), False)
-            del out_ds
-            gdal.Unlink(out_filename)
+            out_data = gdal.Open(out_filename)
         elif format == 'vector':
             out_data = vector_ds
-
+    except Exception:
+        gdal.Unlink(out_filename)
     finally:
         vector_driver.DeleteDataSource(vec_filename)
 
@@ -205,6 +197,12 @@ def pansharpen(pan_ds, *spectral_dss):
     )
 
     out_ds = gdal_array.OpenNumPyArray(ds.ReadAsArray(), True)
+    # restore original nodata from pan band to output ds
+    nodata_value = pan_ds.GetRasterBand(1).GetNoDataValue()
+    if nodata_value is not None:
+        for i in range(out_ds.RasterCount):
+            out_ds.GetRasterBand(i + 1).SetNoDataValue(nodata_value)
+
     return out_ds
 
 
@@ -282,7 +280,6 @@ def interpolate(
     if clip:
         # clamp values below min to min and above max to max
         np.clip(interpolated_image, y1, y2, out=interpolated_image)
-
     if nodata_value is not None:
         # restore nodata pixels on interpolated array from original array
         interpolated_image[orig_image == nodata_value] = nodata_value
@@ -291,7 +288,8 @@ def interpolate(
             interpolated_image[(orig_image >= nodata_range[0]) & (orig_image <= nodata_range[1])] = nodata_value
 
     ds = gdal_array.OpenNumPyArray(interpolated_image, True)
-    ds.GetRasterBand(1).SetNoDataValue(nodata_value)
+    if nodata_value is not None:
+        ds.GetRasterBand(1).SetNoDataValue(nodata_value)
     return ds
 
 
