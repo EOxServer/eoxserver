@@ -107,11 +107,13 @@ setup(
         "python-keystoneclient<6.0.0",
         "python-swiftclient<5.0.0",
         "jsonfield",
-        "gunicorn"
+        "gunicorn",
+        "gdal",
+        "mapscript"
     ],
     extras_require={
         'dev': ['scipy', 'flake8', 'mypy', 'black'],
-        'docs': ['sphinx', 'sphinx_rtd_theme'],
+        'docs': ['sphinx', 'sphinx_rtd_theme', 'myst-parser'],
     },
     zip_safe=False,
 
