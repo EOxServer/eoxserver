@@ -97,6 +97,7 @@ setup(
         "python-dateutil",
         "django-model-utils<5.0.0",
         "django-utils-six==2.0",
+        'tzdata',
         "zipstream",
         "psycopg2",
         "lxml",
@@ -106,10 +107,11 @@ setup(
         "python-keystoneclient<6.0.0",
         "python-swiftclient<5.0.0",
         "jsonfield",
+        "gunicorn"
     ],
     extras_require={
-        'dev': ['scipy'],
-        ':python_version == "2.7"': ['futures']
+        'dev': ['scipy', 'flake8', 'mypy', 'black'],
+        'docs': ['sphinx', 'sphinx_rtd_theme'],
     },
     zip_safe=False,
 
@@ -120,7 +122,7 @@ setup(
     maintainer_email="packages@eox.at",
 
     description="EOxServer is a server for Earth Observation (EO) data",
-    long_description=read("README.rst"),
+    long_description=read("README.md"),
 
     classifiers=[
         'Development Status :: 5 - Production/Stable',
@@ -135,9 +137,9 @@ setup(
         'Natural Language :: English',
         'Operating System :: OS Independent',
         'Programming Language :: Python',
-        'Programming Language :: Python :: 2.5',
-        'Programming Language :: Python :: 2.6',
-        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
+        'Programming Language :: Python :: 3.10',
         'Topic :: Database',
         'Topic :: Internet',
         'Topic :: Internet :: WWW/HTTP',

@@ -14,16 +14,10 @@ jobs:
         #   django: "1.11.26"
         #   python_bin: python3
         #   pip_bin: pip3
-        - os: ubuntu
-          python: py3
-          db: postgis
-          django: "3.2.12"
+        - db: postgis
           python_bin: python3
           pip_bin: pip3
-        - os: ubuntu
-          python: py3
-          db: spatialite
-          django: "3.2.12"
+        - db: spatialite
           python_bin: python3
           pip_bin: pip3
           latest: true
@@ -31,7 +25,7 @@ jobs:
       - uses: actions/checkout@v2
       - name: Build the eoxserver docker image
         run: |
-          docker build -t eoxserver --build-arg DJANGO=${{ matrix.django }} -f docker/${{ matrix.os }}/${{ matrix.python }}/Dockerfile .
+          docker build -t eoxserver .
       - name: Run the tests
         env:
           COMPOSE_INTERACTIVE_NO_CLI: 1
@@ -95,7 +89,7 @@ jobs:
         if: success() && steps.branch_name.outputs.SOURCE_TAG && matrix.latest
       - name: Tag docker release image with OS and Python/Django versions
         run: |
-          docker tag eoxserver eoxa/eoxserver:${{ steps.branch_name.outputs.SOURCE_TAG }}-${{ matrix.os }}-${{ matrix.python }}-django${{ matrix.django }}
+          docker tag eoxserver eoxa/eoxserver:${{ steps.branch_name.outputs.SOURCE_TAG }}
         if: success() && startsWith(steps.branch_name.outputs.SOURCE_TAG, 'release-')
       - name: Push docker images
         run: |

@@ -3,24 +3,6 @@
 # eoxserver-entrypoint.sh
 # This is the docker ENTRYPOINT script (https://docs.docker.com/engine/reference/builder/#entrypoint)
 # It ensures a database connection and a running instance before refering execution to the passed command
-#
-# environment variables:
-#   - DB: Specify the used database type. either of "spatialite" or "postgis"
-#   - DB_PW, DB_NAME, DB_HOST, DB_USER: these credentials will be used to establish a
-#       connection to the postgres database when DB is set to "postgis" in order to wait
-#       for it to come online
-#   - INSTANCE_NAME: the name of the instance passed to `eoxserver-instance.py`
-#   - DJANGO_USER, DJANGO_MAIL, DJANGO_PASSWORD: when set, these credentials will be
-#       used to create a superuser to be used for the Django Admin. By default, no user is
-#       created
-#   - COLLECT_STATIC: if set to "true" (the default), static files will be collected
-#       upon initialization
-#   - PREINIT_SCRIPTS: if set, the list of commands that will be executed before
-#       the instance is initialized
-#   - INIT_SCRIPTS: if set, the list of commands that will be executed once
-#       when the instance is initialized
-#   - STARTUP_SCRIPTS: if set, the list of commands that will be executed before
-#       the command is run
 
 # select python interpreter
 PYTHON=$(which python3 || which python)

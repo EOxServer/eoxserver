@@ -241,11 +241,6 @@ INSTALLED_APPS = (
 # search will be done.
 COMPONENTS = ()
 
-
-#
-#
-#
-#
 EOXS_PROCESSES = DEFAULT_EOXS_PROCESSES + [
     'autotest_services.processes.test00_identity_literal.TestProcess00',
     'autotest_services.processes.test01_identity_bbox.TestProcess01',

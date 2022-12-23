@@ -1,0 +1,24 @@
+version: "3.6"
+services:
+  database:
+    image: mdillon/postgis:10
+    volumes:
+      - database-data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: "user"
+      POSTGRES_PASSWORD: "pw"
+      POSTGRES_DB: "database"
+    ports:
+      - 5432:5432
+    restart: 'no'
+
+  eoxserver:
+    build: .
+    env_file:
+      - ./sample.env
+    ports:
+      - 8080:8000
+      - 5678:5678
+
+volumes:
+  database-data:
