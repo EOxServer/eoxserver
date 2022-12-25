@@ -34,19 +34,19 @@ jobs:
           docker-compose config
           docker-compose up -d
           docker-compose ps
-          docker exec -i autotest_autotest_1 ${{ matrix.pip_bin }} install scipy
-          docker exec -i autotest_autotest_1 ${{ matrix.python_bin }} -m eoxserver.services.ows.wps.test_data_types
-          docker exec -i autotest_autotest_1 ${{ matrix.python_bin }} -m eoxserver.services.ows.wps.test_allowed_values
-          docker exec -i autotest_autotest_1 ${{ matrix.python_bin }} manage.py test --pythonpath=./eoxserver/ eoxserver.core -v2
-          docker exec -i autotest_autotest_1 ${{ matrix.python_bin }} manage.py test --pythonpath=./eoxserver/ eoxserver.backends -v2
-          docker exec -i autotest_autotest_1 ${{ matrix.python_bin }} manage.py test --pythonpath=./eoxserver/ eoxserver.services -v2
-          docker exec -i autotest_autotest_1 ${{ matrix.python_bin }} manage.py test --pythonpath=./eoxserver/ eoxserver.resources.coverages -v2
-          docker exec -i autotest_autotest_1 ${{ matrix.python_bin }} manage.py test autotest_services --tag wcs20 -v2
-          docker exec -i autotest_autotest_1 ${{ matrix.python_bin }} manage.py test autotest_services --tag wcs11 -v2
-          docker exec -i autotest_autotest_1 ${{ matrix.python_bin }} manage.py test autotest_services --tag wcs10 -v2
-          docker exec -i autotest_autotest_1 ${{ matrix.python_bin }} manage.py test autotest_services --tag wms -v2
-          docker exec -i autotest_autotest_1 ${{ matrix.python_bin }} manage.py test autotest_services --tag wps -v2
-          docker exec -i autotest_autotest_1 ${{ matrix.python_bin }} manage.py test autotest_services --tag opensearch -v2
+          docker exec -i eoxserver_autotest_1 ${{ matrix.pip_bin }} install scipy
+          docker exec -i eoxserver_autotest_1 ${{ matrix.python_bin }} -m eoxserver.services.ows.wps.test_data_types
+          docker exec -i eoxserver_autotest_1 ${{ matrix.python_bin }} -m eoxserver.services.ows.wps.test_allowed_values
+          docker exec -i eoxserver_autotest_1 ${{ matrix.python_bin }} manage.py test --pythonpath=./eoxserver/ eoxserver.core -v2
+          docker exec -i eoxserver_autotest_1 ${{ matrix.python_bin }} manage.py test --pythonpath=./eoxserver/ eoxserver.backends -v2
+          docker exec -i eoxserver_autotest_1 ${{ matrix.python_bin }} manage.py test --pythonpath=./eoxserver/ eoxserver.services -v2
+          docker exec -i eoxserver_autotest_1 ${{ matrix.python_bin }} manage.py test --pythonpath=./eoxserver/ eoxserver.resources.coverages -v2
+          docker exec -i eoxserver_autotest_1 ${{ matrix.python_bin }} manage.py test autotest_services --tag wcs20 -v2
+          docker exec -i eoxserver_autotest_1 ${{ matrix.python_bin }} manage.py test autotest_services --tag wcs11 -v2
+          docker exec -i eoxserver_autotest_1 ${{ matrix.python_bin }} manage.py test autotest_services --tag wcs10 -v2
+          docker exec -i eoxserver_autotest_1 ${{ matrix.python_bin }} manage.py test autotest_services --tag wms -v2
+          docker exec -i eoxserver_autotest_1 ${{ matrix.python_bin }} manage.py test autotest_services --tag wps -v2
+          docker exec -i eoxserver_autotest_1 ${{ matrix.python_bin }} manage.py test autotest_services --tag opensearch -v2
       - name: Upload logs and outputs of failed tests
         uses: 'actions/upload-artifact@v2'
         with:
