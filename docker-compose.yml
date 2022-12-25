@@ -14,19 +14,19 @@ services:
       - ./sample.env
     volumes:
       - type: bind
-        source: ./../eoxserver
+        source: ./eoxserver
         target: /usr/local/lib/python2.7/dist-packages/eoxserver/
       - type: bind
-        source: ./../eoxserver
+        source: ./eoxserver
         target: /usr/local/lib/python3.10/dist-packages/eoxserver/
       - type: bind
-        source: ./../eoxserver
+        source: ./eoxserver
         target: /opt/eoxserver/eoxserver/
       - type: bind
-        source: ./
+        source: ./autotest
         target: /opt/instance
       - type: bind
-        source: ./../schemas
+        source: ./schemas
         target: /opt/schemas
     working_dir: /opt/instance
     command:
