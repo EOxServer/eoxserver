@@ -64,4 +64,5 @@ The following environment variables control configuration:
 
 ## Development
 
-The autotest instance can be used for development.
+The autotest instance can be used for development and testing.
+More information in `./autotest/README.md`
