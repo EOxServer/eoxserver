@@ -44,6 +44,6 @@ RUN apt-get update \
 
 EXPOSE 8000
 
-ENTRYPOINT ["./entrypoint.sh"]
+ENTRYPOINT ["/opt/eoxserver/entrypoint.sh"]
 
 CMD "gunicorn" $GUNICORN_CMD_ARGS
