@@ -8,6 +8,7 @@ services:
       POSTGRES_USER: "user"
       POSTGRES_PASSWORD: "pw"
       POSTGRES_DB: "dbms"
+
   autotest:
     image: eoxserver
     env_file:

@@ -60,7 +60,5 @@ if [ ! -z "${STARTUP_SCRIPTS}" ] ; then
   done
 fi
 
-cd "${INSTANCE_DIR}"
-
 # run the initial command
 exec "$@"
