@@ -14,11 +14,9 @@
 import sys, os
 import django
 
-from django.conf import settings
-
-sys.path.insert(0, os.path.abspath('..'))
+sys.path.insert(0, os.path.abspath('../autotest/'))
 os.environ['DJANGO_SETTINGS_MODULE'] = 'autotest.settings'
-settings.configure(DEBUG=True, )
+os.environ['DB'] = 'spatialite'
 django.setup()
 
 # If extensions (or modules to document with autodoc) are in another directory,
@@ -183,8 +181,8 @@ htmlhelp_basename = 'EOxServerdoc'
 
 # -- Options for LaTeX output --------------------------------------------------
 
-# The paper size ('letter' or 'a4').
-latex_paper_size = 'a4'
+# The paper size ('letter' or 'a4paper').
+latex_elements = {'papersize': 'a4paper'}
 
 # The font size ('10pt', '11pt' or '12pt').
 #latex_font_size = '10pt'
