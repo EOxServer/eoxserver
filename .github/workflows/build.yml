@@ -16,3 +16,8 @@ jobs:
       - name: Build the eoxserver docker image
         run: |
           docker build -t eoxserver .
+          docker save eoxserver | gzip > eosxserver.tar.gz
+      - uses: actions/upload-artifact@v3
+        with:
+          name: eoxserver
+          path: eoxserver.tar.gz
