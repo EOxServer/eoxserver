@@ -2,7 +2,7 @@ name: build
 on:
   push:
     paths:
-      - '.github/workflows/tests.yaml'
+      - '.github/workflows/*.yaml'
       - 'setup.py'
       - 'setup.cfg'
       - 'MANIFEST.in'
