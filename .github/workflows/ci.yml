@@ -118,8 +118,6 @@ jobs:
         id: branch_name
         run: |
           echo ::set-output name=SOURCE_TAG::$([[ $GITHUB_REF == refs/tags/* ]] && echo ${GITHUB_REF#refs/tags/} || echo "")
-        with:
-          name: eoxserver-dist
       - name: Build Python package
         id: build_python_release
         run: |
