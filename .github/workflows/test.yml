@@ -1,22 +1,10 @@
-name: tests
+name: test
 on: 
-  push:
-    paths:
-      - '.github/workflows/tests.yaml'
-      - 'setup.py'
-      - 'setup.cfg'
-      - 'MANIFEST.in'
-      - 'pyproject.toml'
-      - 'eoxserver/**'
-  pull_request:
-    branches: [master]
-    paths:
-      - '.github/workflows/tests.yaml'
-      - 'setup.py'
-      - 'setup.cfg'
-      - 'MANIFEST.in'
-      - 'pyproject.toml'
-      - 'eoxserver/**'
+  workflow_run:
+    workflows:
+      - build
+    types: 
+      - completed
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -29,10 +17,7 @@ jobs:
         - db: spatialite
           python_bin: python3
     steps:
-      - uses: actions/checkout@v2
-      - name: Build the eoxserver docker image
-        run: |
-          docker build -t eoxserver .
+      - uses: actions/checkout@v3
       - name: Run the tests
         env:
           COMPOSE_INTERACTIVE_NO_CLI: 1
