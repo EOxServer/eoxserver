@@ -1,4 +1,5 @@
 name: CI
+run-name: CI pipeline triggered by @${{ github.actor }}
 on:
   push:
     paths:
@@ -22,6 +23,14 @@ jobs:
           name: eoxserver
           path: eoxserver.tar.gz
           retention-days: 2
+      - name: Slack Notify
+        uses: 8398a7/action-slack@v3.8.0
+        with:
+          status: ${{ needs.run.result }}
+          fields: repo,message,commit,author,action,eventName,ref,workflow,job,took
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        if: failure()
 
   test:
     runs-on: ubuntu-latest
@@ -72,10 +81,19 @@ jobs:
             autotest/autotest/responses/*
           retention-days: 5
         if: failure()
+      - name: Slack Notify
+        uses: 8398a7/action-slack@v3.8.0
+        with:
+          status: ${{ needs.run.result }}
+          fields: repo,message,commit,author,action,eventName,ref,workflow,job,took
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        if: failure()
 
   publish-docker:
     runs-on: ubuntu-latest
     needs: test
+    if: contains(github.ref, 'refs/tags/') || github.ref == 'refs/heads/master'
     steps:
       - uses: actions/checkout@v3
       - uses: actions/download-artifact@v3.0.1
@@ -101,13 +119,21 @@ jobs:
       - name: Tag docker release image
         run: |
           docker tag eoxserver eoxa/eoxserver:${{ steps.branch_name.outputs.SOURCE_TAG }}
-        if: success() && steps.branch_name.outputs.SOURCE_TAG
+        if: steps.branch_name.outputs.SOURCE_TAG
       - name: Push docker images
         run: |
           # TODO: --all-tags does not seem to work with the version on github-actions
           # docker push --all-tags eoxa/eoxserver
           for tag in $(docker image ls --format "{{.Tag}}" eoxa/eoxserver) ; do docker push "eoxa/eoxserver:$tag" ; done
-        if: success() && (steps.branch_name.outputs.SOURCE_TAG || github.ref == 'refs/heads/master')
+        if: success()
+      - name: Slack Notify
+        uses: 8398a7/action-slack@v3.8.0
+        with:
+          status: ${{ needs.run.result }}
+          fields: repo,message,commit,author,action,eventName,ref,workflow,job,took
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        if: failure()
 
   publish-pypi:
     runs-on: ubuntu-latest
@@ -136,6 +162,14 @@ jobs:
           user: __token__
           password: ${{ secrets.PYPI_API_TOKEN }}
         if: success()
+      - name: Slack Notify
+        uses: 8398a7/action-slack@v3.8.0
+        with:
+          status: ${{ needs.run.result }}
+          fields: repo,message,commit,author,action,eventName,ref,workflow,job,took
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        if: failure()  
   
   publish-github:
     runs-on: ubuntu-latest
@@ -181,16 +215,30 @@ jobs:
           asset_name: ${{ steps.branch_name.outputs.SRC_DIST_FILE }}
           asset_content_type: application/tar+gzip
         if: success()
-  
-  notify:
-    runs-on: ubuntu-20.04
-    needs: publish-github
-    steps:
-      - name: action-slack
+      - name: Slack Notify
         uses: 8398a7/action-slack@v3.8.0
         with:
           status: ${{ needs.run.result }}
           fields: repo,message,commit,author,action,eventName,ref,workflow,job,took
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        if: failure()
+  
+  notify:
+    runs-on: ubuntu-20.04
+    needs: [publish-github, publish-docker]
+    steps:
+      - name: Slack Notify
+        uses: 8398a7/action-slack@v3.8.0
+        with:
+          status: ${{ needs.run.result }}
+          fields: repo,message,commit,author,action,eventName,ref,workflow,job,took
+          custom_payload: |
+            {
+              attachments: [{
+                text: `Publish tag finished`,
+              }]
+            }
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         if: always()
