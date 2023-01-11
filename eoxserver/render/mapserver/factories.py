@@ -137,8 +137,8 @@ class CoverageLayerFactoryMixIn(object):
         # TODO: apply subsets in time/elevation dims
         num_locations = len(set(locations))
         if num_locations == 1:
+            location = field_locations[0][1]
             if not coverage.grid.is_referenceable:
-                location = field_locations[0][1]
                 data = location.path
                 ms.set_env(map_obj, location.env, True)
             else:
@@ -150,12 +150,13 @@ class CoverageLayerFactoryMixIn(object):
                 wkt = osr.SpatialReference(map_obj.getProjection()).wkt
 
                 # TODO: env?
-                reftools.create_rectified_vrt(
-                    field_locations[0][1].path, vrt_path,
-                    order=1, max_error=10,
-                    resolution=(resx, -resy), srid_or_wkt=wkt
-                )
-                data = vrt_path
+                with gdal.config_env(location.env):
+                    reftools.create_rectified_vrt(
+                        location.path, vrt_path,
+                        order=1, max_error=10,
+                        resolution=(resx, -resy), srid_or_wkt=wkt
+                    )
+                    data = vrt_path
 
         elif num_locations > 1:
             paths_set = set(
