@@ -31,6 +31,8 @@ from urllib.parse import (
     urljoin, urlparse, urlunparse, uses_netloc, uses_relative
 )
 import logging
+from typing import Optional
+import mimetypes
 
 from django.contrib.gis.geos import GEOSGeometry
 from django.db.models import Q
@@ -107,7 +109,7 @@ if 's3' not in uses_relative:
     uses_relative.append('s3')
 
 
-def get_path_from_href(href, file_href=None):
+def get_path_from_href(href: str, self_href: Optional[str] = None):
     """ Extract the path from the given HREF. For S3 URLs this excludes
         the bucket name. Leading and trailing slashes will be stripped, so
         resulting paths are always relative.
@@ -119,8 +121,8 @@ def get_path_from_href(href, file_href=None):
         >>> get_path_from_href('https://www.example.com/path/to/res.ext')
         'path/to/res.ext'
     """
-    if file_href:
-        href = urljoin(file_href, href)
+    if self_href:
+        href = urljoin(self_href, href)
 
     parsed = urlparse(href)
     if parsed.scheme:
@@ -129,11 +131,79 @@ def get_path_from_href(href, file_href=None):
     return urlunparse(parsed).strip('/')
 
 
+def resolve_storage(
+    asset: dict, base_storage: Optional[backends.Storage]
+) -> Optional[backends.Storage]:
+    """Resolve the actual storage for a given asset. This is required when an
+    intermediate storage is introduced for a ZIP or TAR archive file.
+
+    Args:
+        asset (dict): The asset to resolve te storage for
+        base_storage (Optional[backends.Storage]): The potential base storage
+            everything is relative to.
+
+    Returns:
+        Optional[backends.Storage]: The resulting storage, either the base
+            storage or a fetched/newly created Storage or None.
+    """
+    href = asset['href']
+    if "archive:href" in asset:
+        storage_type = None
+
+        file_type = asset.get("type")
+        archive_type = asset.get("archive:type")
+        storage_type = None
+        for type_ in [file_type, archive_type, mimetypes.guess_type(href)]:
+            if type_ == "application/zip":
+                storage_type = "ZIP"
+                break
+            elif type_ == "application/x-tar":
+                storage_type = "TAR"
+                break
+
+        if storage_type is None:
+            raise TypeError(f"Unsupported archive type for file {href}")
+
+        return backends.Storage.objects.get_or_create(
+            url=href,
+            storage_type=storage_type,
+            name="%s__%s" % (base_storage.name, href) if base_storage else href,
+            parent=base_storage,
+        )[0]
+    else:
+        return base_storage
+
+
+def resolve_location(asset: dict, self_href: Optional[str]) -> str:
+    """Resolves the assets location, relative to its storage. This takes the
+    archive:href into account, returning the relative location of the asset
+    within the archive file.
+
+    Args:
+        asset (dict): The asset to resolve the location for
+        self_href (Optional[str]): The STAC Items self href, which absolute
+            assets need to be made relative to
+
+    Returns:
+        str: the resulting location relative to any storage
+    """
+    archive_href = asset.get("archive:href")
+    if archive_href:
+        # the archive:href is the path of the file within the archive. So
+        # here we have to make sure, that it is not made relative to the
+        # STAC Items self_href
+        return archive_href
+    else:
+        # we have to make sure that the assets href is made relative to the
+        # STAC Items self_href
+        return get_path_from_href(asset['href'], self_href)
+
+
 @transaction.atomic
 def register_stac_product(stac_item, product_type=None, storage=None,
                           replace=False, coverage_mapping={},
                           browse_mapping=None, metadata_asset_names=None,
-                          file_href=None):
+                          self_href=None):
     """ Registers a single parsed STAC item as a Product. The
         product type to be used can be specified via the product_type_name
         argument.
@@ -214,8 +284,8 @@ def register_stac_product(stac_item, product_type=None, storage=None,
 
     metadata_items = [
         models.MetaDataItem(
-            location=get_path_from_href(asset['href'], file_href),
-            storage=storage,
+            location=resolve_location(asset, self_href),
+            storage=resolve_storage(asset, storage),
         )
         for asset in metadata_assets
     ]
@@ -347,10 +417,8 @@ def register_stac_product(stac_item, product_type=None, storage=None,
             bands = asset.get('eo:bands')
             if bands is None:
                 logger.info(
-                    '''No eo:bands information present in Item.
-                    Skipping data asset %s.''' % (
-                    asset_name,
-                    )
+                    'No eo:bands information present in Item.'
+                    'Skipping data asset %s.' % asset_name
                 )
                 continue
 
@@ -379,9 +447,6 @@ def register_stac_product(stac_item, product_type=None, storage=None,
                         models.CoverageType.MultipleObjectsReturned):
                     continue
         overrides['identifier'] = '%s_%s' % (identifier, asset_name)
-
-        # create the storage item
-        path = get_path_from_href(asset['href'], file_href)
 
         coverage_footprint = None
 
@@ -421,8 +486,18 @@ def register_stac_product(stac_item, product_type=None, storage=None,
             )
         )
 
+        location = resolve_location(asset, self_href)
+        asset_storage = resolve_storage(asset, storage)
+
+        if asset_storage is None:
+            data_locations = [[location]]
+        elif asset_storage == storage:
+            data_locations = [[storage.name, location]]
+        else:
+            data_locations = [[storage.name, asset_storage.name, location]]
+
         report = registrator.register(
-            data_locations=[([storage.name] if storage else []) + [path]],
+            data_locations=data_locations,
             metadata_locations=[],
             coverage_type_name=coverage_type.name,
             footprint_from_extent=False,
@@ -455,7 +530,7 @@ def register_stac_product(stac_item, product_type=None, storage=None,
                         )
                     )
                     register_browse_for_asset(
-                        asset, file_href, product, storage, browse_type
+                        asset, self_href, product, storage, browse_type
                     )
                     break
     else:
@@ -473,7 +548,7 @@ def register_stac_product(stac_item, product_type=None, storage=None,
                 # #     name=''
                 # # ).first()
                 register_browse_for_asset(
-                    asset, file_href, product, storage, None
+                    asset, self_href, product, storage, None
                 )
             else:
                 if browse_type is None:
@@ -483,7 +558,7 @@ def register_stac_product(stac_item, product_type=None, storage=None,
 
                 if browse_type:
                     register_browse_for_asset(
-                        asset, file_href, product, storage, browse_type
+                        asset, self_href, product, storage, browse_type
                     )
 
     # adding thumbnail image, which is the first one with role thumbnail
@@ -499,17 +574,17 @@ def register_stac_product(stac_item, product_type=None, storage=None,
         models.MetaDataItem.objects.create(
             eo_object=product,
             semantic=models.MetaDataItem.semantic_codes['thumbnail'],
-            storage=storage,
-            location=get_path_from_href(thumbnail_asset['href'], file_href),
+            storage=resolve_storage(thumbnail_asset, storage),
+            location=resolve_location(thumbnail_asset, self_href),
         )
 
     return (product, replaced)
 
 
-def register_browse_for_asset(asset, file_href, product, storage, browse_type):
+def register_browse_for_asset(asset, self_href, product, storage, browse_type):
     browse = models.Browse(
-        storage=storage,
-        location=get_path_from_href(asset['href'], file_href),
+        storage=resolve_storage(asset, storage),
+        location=resolve_location(asset, self_href),
         product=product,
         browse_type=browse_type,
     )
