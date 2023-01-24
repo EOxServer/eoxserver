@@ -139,7 +139,7 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
 
         product, replaced = register_stac_product(
             values, type_name, replace=replace,
-            file_href=location if not stdin else None,
+            self_href=location if not stdin else None,
         )
         self.print_msg(
             "Successfully %s product %s" % (
