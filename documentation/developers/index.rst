@@ -44,9 +44,6 @@ configuring the software stack and operators registering the available *EO
 Data* on the *Provider* side to end users consuming the registered *EO Data*
 on the *User* side.
 
-.. figure:: ../users/images/Global_Use_Case.png
-   :align: center
-
 .. toctree::
    :maxdepth: 3
 
@@ -65,6 +62,3 @@ on the *User* side.
    atp_dev_guide
    testing
    code-style-guide
-
-.. TODO
-   processes
