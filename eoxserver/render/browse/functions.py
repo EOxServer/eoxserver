@@ -255,7 +255,7 @@ def statistics_stddev(ds, default=0):
 
 
 def interpolate(
-        ds:gdal.Dataset, x1:Numeric, x2:Numeric, y1:Numeric, y2:Numeric, clip:bool=False, nodata_range:List[Numeric]=None
+        ds:"gdal.Dataset", x1:Numeric, x2:Numeric, y1:Numeric, y2:Numeric, clip:bool=False, nodata_range:List[Numeric]=None
     ):
     """Perform linear interpolation for x between (x1,y1) and (x2,y2) with
     optional clamp and additional masking out multiple no data value ranges
