@@ -203,7 +203,7 @@ def resolve_location(asset: dict, self_href: Optional[str]) -> str:
 def register_stac_product(stac_item, product_type=None, storage=None,
                           replace=False, coverage_mapping={},
                           browse_mapping=None, metadata_asset_names=None,
-                          file_href=None, simplify_footprint_tolerance=None,
+                          simplify_footprint_tolerance=None,
                           self_href=None):
     """ Registers a single parsed STAC item as a Product. The
         product type to be used can be specified via the product_type_name
