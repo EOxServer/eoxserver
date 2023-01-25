@@ -1,4 +1,4 @@
-.. Release Notes
+.. _1-2-0-release-notes:
   #-----------------------------------------------------------------------------
   # $Id$
   #
@@ -27,16 +27,22 @@
   # IN THE SOFTWARE.
   #-----------------------------------------------------------------------------
 
-Release Notes
-=============
+EOxServer 1.2.0
+===============
 
-Release notes from various versions of EOxServer.
-
-.. toctree::
-   :maxdepth: 1
-   
-   1.2.0
-   1.0.0
-   0.4
-   0.3.2
-   0.3.1
+- Improved data access for multidimensional datasets
+- Implemented Streaming VSI File response
+- Added numpy wrapper
+- Improved interpolate function
+- Implemented dtype conversion utility
+- Improved mapserver factories
+- Added out of bounds argument for browsetype
+- Implemented LUT rendering
+- Added timeseries registration
+- Improved OWS and Opensearch services
+- Added cloud coverage WPS process
+- Fixed bugs
+- Added tests
+- Improved typing
+- Added docs
+- Improved project structure & CI/CD
