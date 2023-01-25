@@ -1,3 +1,0 @@
-gunicorn
-django-utils-six==2.0
-tzdata

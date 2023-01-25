@@ -233,7 +233,7 @@ coveragetype
     --in, -i
       read from ``stdin`` instead from a file
 
-    TODO: show definitition, example
+    TODO: show definition, example
 
   delete
     deletes a Coverage Type

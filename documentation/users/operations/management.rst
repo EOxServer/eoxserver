@@ -344,6 +344,40 @@ The next step is to register a Coverage and associate it with the Product.
 For the data access let us define that the Product identifier is ``Product-A``
 this the Coverages identifier is ``Product-A_coverage``.
 
+Time Series registration
+------------------------
+
+Time series rasters (e.g zarr) are structured differently than other regular
+raster data.
+When registering time series data -for example the one shown in the figure
+below- eoxserver computes the time series spatial extent (x & y) from the
+latitude & longitude arrays, and using time array eoxserver creates
+one product for each time period (slice), each product(of a specific time)
+will have n added coverages where each one represents a slice of a band
+from the data (e.g if we have temperature and precipitation
+bands - as shown in the figure-, each product will have 2
+coverages -temperature & precipitation- )
+
+.. figure:: ./images/dataset_diagraml.png
+
+
+The special `timeseries` registration command can be used to
+handle time series registration e.g:
+
+.. code-block:: bash
+
+    python3 manage.py timeseries register -c <COLLECTION-NAME> \
+        --storage <storage-name> \
+        --path <path/to/zarr> \
+        --product-type-name <pruduct_type_name> \
+        --x-dim-name "/latitude" --y-dim-name "/longitude" --time-dim-name "/time" \
+        --product-template "{collection_identifier}_{file_identifier}_{index}" \
+        --coverage-type-mapping "/temperature:temperature" \
+        --coverage-type-mapping "/precipitation:precipitation"
+
+
+
+
 Data access
 -----------
 

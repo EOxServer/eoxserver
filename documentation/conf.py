@@ -12,10 +12,12 @@
 # serve to show the default.
 
 import sys, os
+import django
 
-from django.conf import settings
-
-settings.configure(DEBUG=True, )
+sys.path.insert(0, os.path.abspath('../autotest/'))
+os.environ['DJANGO_SETTINGS_MODULE'] = 'autotest.settings'
+os.environ['DB'] = 'spatialite'
+django.setup()
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
@@ -29,7 +31,7 @@ from eoxserver import get_version
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ['sphinx.ext.autodoc', 'sphinx.ext.todo', 'sphinx.ext.intersphinx']
+extensions = ['sphinx.ext.autodoc', 'sphinx.ext.todo', 'sphinx.ext.intersphinx', 'myst_parser']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -179,8 +181,8 @@ htmlhelp_basename = 'EOxServerdoc'
 
 # -- Options for LaTeX output --------------------------------------------------
 
-# The paper size ('letter' or 'a4').
-latex_paper_size = 'a4'
+# The paper size ('letter' or 'a4paper').
+latex_elements = {'papersize': 'a4paper'}
 
 # The font size ('10pt', '11pt' or '12pt').
 #latex_font_size = '10pt'

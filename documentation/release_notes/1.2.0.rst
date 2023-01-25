@@ -1,12 +1,12 @@
-.. Credits
+.. _1-2-0-release-notes:
   #-----------------------------------------------------------------------------
+  # $Id$
   #
   # Project: EOxServer <http://eoxserver.org>
-  # Authors: Stephan Krause <stephan.krause@eox.at>
-  #          Stephan Meissl <stephan.meissl@eox.at>
+  # Authors: Fabian Schindler <fabian.schindler@eox.at>
   #
   #-----------------------------------------------------------------------------
-  # Copyright (C) 2011 EOX IT Services GmbH
+  # Copyright (C) 2014 EOX IT Services GmbH
   #
   # Permission is hereby granted, free of charge, to any person obtaining a copy
   # of this software and associated documentation files (the "Software"), to
@@ -27,17 +27,22 @@
   # IN THE SOFTWARE.
   #-----------------------------------------------------------------------------
 
-.. index::
-   single: Credits
+EOxServer 1.2.0
+===============
 
-.. _Credits:
-
-Credits
-=======
-
-.. figure:: ./_static/ESA_logo.png
-  :width: 400
-
-Work on EOxServer has been funded by the `European Space Agency (ESA)`_
-
-.. _European Space Agency (ESA): http://www.esa.int/
+- Improved data access for multidimensional datasets
+- Implemented Streaming VSI File response
+- Added numpy wrapper
+- Improved interpolate function
+- Implemented dtype conversion utility
+- Improved mapserver factories
+- Added out of bounds argument for browsetype
+- Implemented LUT rendering
+- Added timeseries registration
+- Improved OWS and Opensearch services
+- Added cloud coverage WPS process
+- Fixed bugs
+- Added tests
+- Improved typing
+- Added docs
+- Improved project structure & CI/CD

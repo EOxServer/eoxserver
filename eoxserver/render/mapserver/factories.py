@@ -137,8 +137,8 @@ class CoverageLayerFactoryMixIn(object):
         # TODO: apply subsets in time/elevation dims
         num_locations = len(set(locations))
         if num_locations == 1:
+            location = field_locations[0][1]
             if not coverage.grid.is_referenceable:
-                location = field_locations[0][1]
                 data = location.path
                 ms.set_env(map_obj, location.env, True)
             else:
@@ -150,12 +150,13 @@ class CoverageLayerFactoryMixIn(object):
                 wkt = osr.SpatialReference(map_obj.getProjection()).wkt
 
                 # TODO: env?
-                reftools.create_rectified_vrt(
-                    field_locations[0][1].path, vrt_path,
-                    order=1, max_error=10,
-                    resolution=(resx, -resy), srid_or_wkt=wkt
-                )
-                data = vrt_path
+                with gdal.config_env(location.env):
+                    reftools.create_rectified_vrt(
+                        location.path, vrt_path,
+                        order=1, max_error=10,
+                        resolution=(resx, -resy), srid_or_wkt=wkt
+                    )
+                    data = vrt_path
 
         elif num_locations > 1:
             paths_set = set(
@@ -414,20 +415,30 @@ class BrowseLayerMixIn(object):
                             range_ = _get_range(field)
 
                         for layer_obj in layer_objs:
-                            if browse.show_out_of_bounds_data and nodata_value == 0 and range_[0] >= 1:
-                                # NOTE: this trick only works with 0 as nodata value
-                                #       and if there actually is data below the min range
+                            # NOTE: Only works if browsetype nodata is lower than browse_type_min by at least 1
+                            if browse.show_out_of_bounds_data:
+                                # final LUT for min,max 200,700 and nodata=0 should look like:
+                                # 0:0,1:1,200:1,700:256
+                                lut_inputs = {
+                                    range_[0]: 1,
+                                    range_[1]: 256,
+                                }
+                                if nodata_value is not None:
+                                    # no_data_value_plus +1 to ensure that only no_data_value is
+                                    # rendered as black (transparent)
+                                    nodata_value_plus = nodata_value + 1
+                                    lut_inputs[nodata_value] = 0
+                                    lut_inputs[nodata_value_plus] = 1
 
-                                # TODO: currently we only have data with exactly this case (integer values,
-                                #       0 as no data value). We can generalize this to float and for coverages
-                                #       as necessary.
-
-                                # only need 1:1 mapping if that's not the min
-                                lut_start= ("1:1," if range_[0] > 1 else "")
-                                lut = f"{lut_start}%d:1,%d:255" % tuple(range_)
+                                # LUT inputs needs to be ascending
+                                sorted_inputs = {
+                                    k: v for k, v in sorted(list(lut_inputs.items()))
+                                }
+                                lut = ",".join("%d:%d" % (k,v) for k,v in sorted_inputs.items())
 
                                 layer_obj.setProcessingKey("LUT_%d" % i, lut)
                             else:
+                                # due to offsite 0,0,0 will make all pixels below or equal to min transparent
                                 layer_obj.setProcessingKey(
                                     "SCALE_%d" % i,
                                     "%s,%s" % tuple(range_)

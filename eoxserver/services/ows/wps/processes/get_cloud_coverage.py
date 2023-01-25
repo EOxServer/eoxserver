@@ -104,7 +104,7 @@ class CloudCoverageProcess(Component):
             parent_product__end_time__gte=begin_time,
             footprint__intersects=wkt_geometry,
             coverage_type__name="SCL",
-        )
+        ).order_by("parent_product__begin_time")
 
         logger.info("Matched %s coverages for cloud coverage", coverages.count())
 
