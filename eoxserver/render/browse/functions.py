@@ -55,15 +55,10 @@ def _dem_processing(data, processing, **kwargs):
             processing,
             **kwargs
         )
-
-        out_ds = gdal.Open(filename)
-        band = out_ds.GetRasterBand(1)
-        out_data = band.ReadAsArray()
-        del out_ds
-    finally:
+    except Exception:
         gdal.Unlink(filename)
-
-    return gdal_array.OpenNumPyArray(out_data, False)
+    out_ds = gdal.Open(filename)
+    return out_ds
 
 
 def hillshade(data, zfactor=1, scale=1, azimuth=315, altitude=45, alg='Horn'):
@@ -172,14 +167,11 @@ def contours(data, offset=0, interval=100, fill_value=-9999, format='raster'):
                 outputBounds=[xmin, ymin, xmax, ymax],
             )
 
-            out_ds = gdal.Open(out_filename)
-            band = out_ds.GetRasterBand(1)
-            out_data = gdal_array.OpenNumPyArray(band.ReadAsArray(), False)
-            del out_ds
-            gdal.Unlink(out_filename)
+            out_data = gdal.Open(out_filename)
         elif format == 'vector':
             out_data = vector_ds
-
+    except Exception:
+        gdal.Unlink(out_filename)
     finally:
         vector_driver.DeleteDataSource(vec_filename)
 
@@ -205,6 +197,12 @@ def pansharpen(pan_ds, *spectral_dss):
     )
 
     out_ds = gdal_array.OpenNumPyArray(ds.ReadAsArray(), True)
+    # restore original nodata from pan band to output ds
+    nodata_value = pan_ds.GetRasterBand(1).GetNoDataValue()
+    if nodata_value is not None:
+        for i in range(out_ds.RasterCount):
+            out_ds.GetRasterBand(i + 1).SetNoDataValue(nodata_value)
+
     return out_ds
 
 
@@ -223,6 +221,7 @@ def percentile(ds, perc, default=0):
 def _has_stats(band):
     return 'STATISTICS_MINIMUM' in band.GetMetadata()
 
+
 def statistics_min(ds, default=0):
     band = ds.GetRasterBand(1)
     if _has_stats(band):
@@ -237,6 +236,7 @@ def statistics_max(ds, default=0):
         _, max_, _, _ = band.GetStatistics(True, False)
         return max_
     return default
+
 
 def statistics_mean(ds, default=0):
     band = ds.GetRasterBand(1)
@@ -255,7 +255,7 @@ def statistics_stddev(ds, default=0):
 
 
 def interpolate(
-        ds:gdal.Dataset, x1:Numeric, x2:Numeric, y1:Numeric, y2:Numeric, clip:bool=False, nodata_range:List[Numeric]=None
+        ds:"gdal.Dataset", x1:Numeric, x2:Numeric, y1:Numeric, y2:Numeric, clip:bool=False, nodata_range:List[Numeric]=None
     ):
     """Perform linear interpolation for x between (x1,y1) and (x2,y2) with
     optional clamp and additional masking out multiple no data value ranges
@@ -282,7 +282,6 @@ def interpolate(
     if clip:
         # clamp values below min to min and above max to max
         np.clip(interpolated_image, y1, y2, out=interpolated_image)
-
     if nodata_value is not None:
         # restore nodata pixels on interpolated array from original array
         interpolated_image[orig_image == nodata_value] = nodata_value
@@ -291,48 +290,65 @@ def interpolate(
             interpolated_image[(orig_image >= nodata_range[0]) & (orig_image <= nodata_range[1])] = nodata_value
 
     ds = gdal_array.OpenNumPyArray(interpolated_image, True)
-    ds.GetRasterBand(1).SetNoDataValue(nodata_value)
+    if nodata_value is not None:
+        ds.GetRasterBand(1).SetNoDataValue(nodata_value)
     return ds
 
 
 def wrap_numpy_func(function):
     @wraps(function)
-    def inner(ds, *args, **kwargs):
-        band = ds.GetRasterBand(1)
-        data = band.ReadAsArray()
-        function(data, *args, **kwargs)
-        band.WriteArray(data)
-        return ds
+    def inner(*args, **kwargs):
+        converted_args = []
+        for arg in args:
+            if isinstance(arg, gdal.Dataset):
+                band = arg.GetRasterBand(1)
+                data = band.ReadAsArray()
+                converted_args.append(data)
+            else:
+                converted_args.append(arg)
+
+        result = function(*converted_args, **kwargs)
+
+        if np.isscalar(result):
+            return result
+
+        arg = args[0]
+        if isinstance(arg, gdal.Dataset):
+            band = arg.GetRasterBand(1)
+            band.WriteArray(result)
+            return arg
+        else:
+            return gdal_array.OpenNumPyArray(result, False)
     return inner
 
 
 function_map = {
-    'sin': np.sin,
-    'cos': np.cos,
-    'tan': np.tan,
-    'arcsin': np.arcsin,
-    'arccos': np.arccos,
-    'arctan': np.arctan,
-    'hypot': np.hypot,
-    'arctan2': np.arctan2,
-    'degrees': np.degrees,
-    'radians': np.radians,
-    'unwrap': np.unwrap,
-    'deg2rad': np.deg2rad,
-    'rad2deg': np.rad2deg,
-    'sinh': np.sinh,
-    'cosh': np.cosh,
-    'tanh': np.tanh,
-    'arcsinh': np.arcsinh,
-    'arccosh': np.arccosh,
-    'arctanh': np.arctanh,
-    'exp': np.exp,
-    'expm1': np.expm1,
-    'exp2': np.exp2,
-    'log': np.log,
-    'log10': np.log10,
-    'log2': np.log2,
-    'log1p': np.log1p,
+    'sin': wrap_numpy_func(np.sin),
+    'cos': wrap_numpy_func(np.cos),
+    'tan': wrap_numpy_func(np.tan),
+    'arcsin': wrap_numpy_func(np.arcsin),
+    'arccos': wrap_numpy_func(np.arccos),
+    'arctan': wrap_numpy_func(np.arctan),
+    'hypot': wrap_numpy_func(np.hypot),
+    'arctan2': wrap_numpy_func(np.arctan2),
+    'degrees': wrap_numpy_func(np.degrees),
+    'radians': wrap_numpy_func(np.radians),
+    'unwrap': wrap_numpy_func(np.unwrap),
+    'deg2rad': wrap_numpy_func(np.deg2rad),
+    'rad2deg': wrap_numpy_func(np.rad2deg),
+    'sinh': wrap_numpy_func(np.sinh),
+    'cosh': wrap_numpy_func(np.cosh),
+    'tanh': wrap_numpy_func(np.tanh),
+    'arcsinh': wrap_numpy_func(np.arcsinh),
+    'arccosh': wrap_numpy_func(np.arccosh),
+    'arctanh': wrap_numpy_func(np.arctanh),
+    'exp': wrap_numpy_func(np.exp),
+    'expm1': wrap_numpy_func(np.expm1),
+    'exp2': wrap_numpy_func(np.exp2),
+    'log': wrap_numpy_func(np.log),
+    'log10': wrap_numpy_func(np.log10),
+    'log2': wrap_numpy_func(np.log2),
+    'log1p': wrap_numpy_func(np.log1p),
     'hillshade': hillshade,
     'slopeshade': slopeshade,
     'aspect': aspect,

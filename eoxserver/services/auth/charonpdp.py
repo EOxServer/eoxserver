@@ -29,10 +29,10 @@
 import logging
 import os
 import datetime
-import httplib
+import httplib # TODO Python2 relic swap out
 import xml.dom.minidom
 import eoxserver
-from urlparse import urlparse
+from urllib.parse import urlparse
 
 from django.utils.six import iteritems
 
@@ -293,12 +293,7 @@ class AuthorisationClient(object):
     # Get XML snippet for the Environment part of the XACMLAuthzDecisionQuery
     def _getPartEnvironment(self):
         now = datetime.datetime.now()
-        formattedNow = now.strftime("%Y-%m-%dT%H:%M:%S.%f%z")
-        return template_attribute.format(attrib_current_date, \
-                                         dt_date, \
-                                         formattedNow)
-
-
+        formattedNow = now.strftime("%Y-%m-%dT%H:%M:%S.%f%z")urlparse
     # Get the full XACMLAuthzDecisionQuery
     def _getFullRequest(self, userAttributes, resourceAttributes, action):
         return template_request.format(self._getPartSubject(userAttributes), \

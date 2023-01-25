@@ -358,7 +358,7 @@ from the data (e.g if we have temperature and precipitation
 bands - as shown in the figure-, each product will have 2
 coverages -temperature & precipitation- )
 
-.. figure:: images/dataset_diagraml.png
+.. figure:: ./images/dataset_diagraml.png
 
 
 The special `timeseries` registration command can be used to
