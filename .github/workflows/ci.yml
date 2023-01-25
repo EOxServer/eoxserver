@@ -180,6 +180,10 @@ jobs:
       - uses: actions/download-artifact@v3.0.1
         with:
           name: eoxserver-dist
+      - name: Unzip artifact
+        run: |
+          mkdir dist
+          unzip eoxserver-dist.zip -d dist
       - name: Branch name
         id: branch_name
         run: |

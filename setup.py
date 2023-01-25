@@ -130,6 +130,7 @@ setup(
 
     description="EOxServer is a server for Earth Observation (EO) data",
     long_description=read("README.md"),
+    long_description_content_type='text/markdown',
 
     classifiers=[
         'Development Status :: 5 - Production/Stable',
