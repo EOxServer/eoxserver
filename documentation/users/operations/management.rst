@@ -366,16 +366,14 @@ handle time series registration e.g:
 
 .. code-block:: bash
 
-    python3 manage.py timeseries register -c FUSION-COLLECTION \
+    python3 manage.py timeseries register -c <COLLECTION-NAME> \
         --storage <storage-name> \
         --path <path/to/zarr> \
-        --product-type-name PLANET-FUSION-PRODUCT \
+        --product-type-name <pruduct_type_name> \
         --x-dim-name "/latitude" --y-dim-name "/longitude" --time-dim-name "/time" \
         --product-template "{collection_identifier}_{file_identifier}_{index}" \
         --coverage-type-mapping "/temperature:temperature" \
         --coverage-type-mapping "/precipitation:precipitation"
-
-
 
 
 

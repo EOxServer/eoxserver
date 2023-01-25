@@ -203,6 +203,7 @@ def resolve_location(asset: dict, self_href: Optional[str]) -> str:
 def register_stac_product(stac_item, product_type=None, storage=None,
                           replace=False, coverage_mapping={},
                           browse_mapping=None, metadata_asset_names=None,
+                          file_href=None, simplify_footprint_tolerance=None,
                           self_href=None):
     """ Registers a single parsed STAC item as a Product. The
         product type to be used can be specified via the product_type_name
@@ -357,6 +358,11 @@ def register_stac_product(stac_item, product_type=None, storage=None,
     # read footprint from metadata if it was not already defined
     footprint = footprint or metadata.get('footprint')
 
+    if simplify_footprint_tolerance is not None and footprint:
+        footprint = footprint.simplify(
+            simplify_footprint_tolerance, preserve_topology=True
+        )
+
     # finally create the product and its metadata object
     product = models.Product.objects.create(
         identifier=identifier,
@@ -503,6 +509,7 @@ def register_stac_product(stac_item, product_type=None, storage=None,
             footprint_from_extent=False,
             overrides=overrides,
             replace=replace,
+            simplify_footprint_tolerance=simplify_footprint_tolerance,
             statistics=[
                 [
                     dict(
