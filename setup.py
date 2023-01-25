@@ -28,6 +28,7 @@
 # -----------------------------------------------------------------------------
 
 import os
+import subprocess
 from setuptools import setup
 
 # get version number
@@ -79,6 +80,11 @@ on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
 if on_rtd:
     ext_modules = []
 
+try:
+    gdal_version = subprocess.check_output(['gdal-config','--version']).decode('utf-8').strip()
+except FileNotFoundError:
+    gdal_version = subprocess.check_output(['gdalinfo','--version']).decode('utf-8').split(' ')[1].strip(',')
+
 setup(
     name='EOxServer',
     version=version.replace(' ', '-'),
@@ -107,7 +113,7 @@ setup(
         "python-swiftclient<5.0.0",
         "jsonfield",
         "gunicorn",
-        "gdal",
+        f"gdal=={gdal_version}",
         "mapscript"
     ],
     extras_require={
