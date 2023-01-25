@@ -278,6 +278,11 @@ def register_stac_product(stac_item, product_type=None, storage=None,
     # read footprint from metadata if it was not already defined
     footprint = footprint or metadata.get('footprint')
 
+    if simplify_footprint_tolerance is not None and footprint:
+        footprint = footprint.simplify(
+            simplify_footprint_tolerance, preserve_topology=True
+        )
+
     # finally create the product and its metadata object
     product = models.Product.objects.create(
         identifier=identifier,
