@@ -99,6 +99,7 @@ class CloudCoverageProcess(Component):
     ):
         wkt_geometry = geometry[0].text
 
+        # TODO Use queue object for more complex query if parent_product__footprint is not enough
         coverages = models.Coverage.objects.filter(
             parent_product__begin_time__lte=end_time,
             parent_product__end_time__gte=begin_time,
