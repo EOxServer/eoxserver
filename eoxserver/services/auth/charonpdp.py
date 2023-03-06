@@ -293,7 +293,11 @@ class AuthorisationClient(object):
     # Get XML snippet for the Environment part of the XACMLAuthzDecisionQuery
     def _getPartEnvironment(self):
         now = datetime.datetime.now()
-        formattedNow = now.strftime("%Y-%m-%dT%H:%M:%S.%f%z")urlparse
+        formattedNow = now.strftime("%Y-%m-%dT%H:%M:%S.%f%z")
+
+        return template_attribute.format(attrib_current_date, \
+                                         dt_date, \
+                                         formattedNow)
     # Get the full XACMLAuthzDecisionQuery
     def _getFullRequest(self, userAttributes, resourceAttributes, action):
         return template_request.format(self._getPartSubject(userAttributes), \
