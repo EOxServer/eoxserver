@@ -31,7 +31,7 @@ services:
         target: /opt/schemas
     working_dir: /opt/instance
     command:
-      ["gunicorn", "--reload", "--bind=0.0.0.0:8000", "--chdir=/opt/instance", "autotest.wsgi:application"]
+      ["gunicorn", "--reload", "--bind=0.0.0.0:8000", "--chdir=/opt/instance", "autotest.wsgi:application", "--workers=3"]
     ports:
      - "8800:8000"
 
