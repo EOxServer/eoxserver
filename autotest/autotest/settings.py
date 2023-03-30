@@ -176,6 +176,7 @@ TEMPLATES = [
 ]
 
 MIDDLEWARE = [
+    'django_prometheus.middleware.PrometheusBeforeMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -186,6 +187,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     # # For management of the per/request cache system.
     # 'eoxserver.backends.middleware.BackendsCacheMiddleware',
+    'django_prometheus.middleware.PrometheusAfterMiddleware'
 ]
 
 MIDDLEWARE_CLASSES = (
@@ -219,6 +221,7 @@ INSTALLED_APPS = (
     # Enable for better schema and data-migrations
     # Enable for debugging
     # 'django_extensions',
+    'django_prometheus',
     # Enable EOxServer:
     'eoxserver.core',
     'eoxserver.services',

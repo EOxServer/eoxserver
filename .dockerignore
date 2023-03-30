@@ -1,4 +1,5 @@
 .git
+.venv
 autotest
 build
 dist
