@@ -6,6 +6,7 @@ except ImportError:
     from django.urls import include, re_path
 from django.contrib import admin
 from django.conf.urls.static import static
+import django_prometheus.exports
 
 from eoxserver.services.opensearch.urls import urlpatterns as opensearch
 from eoxserver.webclient.urls import urlpatterns as webclient
@@ -30,4 +31,9 @@ urlpatterns = [
     re_path(r'^admin/doc/', include('django.contrib.admindocs.urls')),
     # Enable the admin:
     re_path(r'^admin/', admin.site.urls),
+    re_path(
+        r'^metrics$',
+        django_prometheus.exports.ExportToDjangoView,
+        name="prometheus-django-metrics",
+    ),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

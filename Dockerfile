@@ -37,6 +37,9 @@ RUN apt-get update \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/partial/* /tmp/* /var/tmp/*
 
+ENV PROMETHEUS_MULTIPROC_DIR /var/tmp/prometheus_multiproc_dir
+RUN mkdir $PROMETHEUS_MULTIPROC_DIR  # make sure this is writable by webserver user
+
 RUN mkdir /opt/eoxserver/
 WORKDIR /opt/eoxserver
 COPY . .

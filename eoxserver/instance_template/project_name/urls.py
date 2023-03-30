@@ -36,6 +36,7 @@ except ImportError:
     from django.urls import include, re_path
 
 from django.contrib import admin
+import django_prometheus.exports
 
 from eoxserver.views import index
 
@@ -58,4 +59,9 @@ urlpatterns = [
     re_path(r'^admin/doc/', include('django.contrib.admindocs.urls')),
     # Enable the admin:
     re_path(r'^admin/', admin.site.urls),
+    re_path(
+        r'^metrics$',
+        django_prometheus.exports.ExportToDjangoView,
+        name="prometheus-django-metrics",
+    ),
 ]

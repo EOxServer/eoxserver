@@ -102,6 +102,7 @@ setup(
         "python-dateutil",
         "django-model-utils<5.0.0",
         "django-utils-six==2.0",
+        "django-prometheus",
         'tzdata',
         "zipstream",
         "psycopg2",
