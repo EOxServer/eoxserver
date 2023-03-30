@@ -22,9 +22,6 @@ ENV INIT_SCRIPTS=''
 ENV GUNICORN_CMD_ARGS "--config /opt/eoxserver/gunicorn.conf.py ${INSTANCE_NAME}.wsgi:application"
 
 # install OS dependency packages
-RUN mkdir /opt/eoxserver/
-WORKDIR /opt/eoxserver
-COPY . .
 RUN apt-get update \
   && apt-get install -y \
     python3 \
@@ -38,8 +35,12 @@ RUN apt-get update \
     python3-psycopg2 \
   && apt-get autoremove -y \
   && apt-get clean \
-  && rm -rf /var/lib/apt/lists/partial/* /tmp/* /var/tmp/* \
-  && pip3 install --no-cache-dir . \
+  && rm -rf /var/lib/apt/lists/partial/* /tmp/* /var/tmp/*
+
+RUN mkdir /opt/eoxserver/
+WORKDIR /opt/eoxserver
+COPY . .
+RUN python3 -m pip install --no-cache-dir . \
   && chmod +x entrypoint.sh
 
 EXPOSE 8000
