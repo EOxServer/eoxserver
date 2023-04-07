@@ -101,7 +101,7 @@ def retrieve(data_item, cache=None):
             tmp_path = cache.relative_path(item_id)
             if not cache.contains(item_id):
                 # actually retrieve the item when not in the cache
-                handler = handler_cls(path or storage.url)
+                handler = handler_cls(path or storage.url, storage.streaming)
                 use_cache, path = handler.retrieve(
                     path or child_storage.url, tmp_path
                 )
@@ -112,7 +112,7 @@ def retrieve(data_item, cache=None):
 
         if storage_handlers:
             storage, handler_cls = storage_handlers[-1]
-            handler = handler_cls(path)
+            handler = handler_cls(path, storage.streaming)
             return handler.retrieve(data_item.location)[1]
 
 
@@ -159,7 +159,7 @@ def get_vsi_storage_path(storage, location=None):
     while storage:
         handler_cls = get_handler_class_for_model(storage)
         if handler_cls:
-            handler = handler_cls(storage.url)
+            handler = handler_cls(storage.url, storage.streaming)
             location = handler.get_vsi_path(location or '')
         else:
             raise AccessError(
@@ -178,7 +178,7 @@ def get_vsi_env(storage):
     while storage:
         handler_cls = get_handler_class_for_model(storage)
         if handler_cls:
-            handler = handler_cls(storage.url)
+            handler = handler_cls(storage.url, storage.streaming)
             env.update(handler.get_vsi_env())
         else:
             raise AccessError(

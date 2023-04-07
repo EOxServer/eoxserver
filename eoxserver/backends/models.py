@@ -65,6 +65,7 @@ class Storage(models.Model):
     storage_type = models.CharField(max_length=32, **mandatory)
     name = models.CharField(max_length=1024, null=True, blank=True, unique=True)
     storage_auth = models.ForeignKey(StorageAuth, on_delete=models.CASCADE, **optional)
+    streaming = models.BooleanField(null=True, blank=True)
 
     parent = models.ForeignKey("self", on_delete=models.CASCADE, **optional)
 
