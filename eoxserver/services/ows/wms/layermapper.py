@@ -697,7 +697,9 @@ def _generate_browse_from_bands(product, bands, wavelengths, ranges):
             ranges or [(None, None)] * len(bands),
             [None] * len(bands),
             fields_and_coverages,
-            product
+            product,
+            variables={},
+            show_out_of_bounds_data=False,
         )
     return None
 
