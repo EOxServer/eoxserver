@@ -550,6 +550,10 @@ class LayerMapper(object):
                     browse_type = models.BrowseType.objects.get(
                         name=name, product_type=product.product_type
                     )
+            # additionally try to filter default browse with name ''
+            elif (browses := browses.filter(browse_type__name='')).count() > 0:
+                browse = browses.first()
+                browse_type = browse.browse_type
             else:
                 browses = browses.filter(browse_type__isnull=True)
                 browse_type = None
