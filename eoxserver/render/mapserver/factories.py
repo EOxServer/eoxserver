@@ -40,7 +40,7 @@ from eoxserver.core.util.iteratortools import pairwise_iterative
 from eoxserver.contrib import mapserver as ms
 from eoxserver.contrib import vsi, vrt, gdal, osr
 from eoxserver.render.browse.objects import (
-    Browse, GeneratedBrowse, BROWSE_MODE_GRAYSCALE
+    Browse, GeneratedBrowse, BROWSE_MODE_GRAYSCALE, BROWSE_MODE_RGBA
 )
 from eoxserver.render.browse.generate import (
     generate_browse, FilenameGenerator
@@ -355,7 +355,7 @@ class BrowseLayerMixIn(object):
                     )
                 layer_objs = _create_raster_layer_objs(
                     map_obj, browse.extent, browse.spatial_reference,
-                    creation_info.filename, filename_generator
+                    creation_info.filename, filename_generator, browse.mode,
                 )
 
                 for layer_obj in layer_objs:
@@ -447,7 +447,7 @@ class BrowseLayerMixIn(object):
             elif isinstance(browse, Browse):
                 layer_objs = _create_raster_layer_objs(
                     map_obj, browse.extent, browse.spatial_reference,
-                    browse.filename, filename_generator
+                    browse.filename, filename_generator, browse.mode,
                 )
                 for layer_obj in layer_objs:
                     layer_obj.data = browse.filename
@@ -662,14 +662,15 @@ class OutlinesLayerFactory(BaseMapServerLayerFactory):
 
 
 def _create_raster_layer_objs(map_obj, extent, sr, data, filename_generator,
-                              resample=None) -> List[ms.layerObj]:
+                              browse_mode=None, resample=None) -> List[ms.layerObj]:
     layer_obj = ms.layerObj(map_obj)
     layer_obj.type = ms.MS_LAYER_RASTER
     layer_obj.status = ms.MS_ON
 
     layer_obj.data = data
-
-    layer_obj.offsite = ms.colorObj(0, 0, 0)
+    # assumption that RGBA already has transparency in alpha band
+    if browse_mode != BROWSE_MODE_RGBA:
+        layer_obj.offsite = ms.colorObj(0, 0, 0)
 
     if extent:
         layer_obj.setMetaData("wms_extent", "%f %f %f %f" % extent)

@@ -40,7 +40,7 @@ from eoxserver.render.map.objects import (
 from eoxserver.render.coverage.objects import Coverage as RenderCoverage
 from eoxserver.render.coverage.objects import Mosaic as RenderMosaic
 from eoxserver.render.browse.objects import (
-    Browse, GeneratedBrowse, Mask, MaskedBrowse
+    Browse, GeneratedBrowse, Mask, MaskedBrowse, DEFAULT_EOXS_LAYER_SUFFIX_SEPARATOR
 )
 from eoxserver.resources.coverages import models
 
@@ -58,8 +58,6 @@ class NoSuchPrefix(NoSuchLayer):
     code = 'LayerNotDefined'
     locator = 'layer'
 
-
-DEFAULT_EOXS_LAYER_SUFFIX_SEPARATOR = '__'
 
 
 class LayerMapper(object):
