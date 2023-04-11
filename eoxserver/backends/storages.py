@@ -110,9 +110,10 @@ class ZIPStorageHandler(BaseStorageHandler):
 
     is_local = True
 
-    def __init__(self, package_filename):
+    def __init__(self, package_filename, streaming):
         self.package_filename = package_filename
         self.zipfile = None
+        self.streaming = streaming
 
     def __enter__(self):
         self.zipfile = zipfile.ZipFile(self.package_filename, "r")
@@ -153,9 +154,10 @@ class TARStorageHandler(BaseStorageHandler):
 
     is_local = True
 
-    def __init__(self, package_filename):
+    def __init__(self, package_filename, streaming):
         self.package_filename = package_filename
         self.tarfile = None
+        self.streaming = streaming
 
     def __enter__(self):
         self.tarfile = tarfile.TarFile(self.package_filename, "r")
@@ -197,8 +199,9 @@ class DirectoryStorageHandler(BaseStorageHandler):
 
     is_local = True
 
-    def __init__(self, dirpath):
+    def __init__(self, dirpath, streaming):
         self.dirpath = dirpath
+        self.streaming = streaming
 
     def retrieve(self, location, path):
         return False, os.path.join(self.dirpath, location)
@@ -323,10 +326,11 @@ class SwiftStorageHandler(BaseStorageHandler):
 
     def get_vsi_path(self, location):
         if self.streaming:
-            prefix = '/vsiswift_streaming/'
+            prefix = '/vsiswift_streaming'
         else:
-            prefix = '/vsiswift/'
-        return vsi.join('%s%s' % (prefix, self.container, location))
+            prefix = '/vsiswift'
+        base_path = f'{prefix}/{self.container}' if self.container else prefix
+        return vsi.join(base_path, location)
 
     @classmethod
     def test(cls, locator):
@@ -351,10 +355,10 @@ class S3StorageHandler(BaseStorageHandler):
 
     def get_vsi_path(self, location):
         if self.streaming:
-            prefix = '/vsis3_streaming/'
+            prefix = '/vsis3_streaming'
         else:
-            prefix = '/vsis3/'
-        base_path = '%s%s' % prefix, self.bucket if self.bucket else prefix
+            prefix = '/vsis3'
+        base_path = f'{prefix}/{self.bucket}' if self.bucket else prefix
         return vsi.join(base_path, location)
 
     @classmethod
