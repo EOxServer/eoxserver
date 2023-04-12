@@ -183,7 +183,7 @@ class CoverageLayerFactoryMixIn(object):
             sr = osr.SpatialReference(map_obj.getProjection())
 
         layer_objs = _create_raster_layer_objs(
-            map_obj, extent, sr, data, filename_generator
+            map_obj, extent, sr, data, filename_generator, location.env,
         )
 
         for i, layer_obj in enumerate(layer_objs):
@@ -355,7 +355,7 @@ class BrowseLayerMixIn(object):
                     )
                 layer_objs = _create_raster_layer_objs(
                     map_obj, browse.extent, browse.spatial_reference,
-                    creation_info.filename, filename_generator, browse.mode,
+                    creation_info.filename, filename_generator, creation_info.env, browse.mode,
                 )
 
                 for layer_obj in layer_objs:
@@ -447,7 +447,7 @@ class BrowseLayerMixIn(object):
             elif isinstance(browse, Browse):
                 layer_objs = _create_raster_layer_objs(
                     map_obj, browse.extent, browse.spatial_reference,
-                    browse.filename, filename_generator, browse.mode,
+                    browse.filename, filename_generator, browse.env, browse.mode,
                 )
                 for layer_obj in layer_objs:
                     layer_obj.data = browse.filename
@@ -661,7 +661,7 @@ class OutlinesLayerFactory(BaseMapServerLayerFactory):
 # ------------------------------------------------------------------------------
 
 
-def _create_raster_layer_objs(map_obj, extent, sr, data, filename_generator,
+def _create_raster_layer_objs(map_obj, extent, sr, data, filename_generator, env,
                               browse_mode=None, resample=None) -> List[ms.layerObj]:
     layer_obj = ms.layerObj(map_obj)
     layer_obj.type = ms.MS_LAYER_RASTER
@@ -694,10 +694,12 @@ def _create_raster_layer_objs(map_obj, extent, sr, data, filename_generator,
         wrapped_layer_obj.status = ms.MS_ON
 
         wrapped_data = filename_generator.generate()
-        vrt.with_extent(data, wrapped_extent, wrapped_data)
+        with gdal.config_env(env):
+            vrt.with_extent(data, wrapped_extent, wrapped_data)
         wrapped_layer_obj.data = wrapped_data
-
-        wrapped_layer_obj.offsite = ms.colorObj(0, 0, 0)
+        # assumption that RGBA already has transparency in alpha band
+        if browse_mode != BROWSE_MODE_RGBA:
+            wrapped_layer_obj.offsite = ms.colorObj(0, 0, 0)
 
         wrapped_layer_obj.setMetaData("ows_srs", short_epsg)
         wrapped_layer_obj.setMetaData("wms_srs", short_epsg)
