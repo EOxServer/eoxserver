@@ -72,6 +72,12 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             dest='storage_auth_name', default=None,
             help='The name of the storage auth to use. Optional',
         )
+        create_parser.add_argument(
+            '--streaming', action="store_true",
+            default=False,
+            help="""If used, respective streaming version of /vsi file 
+            accessor will be used."""
+        )
 
         for parser in [list_parser, env_parser]:
             parser.add_argument(
@@ -103,7 +109,7 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             self.handle_env(name, *args, **kwargs)
 
     def handle_create(self, name, url, type_name, parent_name,
-                      storage_auth_name, **kwargs):
+                      storage_auth_name, streaming, **kwargs):
         """ Handle the creation of a new storage.
         """
         url = url[0]
@@ -141,7 +147,7 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
 
         backends.Storage.objects.create(
             name=name, url=url, storage_type=type_name, parent=parent,
-            storage_auth=storage_auth,
+            storage_auth=storage_auth, streaming=streaming,
         )
 
         self.print_msg(
