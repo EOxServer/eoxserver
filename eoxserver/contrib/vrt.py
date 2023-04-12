@@ -517,6 +517,6 @@ def with_extent(filename, extent, save=None):
         0,
         y,
         0,
-        resy,
+        -resy,
     ])
     return out_ds

@@ -359,7 +359,6 @@ class BrowseLayerMixIn(object):
                 )
 
                 for layer_obj in layer_objs:
-                    layer_obj.data = creation_info.filename
                     if creation_info.env:
                         ms.set_env(map_obj, creation_info.env, True)
 
@@ -449,8 +448,6 @@ class BrowseLayerMixIn(object):
                     map_obj, browse.extent, browse.spatial_reference,
                     browse.filename, filename_generator, browse.env, browse.mode,
                 )
-                for layer_obj in layer_objs:
-                    layer_obj.data = browse.filename
                 ms.set_env(map_obj, browse.env, True)
             elif browse is None:
                 # TODO: figure out why and deal with it?
