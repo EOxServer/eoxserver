@@ -38,7 +38,7 @@ and other files that either reside on a local or remote storage.
 
 The backends have a static representation in the database (i.e the
 data models) and a dynamic behavioral implementation: the handlers.
-The combintation of both allows the registration of storages,
+The combination of both allows the registration of storages,
 backend authorization and data items and the access at runtime.
 
 
@@ -82,6 +82,9 @@ HTTP server and the root path for all data items to use, whereas
 for a ZIP file storage the URL is the path to the ZIP file.
 
 Each storage can be given a name, which helps with management.
+
+Storage can have `streaming` property set to `true` which wherever possible uses
+respective `streaming` version of `/vsi` file accessor, like `/vsicurl_streaming`.
 
 A Storage can be linked to a `Storage Auth`_ model, which allows
 to specify authorization credentials.

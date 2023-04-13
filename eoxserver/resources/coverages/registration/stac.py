@@ -616,10 +616,18 @@ def register_browse_for_asset(asset, self_href, product, storage, browse_type):
         ds = gdal_open(browse)
         browse.width = ds.RasterXSize
         browse.height = ds.RasterYSize
-        browse.coordinate_reference_system = ds.GetProjection()
-        extent = gdal.get_extent(ds)
-        browse.min_x, browse.min_y, browse.max_x, browse.max_y = extent
-
+        projection = ds.GetProjection()
+        if projection:
+            browse.coordinate_reference_system = projection
+            extent = gdal.get_extent(ds)
+            browse.min_x, browse.min_y, browse.max_x, browse.max_y = extent
+        elif product.footprint:
+            # unprojected image, attempt to take product footprint bbox
+            srs = osr.SpatialReference()
+            srs.ImportFromEPSG(product.footprint.srid)
+            browse.coordinate_reference_system = srs.ExportToWkt()
+            extent = product.footprint.extent
+            browse.min_x, browse.min_y, browse.max_x, browse.max_y = extent
     browse.full_clean()
     browse.save()
 

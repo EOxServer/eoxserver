@@ -40,7 +40,7 @@ from eoxserver.render.map.objects import (
 from eoxserver.render.coverage.objects import Coverage as RenderCoverage
 from eoxserver.render.coverage.objects import Mosaic as RenderMosaic
 from eoxserver.render.browse.objects import (
-    Browse, GeneratedBrowse, Mask, MaskedBrowse
+    Browse, GeneratedBrowse, Mask, MaskedBrowse, DEFAULT_EOXS_LAYER_SUFFIX_SEPARATOR
 )
 from eoxserver.resources.coverages import models
 
@@ -58,8 +58,6 @@ class NoSuchPrefix(NoSuchLayer):
     code = 'LayerNotDefined'
     locator = 'layer'
 
-
-DEFAULT_EOXS_LAYER_SUFFIX_SEPARATOR = '__'
 
 
 class LayerMapper(object):
@@ -552,6 +550,10 @@ class LayerMapper(object):
                     browse_type = models.BrowseType.objects.get(
                         name=name, product_type=product.product_type
                     )
+            # additionally try to filter default browse with name ''
+            elif (browses := browses.filter(browse_type__name='')).count() > 0:
+                browse = browses.first()
+                browse_type = browse.browse_type
             else:
                 browses = browses.filter(browse_type__isnull=True)
                 browse_type = None
@@ -695,7 +697,9 @@ def _generate_browse_from_bands(product, bands, wavelengths, ranges):
             ranges or [(None, None)] * len(bands),
             [None] * len(bands),
             fields_and_coverages,
-            product
+            product,
+            variables={},
+            show_out_of_bounds_data=False,
         )
     return None
 

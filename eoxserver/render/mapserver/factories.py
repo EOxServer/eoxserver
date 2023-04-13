@@ -40,7 +40,7 @@ from eoxserver.core.util.iteratortools import pairwise_iterative
 from eoxserver.contrib import mapserver as ms
 from eoxserver.contrib import vsi, vrt, gdal, osr
 from eoxserver.render.browse.objects import (
-    Browse, GeneratedBrowse, BROWSE_MODE_GRAYSCALE
+    Browse, GeneratedBrowse, BROWSE_MODE_GRAYSCALE, BROWSE_MODE_RGBA
 )
 from eoxserver.render.browse.generate import (
     generate_browse, FilenameGenerator
@@ -183,7 +183,7 @@ class CoverageLayerFactoryMixIn(object):
             sr = osr.SpatialReference(map_obj.getProjection())
 
         layer_objs = _create_raster_layer_objs(
-            map_obj, extent, sr, data, filename_generator
+            map_obj, extent, sr, data, filename_generator, location.env,
         )
 
         for i, layer_obj in enumerate(layer_objs):
@@ -355,11 +355,10 @@ class BrowseLayerMixIn(object):
                     )
                 layer_objs = _create_raster_layer_objs(
                     map_obj, browse.extent, browse.spatial_reference,
-                    creation_info.filename, filename_generator
+                    creation_info.filename, filename_generator, creation_info.env, browse.mode,
                 )
 
                 for layer_obj in layer_objs:
-                    layer_obj.data = creation_info.filename
                     if creation_info.env:
                         ms.set_env(map_obj, creation_info.env, True)
 
@@ -447,10 +446,8 @@ class BrowseLayerMixIn(object):
             elif isinstance(browse, Browse):
                 layer_objs = _create_raster_layer_objs(
                     map_obj, browse.extent, browse.spatial_reference,
-                    browse.filename, filename_generator
+                    browse.filename, filename_generator, browse.env, browse.mode,
                 )
-                for layer_obj in layer_objs:
-                    layer_obj.data = browse.filename
                 ms.set_env(map_obj, browse.env, True)
             elif browse is None:
                 # TODO: figure out why and deal with it?
@@ -661,15 +658,16 @@ class OutlinesLayerFactory(BaseMapServerLayerFactory):
 # ------------------------------------------------------------------------------
 
 
-def _create_raster_layer_objs(map_obj, extent, sr, data, filename_generator,
-                              resample=None) -> List[ms.layerObj]:
+def _create_raster_layer_objs(map_obj, extent, sr, data, filename_generator, env,
+                              browse_mode=None, resample=None) -> List[ms.layerObj]:
     layer_obj = ms.layerObj(map_obj)
     layer_obj.type = ms.MS_LAYER_RASTER
     layer_obj.status = ms.MS_ON
 
     layer_obj.data = data
-
-    layer_obj.offsite = ms.colorObj(0, 0, 0)
+    # assumption that RGBA already has transparency in alpha band
+    if browse_mode != BROWSE_MODE_RGBA:
+        layer_obj.offsite = ms.colorObj(0, 0, 0)
 
     if extent:
         layer_obj.setMetaData("wms_extent", "%f %f %f %f" % extent)
@@ -693,10 +691,12 @@ def _create_raster_layer_objs(map_obj, extent, sr, data, filename_generator,
         wrapped_layer_obj.status = ms.MS_ON
 
         wrapped_data = filename_generator.generate()
-        vrt.with_extent(data, wrapped_extent, wrapped_data)
+        with gdal.config_env(env):
+            vrt.with_extent(data, wrapped_extent, wrapped_data)
         wrapped_layer_obj.data = wrapped_data
-
-        wrapped_layer_obj.offsite = ms.colorObj(0, 0, 0)
+        # assumption that RGBA already has transparency in alpha band
+        if browse_mode != BROWSE_MODE_RGBA:
+            wrapped_layer_obj.offsite = ms.colorObj(0, 0, 0)
 
         wrapped_layer_obj.setMetaData("ows_srs", short_epsg)
         wrapped_layer_obj.setMetaData("wms_srs", short_epsg)

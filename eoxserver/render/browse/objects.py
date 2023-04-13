@@ -29,6 +29,7 @@ from typing import List, Tuple, Optional, Union
 
 from django.contrib.gis.geos import Polygon
 from django.contrib.gis.gdal import SpatialReference, CoordTransform, DataSource
+from django.conf import settings
 
 from eoxserver.contrib import gdal
 from eoxserver.backends.access import get_vsi_path, get_vsi_env, gdal_open
@@ -38,6 +39,7 @@ from eoxserver.render.coverage.objects import Coverage
 BROWSE_MODE_RGB = "rgb"
 BROWSE_MODE_RGBA = "rgba"
 BROWSE_MODE_GRAYSCALE = "grayscale"
+DEFAULT_EOXS_LAYER_SUFFIX_SEPARATOR = '__'
 
 
 OptionalNumeric = Optional[Union[float, int]]
@@ -111,10 +113,13 @@ class Browse(object):
         ds = gdal_open(browse_model)
         mode = _get_ds_mode(ds)
         ds = None
-
-        if browse_model.browse_type:
-            name = '%s__%s' % (
-                product_model.identifier, browse_model.browse_type.name
+        suffix_separator = getattr(
+            settings, 'EOXS_LAYER_SUFFIX_SEPARATOR',
+            DEFAULT_EOXS_LAYER_SUFFIX_SEPARATOR
+        )
+        if browse_model.browse_type and browse_model.browse_type.name:
+            name = '%s%s%s' % (
+                product_model.identifier, suffix_separator, browse_model.browse_type.name
             )
         else:
             name = product_model.identifier
