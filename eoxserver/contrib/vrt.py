@@ -498,6 +498,9 @@ def stack_bands(filenames, env, save=None):
 
     return out_ds
 
+def sign_abs(x):
+    return 0.0 if abs(x) == 0 else x / abs(x)
+
 def with_extent(filename, extent, save=None):
     """ Create a VRT and override the underlying files geolocation
     """
@@ -509,6 +512,9 @@ def with_extent(filename, extent, save=None):
     x = extent[0]
     y = extent[3]
 
+    source_geotransform = src_ds.GetGeoTransform()
+    resy_sign_north_up = sign_abs(source_geotransform[5])
+
     resx = abs(extent[2] - extent[0]) / width
     resy = abs(extent[3] - extent[1]) / height
     out_ds.SetGeoTransform([
@@ -517,6 +523,6 @@ def with_extent(filename, extent, save=None):
         0,
         y,
         0,
-        -resy,
+        resy_sign_north_up * resy,
     ])
     return out_ds
