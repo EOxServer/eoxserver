@@ -1,0 +1,75 @@
+[
+{
+    "model": "coverages.coveragetype",
+    "pk": 5,
+    "fields": {
+        "name": "CLM"
+    }
+},
+{
+    "model": "coverages.eoobject",
+    "pk": 22,
+    "fields": {
+        "identifier": "CLM_CLOUD_COVERAGE_PRODUCT",
+        "begin_time": "2020-02-15T07:59:36.409Z",
+        "end_time": "2020-02-20T08:00:36.342Z",
+        "footprint": "SRID=32633;POLYGON((622662.96184632671065629 5258293.03760476317256689, 631882.22604347742162645 5258293.03760476317256689, 631882.22604347742162645 5263938.81709540728479624, 622662.96184632671065629 5263938.81709540728479624, 622662.96184632671065629 5258293.03760476317256689))",
+        "inserted": "2019-01-01T00:00:00.000Z",
+        "updated": "2019-01-01T00:00:00.000Z"
+    }
+},
+{
+    "model": "coverages.product",
+    "pk": 22,
+    "fields": {
+        "product_type": null,
+        "package": null
+    }
+},
+{
+    "model": "coverages.eoobject",
+    "pk": 23,
+    "fields": {
+        "identifier": "CLM_CLOUD_COVERAGE",
+        "begin_time": null,
+        "end_time": null,
+        "footprint": "SRID=32633;POLYGON((622662.96184632671065629 5258293.03760476317256689, 631882.22604347742162645 5258293.03760476317256689, 631882.22604347742162645 5263938.81709540728479624, 622662.96184632671065629 5263938.81709540728479624, 622662.96184632671065629 5258293.03760476317256689))",
+        "inserted": "2019-01-01T00:00:00.000Z",
+        "updated": "2019-01-01T00:00:00.000Z"
+    }
+},
+{
+    "model": "coverages.coverage",
+    "pk": 23,
+    "fields": {
+        "grid": 1,
+        "axis_1_origin": null,
+        "axis_2_origin": null,
+        "axis_3_origin": null,
+        "axis_4_origin": null,
+        "axis_1_size": 569,
+        "axis_2_size": 486,
+        "axis_3_size": null,
+        "axis_4_size": null,
+        "coverage_type": 5,
+        "parent_product": 22,
+        "collections": [],
+        "mosaics": []
+    }
+},
+{
+    "model": "coverages.arraydataitem",
+    "pk": 21,
+    "fields": {
+        "storage": null,
+        "location": "autotest/data/CLM_clipped.tif",
+        "format": "image/tiff",
+        "coverage": 23,
+        "field_index": 0,
+        "band_count": 1,
+        "subdataset_type": null,
+        "subdataset_locator": null,
+        "bands_interpretation": 0
+    }
+}
+]
