@@ -42,6 +42,13 @@ RUN mkdir $PROMETHEUS_MULTIPROC_DIR  # make sure this is writable by webserver u
 
 RUN mkdir /opt/eoxserver/
 WORKDIR /opt/eoxserver
+
+# install dependencies
+COPY requirements.txt .
+RUN python3 -m pip install -U pip \
+  && python3 -m pip install --no-cache-dir -r requirements.txt
+
+# install EOxServer
 COPY . .
 RUN python3 -m pip install --no-cache-dir . \
   && chmod +x entrypoint.sh
