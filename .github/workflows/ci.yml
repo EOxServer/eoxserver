@@ -56,9 +56,10 @@ jobs:
       - uses: actions/download-artifact@v3.0.1
         with:
           name: eoxserver
-      - name: Import docker image
+      - name: Import docker image and name it autotest
         run: |
           docker load --input eoxserver.tar.gz
+          docker tag eoxserver
       - name: Run the tests
         env:
           COMPOSE_INTERACTIVE_NO_CLI: 1
