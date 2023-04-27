@@ -16,7 +16,7 @@ jobs:
       - uses: actions/checkout@v3
       - name: Build the eoxserver docker image
         run: |
-          docker build --cache-from eoxa/eoxserver -t eoxserver .
+          docker build --cache-from eoxa/eoxserver:latest -t eoxserver .
           docker save eoxserver | gzip > eoxserver.tar.gz
       - uses: actions/upload-artifact@v3
         with:
@@ -59,7 +59,7 @@ jobs:
       - name: Import docker image and name it autotest
         run: |
           docker load --input eoxserver.tar.gz
-          docker tag eoxserver
+          docker tag eoxserver autotest
       - name: Run the tests
         env:
           COMPOSE_INTERACTIVE_NO_CLI: 1
