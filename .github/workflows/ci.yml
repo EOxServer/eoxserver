@@ -16,6 +16,7 @@ jobs:
       - uses: actions/checkout@v3
       - name: Build the eoxserver docker image
         run: |
+          docker pull eoxa/eoxserver:latest || true
           docker build --cache-from eoxa/eoxserver:latest -t eoxserver .
           docker save eoxserver | gzip > eoxserver.tar.gz
       - uses: actions/upload-artifact@v3
@@ -59,16 +60,18 @@ jobs:
       - name: Import docker image and name it autotest
         run: |
           docker load --input eoxserver.tar.gz
-          docker tag eoxserver autotest
-      - name: Run the tests
-        env:
-          COMPOSE_INTERACTIVE_NO_CLI: 1
+          docker tag eoxserver:latest eoxserver:autotest
+      - name: Start the services and install test dependencies
         run: |
           echo "DB=spatialite" >> sample.env
           docker-compose config
           docker-compose up -d
           docker-compose ps
           docker exec -i eoxserver_autotest_1 pip3 install scipy
+      - name: Run the tests
+        env:
+          COMPOSE_INTERACTIVE_NO_CLI: 1
+        run: |
           docker exec -i eoxserver_autotest_1 python3 ${{ matrix.command }}
       - name: Upload logs and outputs of failed tests
         uses: 'actions/upload-artifact@v2'
