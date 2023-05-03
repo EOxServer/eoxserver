@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 #-------------------------------------------------------------------------------
 #
 # Project: EOxServer <http://eoxserver.org>
@@ -41,7 +41,6 @@ from django.core.management.color import color_style
 
 import eoxserver
 from eoxserver.core.instance import create_instance
-
 
 def main():
     parser = OptionParser(

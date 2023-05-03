@@ -15,4 +15,3 @@ python-swiftclient<5.0.0
 jsonfield
 gunicorn
 mapscript
-gdal

@@ -2,6 +2,8 @@ FROM ubuntu:22.04
 
 ENV INSTANCE_NAME=instance
 ENV TZ=UTC
+ENV PYTHONPATH='/opt/eoxserver'
+ENV PYTHONUNBUFFERED="1"
 
 # possible values are "postgis" and "spatialite"
 ENV DB=spatialite
@@ -50,8 +52,6 @@ RUN python3 -m pip install -U pip \
 
 # install EOxServer
 COPY . .
-RUN python3 -m pip install --no-cache-dir . \
-  && chmod +x entrypoint.sh
 
 EXPOSE 8000
 
