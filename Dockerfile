@@ -2,6 +2,8 @@ FROM ubuntu:22.04
 
 ENV INSTANCE_NAME=instance
 ENV TZ=UTC
+ENV PYTHONPATH='/opt/eoxserver'
+ENV PYTHONUNBUFFERED="1"
 
 # possible values are "postgis" and "spatialite"
 ENV DB=spatialite
@@ -42,9 +44,14 @@ RUN mkdir $PROMETHEUS_MULTIPROC_DIR  # make sure this is writable by webserver u
 
 RUN mkdir /opt/eoxserver/
 WORKDIR /opt/eoxserver
+
+# install dependencies
+COPY requirements.txt .
+RUN python3 -m pip install -U pip \
+  && python3 -m pip install --no-cache-dir -r requirements.txt
+
+# install EOxServer
 COPY . .
-RUN python3 -m pip install --no-cache-dir . \
-  && chmod +x entrypoint.sh
 
 EXPOSE 8000
 

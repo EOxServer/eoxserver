@@ -16,13 +16,19 @@ jobs:
       - uses: actions/checkout@v3
       - name: Build the eoxserver docker image
         run: |
-          docker build -t eoxserver .
+          docker pull eoxa/eoxserver:latest || true
+          docker build --cache-from eoxa/eoxserver:latest -t eoxserver .
           docker save eoxserver | gzip > eoxserver.tar.gz
-      - uses: actions/upload-artifact@v3
+      # - uses: actions/upload-artifact@v3
+      #   with:
+      #     name: eoxserver
+      #     path: eoxserver.tar.gz
+      #     retention-days: 2
+      - name: Save image to cache
+        uses: actions/cache/save@v3
         with:
-          name: eoxserver
           path: eoxserver.tar.gz
-          retention-days: 2
+          key: eoxserver.tar.gz-${{ github.run_id }}-${{ github.run_number }}
       - name: Slack Notify
         uses: 8398a7/action-slack@v3.8.0
         with:
@@ -37,45 +43,50 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include:
-        - db: postgis
-          python_bin: python3
-        - db: spatialite
-          python_bin: python3
+        command:
+          - "-m eoxserver.services.ows.wps.test_data_types"
+          - "-m eoxserver.services.ows.wps.test_allowed_values"
+          - "manage.py test --pythonpath=./eoxserver/ eoxserver.core -v2"
+          - "manage.py test --pythonpath=./eoxserver/ eoxserver.backends -v2"
+          - "manage.py test --pythonpath=./eoxserver/ eoxserver.services -v2"
+          - "manage.py test --pythonpath=./eoxserver/ eoxserver.resources.coverages -v2"
+          - "manage.py test autotest_services --tag wcs20 -v2"
+          - "manage.py test autotest_services --tag wcs11 -v2"
+          - "manage.py test autotest_services --tag wcs10 -v2"
+          - "manage.py test autotest_services --tag wms -v2"
+          - "manage.py test autotest_services --tag wps -v2"
+          - "manage.py test autotest_services --tag opensearch -v2"
     needs: build-docker
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/download-artifact@v3.0.1
+      - uses: actions/cache/restore@v3
+        id: cache
         with:
-          name: eoxserver
-      - name: Import docker image
+          path: eoxserver.tar.gz
+          key: eoxserver.tar.gz-${{ github.run_id }}-${{ github.run_number }}
+      # - uses: actions/download-artifact@v3.0.1
+      #   with:
+      #     name: eoxserver
+      - name: Import docker image and name it autotest
         run: |
           docker load --input eoxserver.tar.gz
-      - name: Run the tests
-        env:
-          COMPOSE_INTERACTIVE_NO_CLI: 1
+          docker tag eoxserver:latest eoxserver:autotest
+      - name: Start the services and install test dependencies
         run: |
-          echo "DB=${{ matrix.db }}" >> sample.env
+          echo "DB=spatialite" >> sample.env
           docker-compose config
           docker-compose up -d
           docker-compose ps
           docker exec -i eoxserver_autotest_1 pip3 install scipy
-          docker exec -i eoxserver_autotest_1 ${{ matrix.python_bin }} -m eoxserver.services.ows.wps.test_data_types
-          docker exec -i eoxserver_autotest_1 ${{ matrix.python_bin }} -m eoxserver.services.ows.wps.test_allowed_values
-          docker exec -i eoxserver_autotest_1 ${{ matrix.python_bin }} manage.py test --pythonpath=./eoxserver/ eoxserver.core -v2
-          docker exec -i eoxserver_autotest_1 ${{ matrix.python_bin }} manage.py test --pythonpath=./eoxserver/ eoxserver.backends -v2
-          docker exec -i eoxserver_autotest_1 ${{ matrix.python_bin }} manage.py test --pythonpath=./eoxserver/ eoxserver.services -v2
-          docker exec -i eoxserver_autotest_1 ${{ matrix.python_bin }} manage.py test --pythonpath=./eoxserver/ eoxserver.resources.coverages -v2
-          docker exec -i eoxserver_autotest_1 ${{ matrix.python_bin }} manage.py test autotest_services --tag wcs20 -v2
-          docker exec -i eoxserver_autotest_1 ${{ matrix.python_bin }} manage.py test autotest_services --tag wcs11 -v2
-          docker exec -i eoxserver_autotest_1 ${{ matrix.python_bin }} manage.py test autotest_services --tag wcs10 -v2
-          docker exec -i eoxserver_autotest_1 ${{ matrix.python_bin }} manage.py test autotest_services --tag wms -v2
-          docker exec -i eoxserver_autotest_1 ${{ matrix.python_bin }} manage.py test autotest_services --tag wps -v2
-          docker exec -i eoxserver_autotest_1 ${{ matrix.python_bin }} manage.py test autotest_services --tag opensearch -v2
+      - name: Run the tests
+        env:
+          COMPOSE_INTERACTIVE_NO_CLI: 1
+        run: |
+          docker exec -i eoxserver_autotest_1 python3 ${{ matrix.command }}
       - name: Upload logs and outputs of failed tests
         uses: 'actions/upload-artifact@v2'
         with:
-          name: logs ${{ matrix.python }} ${{ matrix.db }} ${{ matrix.django }}
+          name: logs ${{ matrix.command }}
           path: |
             autotest/autotest/logs/*.log
             autotest/autotest/responses/*
@@ -170,8 +181,8 @@ jobs:
           fields: repo,message,commit,author,action,eventName,ref,workflow,job,took
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-        if: failure()  
-  
+        if: failure()
+
   publish-github:
     runs-on: ubuntu-latest
     needs: publish-pypi
@@ -224,7 +235,7 @@ jobs:
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         if: failure()
-  
+
   notify:
     runs-on: ubuntu-20.04
     needs: [publish-github, publish-docker]
