@@ -19,11 +19,6 @@ jobs:
           docker pull eoxa/eoxserver:latest || true
           docker build --cache-from eoxa/eoxserver:latest -t eoxserver .
           docker save eoxserver | gzip > eoxserver.tar.gz
-      # - uses: actions/upload-artifact@v3
-      #   with:
-      #     name: eoxserver
-      #     path: eoxserver.tar.gz
-      #     retention-days: 2
       - name: Save image to cache
         uses: actions/cache/save@v3
         with:
@@ -64,9 +59,6 @@ jobs:
         with:
           path: eoxserver.tar.gz
           key: eoxserver.tar.gz-${{ github.run_id }}-${{ github.run_number }}
-      # - uses: actions/download-artifact@v3.0.1
-      #   with:
-      #     name: eoxserver
       - name: Import docker image and name it autotest
         run: |
           docker load --input eoxserver.tar.gz
@@ -107,9 +99,11 @@ jobs:
     if: contains(github.ref, 'refs/tags/') || github.ref == 'refs/heads/master'
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/download-artifact@v3.0.1
+      - uses: actions/cache/restore@v3
+        id: cache
         with:
-          name: eoxserver
+          path: eoxserver.tar.gz
+          key: eoxserver.tar.gz-${{ github.run_id }}-${{ github.run_number }}
       - name: Branch name
         id: branch_name
         run: |
