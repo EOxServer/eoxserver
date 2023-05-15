@@ -30,7 +30,7 @@ import concurrent
 import functools
 from datetime import datetime
 from uuid import uuid4
-from typing import List, Callable
+from typing import List, Callable, Optional
 
 from osgeo import ogr, osr
 
@@ -124,11 +124,15 @@ class CloudCoverageProcess(Component):
             logger.info("Matched %s CLM covs for cloud coverage", coverages_clm.count())
             calculation_fun = cloud_coverage_ratio_for_CLM
             coverages = coverages_clm
+            # CLM is a bitmask, this value would mean that all types of cloud were found
+            # hopefully this never occurs naturally, so we can use it as no_data
+            no_data_value = 0b11111111
 
         elif coverages_scl := relevant_coverages.filter(coverage_type__name="SCL"):
             logger.info("Matched %s SCL covs for cloud coverage", coverages_scl.count())
             calculation_fun = cloud_coverage_ratio_for_SCL
             coverages = coverages_scl
+            no_data_value = None
 
         else:
             raise InvalidInputValueError("No coverage data found")
@@ -139,6 +143,7 @@ class CloudCoverageProcess(Component):
                     cloud_coverage_ratio_in_geometry,
                     calculation_fun=calculation_fun,
                     wkt_geometry=wkt_geometry,
+                    no_data_value=no_data_value,
                 ),
                 [coverage.arraydata_items.get() for coverage in coverages],
             )
@@ -162,7 +167,6 @@ def cloud_coverage_ratio_in_geometry(
     calculation_fun: Callable[[List[int]], float],
     no_data_value: Optional[int],
 ) -> float:
-    logger.critical(f"opening {data_item.location} {data_item.storage}")
     histogram = _histogram_in_geometry(
         data_item=data_item,
         wkt_geometry=wkt_geometry,
@@ -179,7 +183,6 @@ def cloud_coverage_ratio_for_CLM(histogram: List[int]) -> float:
     )
 
     num_pixels = sum(histogram)
-
     return ((num_is_cloud / num_pixels)) if num_pixels != 0 else 0.0
 
 
@@ -204,6 +207,7 @@ def cloud_coverage_ratio_for_SCL(histogram: List[int]) -> float:
 def _histogram_in_geometry(
     data_item: models.ArrayDataItem,
     wkt_geometry: str,
+    no_data_value: Optional[int],
 ) -> List[int]:
     # NOTE: this is executed in threads, but all gdal operations are contained
     #       in here, so each thread has separate gdal data
@@ -221,6 +225,7 @@ def _histogram_in_geometry(
                 cutlineDSName=geometry_mem_path,
                 cropToCutline=True,
                 warpOptions=["CUTLINE_ALL_TOUCHED=TRUE"],
+                dstNodata=no_data_value,
             ),
         )
 

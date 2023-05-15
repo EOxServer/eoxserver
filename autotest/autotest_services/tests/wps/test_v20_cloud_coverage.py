@@ -168,7 +168,37 @@ class WPS20ExecuteCloudCoverageOnCLMMoreCloudy(
           <wps:Input id="end_time"><wps:Data>2020-05-31</wps:Data></wps:Input>
           <wps:Input id="geometry">
             <wps:Data>
-              <wps:ComplexData mimeType="text/plain">POLYGON((16.722784199839623 47.47580355285194,16.7499627020568 47.4647191364739,16.7516507329145 47.5154960582897,16.69448533161491 47.51289505005574,16.704931416636498 47.487868890412074,16.722784199839623 47.47580355285194))</wps:ComplexData>
+              <wps:ComplexData mimeType="text/plain">POLYGON((16.689481892710717 47.49088479184637,16.685847177764813 47.49102703651446,16.685862090779757 47.49375416408526,16.689267315989525 47.49363955046273,16.689481892710717 47.49088479184637))</wps:ComplexData>
+            </wps:Data>
+          </wps:Input>
+          <wps:Output id="result" >
+          </wps:Output>
+        </wps:Execute>
+        """
+        return (params, "xml")
+
+
+class WPS20ExecuteCloudCoverageOnCLMFewClouds(
+    ContentTypeCheckMixIn, testbase.JSONTestCase
+):
+    fixtures = testbase.JSONTestCase.fixtures + ["clm_cloud_coverages.json"]
+
+    expectedContentType = "application/json; charset=utf-8"
+
+    def getRequest(self):
+        params = """<wps:Execute
+        version="2.0.0"
+        service="WPS"
+        response="raw"
+        mode="sync"
+        xmlns:wps="http://www.opengis.net/wps/2.0"
+        xmlns:ows="http://www.opengis.net/ows/2.0" >
+          <ows:Identifier>CloudCoverage</ows:Identifier>
+          <wps:Input id="begin_time"><wps:Data>2020-01-01</wps:Data></wps:Input>
+          <wps:Input id="end_time"><wps:Data>2020-05-31</wps:Data></wps:Input>
+          <wps:Input id="geometry">
+            <wps:Data>
+              <wps:ComplexData mimeType="text/plain">POLYGON((16.689481892710717 47.49088479184637,16.685862090779757 47.49375416408526,16.717934765940697 47.50045333252222,16.689481892710717 47.49088479184637))</wps:ComplexData>
             </wps:Data>
           </wps:Input>
           <wps:Output id="result" >
