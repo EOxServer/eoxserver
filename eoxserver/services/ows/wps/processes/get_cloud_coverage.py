@@ -30,6 +30,7 @@ import concurrent
 import functools
 from datetime import datetime
 from uuid import uuid4
+from typing import List, Callable, Optional
 
 from osgeo import ogr, osr
 
@@ -37,6 +38,7 @@ from eoxserver.core import Component
 from eoxserver.contrib import gdal
 from eoxserver.resources.coverages import models
 from eoxserver.backends.access import gdal_open
+from eoxserver.services.ows.wps.exceptions import InvalidInputValueError
 from eoxserver.services.ows.wps.parameters import (
     LiteralData,
     ComplexData,
@@ -46,11 +48,11 @@ from eoxserver.services.ows.wps.parameters import (
 )
 import logging
 
+
 logger = logging.getLogger(__name__)
 
 
 class CloudCoverageProcess(Component):
-
     identifier = "CloudCoverage"
     title = "Cloud coverage information about images of an AOI/TOI"
     description = ""
@@ -90,6 +92,18 @@ class CloudCoverageProcess(Component):
     SCL_LAYER_THIN_CIRRUS = 10
     SCL_LAYER_SATURATED_OR_DEFECTIVE = 1
 
+    # https://labo.obs-mip.fr/multitemp/sentinel-2/majas-native-sentinel-2-format/#English
+    # anything nonzero should be cloud, however that includes also cloud shadows which
+    # have a lot of false positives (or shadows that are not visible to the naked eye)
+    # for now only use the upper 4 bits which are:
+    # bit 4 (16) : clouds detected via mono-temporal thresholds
+    # bit 5 (32) : clouds detected via multi-temporal thresholds
+    # bit 6 (64) : thinnest clouds
+    # bit 7 (128) : high clouds detected by 1.38 µm
+    # sometimes bit 4 counts also seems to count things as cloud which don't appear to
+    # be clouds
+    CLM_MASK_ONLY_CLOUD = 0b11110000
+
     @staticmethod
     def execute(
         begin_time,
@@ -100,20 +114,36 @@ class CloudCoverageProcess(Component):
         wkt_geometry = geometry[0].text
 
         # TODO Use queue object for more complex query if parent_product__footprint is not enough
-        coverages = models.Coverage.objects.filter(
+        relevant_coverages = models.Coverage.objects.filter(
             parent_product__begin_time__lte=end_time,
             parent_product__end_time__gte=begin_time,
             parent_product__footprint__intersects=wkt_geometry,
-            coverage_type__name="SCL",
         ).order_by("parent_product__begin_time")
 
-        logger.info("Matched %s coverages for cloud coverage", coverages.count())
+        if coverages_clm := relevant_coverages.filter(coverage_type__name="CLM"):
+            logger.info("Matched %s CLM covs for cloud coverage", coverages_clm.count())
+            calculation_fun = cloud_coverage_ratio_for_CLM
+            coverages = coverages_clm
+            # CLM is a bitmask, this value would mean that all types of cloud were found
+            # hopefully this never occurs naturally, so we can use it as no_data
+            no_data_value = 0b11111111
+
+        elif coverages_scl := relevant_coverages.filter(coverage_type__name="SCL"):
+            logger.info("Matched %s SCL covs for cloud coverage", coverages_scl.count())
+            calculation_fun = cloud_coverage_ratio_for_SCL
+            coverages = coverages_scl
+            no_data_value = None
+
+        else:
+            raise InvalidInputValueError("No coverage data found")
 
         with concurrent.futures.ThreadPoolExecutor(max_workers=5) as e:
             cloud_coverage_ratios = e.map(
                 functools.partial(
                     cloud_coverage_ratio_in_geometry,
+                    calculation_fun=calculation_fun,
                     wkt_geometry=wkt_geometry,
+                    no_data_value=no_data_value,
                 ),
                 [coverage.arraydata_items.get() for coverage in coverages],
             )
@@ -134,7 +164,51 @@ class CloudCoverageProcess(Component):
 def cloud_coverage_ratio_in_geometry(
     data_item: models.ArrayDataItem,
     wkt_geometry: str,
+    calculation_fun: Callable[[List[int]], float],
+    no_data_value: Optional[int],
 ) -> float:
+    histogram = _histogram_in_geometry(
+        data_item=data_item,
+        wkt_geometry=wkt_geometry,
+        no_data_value=no_data_value,
+    )
+    return calculation_fun(histogram)
+
+
+def cloud_coverage_ratio_for_CLM(histogram: List[int]) -> float:
+    num_is_cloud = sum(
+        value
+        for index, value in enumerate(histogram)
+        if index & CloudCoverageProcess.CLM_MASK_ONLY_CLOUD > 0
+    )
+
+    num_pixels = sum(histogram)
+    return ((num_is_cloud / num_pixels)) if num_pixels != 0 else 0.0
+
+
+def cloud_coverage_ratio_for_SCL(histogram: List[int]) -> float:
+    num_cloud = sum(
+        histogram[scl_value]
+        for scl_value in [
+            CloudCoverageProcess.SCL_LAYER_CLOUD_MEDIUM_PROBABILITY,
+            CloudCoverageProcess.SCL_LAYER_CLOUD_HIGH_PROBABILITY,
+            CloudCoverageProcess.SCL_LAYER_THIN_CIRRUS,
+            CloudCoverageProcess.SCL_LAYER_SATURATED_OR_DEFECTIVE,
+        ]
+    )
+
+    num_no_data = histogram[CloudCoverageProcess.SCL_LAYER_NO_DATA]
+
+    num_pixels = sum(histogram) - num_no_data
+
+    return num_cloud / num_pixels if num_pixels != 0 else 0.0
+
+
+def _histogram_in_geometry(
+    data_item: models.ArrayDataItem,
+    wkt_geometry: str,
+    no_data_value: Optional[int],
+) -> List[int]:
     # NOTE: this is executed in threads, but all gdal operations are contained
     #       in here, so each thread has separate gdal data
 
@@ -151,6 +225,7 @@ def cloud_coverage_ratio_in_geometry(
                 cutlineDSName=geometry_mem_path,
                 cropToCutline=True,
                 warpOptions=["CUTLINE_ALL_TOUCHED=TRUE"],
+                dstNodata=no_data_value,
             ),
         )
 
@@ -161,25 +236,9 @@ def cloud_coverage_ratio_in_geometry(
         include_out_of_range=True,
     )
 
-    num_cloud = sum(
-        histogram[scl_value]
-        for scl_value in [
-            CloudCoverageProcess.SCL_LAYER_CLOUD_MEDIUM_PROBABILITY,
-            CloudCoverageProcess.SCL_LAYER_CLOUD_HIGH_PROBABILITY,
-            CloudCoverageProcess.SCL_LAYER_THIN_CIRRUS,
-            CloudCoverageProcess.SCL_LAYER_SATURATED_OR_DEFECTIVE,
-        ]
-    )
-
-    num_no_data = histogram[CloudCoverageProcess.SCL_LAYER_NO_DATA]
-
-    num_pixels = sum(histogram) - num_no_data
-
-    cloud_coverage_ratio = num_cloud / num_pixels if num_pixels != 0 else 0
-
     gdal.Unlink(tmp_ds)
 
-    return cloud_coverage_ratio
+    return histogram
 
 
 @contextlib.contextmanager

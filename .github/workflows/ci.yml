@@ -9,6 +9,7 @@ on:
       - 'MANIFEST.in'
       - 'pyproject.toml'
       - 'eoxserver/**'
+      - 'autotest/**'
 jobs:
   build-docker:
     runs-on: ubuntu-latest
