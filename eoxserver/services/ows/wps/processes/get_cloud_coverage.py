@@ -92,6 +92,18 @@ class CloudCoverageProcess(Component):
     SCL_LAYER_THIN_CIRRUS = 10
     SCL_LAYER_SATURATED_OR_DEFECTIVE = 1
 
+    # https://labo.obs-mip.fr/multitemp/sentinel-2/majas-native-sentinel-2-format/#English
+    # anything nonzero should be cloud, however that includes also cloud shadows which
+    # have a lot of false positives (or shadows that are not visible to the naked eye)
+    # for now only use the upper 4 bits which are:
+    # bit 4 (16) : clouds detected via mono-temporal thresholds
+    # bit 5 (32) : clouds detected via multi-temporal thresholds
+    # bit 6 (64) : thinnest clouds
+    # bit 7 (128) : high clouds detected by 1.38 µm
+    # sometimes bit 4 counts also seems to count things as cloud which don't appear to
+    # be clouds
+    CLM_MASK_ONLY_CLOUD = 0b11110000
+
     @staticmethod
     def execute(
         begin_time,
@@ -148,20 +160,27 @@ def cloud_coverage_ratio_in_geometry(
     data_item: models.ArrayDataItem,
     wkt_geometry: str,
     calculation_fun: Callable[[List[int]], float],
+    no_data_value: Optional[int],
 ) -> float:
+    logger.critical(f"opening {data_item.location} {data_item.storage}")
     histogram = _histogram_in_geometry(
         data_item=data_item,
         wkt_geometry=wkt_geometry,
+        no_data_value=no_data_value,
     )
     return calculation_fun(histogram)
 
 
 def cloud_coverage_ratio_for_CLM(histogram: List[int]) -> float:
-    # anything nonzero is cloud
-    # https://labo.obs-mip.fr/multitemp/sentinel-2/majas-native-sentinel-2-format/#English
-    non_cloud = histogram[0]
+    num_is_cloud = sum(
+        value
+        for index, value in enumerate(histogram)
+        if index & CloudCoverageProcess.CLM_MASK_ONLY_CLOUD > 0
+    )
+
     num_pixels = sum(histogram)
-    return (1.0 - (non_cloud / num_pixels)) if num_pixels != 0 else 0.0
+
+    return ((num_is_cloud / num_pixels)) if num_pixels != 0 else 0.0
 
 
 def cloud_coverage_ratio_for_SCL(histogram: List[int]) -> float:
