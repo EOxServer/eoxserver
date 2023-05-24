@@ -100,7 +100,7 @@ class CloudCoverageProcess(Component):
     # bit 5 (32) : clouds detected via multi-temporal thresholds
     # bit 6 (64) : thinnest clouds
     # bit 7 (128) : high clouds detected by 1.38 µm
-    # sometimes bit 4 counts also seems to count things as cloud which don't appear to
+    # sometimes bit 4 also seems to count things as cloud which don't appear to
     # be clouds
     CLM_MASK_ONLY_CLOUD = 0b11110000
 
