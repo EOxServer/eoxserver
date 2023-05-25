@@ -38,7 +38,6 @@ from eoxserver.core import Component
 from eoxserver.contrib import gdal
 from eoxserver.resources.coverages import models
 from eoxserver.backends.access import gdal_open
-from eoxserver.services.ows.wps.exceptions import InvalidInputValueError
 from eoxserver.services.ows.wps.parameters import (
     LiteralData,
     ComplexData,
@@ -135,7 +134,9 @@ class CloudCoverageProcess(Component):
             no_data_value = None
 
         else:
-            raise InvalidInputValueError("No coverage data found")
+            calculation_fun = None
+            coverages = []
+            no_data_value = None
 
         with concurrent.futures.ThreadPoolExecutor(max_workers=5) as e:
             cloud_coverage_ratios = e.map(
