@@ -26,30 +26,27 @@
  THE SOFTWARE.
 -->
 <head>
-        <meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
+    <meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
         <meta charset="UTF-8">
+        <link rel="icon" href="//eox.at/favicon.ico" type="image/x-icon">
+        <link rel="icon" sizes="16x16" href="//eox.at/favicon-16x16.png" type="image/png">
+        <link rel="icon" sizes="32x32" href="//eox.at/favicon-32x32.png" type="image/png">
+        <link rel="apple-touch-icon" sizes="180x180" href="//eox.at/apple-touch-icon.png" type="image/png">
+        <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#004170">
         <title>EOxServer - Webclient</title>
-        <link rel="icon" href="//eox.at/wp-content/uploads/2015/06/cropped-eox_eye-192x192.png" sizes="192x192" />
-        <link rel="apple-touch-icon-precomposed" href="//eox.at/wp-content/uploads/2015/06/cropped-eox_eye-180x180.png" />
       </head>
       <body>
-        <header id="header" style="width: 100%; height:70px;">
-          <h3 style="width:100%;text-align:center;
-          color: #006699;">EOxServer - Webclient
-          <a href="//eox.at"><img src="//eox.at/wp-content/uploads/2017/09/EOX_Logo.svg" alt="EOX" style="height:25px;margin-left:10px"/></a>
-          </h3>
-        </header>
+        <header id="header" style="width: 100%; height:60px; position:absolute;"><h3 style="width:100%; text-align:center; color: #006699;">EOxServer WebClient powered by <a href="//eox.at"><img src="//eox.at/EOX_Logo.svg" alt="EOX" style="height:20px;margin-left:10px"/></a></h3></header>
         <div id="app" style="width: 100%; top: 60px; bottom: 0; position: absolute; margin: 0; padding:0;"></div>
-        <script src="{% static 'prism.js' %}"></script>
+        <script src="{% static 'vsclient.js' %}"></script>
         <script>
         var baseUrl = "{{path}}";
         var config = {
           "settings": {
               "rightPanelOpen": true,
-              "leftPanelOpen": false,
-              "leftPanelTabIndex": 0,
+              "leftPanelOpen": true,
               "tutorial": "once",
-              "uploadEnabled": false,
+              "uploadEnabled": true,
               "downloadEnabled": true,
               "searchEnabled" : true,
               "searchDebounceTime": 500,
@@ -74,7 +71,7 @@
               //"center": [12, 49],
               //"zoom": 5,
               "extent": [{{ bbox }}],
-              "maxZoom": 15,
+              "maxZoom": 17,
               "footprintFillColor": "rgba(0, 0, 0, 0.2)",
               "footprintStrokeColor": "rgba(0, 0, 0, 1)",
               "filterFillColor": "rgba(0, 165, 255, 0)",
@@ -85,12 +82,52 @@
               "highlightFillColor": "rgba(246, 182, 0, 0.5)",
               "highlightStrokeColor": "rgba(246, 182, 0, 1)",
               "highlightStrokeWidth": 3,
+              "enableGetEOCoverageSet": true,
+              "maxSocketsPerHostSearch": 6,
               "translations": {
                   "en": {
                       "Cloud Cover": "Cloud coverage (%)",
                       "Error: NoApplicableCode": "Search timed out. Please refine the filter criteria.",
                   }
               },
+              "downloadFormats": [
+                { "name": "TIFF", "mimeType": "image/tiff" },
+                { "name": "JPEG 2000", "mimeType": "image/jp2" },
+                { "name": "HDF", "mimeType": "application/x-hdf" },
+              ],
+              "multiDownloadFormats": [
+                { "name": "ZIP", "mimeType": "application/zip" },
+                { "name": "TAR", "mimeType": "application/tar" },
+                { "name": "GZIP", "mimeType": "application/gzip" },
+              ],
+              "downloadProjections": [
+                {
+                    "name": "WGS-84",
+                    "identifier": "http://www.opengis.net/def/crs/EPSG/0/4326",
+                },
+                {
+                    "name": "Web Mercator",
+                    "identifier": "http://www.opengis.net/def/crs/EPSG/0/3857",
+                },
+                {
+                    "name": "ETRS89 / LAEA Europe",
+                    "identifier": "http://www.opengis.net/def/crs/EPSG/0/3035",
+                },
+              ],
+              "downloadInterpolations": [
+                {
+                    "name": "Bilinear",
+                    "identifier": "http://www.opengis.net/def/interpolation/OGC/1/bilinear",
+                },
+                {
+                    "name": "Nearest Neighbour",
+                    "identifier": "http://www.opengis.net/def/interpolation/OGC/1/nearest-neighbour",
+                },
+                {
+                    "name": "Average",
+                    "identifier": "http://www.opengis.net/def/interpolation/OGC/1/average",
+                },
+              ],
           },
           "baseLayers": [
               {
@@ -131,7 +168,7 @@
                   "id": "s2cloudless",
                   "displayName": "EOX Sentinel-2 cloudless",
                   "display": {
-                      "id": "s2cloudless-2018",
+                      "id": "s2cloudless-2021",
                       "visible": false,
                       "protocol": "WMTS",
                       "urls": [
@@ -161,7 +198,7 @@
                       "projection": 'EPSG:4326',
                       "style": '',
                       "useMilliseconds": true,
-                      "maxZoom": 15,
+                      "maxZoom": 17,
                   },
                   "detailsDisplay": {
                       "id": "{{ layer.identifier }}",
@@ -207,7 +244,11 @@
                       "parametersFilterSettings": {
                           "collapsed": false,
                       },
-                  }
+                  },
+                  "download": {
+                      "protocol": "EO-WCS",
+                      "url": "{% url 'ows' %}",
+                  },
               }{% if forloop.last %}{% else %},{% endif%}
       {% endfor %}
           ],
