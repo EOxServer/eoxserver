@@ -130,7 +130,7 @@ STATIC_ROOT = os.environ.get('STATIC_ROOT', join(PROJECT_DIR, 'static'))
 
 # URL prefix for static files.
 # Example: "http://example.com/static/", "http://static.example.com/"
-STATIC_URL = '/{{ project_name }}_static/'
+STATIC_URL = os.environ.get('STATIC_URL', '/{{ project_name }}_static/')
 
 # Additional locations of static files
 STATICFILES_DIRS = (
