@@ -48,13 +48,7 @@ path = "{{ project_directory }}"
 if path not in sys.path:
     sys.path.append(path)
 
-# NOTE: The Apache mod_wsgi, by default, shares the enviroment variables 
-#       between different WSGI apps which leads to conflicts between
-#       multiple EOxServer instance. Therefore we cannot rely on the 
-#       DJANGO_SETTINGS_MODULE enviromental variable we must always set it
-#       to the proper value.
-#os.environ.setdefault("DJANGO_SETTINGS_MODULE", "{{ project_name }}.settings")
-os.environ["DJANGO_SETTINGS_MODULE"] = "{{ project_name }}.settings"
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "{{ project_name }}.settings")
 
 # Initialize the EOxServer component system.
 import eoxserver.core
