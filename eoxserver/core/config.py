@@ -32,6 +32,7 @@ on different configuration files.
 """
 
 import imp
+import os
 from os.path import join, getmtime
 from sys import prefix
 import threading
@@ -39,9 +40,9 @@ import logging
 from time import time
 
 try:
-    from ConfigParser import RawConfigParser
+    from ConfigParser import SafeConfigParser
 except ImportError:
-    from configparser import RawConfigParser
+    from configparser import SafeConfigParser
 
 
 from django.conf import settings
@@ -56,7 +57,7 @@ _last_access_time = None
 
 
 def get_eoxserver_config():
-    """ Returns the EOxServer config as a :class:`ConfigParser.RawConfigParser`
+    """ Returns the EOxServer config as a :class:`ConfigParser.SafeConfigParser`
     """
     with config_lock:
         if not _cached_config or \
@@ -68,7 +69,7 @@ def get_eoxserver_config():
 
 def reload_eoxserver_config():
     """ Triggers the loading or reloading of the EOxServer config as a
-        :class:`ConfigParser.RawConfigParser`.
+        :class:`ConfigParser.SafeConfigParser`.
     """
     global _cached_config, _last_access_time
     _, eoxs_path, _ = imp.find_module("eoxserver")
@@ -84,7 +85,7 @@ def reload_eoxserver_config():
     )
 
     with config_lock:
-        _cached_config = RawConfigParser()
+        _cached_config = SafeConfigParser(os.environ)
         _cached_config.read(paths)
         _last_access_time = time()
 
