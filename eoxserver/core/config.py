@@ -39,10 +39,7 @@ import threading
 import logging
 from time import time
 
-try:
-    from ConfigParser import SafeConfigParser
-except ImportError:
-    from configparser import SafeConfigParser
+from configparser import ConfigParser
 
 
 from django.conf import settings
@@ -57,7 +54,7 @@ _last_access_time = None
 
 
 def get_eoxserver_config():
-    """ Returns the EOxServer config as a :class:`ConfigParser.SafeConfigParser`
+    """ Returns the EOxServer config as a :class:`ConfigParser.ConfigParser`
     """
     with config_lock:
         if not _cached_config or \
@@ -69,7 +66,7 @@ def get_eoxserver_config():
 
 def reload_eoxserver_config():
     """ Triggers the loading or reloading of the EOxServer config as a
-        :class:`ConfigParser.SafeConfigParser`.
+        :class:`configparser.ConfigParser`.
     """
     global _cached_config, _last_access_time
     _, eoxs_path, _ = imp.find_module("eoxserver")
@@ -85,7 +82,7 @@ def reload_eoxserver_config():
     )
 
     with config_lock:
-        _cached_config = SafeConfigParser(os.environ)
+        _cached_config = ConfigParser(os.environ)
         _cached_config.read(paths)
         _last_access_time = time()
 
