@@ -39,7 +39,7 @@ import threading
 import logging
 from time import time
 
-from configparser import ConfigParser
+from configparser import ConfigParser, ExtendedInterpolation
 
 
 from django.conf import settings
@@ -51,6 +51,14 @@ logger = logging.getLogger(__name__)
 # configuration singleton
 _cached_config = None
 _last_access_time = None
+
+
+# NOTE: Previously these values were hardcoded in the config.
+#       Now they are interpolated from env vars, but we keep
+#       these defautls here for backwards compatibility
+DEFAULTS = {
+    "HTTP_SERVICE_URL": "http://localhost:8000/ows?"
+}
 
 
 def get_eoxserver_config():
@@ -81,8 +89,16 @@ def reload_eoxserver_config():
         % ("Rel" if _cached_config else "L", ", ".join(paths))
     )
 
+    env_vars = {
+        **DEFAULTS,
+        **os.environ,
+    }
+
     with config_lock:
-        _cached_config = ConfigParser(os.environ)
+        _cached_config = ConfigParser(
+            env_vars,
+            interpolation=ExtendedInterpolation(),
+        )
         _cached_config.read(paths)
         _last_access_time = time()
 
