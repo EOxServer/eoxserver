@@ -4,6 +4,7 @@ from unittest import mock
 from django.test import TestCase
 
 from eoxserver.core.config import get_eoxserver_config, reload_eoxserver_config
+from eoxserver.services.ows.wms.layermapper import LayerMapperConfigReader
 
 
 class TestConfig(TestCase):
@@ -26,3 +27,11 @@ class TestConfig(TestCase):
             current_config.get("services.owscommon", "http_service_url"),
             "http://localhost:8000/ows?",
         )
+
+    def test_config_handles_empty_values(self):
+        reload_eoxserver_config()
+        current_config = get_eoxserver_config()
+
+
+        reader = LayerMapperConfigReader(current_config)
+        self.assertIsNone(reader.min_render_zoom)

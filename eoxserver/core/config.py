@@ -57,7 +57,9 @@ _last_access_time = None
 #       Now they are interpolated from env vars, but we keep
 #       these defautls here for backwards compatibility
 DEFAULTS = {
-    "HTTP_SERVICE_URL": "http://localhost:8000/ows?"
+    "HTTP_SERVICE_URL": "http://localhost:8000/ows?",
+    "OWS_WCS_MAXSIZE": "2048",
+    "OWS_WMS_MINRENDER_ZOOM": "",
 }
 
 
@@ -97,6 +99,7 @@ def reload_eoxserver_config():
     with config_lock:
         _cached_config = ConfigParser(
             env_vars,
+            allow_no_value=True,
             interpolation=ExtendedInterpolation(),
         )
         _cached_config.read(paths)
