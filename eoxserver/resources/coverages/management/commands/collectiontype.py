@@ -66,6 +66,15 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             )
         )
 
+        create_parser.add_argument(
+            '--replace', action='store_true',
+            default=False,
+            help=(
+                '''Change collection type references according to parameters
+                if collection type already exists.'''
+            )
+        )
+
         delete_parser.add_argument(
             '--force', '-f', action='store_true', default=False,
             help='Also remove all collections associated with that type.'
@@ -88,37 +97,39 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             self.handle_list(*args, **kwargs)
 
     def handle_create(self, name, allowed_coverage_type_names,
-                      allowed_product_type_names, **kwargs):
+                      allowed_product_type_names, replace, **kwargs):
         """ Handle the creation of a new collection type.
         """
-
-        collection_type = models.CollectionType.objects.create(name=name)
+        if replace:
+            collection_type = models.CollectionType.objects.get_or_create(name=name)[0]
+        else:
+            collection_type = models.CollectionType.objects.create(name=name)
 
         for allowed_coverage_type_name in allowed_coverage_type_names:
-            try:
-                collection_type.allowed_coverage_types.add(
-                    models.CoverageType.objects.get(
-                        name=allowed_coverage_type_name
-                    )
-                )
-            except models.CoverageType.DoesNotExist:
-                raise CommandError(
-                    'Coverage type %r does not exist.' %
-                    allowed_coverage_type_name
-                )
+            if replace:
+                if not collection_type.allowed_coverage_types.exists(name=allowed_coverage_type_name):
+                    self.add_allowed_coverage_type_name(collection_type, allowed_coverage_type_name)
+            else:
+                self.add_allowed_coverage_type_name(collection_type, allowed_coverage_type_name)
+        if replace:
+            # remove allowed coverage types not part of definition of collection type
+            referenced_coverage_types = collection_type.allowed_coverage_types.all()
+            for ct in referenced_coverage_types:
+                if ct.name not in allowed_coverage_type_names:
+                    collection_type.allowed_coverage_types.remove(ct)
 
         for allowed_product_type_name in allowed_product_type_names:
-            try:
-                collection_type.allowed_product_types.add(
-                    models.ProductType.objects.get(
-                        name=allowed_product_type_name
-                    )
-                )
-            except models.ProductType.DoesNotExist:
-                raise CommandError(
-                    'Product type %r does not exist.' %
-                    allowed_product_type_name
-                )
+            if replace:
+                if not collection_type.allowed_product_types.exists(name=allowed_product_type_name):
+                    self.add_allowed_product_type_name(collection_type, allowed_product_type_name)
+            else:
+                self.add_allowed_product_type_name(collection_type, allowed_product_type_name)
+        if replace:
+            # remove allowed product types not part of definition of collection type
+            referenced_product_types = collection_type.allowed_product_types.all()
+            for pt in referenced_product_types:
+                if pt.name not in allowed_product_type_names:
+                    collection_type.allowed_product_types.remove(pt)
 
         print('Successfully created collection type %r' % name)
 
@@ -139,3 +150,30 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             # if detail:
             #     for coverage_type in collection_type.allowed_coverage_types.all():
             #         print("\t%s" % coverage_type.name)
+    
+    def add_allowed_coverage_type_name(self, collection_type, allowed_coverage_type_name):
+        try:
+            collection_type.allowed_coverage_types.add(
+                models.CoverageType.objects.get(
+                    name=allowed_coverage_type_name
+                )
+            )
+        except models.CoverageType.DoesNotExist:
+            raise CommandError(
+                'Coverage type %r does not exist.' %
+                allowed_coverage_type_name
+            )
+
+
+    def add_allowed_product_type_name(self, collection_type, allowed_product_type_name):
+        try:
+            collection_type.allowed_product_types.add(
+                models.ProductType.objects.get(
+                    name=allowed_product_type_name
+                )
+            )
+        except models.CoverageType.DoesNotExist:
+            raise CommandError(
+                'Product type %r does not exist.' %
+                allowed_product_type_name
+            )
