@@ -115,7 +115,7 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
     def handle_create(self, name, field_types, **kwargs):
         """ Handle the creation of a new coverage type.
         """
-        coverage_type = self._create_coverage_type(name)
+        coverage_type = self._create_coverage_type(name, kwargs.get('replace'))
 
         self._create_field_types(coverage_type, {}, [
             dict(
@@ -194,7 +194,7 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
 
     def _import_definition(self, definition, replace):
         name = str(definition['name'])
-        coverage_type = self._create_coverage_type(name)
+        coverage_type = self._create_coverage_type(name, replace)
         field_type_definitions = (
             definition.get('field_type') or definition.get('bands')
         )
@@ -203,23 +203,29 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
         )
         self.print_msg('Successfully imported coverage type %r' % name)
 
-    def _create_coverage_type(self, name):
-        try:
+    def _create_coverage_type(self, name, replace):
+        if replace:
             return models.CoverageType.objects.get_or_create(name=name)[0]
+        try:
+            return models.CoverageType.objects.get(name=name)
         except IntegrityError:
             raise CommandError("Coverage type %r already exists." % name)
 
     def _create_field_types(self, coverage_type, coverage_type_definition,
                             field_type_definitions, replace):
         for i, field_type_definition in enumerate(field_type_definitions):
+            if i == 0:
+                # only in first iteration consider replace
+                if replace:
+                # delete FieldTypes attached to CoverageType if any exist
+                    field_types = models.FieldType.objects.filter(
+                        coverage_type=coverage_type,
+                    )
+                    field_types.delete()
             uom = (
                 field_type_definition.get('unit_of_measure') or
                 field_type_definition.get('uom')
             )
-            if replace:
-                # delete all FieldTypes attached to CoverageType if any exist
-                field_types = models.FieldType.objects.filter(coverage_type=coverage_type)
-                field_types.delete()
             field_type = models.FieldType(
                 coverage_type=coverage_type,
                 index=i,
