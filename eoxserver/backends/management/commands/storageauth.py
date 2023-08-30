@@ -74,6 +74,14 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             help='Check access to the storage auth.',
         )
 
+        create_parser.add_argument(
+            '--replace', action='store_true',
+            default=False,
+            help=(
+                'Replace storage auth definition if already exists.'
+            )
+        )
+
     @transaction.atomic
     def handle(self, subcommand, name, *args, **kwargs):
         """ Dispatch sub-commands: create, delete, insert, exclude, purge.
@@ -84,7 +92,7 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
         elif subcommand == "delete":
             self.handle_delete(name, *args, **kwargs)
 
-    def handle_create(self, name, url, type_name, parameters, check, **kwargs):
+    def handle_create(self, name, url, type_name, parameters, check, replace, **kwargs):
         """ Handle the creation of a new storage.
         """
         url = url[0]
@@ -102,15 +110,24 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             parse_parameter(*param)
             for param in parameters
         )
-
-        storage_auth = backends.StorageAuth(
-            name=name,
-            url=url,
-            storage_auth_type=type_name,
-            auth_parameters=json.dumps(parameters),
-        )
-        storage_auth.full_clean()
-        storage_auth.save()
+        if replace:
+            backends.StorageAuth.objects.update_or_create(
+                name=name,
+                defaults={
+                    'url':url,
+                    'storage_auth_type':type_name,
+                    'auth_parameters':json.dumps(parameters),
+                },
+            )
+        else:
+            storage_auth = backends.StorageAuth(
+                name=name,
+                url=url,
+                storage_auth_type=type_name,
+                auth_parameters=json.dumps(parameters),
+            )
+            storage_auth.full_clean()
+            storage_auth.save()
 
         if check:
             _ = get_handler_for_model(storage_auth)
