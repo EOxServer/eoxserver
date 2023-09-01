@@ -112,21 +112,21 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
         elif subcommand == "list":
             self.handle_list(*args, **kwargs)
 
-    def handle_create(self, name, field_types, **kwargs):
+    def handle_create(self, name, field_types, replace, **kwargs):
         """ Handle the creation of a new coverage type.
         """
-        coverage_type = self._create_coverage_type(name, kwargs.get('replace'))
-
-        self._create_field_types(coverage_type, {}, [
-            dict(
-                identifier=field_type_definition[0],
-                description=field_type_definition[1],
-                definition=field_type_definition[2],
-                unit_of_measure=field_type_definition[3],
-                wavelength=field_type_definition[4]
-            )
-            for field_type_definition in field_types
-        ], kwargs.get('replace'))
+        coverage_type = self._create_coverage_type(name)
+        if replace or not models.FieldType.objects.filter(coverage_type=coverage_type).exists():
+            self._create_field_types(coverage_type, {}, [
+                dict(
+                    identifier=field_type_definition[0],
+                    description=field_type_definition[1],
+                    definition=field_type_definition[2],
+                    unit_of_measure=field_type_definition[3],
+                    wavelength=field_type_definition[4]
+                )
+                for field_type_definition in field_types
+            ], replace)
 
         print('Successfully created coverage type %r' % name)
 
@@ -194,22 +194,18 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
 
     def _import_definition(self, definition, replace):
         name = str(definition['name'])
-        coverage_type = self._create_coverage_type(name, replace)
+        coverage_type = self._create_coverage_type(name)
         field_type_definitions = (
             definition.get('field_type') or definition.get('bands')
         )
-        self._create_field_types(
-            coverage_type, definition, field_type_definitions, replace
-        )
-        self.print_msg('Successfully imported coverage type %r' % name)
+        if replace or not models.FieldType.objects.filter(coverage_type=coverage_type).exists():
+            self._create_field_types(
+                coverage_type, definition, field_type_definitions, replace
+            )
+            self.print_msg('Successfully imported coverage type %r' % name)
 
-    def _create_coverage_type(self, name, replace):
-        if replace:
-            return models.CoverageType.objects.get_or_create(name=name)[0]
-        try:
-            return models.CoverageType.objects.get(name=name)
-        except IntegrityError:
-            raise CommandError("Coverage type %r already exists." % name)
+    def _create_coverage_type(self, name):
+        return models.CoverageType.objects.get_or_create(name=name)[0]
 
     def _create_field_types(self, coverage_type, coverage_type_definition,
                             field_type_definitions, replace):
@@ -226,7 +222,7 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
                 field_type_definition.get('unit_of_measure') or
                 field_type_definition.get('uom')
             )
-            field_type = models.FieldType(
+            field_type = models.FieldType.objects.create(
                 coverage_type=coverage_type,
                 index=i,
                 identifier=field_type_definition.get('identifier'),

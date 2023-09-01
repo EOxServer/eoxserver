@@ -107,7 +107,7 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
 
         for allowed_coverage_type_name in allowed_coverage_type_names:
             if replace:
-                if not collection_type.allowed_coverage_types.exists(name=allowed_coverage_type_name):
+                if not collection_type.allowed_coverage_types.filter(name=allowed_coverage_type_name).exists():
                     self.add_allowed_coverage_type_name(collection_type, allowed_coverage_type_name)
             else:
                 self.add_allowed_coverage_type_name(collection_type, allowed_coverage_type_name)
@@ -120,7 +120,7 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
 
         for allowed_product_type_name in allowed_product_type_names:
             if replace:
-                if not collection_type.allowed_product_types.exists(name=allowed_product_type_name):
+                if not collection_type.allowed_product_types.filter(name=allowed_product_type_name).exists():
                     self.add_allowed_product_type_name(collection_type, allowed_product_type_name)
             else:
                 self.add_allowed_product_type_name(collection_type, allowed_product_type_name)
