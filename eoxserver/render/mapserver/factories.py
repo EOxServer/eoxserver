@@ -45,6 +45,7 @@ from eoxserver.render.browse.objects import (
 from eoxserver.render.browse.generate import (
     generate_browse, FilenameGenerator
 )
+from eoxserver.render.browse.defaultstyles import DEFAULT_RASTER_STYLES
 from eoxserver.render.map.objects import (
     CoverageLayer, CoveragesLayer, MosaicLayer, OutlinedCoveragesLayer,
     BrowseLayer, OutlinedBrowseLayer,
@@ -392,8 +393,9 @@ class BrowseLayerMixIn(object):
                         browse_range = _get_range(field)
 
                     for layer_obj in layer_objs:
+                        raster_style = browse.raster_styles.get(style or "blackwhite") or DEFAULT_RASTER_STYLES[style or "blackwhite"]
                         _create_raster_style(
-                            style or "blackwhite", layer_obj,
+                            raster_style, layer_obj,
                             browse_range[0], browse_range[1],
                             browse.nodata_values
                         )
@@ -784,10 +786,49 @@ def _build_vrt(size, field_locations):
     return path
 
 
-def _create_raster_style(name, layer, minvalue=0, maxvalue=255,
+def _create_raster_style(raster_style, layer, minvalue=0, maxvalue=255,
                          nil_values=None):
-    colors = COLOR_SCALES[name]
+    if raster_style.type == "ramp":
+        return _create_raster_style_ramp(
+            raster_style, layer, minvalue, maxvalue, nil_values
+        )
+    elif raster_style.type == "values":
+        for entry in raster_style.entries:
+            value = entry.value
+            if int(value) == value:
+                value = int(value)
+            cls = ms.classObj()
+            cls.setExpression("([pixel] = %s)" % value)
+            cls.group = entry.label
 
+            style = ms.styleObj()
+            style.color = ms.colorObj(*entry.color)
+            style.opacity = int(entry.opacity * 255)
+            cls.insertStyle(style)
+            layer.insertClass(cls)
+
+        cls = ms.classObj()
+        style = ms.styleObj()
+        style.color = ms.colorObj(0, 0, 0, 0)
+        style.opacity = 0
+        cls.insertStyle(style)
+        layer.insertClass(cls)
+        return
+
+    elif raster_style.type == "intervals":
+        # TODO
+        return
+    raise ValueError("Invalid raster style type %r" % raster_style.type)
+
+
+def _create_raster_style_ramp(raster_style, layer, minvalue=0, maxvalue=255,
+                              nil_values=None):
+    name = raster_style.name
+
+    colors = [
+        (entry.value, entry.color)
+        for entry in raster_style.entries
+    ]
     if nil_values and all(v is not None for v in nil_values):
         nil_values = [float(nil_value) for nil_value in nil_values]
     else:

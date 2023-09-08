@@ -1,0 +1,24 @@
+[{
+    "bands": [
+        {
+            "definition": "http://www.opengis.net/def/property/OGC/0/Radiance",
+            "description": "SCL",
+            "gdal_interpretation": "gray",
+            "identifier": "scl",
+            "name": "scl",
+            "nil_values": [
+                {
+                    "reason": "http://www.opengis.net/def/nil/OGC/0/unknown",
+                    "value": 0
+                }
+            ],
+            "uom": "nil",
+            "significant_figures": 2,
+            "allowed_value_ranges": [
+                [0, 11]
+            ]
+        }
+    ],
+    "data_type": "Byte",
+    "name": "SCL"
+}]
