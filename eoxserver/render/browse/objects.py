@@ -103,7 +103,7 @@ class Browse(object):
             return polygon
 
     @classmethod
-    def from_model(cls, product_model, browse_model):
+    def from_model(cls, product_model, browse_model, raster_styles=None):
         filename = get_vsi_path(browse_model)
         env = get_vsi_env(browse_model.storage)
         size = (browse_model.width, browse_model.height)
@@ -129,11 +129,12 @@ class Browse(object):
         return cls(
             name, filename, env, size, extent,
             browse_model.coordinate_reference_system, mode,
-            product_model.footprint
+            product_model.footprint,
+            raster_styles if raster_styles is not None else {}
         )
 
     @classmethod
-    def from_file(cls, filename, env=None):
+    def from_file(cls, filename, env=None, raster_styles=None):
         env = env or {}
         ds = gdal.Open(filename)
         size = (ds.RasterXSize, ds.RasterYSize)
@@ -142,7 +143,8 @@ class Browse(object):
 
         return cls(
             filename, env, filename, size, extent,
-            ds.GetProjection(), mode, None
+            ds.GetProjection(), mode, None,
+            raster_styles if raster_styles is not None else {},
         )
 
 

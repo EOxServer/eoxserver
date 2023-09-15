@@ -11,9 +11,9 @@ DEFAULT_GEOMETRY_STYLES = {}
 for name, entries in COLOR_SCALES.items():
     DEFAULT_RASTER_STYLES[name] = RasterStyle(
         name,
-        name,
-        name,
         "ramp",
+        name,
+        name,
         [
             RasterStyleColorEntry(i, color)
             for i, color in entries

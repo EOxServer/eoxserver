@@ -214,7 +214,10 @@ class CoverageLayerFactoryMixIn(object):
 
             for layer_obj in layer_objs:
                 _create_raster_style(
-                    style or "blackwhite", layer_obj, range_[0], range_[1], [
+                    DEFAULT_RASTER_STYLES[style or "blackwhite"],
+                    layer_obj,
+                    range_[0],
+                    range_[1], [
                         nil_value[0] for nil_value in field.nil_values
                     ]
                 )
