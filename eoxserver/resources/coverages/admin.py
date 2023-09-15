@@ -326,8 +326,13 @@ class RasterStyleColorEntryInline(admin.TabularInline):
     extra = 0
 
 
+class RasterStyleToBrowseTypeThroughInline(admin.TabularInline):
+    model = models.RasterStyleToBrowseTypeThrough
+    extra = 0
+
+
 class RasterStyleAdmin(admin.ModelAdmin):
-    inlines = [RasterStyleColorEntryInline]
+    inlines = [RasterStyleToBrowseTypeThroughInline, RasterStyleColorEntryInline]
 
 
 admin.site.register(models.RasterStyle, RasterStyleAdmin)

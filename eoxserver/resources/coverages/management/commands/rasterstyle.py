@@ -76,6 +76,16 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             help="Rename a style from a name to another name"
         )
 
+        link_parser.add_argument(
+            'product_type_name', nargs=1, help=''
+        )
+        link_parser.add_argument(
+            'browse_type_name', nargs=1, help=''
+        )
+        link_parser.add_argument(
+            'style_name', nargs=1, help=''
+        )
+
     @transaction.atomic
     def handle(self, subcommand, *args, **kwargs):
         """ Dispatch sub-commands: create, delete, list, link.
@@ -89,7 +99,14 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
         elif subcommand == "list":
             self.handle_list(*args, **kwargs)
         elif subcommand == "link":
-            self.handle_link(kwargs.pop('name')[0], *args, **kwargs)
+            style_name = kwargs.pop('style_name')
+            self.handle_link(
+                kwargs.pop('name')[0],
+                kwargs.pop('product_type_name')[0],
+                kwargs.pop('browse_type_name')[0],
+                style_name[0] if style_name else None,
+                *args, **kwargs
+            )
 
     def handle_create(self, name, discrete, color_entries, from_sld,
                       *args, **kwargs):
@@ -181,7 +198,8 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
                     entry.value, entry.color, entry.opacity, entry.label
                 ))
 
-    def handle_link(self, name, product_type_name, browse_type_name, *args, **kwargs):
+    def handle_link(self, name, product_type_name, browse_type_name, stylename,
+                    *args, **kwargs):
         """ Handle the linking of raster styles to browse types
         """
         raster_style = models.RasterStyle.objects.get(name=name)
@@ -189,7 +207,11 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             product_type__name=product_type_name,
             name=browse_type_name
         )
-        raster_style.browse_types.add(browse_type)
+        models.RasterStyleToBrowseTypeThrough.objects.create(
+            raster_style=raster_style,
+            browse_type=browse_type,
+            style_name=stylename,
+        )
         print('Successfully linked raster style %r to browse type %r/%r' % (
             name, product_type_name, browse_type_name
         ))

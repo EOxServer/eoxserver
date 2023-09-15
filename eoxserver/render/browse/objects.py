@@ -329,15 +329,34 @@ class MaskedBrowse(object):
         )
 
 
-class RasterStyle(object):
-    def __init__(self, name, type, entries):
+class BaseStyle(object):
+    def __init__(self, name, title, abstract):
         self._name = name
-        self._type = type
-        self._entries = entries
+        self._title = title or ''
+        self._abstract = abstract or ''
 
     @property
     def name(self):
         return self._name
+
+    @property
+    def title(self):
+        return self._title
+
+    @property
+    def abstract(self):
+        return self._abstract
+
+
+class GeometryStyle(BaseStyle):
+    pass
+
+
+class RasterStyle(BaseStyle):
+    def __init__(self, name, type, title, abstract, entries):
+        super().__init__(name, title, abstract)
+        self._type = type
+        self._entries = entries
 
     @property
     def type(self):
@@ -348,10 +367,12 @@ class RasterStyle(object):
         return self._entries
 
     @classmethod
-    def from_model(cls, raster_style_model):
+    def from_model(cls, raster_style_model, name=None):
         return cls(
-            raster_style_model.name,
+            name or raster_style_model.name,
             raster_style_model.type,
+            raster_style_model.title,
+            raster_style_model.abstract,
             [
                 RasterStyleColorEntry.from_model(entry_model)
                 for entry_model in raster_style_model.color_entries.all()
