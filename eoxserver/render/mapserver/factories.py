@@ -806,7 +806,7 @@ def _create_raster_style(raster_style, layer, minvalue=0, maxvalue=255,
 
             style = ms.styleObj()
             style.color = ms.colorObj(*entry.color)
-            style.opacity = int(entry.opacity * 255)
+            style.opacity = int(entry.opacity * 100)
             cls.insertStyle(style)
             layer.insertClass(cls)
 
