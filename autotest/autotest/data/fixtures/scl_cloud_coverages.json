@@ -62,7 +62,7 @@
     "pk": 20,
     "fields": {
         "storage": null,
-        "location": "autotest/data/SCL_clipped.tif",
+        "location": "autotest/data/SCL/SCL_clipped.tif",
         "format": "image/tiff",
         "coverage": 20,
         "field_index": 0,
