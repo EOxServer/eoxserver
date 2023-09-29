@@ -52,13 +52,24 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             )
 
         create_parser.add_argument(
-            '--discrete', '-d', action="store_true", default=False,
-            help="Specify this raster style as a color map instead of a color ramp"
+            '--type', '-t', action="store", default="ramp",
+            choices=["ramp", "values", "intervals"],
+            help="Specify this raster style type"
+        )
+        create_parser.add_argument(
+            '--title', action="store",
+            help="Specify this raster style title"
+        )
+        create_parser.add_argument(
+            '--abstract', action="store",
+            help="Specify this raster style abstract"
         )
         create_parser.add_argument(
             '--color-entry', '-c',
-            action='append', dest='color_entries', default=[], nargs=2,
+            action='append', dest='color_entries', default=[], nargs=4,
             help=(
+                "A color style entry. Must consist of <value>, <color>, "
+                "<opacity>, <label>"
             )
         )
 
@@ -108,24 +119,31 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
                 *args, **kwargs
             )
 
-    def handle_create(self, name, discrete, color_entries, from_sld,
+    def handle_create(self, name, type, title, abstract, color_entries,
                       *args, **kwargs):
         """ Handle the creation of a new raster style.
         """
 
-        raster_style = models.RasterStyle.objects.create(name=name, discrete=discrete)
+        raster_style = models.RasterStyle.objects.create(
+            name=name,
+            type=type,
+            title=title,
+            abstract=abstract,
+        )
 
-        if color_entries:
-            for value, color in color_entries:
-                entry = models.RasterStyleColorEntry(
-                    raster_style=raster_style,
-                    value=float(value),
-                    color=color
-                )
-                entry.full_clean()
-                entry.save()
-        else:
-            raise CommandError("Neither color entries nor SLD specified")
+        if not color_entries:
+            raise CommandError("No color entries specified")
+
+        for value, color, opacity, label in color_entries:
+            entry = models.RasterStyleColorEntry(
+                raster_style=raster_style,
+                value=float(value),
+                color=color,
+                opacity=float(opacity),
+                label=label,
+            )
+            entry.full_clean()
+            entry.save()
 
         print('Successfully created raster style %r' % name)
 
