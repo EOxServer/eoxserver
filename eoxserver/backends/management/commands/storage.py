@@ -79,6 +79,14 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             accessor will be used."""
         )
 
+        create_parser.add_argument(
+            '--replace', action='store_true',
+            default=False,
+            help=(
+                'Replace storage definition if already exists.'
+            )
+        )
+
         for parser in [list_parser, env_parser]:
             parser.add_argument(
                 'paths', nargs='*', default=None,
@@ -109,7 +117,7 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             self.handle_env(name, *args, **kwargs)
 
     def handle_create(self, name, url, type_name, parent_name,
-                      storage_auth_name, streaming, **kwargs):
+                      storage_auth_name, streaming, replace, **kwargs):
         """ Handle the creation of a new storage.
         """
         url = url[0]
@@ -144,11 +152,22 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             )
         else:
             storage_auth = None
-
-        backends.Storage.objects.create(
-            name=name, url=url, storage_type=type_name, parent=parent,
-            storage_auth=storage_auth, streaming=streaming,
-        )
+        if replace:
+            backends.Storage.objects.update_or_create(
+                name=name,
+                defaults={
+                    'url':url,
+                    'storage_type':type_name,
+                    'parent':parent,
+                    'storage_auth':storage_auth,
+                    'streaming':streaming,
+                },
+            )
+        else:
+            backends.Storage.objects.create(
+                storage_type=type_name, parent=parent,
+                storage_auth=storage_auth, streaming=streaming,
+            )
 
         self.print_msg(
             'Successfully created storage %s (%s)' % (
