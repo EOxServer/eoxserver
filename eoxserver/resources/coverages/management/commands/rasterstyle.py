@@ -97,6 +97,13 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             'style_name', nargs=1, help=''
         )
 
+        for parser in [create_parser, import_parser]:
+            parser.add_argument(
+                '--replace', action='store_true',
+                default=False,
+                help=('''Change raster style if already exists.''')
+            )
+
     @transaction.atomic
     def handle(self, subcommand, *args, **kwargs):
         """ Dispatch sub-commands: create, delete, list, link.
@@ -119,22 +126,36 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
                 *args, **kwargs
             )
 
-    def handle_create(self, name, type, title, abstract, color_entries,
-                      *args, **kwargs):
+    def handle_create(self, name, type, title, abstract, color_entries, replace, *args, **kwargs):
         """ Handle the creation of a new raster style.
         """
-
-        raster_style = models.RasterStyle.objects.create(
-            name=name,
-            type=type,
-            title=title,
-            abstract=abstract,
-        )
+        if replace:
+            raster_style = models.RasterStyle.objects.update_or_create(
+                name=name,
+                defaults={
+                    'type': type,
+                    'title': title,
+                    'abstract': abstract,
+                },
+            )[0]
+        else:
+            raster_style = models.RasterStyle.objects.create(
+                name=name,
+                type=type,
+                title=title,
+                abstract=abstract,
+            )
 
         if not color_entries:
             raise CommandError("No color entries specified")
-
+        first_iteration = True
         for value, color, opacity, label in color_entries:
+            if replace and first_iteration:
+                raster_style_color_entries_existing = models.RasterStyleColorEntry.objects.filter(
+                    raster_style=raster_style,
+                )
+                raster_style_color_entries_existing.delete()
+                first_iteration = False
             entry = models.RasterStyleColorEntry(
                 raster_style=raster_style,
                 value=float(value),
@@ -147,7 +168,7 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
 
         print('Successfully created raster style %r' % name)
 
-    def handle_import(self, filename, selects, renames, *args, **kwargs):
+    def handle_import(self, filename, selects, renames, replace, *args, **kwargs):
         tree = etree.parse(filename)
         nsmap = {
             "sld": "http://www.opengis.net/sld",
@@ -170,14 +191,29 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
                 "sld:FeatureTypeStyle/sld:Rule/sld:RasterSymbolizer/sld:ColorMap)",
                 namespaces=nsmap,
             )[0]
-            raster_style = models.RasterStyle.objects.create(
-                name=name, type=color_map.get("type", "ramp")
-            )
+            if replace:
+                raster_style = models.RasterStyle.objects.update_or_create(
+                    name=name,
+                    defaults={
+                        'type': color_map.get("type", "ramp"),
+                    },
+                )
+            else:
+                raster_style = models.RasterStyle.objects.create(
+                    name=name, type=color_map.get("type", "ramp")
+                )
 
             color_map_entries = color_map.xpath(
                 "sld:ColorMapEntry", namespaces=nsmap
             )
+            first_iteration = True
             for color_map_entry in color_map_entries:
+                if replace and first_iteration:
+                    raster_style_color_entries_existing = models.RasterStyleColorEntry.objects.filter(
+                        raster_style=raster_style,
+                    )
+                    raster_style_color_entries_existing.delete()
+                    first_iteration = False
                 entry = models.RasterStyleColorEntry(
                     raster_style=raster_style,
                     value=float(color_map_entry.get("quantity")),
@@ -225,7 +261,7 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             product_type__name=product_type_name,
             name=browse_type_name
         )
-        models.RasterStyleToBrowseTypeThrough.objects.create(
+        models.RasterStyleToBrowseTypeThrough.objects.get_or_create(
             raster_style=raster_style,
             browse_type=browse_type,
             style_name=stylename,
