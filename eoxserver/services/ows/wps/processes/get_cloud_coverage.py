@@ -29,8 +29,9 @@ import contextlib
 import concurrent
 import functools
 from datetime import datetime
+import json
 from uuid import uuid4
-from typing import List, Callable, Optional
+from typing import List, Callable, Optional, Any
 
 from osgeo import ogr, osr
 
@@ -38,6 +39,7 @@ from eoxserver.core import Component
 from eoxserver.contrib import gdal
 from eoxserver.resources.coverages import models
 from eoxserver.backends.access import gdal_open
+from eoxserver.services.ows.wps.exceptions import InvalidInputValueError
 from eoxserver.services.ows.wps.parameters import (
     LiteralData,
     ComplexData,
@@ -74,6 +76,12 @@ class CloudCoverageProcess(Component):
             title="Geometry",
             formats=[FormatText()],
         ),
+        "cloud_mask": ComplexData(
+            "cloud_mask",
+            optional=True,
+            title="Values of data which are interpreted as cloud",
+            formats=[FormatJSON()],
+        ),
     }
 
     outputs = {
@@ -90,6 +98,13 @@ class CloudCoverageProcess(Component):
     SCL_LAYER_CLOUD_HIGH_PROBABILITY = 9
     SCL_LAYER_THIN_CIRRUS = 10
     SCL_LAYER_SATURATED_OR_DEFECTIVE = 1
+
+    DEFAULT_SCL_CLOUD_MASK = [
+        SCL_LAYER_CLOUD_MEDIUM_PROBABILITY,
+        SCL_LAYER_CLOUD_HIGH_PROBABILITY,
+        SCL_LAYER_THIN_CIRRUS,
+        SCL_LAYER_SATURATED_OR_DEFECTIVE,
+    ]
 
     # https://labo.obs-mip.fr/multitemp/sentinel-2/majas-native-sentinel-2-format/#English
     # anything nonzero should be cloud, however that includes also cloud shadows which
@@ -108,9 +123,18 @@ class CloudCoverageProcess(Component):
         begin_time,
         end_time,
         geometry,
+        cloud_mask,
         result,
     ):
         wkt_geometry = geometry[0].text
+
+        if cloud_mask:
+            # NOTE: cloud mask could be list or integer bitmask based on type,
+            #       so just accept json
+            try:
+                cloud_mask = json.loads(cloud_mask[0].text)
+            except ValueError:
+                raise InvalidInputValueError("cloud_mask", "Invalid cloud mask value")
 
         # TODO Use queue object for more complex query if parent_product__footprint is not enough
         relevant_coverages = models.Coverage.objects.filter(
@@ -145,6 +169,7 @@ class CloudCoverageProcess(Component):
                     calculation_fun=calculation_fun,
                     wkt_geometry=wkt_geometry,
                     no_data_value=no_data_value,
+                    cloud_mask=cloud_mask,
                 ),
                 [coverage.arraydata_items.get() for coverage in coverages],
             )
@@ -165,38 +190,39 @@ class CloudCoverageProcess(Component):
 def cloud_coverage_ratio_in_geometry(
     data_item: models.ArrayDataItem,
     wkt_geometry: str,
-    calculation_fun: Callable[[List[int]], float],
+    calculation_fun: Callable[[List[int], Any], float],
     no_data_value: Optional[int],
+    cloud_mask: Any,
 ) -> float:
     histogram = _histogram_in_geometry(
         data_item=data_item,
         wkt_geometry=wkt_geometry,
         no_data_value=no_data_value,
     )
-    return calculation_fun(histogram)
+    return calculation_fun(histogram, cloud_mask)
 
 
-def cloud_coverage_ratio_for_CLM(histogram: List[int]) -> float:
+def cloud_coverage_ratio_for_CLM(histogram: List[int], cloud_mask: Any) -> float:
+    cloud_mask = (
+        cloud_mask
+        if cloud_mask is not None
+        else CloudCoverageProcess.CLM_MASK_ONLY_CLOUD
+    )
     num_is_cloud = sum(
-        value
-        for index, value in enumerate(histogram)
-        if index & CloudCoverageProcess.CLM_MASK_ONLY_CLOUD > 0
+        value for index, value in enumerate(histogram) if index & cloud_mask > 0
     )
 
     num_pixels = sum(histogram)
     return ((num_is_cloud / num_pixels)) if num_pixels != 0 else 0.0
 
 
-def cloud_coverage_ratio_for_SCL(histogram: List[int]) -> float:
-    num_cloud = sum(
-        histogram[scl_value]
-        for scl_value in [
-            CloudCoverageProcess.SCL_LAYER_CLOUD_MEDIUM_PROBABILITY,
-            CloudCoverageProcess.SCL_LAYER_CLOUD_HIGH_PROBABILITY,
-            CloudCoverageProcess.SCL_LAYER_THIN_CIRRUS,
-            CloudCoverageProcess.SCL_LAYER_SATURATED_OR_DEFECTIVE,
-        ]
+def cloud_coverage_ratio_for_SCL(histogram: List[int], cloud_mask: Any) -> float:
+    cloud_mask = (
+        cloud_mask
+        if cloud_mask is not None
+        else CloudCoverageProcess.DEFAULT_SCL_CLOUD_MASK
     )
+    num_cloud = sum(histogram[scl_value] for scl_value in cloud_mask)
 
     num_no_data = histogram[CloudCoverageProcess.SCL_LAYER_NO_DATA]
 
