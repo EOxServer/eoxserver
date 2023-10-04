@@ -120,6 +120,42 @@ class WPS20ExecuteCloudCoverageTinyGeometry(
         return (params, "xml")
 
 
+class WPS20ExecuteCloudCoverageCustomMask(
+    ContentTypeCheckMixIn, testbase.JSONTestCase
+):
+    fixtures = testbase.JSONTestCase.fixtures + ["scl_cloud_coverages.json"]
+
+    expectedContentType = "application/json; charset=utf-8"
+
+    def getRequest(self):
+        params = """<wps:Execute
+        version="2.0.0"
+        service="WPS"
+        response="raw"
+        mode="sync"
+        xmlns:wps="http://www.opengis.net/wps/2.0"
+        xmlns:ows="http://www.opengis.net/ows/2.0" >
+          <ows:Identifier>CloudCoverage</ows:Identifier>
+          <wps:Input id="begin_time"><wps:Data>2020-01-01</wps:Data></wps:Input>
+          <wps:Input id="end_time"><wps:Data>2020-05-31</wps:Data></wps:Input>
+          <wps:Input id="geometry">
+            <wps:Data>
+              <wps:ComplexData mimeType="text/plain">POLYGON ((69.19913354922439908 80.1406125504016984, 69.19921132386413376 80.13719046625288911, 69.20360559100976161 80.13719046625288911, 69.20364447832963606 80.14065143772157285, 69.20364447832963606 80.14065143772157285, 69.19913354922439908 80.1406125504016984))</wps:ComplexData>
+            </wps:Data>
+          </wps:Input>
+          <wps:Input id="cloud_mask">
+            <wps:Data>
+              <wps:ComplexData mimeType="text/plain">[1, 2, 3, 8]</wps:ComplexData>
+            </wps:Data>
+          </wps:Input>
+          <wps:Output id="result" >
+          </wps:Output>
+        </wps:Execute>
+        """
+        return (params, "xml")
+
+
+
 class WPS20ExecuteCloudCoverageEmptyResponse(
     ContentTypeCheckMixIn, testbase.JSONTestCase
 ):
@@ -230,6 +266,40 @@ class WPS20ExecuteCloudCoverageOnCLMFewClouds(
           <wps:Input id="geometry">
             <wps:Data>
               <wps:ComplexData mimeType="text/plain">POLYGON((16.689481892710717 47.49088479184637,16.685862090779757 47.49375416408526,16.717934765940697 47.50045333252222,16.689481892710717 47.49088479184637))</wps:ComplexData>
+            </wps:Data>
+          </wps:Input>
+          <wps:Output id="result" >
+          </wps:Output>
+        </wps:Execute>
+        """
+        return (params, "xml")
+
+class WPS20ExecuteCloudCoverageOnCLMCustomMask(
+    ContentTypeCheckMixIn, testbase.JSONTestCase
+):
+    fixtures = testbase.JSONTestCase.fixtures + ["clm_cloud_coverages.json"]
+
+    expectedContentType = "application/json; charset=utf-8"
+
+    def getRequest(self):
+        params = """<wps:Execute
+        version="2.0.0"
+        service="WPS"
+        response="raw"
+        mode="sync"
+        xmlns:wps="http://www.opengis.net/wps/2.0"
+        xmlns:ows="http://www.opengis.net/ows/2.0" >
+          <ows:Identifier>CloudCoverage</ows:Identifier>
+          <wps:Input id="begin_time"><wps:Data>2020-01-01</wps:Data></wps:Input>
+          <wps:Input id="end_time"><wps:Data>2020-05-31</wps:Data></wps:Input>
+          <wps:Input id="geometry">
+            <wps:Data>
+              <wps:ComplexData mimeType="text/plain">POLYGON((16.689481892710717 47.49088479184637,16.685862090779757 47.49375416408526,16.717934765940697 47.50045333252222,16.689481892710717 47.49088479184637))</wps:ComplexData>
+            </wps:Data>
+          </wps:Input>
+          <wps:Input id="cloud_mask">
+            <wps:Data>
+              <wps:ComplexData mimeType="text/plain">7</wps:ComplexData>
             </wps:Data>
           </wps:Input>
           <wps:Output id="result" >
