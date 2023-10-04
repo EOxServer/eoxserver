@@ -349,9 +349,9 @@ class WMS13GetMapDatasetStyledTestCase(wmsbase.WMS13GetMapTestCase):
     """ Test a GetMap request a dataset with an associated style. """
     fixtures = ["scl_styled.json"]
     layers = ("S2B_30UUG_20221226_0_L2A__SCL",)
-    swap_axes = False
-    bbox = (294957.5887240702868, 6087495, 412022.3302920248825, 6202785)
-    crs = "EPSG:32630"
+    swap_axes = True
+    bbox = (-6.282089176104, 54.89235272910, -4.3728695585011, 55.962341471504)
+    crs = "EPSG:4326"
     width = 200
     height = 200
     styles = ("color",)
