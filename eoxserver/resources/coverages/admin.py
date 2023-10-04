@@ -1,11 +1,11 @@
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
 #          Stephan Meissl <stephan.meissl@eox.at>
 #          Stephan Krause <stephan.krause@eox.at>
 #
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Copyright (C) 2011 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -25,7 +25,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 from django.contrib.gis import admin
 try:
@@ -34,6 +34,7 @@ except ImportError:
     from django.urls import reverse, NoReverseMatch
 from django.utils.safestring import mark_safe
 from django.conf import settings
+from django.forms import ModelForm, TextInput
 
 from eoxserver.resources.coverages import models
 
@@ -127,7 +128,9 @@ class MetaDataItemInline(admin.StackedInline):
     def download_link(self, obj):
         try:
             return mark_safe('<a href="{}">Download</a>'.format(
-                reverse('metadata', kwargs=dict(
+                reverse(
+                    'metadata',
+                    kwargs=dict(
                         identifier=obj.eo_object.identifier,
                         semantic=dict(
                             models.MetaDataItem.SEMANTIC_CHOICES
@@ -201,6 +204,7 @@ class EOObjectAdmin(admin.GeoModelAdmin):
 class CoverageTypeAdmin(admin.ModelAdmin):
     inlines = [FieldTypeInline]
 
+
 admin.site.register(models.CoverageType, CoverageTypeAdmin)
 
 
@@ -208,11 +212,13 @@ class ProductTypeAdmin(admin.ModelAdmin):
     inlines = [BrowseTypeInline, MaskTypeInline]
     filter_horizontal = ['allowed_coverage_types']
 
+
 admin.site.register(models.ProductType, ProductTypeAdmin)
 
 
 class CollectionTypeAdmin(admin.ModelAdmin):
     filter_horizontal = ['allowed_product_types', 'allowed_coverage_types']
+
 
 admin.site.register(models.CollectionType, CollectionTypeAdmin)
 
@@ -220,11 +226,13 @@ admin.site.register(models.CollectionType, CollectionTypeAdmin)
 class MaskTypeAdmin(admin.ModelAdmin):
     pass
 
+
 admin.site.register(models.MaskType, MaskTypeAdmin)
 
 
 class GridAdmin(admin.ModelAdmin):
     pass
+
 
 admin.site.register(models.Grid, GridAdmin)
 
@@ -236,6 +244,7 @@ admin.site.register(models.Grid, GridAdmin)
 class CoverageAdmin(EOObjectAdmin):
     inlines = [CoverageMetadataInline, MetaDataItemInline, ArrayDataItemInline]
 
+
 admin.site.register(models.Coverage, CoverageAdmin)
 
 
@@ -244,11 +253,13 @@ class ProductAdmin(EOObjectAdmin):
         MaskInline, BrowseInline, ProductDataItemInline, MetaDataItemInline, ProductMetadataInline
     ]
 
+
 admin.site.register(models.Product, ProductAdmin)
 
 
 class MosaicAdmin(EOObjectAdmin):
     inlines = []
+
 
 admin.site.register(models.Mosaic, MosaicAdmin)
 
@@ -279,6 +290,7 @@ class IndexHiddenAdmin(admin.ModelAdmin):
     def get_model_perms(self, request):
         return {}
 
+
 admin.site.register(models.OrbitNumber, IndexHiddenAdmin)
 admin.site.register(models.Track, IndexHiddenAdmin)
 admin.site.register(models.Frame, IndexHiddenAdmin)
@@ -292,3 +304,35 @@ admin.site.register(models.ArchivingCenter, IndexHiddenAdmin)
 admin.site.register(models.ProcessingMode, IndexHiddenAdmin)
 admin.site.register(models.AcquisitionStation, IndexHiddenAdmin)
 admin.site.register(models.AcquisitionSubType, IndexHiddenAdmin)
+
+
+# ==============================================================================
+# Raster Style models
+# ==============================================================================
+
+
+class RasterStyleColorEntryForm(ModelForm):
+    class Meta:
+        model = models.RasterStyleColorEntry
+        fields = '__all__'
+        widgets = {
+            'color': TextInput(attrs={'type': 'color'}),
+        }
+
+
+class RasterStyleColorEntryInline(admin.TabularInline):
+    model = models.RasterStyleColorEntry
+    form = RasterStyleColorEntryForm
+    extra = 0
+
+
+class RasterStyleToBrowseTypeThroughInline(admin.TabularInline):
+    model = models.RasterStyleToBrowseTypeThrough
+    extra = 0
+
+
+class RasterStyleAdmin(admin.ModelAdmin):
+    inlines = [RasterStyleToBrowseTypeThroughInline, RasterStyleColorEntryInline]
+
+
+admin.site.register(models.RasterStyle, RasterStyleAdmin)

@@ -1,0 +1,376 @@
+[
+{
+    "model": "coverages.fieldtype",
+    "pk": 1,
+    "fields": {
+        "coverage_type": 1,
+        "index": 0,
+        "identifier": "scl",
+        "description": "SCL",
+        "definition": "http://www.opengis.net/def/property/OGC/0/Radiance",
+        "unit_of_measure": "nil",
+        "wavelength": null,
+        "significant_figures": 2,
+        "numbits": 8,
+        "signed": false,
+        "is_float": false
+    }
+},
+{
+    "model": "coverages.allowedvaluerange",
+    "pk": 1,
+    "fields": {
+        "field_type": 1,
+        "start": 0.0,
+        "end": 11.0
+    }
+},
+{
+    "model": "coverages.nilvalue",
+    "pk": 1,
+    "fields": {
+        "value": "0",
+        "reason": "http://www.opengis.net/def/nil/OGC/0/unknown",
+        "field_types": [
+            1
+        ]
+    }
+},
+{
+    "model": "coverages.coveragetype",
+    "pk": 1,
+    "fields": {
+        "name": "SCL"
+    }
+},
+{
+    "model": "coverages.producttype",
+    "pk": 1,
+    "fields": {
+        "name": "SCL",
+        "allowed_coverage_types": [
+            1
+        ]
+    }
+},
+{
+    "model": "coverages.browsetype",
+    "pk": 1,
+    "fields": {
+        "product_type": 1,
+        "name": "SCL",
+        "red_or_grey_expression": "scl",
+        "green_expression": null,
+        "blue_expression": null,
+        "alpha_expression": null,
+        "red_or_grey_nodata_value": null,
+        "green_nodata_value": null,
+        "blue_nodata_value": null,
+        "alpha_nodata_value": null,
+        "red_or_grey_range_min": null,
+        "green_range_min": null,
+        "blue_range_min": null,
+        "alpha_range_min": null,
+        "red_or_grey_range_max": null,
+        "green_range_max": null,
+        "blue_range_max": null,
+        "alpha_range_max": null,
+        "show_out_of_bounds_data": false
+    }
+},
+{
+    "model": "coverages.rasterstyle",
+    "pk": 1,
+    "fields": {
+        "name": "SCL",
+        "type": "values",
+        "title": null,
+        "abstract": null
+    }
+},
+{
+    "model": "coverages.rasterstyletobrowsetypethrough",
+    "pk": 1,
+    "fields": {
+        "raster_style": 1,
+        "browse_type": 1,
+        "style_name": "color"
+    }
+},
+{
+    "model": "coverages.rasterstylecolorentry",
+    "pk": 1,
+    "fields": {
+        "raster_style": 1,
+        "value": 0.0,
+        "color": "#000000",
+        "opacity": 1.0,
+        "label": "NO_DATA"
+    }
+},
+{
+    "model": "coverages.rasterstylecolorentry",
+    "pk": 2,
+    "fields": {
+        "raster_style": 1,
+        "value": 1.0,
+        "color": "#ff0000",
+        "opacity": 1.0,
+        "label": "SATURATED_OR_DEFECTIVE"
+    }
+},
+{
+    "model": "coverages.rasterstylecolorentry",
+    "pk": 3,
+    "fields": {
+        "raster_style": 1,
+        "value": 2.0,
+        "color": "#2e2e2e",
+        "opacity": 1.0,
+        "label": "DARK_AREA_PIXELS"
+    }
+},
+{
+    "model": "coverages.rasterstylecolorentry",
+    "pk": 4,
+    "fields": {
+        "raster_style": 1,
+        "value": 3.0,
+        "color": "#541800",
+        "opacity": 1.0,
+        "label": "CLOUD_SHADOWS"
+    }
+},
+{
+    "model": "coverages.rasterstylecolorentry",
+    "pk": 5,
+    "fields": {
+        "raster_style": 1,
+        "value": 4.0,
+        "color": "#46e800",
+        "opacity": 1.0,
+        "label": "VEGETATION"
+    }
+},
+{
+    "model": "coverages.rasterstylecolorentry",
+    "pk": 6,
+    "fields": {
+        "raster_style": 1,
+        "value": 5.0,
+        "color": "#ffff00",
+        "opacity": 1.0,
+        "label": "NOT_VEGETATED"
+    }
+},
+{
+    "model": "coverages.rasterstylecolorentry",
+    "pk": 7,
+    "fields": {
+        "raster_style": 1,
+        "value": 6.0,
+        "color": "#0000ff",
+        "opacity": 1.0,
+        "label": "WATER"
+    }
+},
+{
+    "model": "coverages.rasterstylecolorentry",
+    "pk": 8,
+    "fields": {
+        "raster_style": 1,
+        "value": 7.0,
+        "color": "#525252",
+        "opacity": 1.0,
+        "label": "UNCLASSIFIED"
+    }
+},
+{
+    "model": "coverages.rasterstylecolorentry",
+    "pk": 9,
+    "fields": {
+        "raster_style": 1,
+        "value": 8.0,
+        "color": "#787878",
+        "opacity": 1.0,
+        "label": "CLOUD_MEDIUM_PROBABILITY"
+    }
+},
+{
+    "model": "coverages.rasterstylecolorentry",
+    "pk": 10,
+    "fields": {
+        "raster_style": 1,
+        "value": 9.0,
+        "color": "#b5b5b5",
+        "opacity": 1.0,
+        "label": "CLOUD_HIGH_PROBABILITY"
+    }
+},
+{
+    "model": "coverages.rasterstylecolorentry",
+    "pk": 11,
+    "fields": {
+        "raster_style": 1,
+        "value": 10.0,
+        "color": "#00b6bf",
+        "opacity": 1.0,
+        "label": "THIN_CIRRUS"
+    }
+},
+{
+    "model": "coverages.rasterstylecolorentry",
+    "pk": 12,
+    "fields": {
+        "raster_style": 1,
+        "value": 11.0,
+        "color": "#da00f2",
+        "opacity": 1.0,
+        "label": "SNOW"
+    }
+},
+{
+    "model": "coverages.grid",
+    "pk": 1,
+    "fields": {
+        "name": null,
+        "coordinate_reference_system": "EPSG:32630",
+        "axis_1_name": "x",
+        "axis_2_name": "y",
+        "axis_3_name": null,
+        "axis_4_name": null,
+        "axis_1_type": 0,
+        "axis_2_type": 0,
+        "axis_3_type": null,
+        "axis_4_type": null,
+        "axis_1_offset": "200.0",
+        "axis_2_offset": "-200.0",
+        "axis_3_offset": null,
+        "axis_4_offset": null,
+        "resolution": 200
+    }
+},
+{
+    "model": "coverages.eoobject",
+    "pk": 1,
+    "fields": {
+        "identifier": "S2B_30UUG_20221226_0_L2A",
+        "begin_time": null,
+        "end_time": null,
+        "footprint": "SRID=4326;POLYGON ((-6.1994886 55.9041676, -6.1207799 54.9190265, -4.4083987 54.9509423, -4.4439779 55.9372733, -6.1994886 55.9041676))",
+        "inserted": "2023-09-18T08:57:08.231Z",
+        "updated": "2023-09-18T11:44:34.789Z"
+    }
+},
+{
+    "model": "coverages.eoobject",
+    "pk": 2,
+    "fields": {
+        "identifier": "S2B_30UUG_20221226_0_L2A_scl",
+        "begin_time": null,
+        "end_time": null,
+        "footprint": "SRID=4326;POLYGON ((-6.120779882947349 54.919026538369536, -6.1994885612119175 55.904167624663266, -4.443977851096375 55.937273345275685, -4.40839870205061 54.95094226131747, -6.120779882947349 54.919026538369536))",
+        "inserted": "2023-09-18T08:57:08.757Z",
+        "updated": "2023-09-18T08:57:08.765Z"
+    }
+},
+{
+    "model": "coverages.product",
+    "pk": 1,
+    "fields": {
+        "product_type": 1,
+        "package": null,
+        "collections": []
+    }
+},
+{
+    "model": "coverages.coverage",
+    "pk": 2,
+    "fields": {
+        "grid": 1,
+        "axis_1_origin": "300000.0",
+        "axis_2_origin": "6200040.0",
+        "axis_3_origin": null,
+        "axis_4_origin": null,
+        "axis_1_size": 549,
+        "axis_2_size": 549,
+        "axis_3_size": null,
+        "axis_4_size": null,
+        "coverage_type": 1,
+        "parent_product": 1,
+        "collections": [],
+        "mosaics": []
+    }
+},
+{
+    "model": "coverages.arraydataitem",
+    "pk": 1,
+    "fields": {
+        "storage": null,
+        "location": "autotest/data/SCL/scl_small.tif",
+        "format": "image/tiff",
+        "coverage": 2,
+        "field_index": 0,
+        "band_count": 1,
+        "subdataset_type": null,
+        "subdataset_locator": null,
+        "bands_interpretation": 0
+    }
+},
+{
+    "model": "coverages.productmetadata",
+    "pk": 1,
+    "fields": {
+        "product": 1,
+        "parent_identifier": null,
+        "production_status": null,
+        "acquisition_type": null,
+        "orbit_number": null,
+        "orbit_direction": null,
+        "track": null,
+        "frame": null,
+        "swath_identifier": null,
+        "product_version": null,
+        "product_quality_status": null,
+        "product_quality_degradation_tag": null,
+        "processor_name": null,
+        "processing_center": null,
+        "creation_date": null,
+        "modification_date": null,
+        "processing_date": null,
+        "sensor_mode": null,
+        "archiving_center": null,
+        "processing_mode": null,
+        "availability_time": null,
+        "acquisition_station": null,
+        "acquisition_sub_type": null,
+        "start_time_from_ascending_node": null,
+        "completion_time_from_ascending_node": null,
+        "illumination_azimuth_angle": null,
+        "illumination_zenith_angle": null,
+        "illumination_elevation_angle": null,
+        "polarisation_mode": null,
+        "polarization_channels": null,
+        "antenna_look_direction": null,
+        "minimum_incidence_angle": null,
+        "maximum_incidence_angle": null,
+        "across_track_incidence_angle": null,
+        "along_track_incidence_angle": null,
+        "doppler_frequency": null,
+        "incidence_angle_variation": null,
+        "cloud_cover": null,
+        "snow_cover": null,
+        "lowest_location": null,
+        "highest_location": null
+    }
+},
+{
+    "model": "services.servicevisibility",
+    "pk": 1,
+    "fields": {
+        "eo_object": 1,
+        "service": "wms",
+        "visibility": true
+    }
+}
+]

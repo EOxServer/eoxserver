@@ -133,7 +133,7 @@ parameters that are available with GetMap requests.
     |                           | The available styles depend on the layer type. Outline    |                                  |                                |
     |                           | and mask layers can be rendered in the basic colors.      |                                  |                                |
     |                           | Single band output can be styled using a range of         |                                  |                                |
-    |                           | color scales.                                             |                                  |                                |
+    |                           | color scales (Raster styles may apply).                   |                                  |                                |
     |                           |                                                           |                                  |                                |
     |                           | The Capabilities document lists the available styles per  |                                  |                                |
     |                           | layer.                                                    |                                  |                                |

@@ -197,6 +197,35 @@ When a collection is linked to a `Collection Type`_ only Products and Coverages
 whose types are of the set of allowed coverage/product types can be inserted.
 
 
+.. _RasterStyle Model:
+
+Raster Style
+~~~~~~~~~~~~
+
+A raster style is an instruction on ow to colorize a raster at the last step of
+a rendering process of single band outputs to generate an RGB(A) image.
+
+A raster style has a name, title, abstract, type and a number of color entries.
+Name, title, abstract are metadata displayed in the service capabilities.
+Each color entry maps a value to a color, and has an optional label. The
+type defines how the raster style colors are applied. The following types are
+possible:
+
+* "ramp": this is the default. The colors are linearly interpolated for the
+  values.
+* "values": only the colors specified in the color entries are rendered if they
+  exactly match the value. All other values are not rendered.
+* "intervals": all values are mapped to the color of their next lower color
+  scale entry.
+
+Raster styles are linked to browse types using a distinct style name, so that
+such styles can be re-used in multiple browse types.
+
+There are a number of default raster styles available, for when no raster
+styles are configured. As soon as at least one raster style is configured, it
+replaces all default raster styles.
+
+
 Command Line Interfaces
 -----------------------
 
@@ -876,3 +905,49 @@ stac
       read the STAC Item from stdin instead from a file.
     --type TYPE_NAME, --product-type TYPE_NAME, -t TYPE_NAME
       the name of the new product type. Optional.
+
+
+.. _cmd-rasterstyle:
+
+rasterstyle
+  this command allows to manage `Raster Style Model`_ instances and link them
+  with Browse Types.
+
+  create
+    this sub-command creates a new raster style from a given set of values.
+
+    name
+      The raster style name. Mandatory.
+
+  import
+    this imports a raster style from an SLD file.
+
+    filename
+      The SLD file name. Mandatory.
+
+    --select
+      Only select the named styles. Can be specified multiple times.
+
+    --rename
+      Rename a style from a name to another name
+
+  delete
+    this sub-command deletes a raster style.
+
+    name
+      The raster style name. Mandatory.
+
+  link
+    this sub-command links a raster style to a browse type.
+
+    name
+      The raster style name. Mandatory.
+
+    product_type_name
+      The product type name containing the browse type. Mandatory.
+
+    browse_type_name
+      The browse type name. Mandatory.
+
+    style_name
+      The assigned style name. Optional.

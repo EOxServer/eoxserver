@@ -217,6 +217,53 @@ class BrowseType(models.Model):
         )
 
 
+class RasterStyle(models.Model):
+    TYPE_CHOICES = (
+        ("ramp", "ramp"),
+        ("values", "values"),
+        ("intervals", "intervals"),
+    )
+    browse_types = models.ManyToManyField(BrowseType, related_name="raster_styles", through="RasterStyleToBrowseTypeThrough")
+    name = models.CharField(max_length=256, unique=True, **mandatory)
+    type = models.CharField(max_length=16, choices=TYPE_CHOICES, **mandatory)
+    title = models.TextField(**optional)
+    abstract = models.TextField(**optional)
+
+    def __str__(self):
+        return self.name
+
+
+class RasterStyleToBrowseTypeThrough(models.Model):
+    raster_style = models.ForeignKey(RasterStyle, on_delete=models.CASCADE)
+    browse_type = models.ForeignKey(BrowseType, on_delete=models.CASCADE)
+    style_name = models.CharField(max_length=256, **optional)
+
+    class Meta:
+        unique_together = (
+            ('raster_style', 'browse_type', 'style_name'),
+        )
+
+
+class RasterStyleColorEntry(models.Model):
+    RGB_REGEX = re.compile('^#?((?:[0-F]{3}){1,2})$', re.IGNORECASE)
+
+    raster_style = models.ForeignKey(RasterStyle, related_name="color_entries", on_delete=models.CASCADE)
+    value = models.FloatField()
+    color = models.CharField(max_length=7, validators=[RegexValidator(RGB_REGEX)])
+    opacity = models.FloatField(default=1.0)
+    label = models.CharField(max_length=256, **optional)
+
+    class Meta:
+        unique_together = (
+            ("raster_style", "value"),
+        )
+
+    def __str__(self):
+        if self.label:
+            return "%s (%f)" % (self.label, self.value)
+        return str(self.value)
+
+
 # ==============================================================================
 # Metadata models for each Collection, Product or Coverage
 # ==============================================================================

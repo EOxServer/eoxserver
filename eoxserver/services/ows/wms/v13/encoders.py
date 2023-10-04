@@ -162,9 +162,9 @@ class WMS13Encoder(XMLEncoder):
 
         elems.extend(
             WMS("Style",
-                WMS("Name", style),
-                WMS("Title", style),
-                WMS("Abstract", style),
+                WMS("Name", style.name),
+                WMS("Title", style.title),
+                WMS("Abstract", style.abstract),
             ) for style in layer_description.styles
         )
 

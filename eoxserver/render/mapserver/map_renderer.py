@@ -32,8 +32,12 @@ from uuid import uuid4
 
 from eoxserver.contrib import mapserver as ms
 from eoxserver.contrib import vsi
-from eoxserver.render.colors import BASE_COLORS, COLOR_SCALES
-from eoxserver.render.mapserver.factories import BaseMapServerLayerFactory, get_layer_factories
+from eoxserver.render.browse.defaultstyles import (
+    DEFAULT_RASTER_STYLES, DEFAULT_GEOMETRY_STYLES
+)
+from eoxserver.render.mapserver.factories import (
+    BaseMapServerLayerFactory, get_layer_factories
+)
 from eoxserver.render.map.objects import Map, Layer
 from eoxserver.resources.coverages.formats import getFormatRegistry
 
@@ -56,10 +60,10 @@ class MapserverMapRenderer(object):
     ]
 
     def get_geometry_styles(self):
-        return BASE_COLORS.keys()
+        return list(DEFAULT_GEOMETRY_STYLES.values())
 
     def get_raster_styles(self):
-        return COLOR_SCALES.keys()
+        return list(DEFAULT_RASTER_STYLES.values())
 
     def get_supported_layer_types(self):
         layer_types = []

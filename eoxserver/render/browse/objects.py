@@ -46,7 +46,8 @@ OptionalNumeric = Optional[Union[float, int]]
 
 
 class Browse(object):
-    def __init__(self, name, filename, env, size, extent, crs, mode, footprint):
+    def __init__(self, name, filename, env, size, extent, crs, mode, footprint,
+                 raster_styles):
         self._name = name
         self._filename = filename
         self._env = env
@@ -55,6 +56,7 @@ class Browse(object):
         self._crs = crs
         self._mode = mode
         self._footprint = footprint
+        self._raster_styles = raster_styles
 
     @property
     def name(self):
@@ -101,7 +103,7 @@ class Browse(object):
             return polygon
 
     @classmethod
-    def from_model(cls, product_model, browse_model):
+    def from_model(cls, product_model, browse_model, raster_styles=None):
         filename = get_vsi_path(browse_model)
         env = get_vsi_env(browse_model.storage)
         size = (browse_model.width, browse_model.height)
@@ -127,11 +129,12 @@ class Browse(object):
         return cls(
             name, filename, env, size, extent,
             browse_model.coordinate_reference_system, mode,
-            product_model.footprint
+            product_model.footprint,
+            raster_styles if raster_styles is not None else {}
         )
 
     @classmethod
-    def from_file(cls, filename, env=None):
+    def from_file(cls, filename, env=None, raster_styles=None):
         env = env or {}
         ds = gdal.Open(filename)
         size = (ds.RasterXSize, ds.RasterYSize)
@@ -140,14 +143,15 @@ class Browse(object):
 
         return cls(
             filename, env, filename, size, extent,
-            ds.GetProjection(), mode, None
+            ds.GetProjection(), mode, None,
+            raster_styles if raster_styles is not None else {},
         )
 
 
 class GeneratedBrowse(Browse):
     def __init__(self, name, band_expressions, ranges, nodata_values,
-                 fields_and_coverages, field_list, footprint, variables,
-                 show_out_of_bounds_data=False,
+                 fields_and_coverages, field_list, footprint, raster_styles,
+                 variables, show_out_of_bounds_data=False,
                  ):
         self._name = name
         self._band_expressions = band_expressions
@@ -156,6 +160,7 @@ class GeneratedBrowse(Browse):
         self._fields_and_coverages = fields_and_coverages
         self._field_list = field_list
         self._footprint = footprint
+        self._raster_styles = raster_styles
         self._variables = variables
         self._show_out_of_bounds_data = show_out_of_bounds_data
 
@@ -218,13 +223,18 @@ class GeneratedBrowse(Browse):
         return self._variables
 
     @property
+    def raster_styles(self):
+        return self._raster_styles
+
+    @property
     def show_out_of_bounds_data(self) -> bool:
         return self._show_out_of_bounds_data
 
     @classmethod
     def from_coverage_models(cls, band_expressions, ranges, nodata_values,
                              fields_and_coverage_models,
-                             product_model, variables, show_out_of_bounds_data):
+                             product_model, variables, raster_styles,
+                             show_out_of_bounds_data):
 
         fields_and_coverages = {
             field_name: [
@@ -246,6 +256,7 @@ class GeneratedBrowse(Browse):
                 for field_name in fields_and_coverages.keys()
             ],
             product_model.footprint,
+            raster_styles,
             variables,
             show_out_of_bounds_data,
         )
@@ -317,6 +328,95 @@ class MaskedBrowse(object):
         return cls(
             Browse.from_model(product_model, browse_model),
             Mask.from_model(mask_model, mask_type_model)
+        )
+
+
+class BaseStyle(object):
+    def __init__(self, name, title, abstract):
+        self._name = name
+        self._title = title or ''
+        self._abstract = abstract or ''
+
+    @property
+    def name(self):
+        return self._name
+
+    @property
+    def title(self):
+        return self._title
+
+    @property
+    def abstract(self):
+        return self._abstract
+
+
+class GeometryStyle(BaseStyle):
+    pass
+
+
+class RasterStyle(BaseStyle):
+    def __init__(self, name, type, title, abstract, entries):
+        super().__init__(name, title, abstract)
+        self._type = type
+        self._entries = entries
+
+    @property
+    def type(self):
+        return self._type
+
+    @property
+    def entries(self):
+        return self._entries
+
+    @classmethod
+    def from_model(cls, raster_style_model, name=None):
+        return cls(
+            name or raster_style_model.name,
+            raster_style_model.type,
+            raster_style_model.title,
+            raster_style_model.abstract,
+            [
+                RasterStyleColorEntry.from_model(entry_model)
+                for entry_model in raster_style_model.color_entries.all()
+            ]
+        )
+
+
+def hex_to_rgb(hexa):
+    hexa = hexa.lstrip("#")
+    return tuple(int(hexa[i:i + 2], 16) for i in (0, 2, 4))
+
+
+class RasterStyleColorEntry(object):
+    def __init__(self, value, color, opacity=1.0, label=None):
+        self._value = value
+        self._color = color
+        self._opacity = opacity
+        self._label = label
+
+    @property
+    def value(self):
+        return self._value
+
+    @property
+    def color(self):
+        return self._color
+
+    @property
+    def opacity(self):
+        return self._opacity
+
+    @property
+    def label(self):
+        return self._label
+
+    @classmethod
+    def from_model(cls, raster_style_color_entry_model):
+        return cls(
+            raster_style_color_entry_model.value,
+            hex_to_rgb(raster_style_color_entry_model.color),
+            raster_style_color_entry_model.opacity,
+            raster_style_color_entry_model.label,
         )
 
 
