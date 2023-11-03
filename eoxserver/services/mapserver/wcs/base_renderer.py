@@ -171,9 +171,9 @@ class BaseRenderer(Component):
 
         for band in bands:
             ms.setMetaData(layer, {
-                "band_description": band.description,
-                "band_definition": band.definition,
-                "band_uom": band.unit_of_measure,
+                "band_description": band.description or '',
+                "band_definition": band.definition or '',
+                "band_uom": band.unit_of_measure or '',
             }, namespace=band.identifier)
 
             if band.allowed_values:
