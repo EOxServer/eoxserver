@@ -47,7 +47,7 @@ ALLOWED_PROCESSES = [
 XML_CONTENT_TYPE = "application/xml; charset=utf-8"
 
 #===============================================================================
-# WCS 1.0 GetCapabilities
+# WPS 1.0 GetCapabilities
 #===============================================================================
 
 class WPS10GetCapabilitiesValidTestCase(ContentTypeCheckMixIn, WPS10CapabilitiesMixIn, testbase.XMLTestCase):
@@ -71,7 +71,7 @@ class WPS10PostGetCapabilitiesValidTestCase(ContentTypeCheckMixIn, WPS10Capabili
 
 
 #===============================================================================
-# WCS 1.0 DescribeProcess
+# WPS 1.0 DescribeProcess
 #===============================================================================
 
 
@@ -130,7 +130,7 @@ class WPS10DescribeProcessTC06MinimalAllowedProcess(ContentTypeCheckMixIn, testb
 #TODO: Error - invalid process identifier
 
 #===============================================================================
-# WCS 1.0 Execute - Minimal Process
+# WPS 1.0 Execute - Minimal Process
 #===============================================================================
 
 class WPS10ExecuteTC06MinimalValidProcess(ContentTypeCheckMixIn, WPS10ExecuteMixIn, testbase.XMLTestCase):
@@ -152,7 +152,7 @@ class WPS10ExecuteTC06MinimalAllowedProcessWithLineage(ContentTypeCheckMixIn, WP
         return (params, "kvp")
 
 #===============================================================================
-# WCS 1.0 Execute - Literal Data Tests
+# WPS 1.0 Execute - Literal Data Tests
 #===============================================================================
 
 class WPS10ExecuteTestCase(ContentTypeCheckMixIn, WPS10ExecuteMixIn, testbase.XMLTestCase):
@@ -291,7 +291,7 @@ class WPS10ExecuteLiteralDataRawOutputKVPTestCase(ContentTypeCheckMixIn, testbas
 #TODO: Error - invalid input (out of the allowed range)
 
 #===============================================================================
-# WCS 1.0 Execute - Bounding Box Data Tests
+# WPS 1.0 Execute - Bounding Box Data Tests
 #===============================================================================
 
 class WPS10ExecuteBoundingBoxTestCase(ContentTypeCheckMixIn, WPS10ExecuteMixIn, testbase.XMLTestCase):
@@ -365,7 +365,7 @@ class WPS10ExecuteBoundingBoxRawOutputKVPTestCase(ContentTypeCheckMixIn, testbas
 #TODO: Error - invalid output CRS
 
 #===============================================================================
-# WCS 1.0 Execute - Complex Data Tests (text-based payload)
+# WPS 1.0 Execute - Complex Data Tests (text-based payload)
 #===============================================================================
 
 class WPS10ExecuteComplexDataTextTestCase(ContentTypeCheckMixIn, WPS10ExecuteMixIn, testbase.XMLTestCase):
@@ -566,7 +566,7 @@ class WPS10ExecuteComplexDataXMLRawOutputKVPTestCase(ContentTypeCheckMixIn, Cont
         return (params, "kvp")
 
 #===============================================================================
-# WCS 1.0 Execute - Complex Data Tests (binary payload)
+# WPS 1.0 Execute - Complex Data Tests (binary payload)
 #===============================================================================
 
 class WPS10ExecuteComplexDataPNGBase64FileTestCase(ContentTypeCheckMixIn, WPS10ExecuteMixIn, testbase.XMLTestCase):
