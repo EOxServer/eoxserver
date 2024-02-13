@@ -66,21 +66,21 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             dest="collection",
             required=True,
             type=parse_collection,
-            help="Register timeseries for this collection",
+            help="Register timeseries for this collection.",
         )
         register_parser.add_argument(
             "--storage",
-            help="The storage to use",
+            help="The storage to use.",
         )
         register_parser.add_argument(
             "--path",
             required=True,
-            help="Path to timeseries file",
+            help="Path to timeseries file.",
         )
         register_parser.add_argument(
-            "--product-type-name",
+            "--product-type-name.",
             required=True,
-            help="The product type name",
+            help="The product type name.",
         )
         register_parser.add_argument(
             "--coverage-type-mapping",
@@ -93,17 +93,17 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
         register_parser.add_argument(
             "--x-dim-name",
             required=True,
-            help="Name of the X dimension",
+            help="Name of the X dimension.",
         )
         register_parser.add_argument(
             "--y-dim-name",
             required=True,
-            help="Name of the Y dimension",
+            help="Name of the Y dimension.",
         )
         register_parser.add_argument(
             "--time-dim-name",
             required=True,
-            help="Name of the time dimension",
+            help="Name of the time dimension.",
         )
         register_parser.add_argument(
             "--product-template",
