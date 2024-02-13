@@ -78,7 +78,7 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             help="Path to timeseries file.",
         )
         register_parser.add_argument(
-            "--product-type-name.",
+            "--product-type-name",
             required=True,
             help="The product type name.",
         )
