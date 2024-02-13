@@ -951,3 +951,41 @@ rasterstyle
 
     style_name
       The assigned style name. Optional.
+
+
+.. _cmd-timeseries:
+
+timeseries
+  this command manages Time series instances (e.g zarr), Time series are registered as multiple instances of `Product Model`_,
+  for each time step (slice), each product item would have every dimension represented by a Coverage instance.
+
+  register
+    this sub-command registers a timeseries Item as multiple Products and each Product dimensions as
+    Coverages.
+
+    --collection, -c, --collection-identifier
+      Register timeseries for this collection.
+    --storage
+      The storage to use.
+    --path
+      Path to timeseries file.
+    --product-type-name
+      The product type name.
+    --coverage-type-mapping
+      Which dimension to map to which coverage type.
+      Use : as separator, e.g. --coverage-type-mapping "/Band1:b1"
+    --x-dim-name
+      Name of the array/band which represents X dimension.
+    --y-dim-name
+      Name of the array/band which represents Y dimension.
+    --time-dim-name
+      Name of the array/band which represents Time dimension.
+    --product-template
+      Format string for product identifier. Can use the following template variables:
+      collection_identifier, file_identifier, index,
+      product_type, begin_time, end_time.
+    --replace, -r
+      Optional. If the time series with the given identifier already
+      exists, replace it. Without this flag, this would result in
+      an error.
+
