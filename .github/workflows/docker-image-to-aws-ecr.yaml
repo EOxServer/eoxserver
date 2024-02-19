@@ -1,0 +1,76 @@
+name: Publish Docker image to AWS ECR
+
+on:
+  push:
+    tags:
+      - 'v[0-9]+'
+      - 'v[0-9]+-*'
+      - 'v[0-9]+.[0-9]+'
+      - 'v[0-9]+.[0-9]+-*'
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+      - 'v[0-9]+.[0-9]+.[0-9]+-*'
+    branches:
+      - main
+
+env:
+  IMAGE_NAME: eodhp-eoxserver
+
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: psf/black@stable
+        with:
+          options: "--line-length 100 --check --verbose"
+      - uses: chartboost/ruff-action@v1
+      - run: pip install isort
+      - run: isort . --check --diff
+
+      - name: Security check - Bandit
+        uses: mdegis/bandit-action@v1.0.1
+        with:
+          path: "."
+          level: high
+          confidence: high
+          exit_zero: true
+          skips: B101
+      - name: Security check - Trivy
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-container-registry
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Get image tag
+        run: echo IMAGE_TAG=$(if [[ "${GITHUB_REF##refs/tags/}" =~ ^v ]]; then echo ${GITHUB_REF##refs/tags/v}; else echo "latest"; fi) >> "$GITHUB_ENV"
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+        with:
+          registries: ${{ inputs.AWS_ACCOUNT_ID }}
+          mask-password: "true" # see: https://github.com/aws-actions/amazon-ecr-login#docker-credentials
+
+      - name: Build, tag, and push image to Amazon ECR
+        id: build-publish
+        shell: bash
+        run: |
+          FQ_IMAGE_NAME=${{ secrets.AWS_ECR }}/$IMAGE_NAME:$IMAGE_TAG
+          aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin ${{ secrets.AWS_ECR }}
+          docker build -t $IMAGE_NAME .
+          docker build -t $FQ_IMAGE_NAME .
+          docker push $FQ_IMAGE_NAME
