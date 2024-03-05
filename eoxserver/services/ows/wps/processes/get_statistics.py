@@ -153,7 +153,7 @@ class GetStatisticsProcess(Component):
                 # if the image is empty GetStatistics will throw an error
                 # so we check if the number of the image pixels is greater
                 # than the number of noData pixels
-                nodata_number = sum(no_data_list).item()
+                nodata_number = np.sum(no_data_list).item()
                 if ((image_array.size - nodata_number) > 0):
                     stats = ds.GetRasterBand(band_number).GetStatistics(0, 1)
                     interval = (np.amax(data_array) - np.amin(data_array)) / 25
