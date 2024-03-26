@@ -32,16 +32,14 @@ on different configuration files.
 """
 
 import imp
+import os
 from os.path import join, getmtime
 from sys import prefix
 import threading
 import logging
 from time import time
 
-try:
-    from ConfigParser import RawConfigParser
-except ImportError:
-    from configparser import RawConfigParser
+from configparser import ConfigParser, ExtendedInterpolation
 
 
 from django.conf import settings
@@ -55,8 +53,18 @@ _cached_config = None
 _last_access_time = None
 
 
+# NOTE: Previously these values were hardcoded in the config.
+#       Now they are interpolated from env vars, but we keep
+#       these defautls here for backwards compatibility
+DEFAULTS = {
+    "HTTP_SERVICE_URL": "http://localhost:8000/ows?",
+    "OWS_WCS_MAXSIZE": "2048",
+    "OWS_WMS_MINRENDER_ZOOM": "",
+}
+
+
 def get_eoxserver_config():
-    """ Returns the EOxServer config as a :class:`ConfigParser.RawConfigParser`
+    """ Returns the EOxServer config as a :class:`ConfigParser.ConfigParser`
     """
     with config_lock:
         if not _cached_config or \
@@ -68,7 +76,7 @@ def get_eoxserver_config():
 
 def reload_eoxserver_config():
     """ Triggers the loading or reloading of the EOxServer config as a
-        :class:`ConfigParser.RawConfigParser`.
+        :class:`configparser.ConfigParser`.
     """
     global _cached_config, _last_access_time
     _, eoxs_path, _ = imp.find_module("eoxserver")
@@ -83,8 +91,17 @@ def reload_eoxserver_config():
         % ("Rel" if _cached_config else "L", ", ".join(paths))
     )
 
+    env_vars = {
+        **DEFAULTS,
+        **os.environ,
+    }
+
     with config_lock:
-        _cached_config = RawConfigParser()
+        _cached_config = ConfigParser(
+            env_vars,
+            allow_no_value=True,
+            interpolation=ExtendedInterpolation(),
+        )
         _cached_config.read(paths)
         _last_access_time = time()
 
