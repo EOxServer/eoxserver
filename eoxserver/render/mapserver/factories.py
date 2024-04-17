@@ -669,6 +669,19 @@ def _create_raster_layer_objs(map_obj, extent, sr, data, filename_generator, env
     layer_obj.type = ms.MS_LAYER_RASTER
     layer_obj.status = ms.MS_ON
 
+    # if attempting to load NETCDF file, need to use a temporary file to extract only
+    # the required band data
+    if "NETCDF" in data:
+        # determine if attempting to load a specific band index
+        if ("https://" in data and data.count(":") == 4) or (not "https://" in data and data.count(":") == 3):
+            splitpath = data.rsplit(":",1)
+            data = splitpath[0]
+            index = int(splitpath[1]) + 1
+        temp_path = "/vsimem/%s" % uuid4().hex
+        # extract only desired index to new temporary file
+        gdal.Translate(temp_path, data, bandList=[index])
+        data = temp_path
+
     layer_obj.data = data
     # assumption that RGBA already has transparency in alpha band
     if browse_mode != BROWSE_MODE_RGBA:
