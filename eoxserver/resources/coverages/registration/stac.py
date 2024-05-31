@@ -355,9 +355,12 @@ def register_stac_product(stac_item, product_type=None, storage=None,
                 for name in field_name:
                     metadata[name] = value
 
-    # read footprint from metadata if it was not already defined
-    footprint = footprint or GEOSGeometry(metadata.get('footprint'))
-    if not footprint.valid:
+    if not footprint:
+        # read footprint from metadata if it was not already defined
+        footprint = metadata.get('footprint')
+        if footprint:
+            footprint = GEOSGeometry(footprint)
+    if footprint and not footprint.valid:
         raise RegistrationError(f'Footprint is not valid {footprint}, reason {footprint.valid_reason}')
     if simplify_footprint_tolerance is not None and footprint:
         footprint = footprint.simplify(
