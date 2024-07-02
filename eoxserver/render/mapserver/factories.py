@@ -677,7 +677,7 @@ def _create_raster_layer_objs(map_obj, extent, sr, data, filename_generator, env
             splitpath = data.rsplit(":",1)
             data = splitpath[0]
             index = int(splitpath[1]) + 1
-        temp_path = "/vsimem/%s" % uuid4().hex
+        temp_path = filename_generator.generate()
         # extract only desired index to new temporary file
         gdal.Translate(temp_path, data, bandList=[index])
         data = temp_path
