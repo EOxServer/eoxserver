@@ -10,6 +10,7 @@ on:
       - 'pyproject.toml'
       - 'eoxserver/**'
       - 'autotest/**'
+      - 'requirements.txt'
 jobs:
   build-docker:
     runs-on: ubuntu-latest
