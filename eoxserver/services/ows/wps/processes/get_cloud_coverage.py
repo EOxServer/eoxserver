@@ -295,4 +295,4 @@ def _create_geometry_feature_in_memory(wkt_geometry: str):
 
     yield memory_path
 
-    gdal.Unlink(memory_path)
+    drv.DeleteDataSource(memory_path)
