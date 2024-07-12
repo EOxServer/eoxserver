@@ -184,4 +184,10 @@ def config_env(env, fail_on_override=False, reset_old=True):
 
 def open_with_env(path, env, shared=True):
     with config_env(env, False):
+        # if attempting to load NETCDF file with additional indexing, need to extract only base path
+        # this loads the variable dataset and allows information to be extracted from first band
+        if "NETCDF" in path:
+            if ("https://" in path and path.count(":") == 4) or (not "https://" in path and path.count(":") == 3):
+                splitpath = path.rsplit(":",1)
+                path = splitpath[0]
         return OpenShared(path) if shared else Open(path)
