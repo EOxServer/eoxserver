@@ -9,6 +9,7 @@ psycopg2
 lxml
 pycql==0.0.8
 matplotlib
+numpy<2.0.0
 pyows>=0.2.6
 python-keystoneclient<6.0.0
 python-swiftclient<5.0.0
