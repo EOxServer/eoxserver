@@ -26,7 +26,9 @@
 # ------------------------------------------------------------------------------
 
 from weakref import proxy
-from typing import List
+from typing import List, Optional, Tuple
+
+from django.contrib.gis.geos import GEOSGeometry
 
 from eoxserver.render.coverage.objects import (
     GRID_TYPE_TEMPORAL, GRID_TYPE_ELEVATION, Coverage, Mosaic,
@@ -291,6 +293,24 @@ class OutlinesLayer(Layer):
     @property
     def fill(self):
         return self._fill
+
+
+class HeatmapLayer(Layer):
+    """ Representation of a heatmap layer.
+    """
+    def __init__(self, name: str, style: str, footprints: List[GEOSGeometry],
+                 range: Optional[Tuple[float, float]] = None):
+        super(HeatmapLayer, self).__init__(name, style)
+        self._footprints = footprints
+        self._range = range
+
+    @property
+    def footprints(self) -> List[GEOSGeometry]:
+        return self._footprints
+
+    @property
+    def range(self) -> Optional[Tuple[float, float]]:
+        return self._range
 
 
 class Map(object):

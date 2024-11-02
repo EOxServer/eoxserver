@@ -408,6 +408,7 @@ This results in a catalog of the following available layers:
    geometries.
  - ``Collection__outlined``: this is a combination of the previous two layers:
    each Product is rendered in ``TRUE_COLOR`` with its outlines highlighted.
+ - ``Collection__heatmap``: this renders the heatmap of the Products footprints.
  - ``Collection__TRUE_COLOR``, ``Collection__FALSE_COLOR``,
    ``Collection__NDVI``: these are the browse visualizations with the
    definintions from earlier.
@@ -434,6 +435,8 @@ The following list shows all of these rendering options with an example product
     | ``Collection__outlines``          | .. figure:: images/product_outlines.png           |
     +-----------------------------------+---------------------------------------------------+
     | ``Collection__outlined``          | .. figure:: images/product_outlined.png           |
+    +-----------------------------------+---------------------------------------------------+
+    | ``Collection__heatmap``           | .. figure:: images/product_heatmap.png            |
     +-----------------------------------+---------------------------------------------------+
     | ``Collection__validity``          | .. figure:: images/product_validity.png           |
     +-----------------------------------+---------------------------------------------------+

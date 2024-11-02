@@ -25,14 +25,14 @@
 # THE SOFTWARE.
 # ------------------------------------------------------------------------------
 
-from django.db.models import Case, Value, When, IntegerField, BooleanField
+from django.db.models import Case, Value, When, IntegerField
 from django.conf import settings
 
 from eoxserver.core.config import get_eoxserver_config
 from eoxserver.core.decoders import config, enum
 from eoxserver.core.util.timetools import isoformat
 from eoxserver.render.map.objects import (
-    CoverageLayer, CoveragesLayer, OutlinedCoveragesLayer, MosaicLayer,
+    CoverageLayer, CoveragesLayer, HeatmapLayer, OutlinedCoveragesLayer, MosaicLayer,
     OutlinesLayer, BrowseLayer, OutlinedBrowseLayer,
     MaskLayer, MaskedBrowseLayer,
     LayerDescription,
@@ -172,6 +172,17 @@ class LayerMapper(object):
                             eo_object.identifier, self.suffix_separator,
                             mask_type_name,
                         ),
+                        dimensions=dimensions,
+                    )
+                )
+
+            if isinstance(eo_object, models.Collection):
+                sub_layers.append(
+                    LayerDescription(
+                        "%s%sheatmap" % (
+                            eo_object.identifier, self.suffix_separator,
+                        ),
+                        styles=default_raster_styles,
                         dimensions=dimensions,
                     )
                 )
@@ -422,6 +433,25 @@ class LayerMapper(object):
                 return MaskedBrowseLayer(
                     name=full_name, style=style,
                     masked_browses=masked_browses
+                )
+
+            elif suffix == 'heatmap':
+                return HeatmapLayer(
+                    name=full_name,
+                    style=style,
+                    footprints=[
+                        # TODO: once testdata is available use products instead
+                        # of coverages
+                        product.footprint for product in self.iter_coverages(
+                            eo_object, filters_expressions, sort_by,
+                            #limit=limit_products
+                        )
+                        # product.footprint for product in self.iter_products(
+                        #     eo_object, filters_expressions, sort_by,
+                        #     limit=limit_products
+                        # )
+                    ],
+                    range=ranges[0] if ranges else None
                 )
 
             else:

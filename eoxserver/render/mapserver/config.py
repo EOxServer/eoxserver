@@ -34,4 +34,11 @@ DEFAULT_EOXS_MAPSERVER_LAYER_FACTORIES = [
     'eoxserver.render.mapserver.factories.MaskLayerFactory',
     'eoxserver.render.mapserver.factories.MaskedBrowseLayerFactory',
     'eoxserver.render.mapserver.factories.OutlinesLayerFactory',
+    'eoxserver.render.mapserver.factories.HeatmapLayerFactory',
 ]
+
+
+# default for EOXS_MAPSERVER_HEATMAP_RANGE_DEFAULT: the default range for Heatmap
+# render requests
+
+DEFAULT_EOXS_MAPSERVER_HEATMAP_RANGE_DEFAULT = (0, 10)
