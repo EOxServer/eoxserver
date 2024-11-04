@@ -68,9 +68,9 @@ jobs:
       - name: Start the services and install test dependencies
         run: |
           echo "DB=spatialite" >> sample.env
-          docker-compose config
-          docker-compose up -d
-          docker-compose ps
+          docker compose config
+          docker compose up -d
+          docker compose ps
           docker exec -i eoxserver_autotest_1 pip3 install scipy
       - name: Run the tests
         env:
