@@ -78,7 +78,7 @@ jobs:
         run: |
           docker exec -i eoxserver_autotest_1 python3 ${{ matrix.command }}
       - name: Upload logs and outputs of failed tests
-        uses: 'actions/upload-artifact@v2'
+        uses: 'actions/upload-artifact@v3'
         with:
           name: logs ${{ matrix.command }}
           path: |
