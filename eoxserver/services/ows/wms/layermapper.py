@@ -440,16 +440,11 @@ class LayerMapper(object):
                     name=full_name,
                     style=style,
                     footprints=[
-                        # TODO: once testdata is available use products instead
-                        # of coverages
-                        product.footprint for product in self.iter_coverages(
+                        product.footprint for product in self.iter_products(
                             eo_object, filters_expressions, sort_by,
-                            #limit=limit_products
+                            limit=limit_products
                         )
-                        # product.footprint for product in self.iter_products(
-                        #     eo_object, filters_expressions, sort_by,
-                        #     limit=limit_products
-                        # )
+
                     ],
                     range=ranges[0] if ranges else None
                 )
