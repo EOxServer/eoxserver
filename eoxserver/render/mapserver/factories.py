@@ -731,8 +731,6 @@ class HeatmapLayerFactory(BaseMapServerLayerFactory):
 
         layer_obj.setProjection(map_obj.getProjection())
 
-        # TODO: make configuration possible for the default range here
-
         default_range = getattr(
             settings, 'EOXS_MAPSERVER_HEATMAP_RANGE_DEFAULT',
             DEFAULT_EOXS_MAPSERVER_HEATMAP_RANGE_DEFAULT
