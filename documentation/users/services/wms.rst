@@ -122,7 +122,11 @@ parameters that are available with GetMap requests.
     |                           |     mask of the provided ``mask-name``.                   |                                  |                                |
     |                           |   - ``<browse-type-name>``: renders the product(s)        |                                  |                                |
     |                           |     according to the browse types instructions (or uses   |                                  |                                |
-    |                           |     an already existing browse if available.              |                                  |                                |
+    |                           |     an already existing browse if available)              |                                  |                                |
+    |                           |                                                           |                                  |                                |
+    |                           | - ``Collection``                                          |                                  |                                |
+    |                           |   - ``heatmap``: renders the contained products in a      |                                  |                                |
+    |                           |     heatmap.                                              |                                  |                                |
     +---------------------------+-----------------------------------------------------------+----------------------------------+--------------------------------+
     | styles                    | The style for each of the rendered layers to be           |                                  | M                              |
     |                           | rendered with. This must be either empty or a             |                                  |                                |

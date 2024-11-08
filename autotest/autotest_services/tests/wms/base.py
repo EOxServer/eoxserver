@@ -97,6 +97,7 @@ class WMS13GetMapTestCase(testbase.RasterTestCase):
     frmt = "image/jpeg"
     time = None
     dim_bands = None
+    dim_range = None
 
     swap_axes = True
 
@@ -127,6 +128,9 @@ class WMS13GetMapTestCase(testbase.RasterTestCase):
 
         if self.dim_bands:
             params += "&dim_bands=%s" % self.dim_bands
+
+        if self.dim_range:
+            params += "&dim_range=%s" % self.dim_range
 
         if self.httpHeaders is None:
             return (params, "kvp")

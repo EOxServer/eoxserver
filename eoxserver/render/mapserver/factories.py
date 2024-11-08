@@ -34,11 +34,12 @@ except ImportError:
     from itertools import zip_longest as izip_longest
 
 from django.conf import settings
+from django.contrib.gis.geos import GEOSGeometry
 from django.utils.module_loading import import_string
 
 from eoxserver.core.util.iteratortools import pairwise_iterative
 from eoxserver.contrib import mapserver as ms
-from eoxserver.contrib import vsi, vrt, gdal, osr
+from eoxserver.contrib import vsi, vrt, gdal, osr, ogr
 from eoxserver.render.browse.objects import (
     Browse, GeneratedBrowse, BROWSE_MODE_GRAYSCALE, BROWSE_MODE_RGBA
 )
@@ -47,13 +48,14 @@ from eoxserver.render.browse.generate import (
 )
 from eoxserver.render.browse.defaultstyles import DEFAULT_RASTER_STYLES
 from eoxserver.render.map.objects import (
-    CoverageLayer, CoveragesLayer, MosaicLayer, OutlinedCoveragesLayer,
+    CoverageLayer, CoveragesLayer, HeatmapLayer, MosaicLayer, OutlinedCoveragesLayer,
     BrowseLayer, OutlinedBrowseLayer,
     MaskLayer, MaskedBrowseLayer, OutlinesLayer,
     Layer, Map,
 )
 from eoxserver.render.coverage.objects import Coverage, Field
 from eoxserver.render.mapserver.config import (
+    DEFAULT_EOXS_MAPSERVER_HEATMAP_RANGE_DEFAULT,
     DEFAULT_EOXS_MAPSERVER_LAYER_FACTORIES,
 )
 from eoxserver.render.colors import BASE_COLORS, COLOR_SCALES, OFFSITE_COLORS
@@ -658,6 +660,98 @@ class OutlinesLayerFactory(BaseMapServerLayerFactory):
         layer_obj.insertClass(class_obj)
 
 
+class HeatmapLayerFactory(BaseMapServerLayerFactory):
+    handled_layer_types = [HeatmapLayer]
+
+    def _create_vector_ds(self, footprints: List[GEOSGeometry]) -> gdal.Dataset:
+        """ Stores the given footprints in a GDAL vector dataset. It uses the in-memory
+            driver to reduce disk IO.
+        """
+        driver = gdal.GetDriverByName("Memory")
+        ds = driver.Create("", 0, 0, 0, gdal.GDT_Unknown)
+        layer = ds.CreateLayer("data")
+        from osgeo import osr
+        sr = osr.SpatialReference()
+        sr.ImportFromEPSG(4326)
+        for footprint in footprints:
+            feature = ogr.Feature(ogr.FeatureDefn())
+            geom = ogr.CreateGeometryFromWkt(footprint.wkt, sr)
+            feature.SetGeometryDirectly(geom)
+            layer.CreateFeature(feature)
+
+        return ds
+
+    def _rasterize_footprints(self, map_obj: ms.mapObj, vector_ds: gdal.Dataset,
+                              filename: str):
+        """ Rasterizes the footprints from a vector datasets into a raster dataset
+            of type Uint16 with the same dimension and spatial bounds as the provided map.
+            It uses additive mode in order to calculate how many geometries overlap with
+            a specific pixel.
+            The dataset is stored under a given filename (vsimem possible).
+        """
+        sr = osr.SpatialReference()
+        sr.ImportFromProj4(map_obj.getProjection())
+        extent = map_obj.extent
+
+        gdal.Rasterize(
+            filename,
+            vector_ds,
+            format="GTiff",
+            width=map_obj.width,
+            height=map_obj.height,
+            outputType=gdal.GDT_UInt16,
+            outputBounds=(extent.minx, extent.miny, extent.maxx, extent.maxy),
+            outputSRS=sr.ExportToWkt(),
+            initValues=[0],
+            burnValues=[1],
+            add=True
+        )
+
+    def create(self, map_obj: ms.mapObj, layer: Layer):
+        """_summary_
+
+        Args:
+            map_obj (ms.mapObj): _description_
+            layer (Layer): _description_
+
+        Returns:
+            _type_: _description_
+        """
+        assert isinstance(layer, HeatmapLayer)
+
+        vector_ds = self._create_vector_ds(layer.footprints)
+        filename_generator = FilenameGenerator('/vsimem/{uuid}.{extension}')
+        filename = filename_generator.generate("tif")
+        self._rasterize_footprints(map_obj, vector_ds, filename)
+
+        layer_obj = ms.layerObj(map_obj)
+        layer_obj.type = ms.MS_LAYER_RASTER
+        layer_obj.status = ms.MS_ON
+        layer_obj.data = filename
+
+        layer_obj.setProjection(map_obj.getProjection())
+
+        default_range = getattr(
+            settings, 'EOXS_MAPSERVER_HEATMAP_RANGE_DEFAULT',
+            DEFAULT_EOXS_MAPSERVER_HEATMAP_RANGE_DEFAULT
+        )
+
+        range_ = layer.range or default_range
+        _create_raster_style(
+            DEFAULT_RASTER_STYLES[layer.style or "plasma"],
+            layer_obj,
+            range_[0],
+            range_[1],
+            [0],
+        )
+
+        return filename_generator
+
+    def destroy(self, map_obj, layer, filename_generator):
+        # cleanup temporary files
+        for filename in filename_generator.filenames:
+            vsi.unlink(filename)
+
 # ------------------------------------------------------------------------------
 # utils
 # ------------------------------------------------------------------------------
@@ -902,7 +996,7 @@ def _create_raster_style_ramp(raster_style, layer, minvalue=0, maxvalue=255,
         next_perc, next_color = next_item
 
         cls = ms.classObj()
-        cls.setExpression("([pixel] > %s AND [pixel] < %s)" % (
+        cls.setExpression("([pixel] > %s AND [pixel] <= %s)" % (
             (minvalue + prev_perc * interval),
             (minvalue + next_perc * interval)
         ))
@@ -923,7 +1017,7 @@ def _create_raster_style_ramp(raster_style, layer, minvalue=0, maxvalue=255,
         high_nil = min(high_nil_values)
         cls = ms.classObj()
         cls.setExpression(
-            "([pixel] > %s AND [pixel] < %s)" % (maxvalue, high_nil)
+            "([pixel] > %s AND [pixel] <= %s)" % (maxvalue, high_nil)
         )
         cls.group = name
         style = ms.styleObj()

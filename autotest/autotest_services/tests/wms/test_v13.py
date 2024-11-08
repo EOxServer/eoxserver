@@ -357,6 +357,22 @@ class WMS13GetMapDatasetStyledTestCase(wmsbase.WMS13GetMapTestCase):
     styles = ("color",)
     frmt = "image/png"
 
+
+# ==============================================================================
+# Heatmap
+# ==============================================================================
+
+class WMS13GetMapCollectionHeatmapTestCase(wmsbase.WMS13GetMapTestCase):
+    fixtures = MASK_FIXTURES
+
+    layers = ["MER_FRS_1P_reduced_products_RGB__heatmap"]
+    height = 50
+    width = 100
+    bbox = [-3.75, 32.158895, 28.326165, 46.3]
+    dim_range = "0 5"
+    frmt = "image/png"
+
+
 #===============================================================================
 # Feature Info
 #===============================================================================

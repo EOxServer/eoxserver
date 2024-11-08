@@ -152,7 +152,18 @@ EOXS_MAPSERVER_LAYER_FACTORIES
           'eoxserver.render.mapserver.factories.MaskLayerFactory',
           'eoxserver.render.mapserver.factories.MaskedBrowseLayerFactory',
           'eoxserver.render.mapserver.factories.OutlinesLayerFactory',
+          'eoxserver.render.mapserver.factories.HeatmapLayerFactory',
       ]
+
+
+DEFAULT_EOXS_MAPSERVER_HEATMAP_RANGE_DEFAULT = (0, 10)
+  The default range for heatmap layers when none are provided via ``dim_range``.
+
+  Default:
+
+  .. code-block:: python
+
+      (0, 10)
 
 EOXS_COVERAGE_METADATA_FORMAT_READERS
   The list of coverage metadata readers that will be employed to read metadata
