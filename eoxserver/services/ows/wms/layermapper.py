@@ -25,14 +25,14 @@
 # THE SOFTWARE.
 # ------------------------------------------------------------------------------
 
-from django.db.models import Case, Value, When, IntegerField, BooleanField
+from django.db.models import Case, Value, When, IntegerField
 from django.conf import settings
 
 from eoxserver.core.config import get_eoxserver_config
 from eoxserver.core.decoders import config, enum
 from eoxserver.core.util.timetools import isoformat
 from eoxserver.render.map.objects import (
-    CoverageLayer, CoveragesLayer, OutlinedCoveragesLayer, MosaicLayer,
+    CoverageLayer, CoveragesLayer, HeatmapLayer, OutlinedCoveragesLayer, MosaicLayer,
     OutlinesLayer, BrowseLayer, OutlinedBrowseLayer,
     MaskLayer, MaskedBrowseLayer,
     LayerDescription,
@@ -40,7 +40,8 @@ from eoxserver.render.map.objects import (
 from eoxserver.render.coverage.objects import Coverage as RenderCoverage
 from eoxserver.render.coverage.objects import Mosaic as RenderMosaic
 from eoxserver.render.browse.objects import (
-    Browse, GeneratedBrowse, Mask, MaskedBrowse
+    Browse, GeneratedBrowse, Mask, MaskedBrowse, DEFAULT_EOXS_LAYER_SUFFIX_SEPARATOR,
+    RasterStyle,
 )
 from eoxserver.resources.coverages import models
 
@@ -59,9 +60,6 @@ class NoSuchPrefix(NoSuchLayer):
     locator = 'layer'
 
 
-DEFAULT_EOXS_LAYER_SUFFIX_SEPARATOR = '__'
-
-
 class LayerMapper(object):
     """ Default layer mapper.
     """
@@ -75,13 +73,13 @@ class LayerMapper(object):
             )
         self.suffix_separator = suffix_separator
 
-    def get_layer_description(self, eo_object, raster_styles, geometry_styles):
+    def get_layer_description(self, eo_object, default_raster_styles, default_geometry_styles):
         if isinstance(eo_object, models.Coverage):
             coverage = RenderCoverage.from_model(eo_object)
-            return LayerDescription.from_coverage(coverage, raster_styles)
+            return LayerDescription.from_coverage(coverage, default_raster_styles)
         elif isinstance(eo_object, models.Mosaic):
             coverage = RenderCoverage.from_model(eo_object)
-            return LayerDescription.from_mosaic(coverage, raster_styles)
+            return LayerDescription.from_mosaic(coverage, default_raster_styles)
         elif isinstance(eo_object, (models.Product, models.Collection)):
             dimensions = {}
             if eo_object.begin_time and eo_object.end_time:
@@ -107,13 +105,6 @@ class LayerMapper(object):
                 browse_type_qs = models.BrowseType.objects.none()
                 mask_type_qs = models.MaskType.objects.none()
 
-            browse_types_name_and_is_gray = browse_type_qs.annotate(
-                is_gray=Case(
-                    When(green_expression__isnull=True, then=Value(True)),
-                    default=Value(False),
-                    output_field=BooleanField()
-                )
-            ).values_list('name', 'is_gray').distinct()
             mask_type_names = mask_type_qs.values_list(
                 'name', flat=True
             ).distinct()
@@ -123,7 +114,7 @@ class LayerMapper(object):
                     "%s%soutlines" % (
                         eo_object.identifier, self.suffix_separator
                     ),
-                    styles=geometry_styles,
+                    styles=default_geometry_styles,
                     queryable=True,
                     dimensions=dimensions,
                 ),
@@ -131,19 +122,35 @@ class LayerMapper(object):
                     "%s%soutlined" % (
                         eo_object.identifier, self.suffix_separator
                     ),
-                    styles=geometry_styles,
+                    styles=default_geometry_styles,
                     queryable=True,
                     dimensions=dimensions,
                 )
             ]
-            for name, is_gray in browse_types_name_and_is_gray:
+            for browse_type in browse_type_qs:
+                used_styles = []
+                raster_style_throughs = \
+                    models.RasterStyleToBrowseTypeThrough.objects.filter(
+                        browse_type=browse_type
+                    ).prefetch_related("raster_style")
+
+                used_styles = [
+                    RasterStyle.from_model(
+                        raster_style_through.raster_style,
+                        raster_style_through.style_name
+                    )
+                    for raster_style_through in raster_style_throughs
+                ]
+
+                is_gray = not bool(browse_type.green_expression)
+
                 sub_layers.append(
                     LayerDescription(
                         "%s%s%s" % (
                             eo_object.identifier, self.suffix_separator,
-                            name
-                        ) if name else eo_object.identifier,
-                        styles=raster_styles if is_gray else [],
+                            browse_type.name
+                        ) if browse_type.name else eo_object.identifier,
+                        styles=used_styles or default_raster_styles if is_gray else [],
                         dimensions=dimensions,
                     )
                 )
@@ -155,7 +162,7 @@ class LayerMapper(object):
                             eo_object.identifier, self.suffix_separator,
                             mask_type_name
                         ),
-                        styles=geometry_styles,
+                        styles=default_geometry_styles,
                         dimensions=dimensions,
                     )
                 )
@@ -165,6 +172,17 @@ class LayerMapper(object):
                             eo_object.identifier, self.suffix_separator,
                             mask_type_name,
                         ),
+                        dimensions=dimensions,
+                    )
+                )
+
+            if isinstance(eo_object, models.Collection):
+                sub_layers.append(
+                    LayerDescription(
+                        "%s%sheatmap" % (
+                            eo_object.identifier, self.suffix_separator,
+                        ),
+                        styles=default_raster_styles,
                         dimensions=dimensions,
                     )
                 )
@@ -425,6 +443,20 @@ class LayerMapper(object):
                     masked_browses=masked_browses
                 )
 
+            elif suffix == 'heatmap':
+                return HeatmapLayer(
+                    name=full_name,
+                    style=style,
+                    footprints=[
+                        product.footprint for product in self.iter_products(
+                            eo_object, filters_expressions, sort_by,
+                            limit=limit_products
+                        )
+
+                    ],
+                    range=ranges[0] if ranges else None
+                )
+
             else:
                 # either browse type or mask type
                 browse_type = self.get_browse_type(eo_object, suffix)
@@ -566,6 +598,10 @@ class LayerMapper(object):
                     browse_type = models.BrowseType.objects.get(
                         name=name, product_type=product.product_type
                     )
+            # additionally try to filter default browse with name ''
+            elif (browses := browses.filter(browse_type__name='')).count() > 0:
+                browse = browses.first()
+                browse_type = browse.browse_type
             else:
                 browses = browses.filter(browse_type__isnull=True)
                 browse_type = None
@@ -622,7 +658,8 @@ class LayerMapperConfigReader(config.Reader):
     color = config.Option(type=str, default='grey')
 
 
-def _generate_browse_from_browse_type(product, browse_type, variables):
+def _generate_browse_from_browse_type(
+        product: models.Product, browse_type: models.BrowseType, variables):
     if not browse_type.red_or_grey_expression:
         return None
 
@@ -669,6 +706,15 @@ def _generate_browse_from_browse_type(product, browse_type, variables):
             nodata_values.append(browse_type.alpha_nodata_value)
             field_names.extend(alpha_bands)
 
+    raster_styles = {}
+    raster_style_througs = models.RasterStyleToBrowseTypeThrough.objects.filter(
+        browse_type=browse_type
+    ).prefetch_related("raster_style")
+    for raster_style_throug in raster_style_througs:
+        raster_styles[raster_style_throug.style_name] = RasterStyle.from_model(
+            raster_style_throug.raster_style, raster_style_throug.style_name
+        )
+
     coverages, fields_and_coverages = _lookup_coverages(product, field_names)
 
     # only return a browse instance if coverages were found
@@ -680,6 +726,8 @@ def _generate_browse_from_browse_type(product, browse_type, variables):
             fields_and_coverages,
             product,
             variables,
+            raster_styles,
+            show_out_of_bounds_data=browse_type.show_out_of_bounds_data,
         )
     return None
 
@@ -708,7 +756,9 @@ def _generate_browse_from_bands(product, bands, wavelengths, ranges):
             ranges or [(None, None)] * len(bands),
             [None] * len(bands),
             fields_and_coverages,
-            product
+            product,
+            variables={},
+            show_out_of_bounds_data=False,
         )
     return None
 

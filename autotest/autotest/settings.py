@@ -1,10 +1,10 @@
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Stephan Krause <stephan.krause@eox.at>
 #          Stephan Meissl <stephan.meissl@eox.at>
 #
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 # Copyright (C) 2011 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -24,7 +24,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 
 """
 Django settings for EOxServer's autotest instance.
@@ -176,6 +176,7 @@ TEMPLATES = [
 ]
 
 MIDDLEWARE = [
+    'django_prometheus.middleware.PrometheusBeforeMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -186,6 +187,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     # # For management of the per/request cache system.
     # 'eoxserver.backends.middleware.BackendsCacheMiddleware',
+    'django_prometheus.middleware.PrometheusAfterMiddleware'
 ]
 
 MIDDLEWARE_CLASSES = (
@@ -219,6 +221,7 @@ INSTALLED_APPS = (
     # Enable for better schema and data-migrations
     # Enable for debugging
     # 'django_extensions',
+    'django_prometheus',
     # Enable EOxServer:
     'eoxserver.core',
     'eoxserver.services',
@@ -241,11 +244,6 @@ INSTALLED_APPS = (
 # search will be done.
 COMPONENTS = ()
 
-
-#
-#
-#
-#
 EOXS_PROCESSES = DEFAULT_EOXS_PROCESSES + [
     'autotest_services.processes.test00_identity_literal.TestProcess00',
     'autotest_services.processes.test01_identity_bbox.TestProcess01',
@@ -301,9 +299,9 @@ LOGGING = {
             'filters': [],
         },
         'console': {
-            'level': 'DEBUG',
-            'filters': ['require_debug_true'],
             'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+            'filters': [],
         }
     },
     'loggers': {
@@ -331,3 +329,4 @@ FIXTURE_DIRS = (
 # Set this variable if the path to the instance cannot be resolved
 # automatically, e.g. in case of redirects
 #FORCE_SCRIPT_NAME="/path/to/instance/"
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"

@@ -73,6 +73,14 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
                 '"platform".'
             )
         )
+        create_parser.add_argument(
+            '--replace', action='store_true',
+            default=False,
+            help=(
+                '''Change collection type references according to parameters
+                if collection type already exists.'''
+            )
+        )
         delete_parser.add_argument(
             '--all', '-a', action="store_true",
             default=False, dest='all_collections',
@@ -155,7 +163,7 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
         elif subcommand == "summary":
             self.handle_summary(identifier[0], *args, **kwargs)
 
-    def handle_create(self, identifier, type_name, grid_name, **kwargs):
+    def handle_create(self, identifier, type_name, grid_name, replace, **kwargs):
         """ Handle the creation of a new collection.
         """
         if grid_name:
@@ -176,11 +184,18 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
                 raise CommandError(
                     "Collection type %r does not exist." % type_name
                 )
-
-        models.Collection.objects.create(
-            identifier=identifier,
-            collection_type=collection_type, grid=grid
-        )
+        if replace:
+            models.Collection.objects.update_or_create(
+                identifier=identifier,
+                defaults={
+                    'collection_type':collection_type,
+                    'grid':grid,
+                }
+            )
+        else:
+            models.Collection.objects.create(
+                identifier=identifier, collection_type=collection_type, grid=grid
+            )
 
         print('Successfully created collection %r' % identifier)
 

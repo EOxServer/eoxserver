@@ -95,6 +95,10 @@ Copyright (C) European Space Agency - ESA</ows:Abstract>
       <ows:Identifier>DemProcessing</ows:Identifier>
     </wps:ProcessSummary>
     <wps:ProcessSummary jobControlOptions="" outputTransmission="" processVersion="1.0.0">
+      <ows:Title>Cloud coverage information about images of an AOI/TOI</ows:Title>
+      <ows:Identifier>CloudCoverage</ows:Identifier>
+    </wps:ProcessSummary>
+    <wps:ProcessSummary jobControlOptions="" outputTransmission="" processVersion="1.0.0">
       <ows:Title>Test Case 00: Literal data identity.</ows:Title>
       <ows:Abstract> Test identity process (the outputs are copies of the inputs)
     demonstrating various features of the literal data inputs and outputs.

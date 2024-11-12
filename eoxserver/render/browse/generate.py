@@ -116,6 +116,7 @@ ALLOWED_NODE_TYPES = (
     _ast.Add,
     _ast.Sub,
     _ast.Num if hasattr(_ast, 'Num') else _ast.Constant,
+    _ast.List,
 
     _ast.BitAnd,
     _ast.BitOr,
@@ -483,6 +484,10 @@ def _evaluate_expression(expr, fields_and_datasets, variables, cache):
         # Get a copy of the selected band
         data = value.GetRasterBand(slice_ + 1).ReadAsArray()
         result = gdal_array.OpenNumPyArray(data, True)
+        # restore nodata on output
+        nodata_value = value.GetRasterBand(slice_ + 1).GetNoDataValue()
+        if nodata_value is not None:
+            result.GetRasterBand(1).SetNoDataValue(nodata_value)
 
     elif hasattr(_ast, 'Num') and isinstance(expr, _ast.Num):
         result = expr.n
@@ -490,6 +495,12 @@ def _evaluate_expression(expr, fields_and_datasets, variables, cache):
     elif hasattr(_ast, 'Constant') and isinstance(expr, _ast.Constant):
         result = expr.value
 
+    elif hasattr(_ast, 'List') and isinstance(expr, _ast.List):
+        result = [
+            _evaluate_expression(
+                item, fields_and_datasets, variables, cache,
+            ) for item in expr.elts
+        ]
     else:
         raise BandExpressionError('Invalid expression node %s' % expr)
 

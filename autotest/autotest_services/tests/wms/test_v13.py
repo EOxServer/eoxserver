@@ -340,23 +340,39 @@ class WMS13GetMapCollectionMaskedOutlinesTestCase(wmsbase.WMS13GetMapTestCase):
     layers = ("MER_FRS_1P_reduced_products_RGB__outlines_masked_clouds",)
     bbox = (11, 32, 28, 46)
 
-#===============================================================================
+# ==============================================================================
 # Styled Coverages
-#===============================================================================
+# ==============================================================================
 
-# currently disabled because of segfaults in MapServer
 
-'''
 class WMS13GetMapDatasetStyledTestCase(wmsbase.WMS13GetMapTestCase):
     """ Test a GetMap request a dataset with an associated style. """
-    fixtures = wmsbase.WMS13GetMapTestCase.fixtures + [
-        "cryo_range_type.json", "cryo_coverages.json"
-    ]
-
-    layers = ("FSC_0.0025deg_201303030930_201303031110_MOD_Alps_ENVEOV2.1.00",)
-    bbox = (6, 44.5, 16, 48)
+    fixtures = ["scl_styled.json"]
+    layers = ("S2B_30UUG_20221226_0_L2A__SCL",)
+    swap_axes = True
+    bbox = (-6.282089176104, 54.89235272910, -4.3728695585011, 55.962341471504)
+    crs = "EPSG:4326"
     width = 200
-'''
+    height = 200
+    styles = ("color",)
+    frmt = "image/png"
+
+
+# ==============================================================================
+# Heatmap
+# ==============================================================================
+
+class WMS13GetMapCollectionHeatmapTestCase(wmsbase.WMS13GetMapTestCase):
+    fixtures = MASK_FIXTURES
+
+    layers = ["MER_FRS_1P_reduced_products_RGB__heatmap"]
+    height = 50
+    width = 100
+    bbox = [-3.75, 32.158895, 28.326165, 46.3]
+    dim_range = "0 5"
+    frmt = "image/png"
+
+
 #===============================================================================
 # Feature Info
 #===============================================================================
@@ -438,3 +454,6 @@ class WMS13GetLegendGraphicDatasetStyledTestCase(testbase.RasterTestCase):
 
     def getFileExtension(self, file_type):
         return "png"
+
+
+

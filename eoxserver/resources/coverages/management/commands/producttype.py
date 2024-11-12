@@ -73,6 +73,15 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             )
         )
 
+        create_parser.add_argument(
+            '--replace', action='store_true',
+            default=False,
+            help=(
+                '''Change product type references according to parameters
+                if product type already exists.'''
+            )
+        )
+
         delete_parser.add_argument(
             '--force', '-f', action='store_true', default=False,
             help='Also remove all products associated with that type.'
@@ -82,6 +91,7 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             '--no-detail', action="store_false", default=True, dest='detail',
             help="Disable the printing of details of the product type."
         )
+
 
     @transaction.atomic
     def handle(self, subcommand, *args, **kwargs):
@@ -95,13 +105,15 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             self.handle_list(*args, **kwargs)
 
     def handle_create(self, name, coverage_type_names, mask_type_names,
-                      validity_mask_type_names, browse_type_names,
+                      validity_mask_type_names, browse_type_names, replace,
                       *args, **kwargs):
         """ Handle the creation of a new product type.
         """
-
-        product_type = models.ProductType.objects.create(name=name)
-
+        product_type = None
+        if replace:
+            product_type = models.ProductType.objects.get_or_create(name=name)[0]
+        else:
+            product_type = models.ProductType.objects.create(name=name)
         for coverage_type_name in coverage_type_names:
             try:
                 coverage_type = models.CoverageType.objects.get(
@@ -112,22 +124,46 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
                 raise CommandError(
                     'Coverage type %r does not exist' % coverage_type_name
                 )
+        if replace:
+            # remove allowed coverage types not part of definition of product type
+            referenced_coverage_types = product_type.allowed_coverage_types.all()
+            for ct in referenced_coverage_types:
+                if ct.name not in coverage_type_names:
+                    product_type.allowed_coverage_types.remove(ct)
 
         for mask_type_name in mask_type_names:
-            models.MaskType.objects.create(
-                name=mask_type_name, product_type=product_type
-            )
+            if replace:
+                mt = models.MaskType.objects.get_or_create(
+                    name=mask_type_name, product_type=product_type
+                )[0]
+                mt.validity = False
+            else:
+                models.MaskType.objects.create(
+                    name=mask_type_name, product_type=product_type,
+                    validity=False
+                )
 
         for mask_type_name in validity_mask_type_names:
-            models.MaskType.objects.create(
-                name=mask_type_name, product_type=product_type,
-                validity=True
-            )
+            if replace:
+                mt = models.MaskType.objects.get_or_create(
+                    name=mask_type_name, product_type=product_type
+                )[0]
+                mt.validity = True
+            else:
+                models.MaskType.objects.create(
+                    name=mask_type_name, product_type=product_type,
+                    validity=True
+                )
 
         for browse_type_name in browse_type_names:
-            models.BrowseType.objects.create(
-                name=browse_type_name, product_type=product_type
-            )
+            if replace:
+                models.BrowseType.objects.get_or_create(
+                    name=browse_type_name, product_type=product_type
+                )
+            else:
+                models.BrowseType.objects.create(
+                    name=browse_type_name, product_type=product_type
+                )
 
         print('Successfully created product type %r' % name)
 

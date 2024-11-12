@@ -1,6 +1,8 @@
 .git
+.venv
 autotest
 build
 dist
 documentation
 schemas
+debian/

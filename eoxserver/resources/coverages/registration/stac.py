@@ -27,8 +27,12 @@
 
 from itertools import zip_longest
 import json
-from urllib.parse import urljoin, urlparse, urlunparse
+from urllib.parse import (
+    urljoin, urlparse, urlunparse, uses_netloc, uses_relative
+)
 import logging
+from typing import Optional
+import mimetypes
 
 from django.contrib.gis.geos import GEOSGeometry
 from django.db.models import Q
@@ -51,7 +55,7 @@ from eoxserver.resources.coverages.metadata.component import (
 )
 
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 
 def get_product_type_name(stac_item):
@@ -98,7 +102,14 @@ def get_product_type_name(stac_item):
     return '_'.join(parts)
 
 
-def get_path_from_href(href, file_href=None):
+# allow to urljoin s3:// URLs
+if 's3' not in uses_netloc:
+    uses_netloc.append('s3')
+if 's3' not in uses_relative:
+    uses_relative.append('s3')
+
+
+def get_path_from_href(href: str, self_href: Optional[str] = None):
     """ Extract the path from the given HREF. For S3 URLs this excludes
         the bucket name. Leading and trailing slashes will be stripped, so
         resulting paths are always relative.
@@ -107,11 +118,11 @@ def get_path_from_href(href, file_href=None):
 
         >>> get_path_from_href('s3://bucket/prefix/file.ext')
         'prefix/file.ext'
-        >>> get_path_from_href('https://www.example.com/path/to#res.ext')
+        >>> get_path_from_href('https://www.example.com/path/to/res.ext')
         'path/to/res.ext'
     """
-    if file_href:
-        href = urljoin(file_href, href)
+    if self_href:
+        href = urljoin(self_href, href)
 
     parsed = urlparse(href)
     if parsed.scheme:
@@ -120,11 +131,80 @@ def get_path_from_href(href, file_href=None):
     return urlunparse(parsed).strip('/')
 
 
+def resolve_storage(
+    asset: dict, base_storage: Optional[backends.Storage]
+) -> Optional[backends.Storage]:
+    """Resolve the actual storage for a given asset. This is required when an
+    intermediate storage is introduced for a ZIP or TAR archive file.
+
+    Args:
+        asset (dict): The asset to resolve te storage for
+        base_storage (Optional[backends.Storage]): The potential base storage
+            everything is relative to.
+
+    Returns:
+        Optional[backends.Storage]: The resulting storage, either the base
+            storage or a fetched/newly created Storage or None.
+    """
+    href = asset['href']
+    if "archive:href" in asset:
+        storage_type = None
+
+        file_type = asset.get("type")
+        archive_type = asset.get("archive:type")
+        storage_type = None
+        for type_ in [file_type, archive_type, mimetypes.guess_type(href)]:
+            if type_ == "application/zip":
+                storage_type = "ZIP"
+                break
+            elif type_ == "application/x-tar":
+                storage_type = "TAR"
+                break
+
+        if storage_type is None:
+            raise TypeError(f"Unsupported archive type for file {href}")
+
+        return backends.Storage.objects.get_or_create(
+            url=href,
+            storage_type=storage_type,
+            name="%s__%s" % (base_storage.name, href) if base_storage else href,
+            parent=base_storage,
+        )[0]
+    else:
+        return base_storage
+
+
+def resolve_location(asset: dict, self_href: Optional[str]) -> str:
+    """Resolves the assets location, relative to its storage. This takes the
+    archive:href into account, returning the relative location of the asset
+    within the archive file.
+
+    Args:
+        asset (dict): The asset to resolve the location for
+        self_href (Optional[str]): The STAC Items self href, which absolute
+            assets need to be made relative to
+
+    Returns:
+        str: the resulting location relative to any storage
+    """
+    archive_href = asset.get("archive:href")
+    if archive_href:
+        # the archive:href is the path of the file within the archive. So
+        # here we have to make sure, that it is not made relative to the
+        # STAC Items self_href
+        return archive_href
+    else:
+        # we have to make sure that the assets href is made relative to the
+        # STAC Items self_href
+        return get_path_from_href(asset['href'], self_href)
+
+
 @transaction.atomic
 def register_stac_product(stac_item, product_type=None, storage=None,
                           replace=False, coverage_mapping={},
                           browse_mapping=None, metadata_asset_names=None,
-                          file_href=None):
+                          simplify_footprint_tolerance=None,
+                          self_href=None):
     """ Registers a single parsed STAC item as a Product. The
         product type to be used can be specified via the product_type_name
         argument.
@@ -205,8 +285,8 @@ def register_stac_product(stac_item, product_type=None, storage=None,
 
     metadata_items = [
         models.MetaDataItem(
-            location=get_path_from_href(asset['href'], file_href),
-            storage=storage,
+            location=resolve_location(asset, self_href),
+            storage=resolve_storage(asset, storage),
         )
         for asset in metadata_assets
     ]
@@ -275,8 +355,17 @@ def register_stac_product(stac_item, product_type=None, storage=None,
                 for name in field_name:
                     metadata[name] = value
 
-    # read footprint from metadata if it was not already defined
-    footprint = footprint or metadata.get('footprint')
+    if not footprint:
+        # read footprint from metadata if it was not already defined
+        footprint = metadata.get('footprint')
+        if footprint:
+            footprint = GEOSGeometry(footprint)
+    if footprint and not footprint.valid:
+        raise RegistrationError(f'Footprint is not valid {footprint}, reason {footprint.valid_reason}')
+    if simplify_footprint_tolerance is not None and footprint:
+        footprint = footprint.simplify(
+            simplify_footprint_tolerance, preserve_topology=True
+        )
 
     # finally create the product and its metadata object
     product = models.Product.objects.create(
@@ -338,10 +427,8 @@ def register_stac_product(stac_item, product_type=None, storage=None,
             bands = asset.get('eo:bands')
             if bands is None:
                 logger.info(
-                    '''No eo:bands information present in Item.
-                    Skipping data asset %s.''' % (
-                    asset_name,
-                    )
+                    'No eo:bands information present in Item.'
+                    'Skipping data asset %s.' % asset_name
                 )
                 continue
 
@@ -371,9 +458,6 @@ def register_stac_product(stac_item, product_type=None, storage=None,
                     continue
         overrides['identifier'] = '%s_%s' % (identifier, asset_name)
 
-        # create the storage item
-        path = get_path_from_href(asset['href'], file_href)
-
         coverage_footprint = None
 
         if 'proj:geometry' in asset:
@@ -393,7 +477,7 @@ def register_stac_product(stac_item, product_type=None, storage=None,
             overrides['size'] = [shape[1], shape[0]]
 
         if transform:
-            overrides['origin'] = [transform[1], transform[5]]
+            overrides['origin'] = [transform[2], transform[5]]
 
         if epsg and transform:
             sr = osr.SpatialReference(epsg)
@@ -412,13 +496,24 @@ def register_stac_product(stac_item, product_type=None, storage=None,
             )
         )
 
+        location = resolve_location(asset, self_href)
+        asset_storage = resolve_storage(asset, storage)
+
+        if asset_storage is None:
+            data_locations = [[location]]
+        elif asset_storage == storage:
+            data_locations = [[storage.name, location]]
+        else:
+            data_locations = [[storage.name, asset_storage.name, location]]
+
         report = registrator.register(
-            data_locations=[([storage.name] if storage else []) + [path]],
+            data_locations=data_locations,
             metadata_locations=[],
             coverage_type_name=coverage_type.name,
             footprint_from_extent=False,
             overrides=overrides,
             replace=replace,
+            simplify_footprint_tolerance=simplify_footprint_tolerance,
             statistics=[
                 [
                     dict(
@@ -446,7 +541,7 @@ def register_stac_product(stac_item, product_type=None, storage=None,
                         )
                     )
                     register_browse_for_asset(
-                        asset, file_href, product, storage, browse_type
+                        asset, self_href, product, storage, browse_type
                     )
                     break
     else:
@@ -464,7 +559,7 @@ def register_stac_product(stac_item, product_type=None, storage=None,
                 # #     name=''
                 # # ).first()
                 register_browse_for_asset(
-                    asset, file_href, product, storage, None
+                    asset, self_href, product, storage, None
                 )
             else:
                 if browse_type is None:
@@ -474,7 +569,7 @@ def register_stac_product(stac_item, product_type=None, storage=None,
 
                 if browse_type:
                     register_browse_for_asset(
-                        asset, file_href, product, storage, browse_type
+                        asset, self_href, product, storage, browse_type
                     )
 
     # adding thumbnail image, which is the first one with role thumbnail
@@ -490,17 +585,17 @@ def register_stac_product(stac_item, product_type=None, storage=None,
         models.MetaDataItem.objects.create(
             eo_object=product,
             semantic=models.MetaDataItem.semantic_codes['thumbnail'],
-            storage=storage,
-            location=get_path_from_href(thumbnail_asset['href'], file_href),
+            storage=resolve_storage(thumbnail_asset, storage),
+            location=resolve_location(thumbnail_asset, self_href),
         )
 
     return (product, replaced)
 
 
-def register_browse_for_asset(asset, file_href, product, storage, browse_type):
+def register_browse_for_asset(asset, self_href, product, storage, browse_type):
     browse = models.Browse(
-        storage=storage,
-        location=get_path_from_href(asset['href'], file_href),
+        storage=resolve_storage(asset, storage),
+        location=resolve_location(asset, self_href),
         product=product,
         browse_type=browse_type,
     )
@@ -515,7 +610,7 @@ def register_browse_for_asset(asset, file_href, product, storage, browse_type):
         browse.coordinate_reference_system = sr.wkt
 
         x_a = transform[0]
-        x_b = transform[0] + transform[1] * browse.width
+        x_b = transform[0] + transform[2] * browse.width
         y_a = transform[3]
         y_b = transform[3] + transform[5] * browse.height
 
@@ -525,10 +620,18 @@ def register_browse_for_asset(asset, file_href, product, storage, browse_type):
         ds = gdal_open(browse)
         browse.width = ds.RasterXSize
         browse.height = ds.RasterYSize
-        browse.coordinate_reference_system = ds.GetProjection()
-        extent = gdal.get_extent(ds)
-        browse.min_x, browse.min_y, browse.max_x, browse.max_y = extent
-
+        projection = ds.GetProjection()
+        if projection:
+            browse.coordinate_reference_system = projection
+            extent = gdal.get_extent(ds)
+            browse.min_x, browse.min_y, browse.max_x, browse.max_y = extent
+        elif product.footprint:
+            # unprojected image, attempt to take product footprint bbox
+            srs = osr.SpatialReference()
+            srs.ImportFromEPSG(product.footprint.srid)
+            browse.coordinate_reference_system = srs.ExportToWkt()
+            extent = product.footprint.extent
+            browse.min_x, browse.min_y, browse.max_x, browse.max_y = extent
     browse.full_clean()
     browse.save()
 
@@ -621,7 +724,7 @@ def create_product_type_from_stac_item(stac_item, product_type_name=None,
 
     if not bands_list:
         raise RegistrationError(
-            'Failed to extract band defintion from STAC Item'
+            'Failed to extract band definition from STAC Item'
         )
 
     # create product type itself

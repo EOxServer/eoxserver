@@ -27,13 +27,19 @@
 
 import logging
 import tempfile
+from typing import List, Tuple, Type
 from uuid import uuid4
 from contextlib import contextmanager
 
 from eoxserver.contrib import mapserver as ms
 from eoxserver.contrib import vsi
-from eoxserver.render.colors import BASE_COLORS, COLOR_SCALES
-from eoxserver.render.mapserver.factories import get_layer_factories
+from eoxserver.render.browse.defaultstyles import (
+    DEFAULT_RASTER_STYLES, DEFAULT_GEOMETRY_STYLES
+)
+from eoxserver.render.mapserver.factories import (
+    BaseMapServerLayerFactory, get_layer_factories
+)
+from eoxserver.render.map.objects import Map, Layer
 from eoxserver.resources.coverages.formats import getFormatRegistry
 
 
@@ -55,10 +61,10 @@ class MapserverMapRenderer(object):
     ]
 
     def get_geometry_styles(self):
-        return BASE_COLORS.keys()
+        return list(DEFAULT_GEOMETRY_STYLES.values())
 
     def get_raster_styles(self):
-        return COLOR_SCALES.keys()
+        return list(DEFAULT_RASTER_STYLES.values())
 
     def get_supported_layer_types(self):
         layer_types = []
@@ -221,10 +227,13 @@ class MapserverMapRenderer(object):
             for layer, factory, data in layers_plus_factories_plus_data:
                 factory.destroy(map_obj, layer, data)
 
-    def _get_layers_plus_factories(self, layers):
+    def _get_layers_plus_factories(
+        self,
+        render_map: Map,
+    ) -> List[Tuple[Layer, BaseMapServerLayerFactory]]:
         layers_plus_factories = []
         type_to_layer_factory = {}
-        for layer in layers:
+        for layer in render_map.layers:
             layer_type = type(layer)
             if layer_type in type_to_layer_factory:
                 factory = type_to_layer_factory[layer_type]
@@ -236,7 +245,7 @@ class MapserverMapRenderer(object):
 
         return layers_plus_factories
 
-    def _get_layer_factory(self, layer_type):
+    def _get_layer_factory(self, layer_type: Type[Layer]):
         for factory in get_layer_factories():
             if factory.supports(layer_type):
                 return factory

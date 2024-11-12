@@ -35,12 +35,9 @@
 Credits
 =======
 
-.. figure:: ./_static/HMA_Logo.jpg
-   :target: http://rssportal.esa.int/tiki-index.php?page=Open%20Software
+.. figure:: ./_static/ESA_logo.png
+  :width: 400
 
-Work on EOxServer has been partly funded by the `European Space Agency (ESA)`_
-in the frame of the HMA-FO_ and O3S_ projects.
+Work on EOxServer has been funded by the `European Space Agency (ESA)`_
 
-.. _European Space Agency (ESA): http://www.esa.int/esaMI/ESRIN_SITE/
-.. _HMA-FO: http://wiki.services.eoportal.org/tiki-index.php?page=HMA-FO
-.. _O3S: http://wiki.services.eoportal.org/tiki-index.php?page=O3S
+.. _European Space Agency (ESA): http://www.esa.int/

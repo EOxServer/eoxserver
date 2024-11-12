@@ -110,9 +110,10 @@ class ZIPStorageHandler(BaseStorageHandler):
 
     is_local = True
 
-    def __init__(self, package_filename):
+    def __init__(self, package_filename, streaming):
         self.package_filename = package_filename
         self.zipfile = None
+        self.streaming = streaming
 
     def __enter__(self):
         self.zipfile = zipfile.ZipFile(self.package_filename, "r")
@@ -153,9 +154,10 @@ class TARStorageHandler(BaseStorageHandler):
 
     is_local = True
 
-    def __init__(self, package_filename):
+    def __init__(self, package_filename, streaming):
         self.package_filename = package_filename
         self.tarfile = None
+        self.streaming = streaming
 
     def __enter__(self):
         self.tarfile = tarfile.TarFile(self.package_filename, "r")
@@ -197,8 +199,9 @@ class DirectoryStorageHandler(BaseStorageHandler):
 
     is_local = True
 
-    def __init__(self, dirpath):
+    def __init__(self, dirpath, streaming):
         self.dirpath = dirpath
+        self.streaming = streaming
 
     def retrieve(self, location, path):
         return False, os.path.join(self.dirpath, location)
@@ -224,15 +227,20 @@ class HTTPStorageHandler(BaseStorageHandler):
     allows_child_storages = True
     allows_parent_storage = False
 
-    def __init__(self, url):
+    def __init__(self, url, streaming):
         self.url = url
+        self.streaming = streaming
 
     def retrieve(self, location, path):
         request.urlretrieve(parse.urljoin(self.url, location), path)
         return True, path
 
     def get_vsi_path(self, location):
-        return '/vsicurl/%s' % parse.urljoin(self.url, location)
+        if self.streaming:
+            prefix = '/vsicurl_streaming/'
+        else:
+            prefix = '/vsicurl/'
+        return '%s%s' % (prefix, parse.urljoin(self.url, location))
 
     @classmethod
     def test(cls, locator):
@@ -251,10 +259,11 @@ class FTPStorageHandler(BaseStorageHandler):
     allows_parent_storage = True
     allows_parent_storage = False
 
-    def __init__(self, url):
+    def __init__(self, url, streaming):
         self.url = url
         self.parsed_url = urlparse(url)
         self.ftp = None
+        self.streaming=streaming
 
     def __enter__(self):
         self.ftp = ftplib.FTP()
@@ -285,7 +294,11 @@ class FTPStorageHandler(BaseStorageHandler):
         return filenames
 
     def get_vsi_path(self, location):
-        return '/vsicurl/%s' % parse.urljoin(self.url, location)
+        if self.streaming:
+            prefix = '/vsicurl_streaming/'
+        else:
+            prefix = '/vsicurl/'
+        return '%s%s' % (prefix, parse.urljoin(self.url, location))
 
     @classmethod
     def test(cls, locator):
@@ -301,8 +314,9 @@ class SwiftStorageHandler(BaseStorageHandler):
     allows_parent_storage = False
     allows_child_storages = True
 
-    def __init__(self, url):
+    def __init__(self, url, streaming):
         self.container = url
+        self.streaming = streaming
 
     def retrieve(self, location, path):
         pass
@@ -311,7 +325,12 @@ class SwiftStorageHandler(BaseStorageHandler):
         return []
 
     def get_vsi_path(self, location):
-        return vsi.join('/vsiswift/%s' % self.container, location)
+        if self.streaming:
+            prefix = '/vsiswift_streaming'
+        else:
+            prefix = '/vsiswift'
+        base_path = f'{prefix}/{self.container}' if self.container else prefix
+        return vsi.join(base_path, location)
 
     @classmethod
     def test(cls, locator):
@@ -324,8 +343,9 @@ class S3StorageHandler(BaseStorageHandler):
     allows_parent_storage = False
     allows_child_storages = True
 
-    def __init__(self, url):
+    def __init__(self, url, streaming):
         self.bucket = url
+        self.streaming = streaming
 
     def retrieve(self, location, path):
         pass
@@ -334,13 +354,11 @@ class S3StorageHandler(BaseStorageHandler):
         return []
 
     def get_vsi_path(self, location):
-        import logging
-        logger = logging.getLogger(__name__)
-
-        # logger.debug()
-
-
-        base_path = '/vsis3/%s' % self.bucket if self.bucket else '/vsis3'
+        if self.streaming:
+            prefix = '/vsis3_streaming'
+        else:
+            prefix = '/vsis3'
+        base_path = f'{prefix}/{self.bucket}' if self.bucket else prefix
         return vsi.join(base_path, location)
 
     @classmethod

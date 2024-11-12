@@ -122,7 +122,11 @@ parameters that are available with GetMap requests.
     |                           |     mask of the provided ``mask-name``.                   |                                  |                                |
     |                           |   - ``<browse-type-name>``: renders the product(s)        |                                  |                                |
     |                           |     according to the browse types instructions (or uses   |                                  |                                |
-    |                           |     an already existing browse if available.              |                                  |                                |
+    |                           |     an already existing browse if available)              |                                  |                                |
+    |                           |                                                           |                                  |                                |
+    |                           | - ``Collection``                                          |                                  |                                |
+    |                           |   - ``heatmap``: renders the contained products in a      |                                  |                                |
+    |                           |     heatmap.                                              |                                  |                                |
     +---------------------------+-----------------------------------------------------------+----------------------------------+--------------------------------+
     | styles                    | The style for each of the rendered layers to be           |                                  | M                              |
     |                           | rendered with. This must be either empty or a             |                                  |                                |
@@ -133,7 +137,7 @@ parameters that are available with GetMap requests.
     |                           | The available styles depend on the layer type. Outline    |                                  |                                |
     |                           | and mask layers can be rendered in the basic colors.      |                                  |                                |
     |                           | Single band output can be styled using a range of         |                                  |                                |
-    |                           | color scales.                                             |                                  |                                |
+    |                           | color scales (Raster styles may apply).                   |                                  |                                |
     |                           |                                                           |                                  |                                |
     |                           | The Capabilities document lists the available styles per  |                                  |                                |
     |                           | layer.                                                    |                                  |                                |

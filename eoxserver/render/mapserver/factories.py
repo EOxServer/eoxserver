@@ -26,6 +26,7 @@
 # ------------------------------------------------------------------------------
 
 from os.path import join
+from typing import List, Type, Iterable, Tuple
 from uuid import uuid4
 try:
     from itertools import izip_longest
@@ -33,23 +34,28 @@ except ImportError:
     from itertools import zip_longest as izip_longest
 
 from django.conf import settings
+from django.contrib.gis.geos import GEOSGeometry
 from django.utils.module_loading import import_string
 
 from eoxserver.core.util.iteratortools import pairwise_iterative
 from eoxserver.contrib import mapserver as ms
-from eoxserver.contrib import vsi, vrt, gdal, osr
+from eoxserver.contrib import vsi, vrt, gdal, osr, ogr
 from eoxserver.render.browse.objects import (
-    Browse, GeneratedBrowse, BROWSE_MODE_GRAYSCALE
+    Browse, GeneratedBrowse, BROWSE_MODE_GRAYSCALE, BROWSE_MODE_RGBA
 )
 from eoxserver.render.browse.generate import (
     generate_browse, FilenameGenerator
 )
+from eoxserver.render.browse.defaultstyles import DEFAULT_RASTER_STYLES
 from eoxserver.render.map.objects import (
-    CoverageLayer, CoveragesLayer, MosaicLayer, OutlinedCoveragesLayer,
+    CoverageLayer, CoveragesLayer, HeatmapLayer, MosaicLayer, OutlinedCoveragesLayer,
     BrowseLayer, OutlinedBrowseLayer,
-    MaskLayer, MaskedBrowseLayer, OutlinesLayer
+    MaskLayer, MaskedBrowseLayer, OutlinesLayer,
+    Layer, Map,
 )
+from eoxserver.render.coverage.objects import Coverage, Field
 from eoxserver.render.mapserver.config import (
+    DEFAULT_EOXS_MAPSERVER_HEATMAP_RANGE_DEFAULT,
     DEFAULT_EOXS_MAPSERVER_LAYER_FACTORIES,
 )
 from eoxserver.render.colors import BASE_COLORS, COLOR_SCALES, OFFSITE_COLORS
@@ -64,23 +70,25 @@ logger = logging.getLogger(__name__)
 
 
 class BaseMapServerLayerFactory(object):
-    handled_layer_types = []
+    handled_layer_types: List[Type[Layer]] = []
 
     @classmethod
-    def supports(self, layer_type):
+    def supports(self, layer_type: Type[Layer]):
         return layer_type in self.handled_layer_types
 
-    def create(self, map_obj, layer):
+    def create(self, map_obj: Map, layer: Layer):
         pass
 
-    def destroy(self, map_obj, layer, data):
+    def destroy(self, map_obj: Map, layer: Layer, data):
         pass
 
 
 class CoverageLayerFactoryMixIn(object):
     """ Base class for factories dealing with coverages.
     """
-    def get_fields(self, fields, bands, wavelengths):
+    def get_fields(
+        self, fields: Iterable[Field], bands, wavelengths
+    ) -> List[Field]:
         """ Get the field subset for the given bands/wavelengths selection
         """
         if bands:
@@ -112,7 +120,7 @@ class CoverageLayerFactoryMixIn(object):
 
         return fields
 
-    def create_coverage_layer(self, map_obj, coverage, fields,
+    def create_coverage_layer(self, map_obj: Map, coverage: Coverage, fields: List[Field],
                               style=None, ranges=None):
         """ Creates a mapserver layer object for the given coverage
         """
@@ -132,8 +140,8 @@ class CoverageLayerFactoryMixIn(object):
         # TODO: apply subsets in time/elevation dims
         num_locations = len(set(locations))
         if num_locations == 1:
+            location = field_locations[0][1]
             if not coverage.grid.is_referenceable:
-                location = field_locations[0][1]
                 data = location.path
                 ms.set_env(map_obj, location.env, True)
             else:
@@ -145,12 +153,13 @@ class CoverageLayerFactoryMixIn(object):
                 wkt = osr.SpatialReference(map_obj.getProjection()).wkt
 
                 # TODO: env?
-                reftools.create_rectified_vrt(
-                    field_locations[0][1].path, vrt_path,
-                    order=1, max_error=10,
-                    resolution=(resx, -resy), srid_or_wkt=wkt
-                )
-                data = vrt_path
+                with gdal.config_env(location.env):
+                    reftools.create_rectified_vrt(
+                        location.path, vrt_path,
+                        order=1, max_error=10,
+                        resolution=(resx, -resy), srid_or_wkt=wkt
+                    )
+                    data = vrt_path
 
         elif num_locations > 1:
             paths_set = set(
@@ -177,7 +186,7 @@ class CoverageLayerFactoryMixIn(object):
             sr = osr.SpatialReference(map_obj.getProjection())
 
         layer_objs = _create_raster_layer_objs(
-            map_obj, extent, sr, data, filename_generator
+            map_obj, extent, sr, data, filename_generator, location.env,
         )
 
         for i, layer_obj in enumerate(layer_objs):
@@ -207,7 +216,10 @@ class CoverageLayerFactoryMixIn(object):
 
             for layer_obj in layer_objs:
                 _create_raster_style(
-                    style or "blackwhite", layer_obj, range_[0], range_[1], [
+                    DEFAULT_RASTER_STYLES[style or "blackwhite"],
+                    layer_obj,
+                    range_[0],
+                    range_[1], [
                         nil_value[0] for nil_value in field.nil_values
                     ]
                 )
@@ -270,7 +282,7 @@ class OutlinedCoverageLayerFactory(CoverageLayerFactoryMixIn,
                                    BaseMapServerLayerFactory):
     handled_layer_types = [OutlinedCoveragesLayer]
 
-    def create(self, map_obj, layer):
+    def create(self, map_obj, layer: CoveragesLayer):
         coverages = layer.coverages
         style = layer.style
 
@@ -311,7 +323,7 @@ class OutlinedCoverageLayerFactory(CoverageLayerFactoryMixIn,
 class MosaicLayerFactory(CoverageLayerFactoryMixIn, BaseMapServerLayerFactory):
     handled_layer_types = [MosaicLayer]
 
-    def create(self, map_obj, layer):
+    def create(self, map_obj, layer: MosaicLayer):
         mosaic = layer.mosaic
         fields = self.get_fields(
             mosaic.range_type, layer.bands, layer.wavelengths
@@ -379,8 +391,28 @@ class BrowseLayerMixIn(object):
                             layer_obj.setMetaData("wms_srs", short_epsg)
                         layer_obj.setProjection(sr.proj)
 
-                    if browse.mode == BROWSE_MODE_GRAYSCALE:
-                        field = browse.field_list[0]
+                if browse.mode == BROWSE_MODE_GRAYSCALE:
+                    field = browse.field_list[0]
+                    if ranges:
+                        browse_range = ranges[0]
+                    elif browse.ranges[0] != (None, None):
+                        browse_range = browse.ranges[0]
+                    else:
+                        browse_range = _get_range(field)
+
+                    for layer_obj in layer_objs:
+                        raster_style = browse.raster_styles.get(style or "blackwhite") or DEFAULT_RASTER_STYLES[style or "blackwhite"]
+                        _create_raster_style(
+                            raster_style, layer_obj,
+                            browse_range[0], browse_range[1],
+                            browse.nodata_values
+                        )
+
+                else:
+                    browse_iter = enumerate(
+                        zip(browse.field_list, browse.ranges, browse.nodata_values), start=1
+                    )
+                    for i, (field, field_range, nodata_value) in browse_iter:
                         if ranges:
                             browse_range = ranges[0]
                         elif browse.ranges[0] != (None, None):
@@ -394,6 +426,34 @@ class BrowseLayerMixIn(object):
                                 browse_range[0], browse_range[1],
                                 browse.nodata_values
                             )
+                            # NOTE: Only works if browsetype nodata is lower than browse_type_min by at least 1
+                            if browse.show_out_of_bounds_data:
+                                # final LUT for min,max 200,700 and nodata=0 should look like:
+                                # 0:0,1:1,200:1,700:256
+                                lut_inputs = {
+                                    range_[0]: 1,
+                                    range_[1]: 256,
+                                }
+                                if nodata_value is not None:
+                                    # no_data_value_plus +1 to ensure that only no_data_value is
+                                    # rendered as black (transparent)
+                                    nodata_value_plus = nodata_value + 1
+                                    lut_inputs[nodata_value] = 0
+                                    lut_inputs[nodata_value_plus] = 1
+
+                                # LUT inputs needs to be ascending
+                                sorted_inputs = {
+                                    k: v for k, v in sorted(list(lut_inputs.items()))
+                                }
+                                lut = ",".join("%d:%d" % (k,v) for k,v in sorted_inputs.items())
+
+                                layer_obj.setProcessingKey("LUT_%d" % i, lut)
+                            else:
+                                # due to offsite 0,0,0 will make all pixels below or equal to min transparent
+                                layer_obj.setProcessingKey(
+                                    "SCALE_%d" % i,
+                                    "%s,%s" % tuple(range_)
+                                )
 
                     else:
                         browse_iter = enumerate(
@@ -419,10 +479,8 @@ class BrowseLayerMixIn(object):
             elif isinstance(browse, Browse):
                 layer_objs = _create_raster_layer_objs(
                     map_obj, browse.extent, browse.spatial_reference,
-                    browse.filename, filename_generator
+                    browse.filename, filename_generator, browse.env, browse.mode,
                 )
-                for layer_obj in layer_objs:
-                    layer_obj.data = browse.filename
                 ms.set_env(map_obj, browse.env, True)
             elif browse is None:
                 # TODO: figure out why and deal with it?
@@ -629,20 +687,126 @@ class OutlinesLayerFactory(BaseMapServerLayerFactory):
         layer_obj.insertClass(class_obj)
 
 
+class HeatmapLayerFactory(BaseMapServerLayerFactory):
+    handled_layer_types = [HeatmapLayer]
+
+    def _create_vector_ds(self, footprints: List[GEOSGeometry]) -> gdal.Dataset:
+        """ Stores the given footprints in a GDAL vector dataset. It uses the in-memory
+            driver to reduce disk IO.
+        """
+        driver = gdal.GetDriverByName("Memory")
+        ds = driver.Create("", 0, 0, 0, gdal.GDT_Unknown)
+        layer = ds.CreateLayer("data")
+        from osgeo import osr
+        sr = osr.SpatialReference()
+        sr.ImportFromEPSG(4326)
+        for footprint in footprints:
+            feature = ogr.Feature(ogr.FeatureDefn())
+            geom = ogr.CreateGeometryFromWkt(footprint.wkt, sr)
+            feature.SetGeometryDirectly(geom)
+            layer.CreateFeature(feature)
+
+        return ds
+
+    def _rasterize_footprints(self, map_obj: ms.mapObj, vector_ds: gdal.Dataset,
+                              filename: str):
+        """ Rasterizes the footprints from a vector datasets into a raster dataset
+            of type Uint16 with the same dimension and spatial bounds as the provided map.
+            It uses additive mode in order to calculate how many geometries overlap with
+            a specific pixel.
+            The dataset is stored under a given filename (vsimem possible).
+        """
+        sr = osr.SpatialReference()
+        sr.ImportFromProj4(map_obj.getProjection())
+        extent = map_obj.extent
+
+        gdal.Rasterize(
+            filename,
+            vector_ds,
+            format="GTiff",
+            width=map_obj.width,
+            height=map_obj.height,
+            outputType=gdal.GDT_UInt16,
+            outputBounds=(extent.minx, extent.miny, extent.maxx, extent.maxy),
+            outputSRS=sr.ExportToWkt(),
+            initValues=[0],
+            burnValues=[1],
+            add=True
+        )
+
+    def create(self, map_obj: ms.mapObj, layer: Layer):
+        """_summary_
+
+        Args:
+            map_obj (ms.mapObj): _description_
+            layer (Layer): _description_
+
+        Returns:
+            _type_: _description_
+        """
+        assert isinstance(layer, HeatmapLayer)
+
+        vector_ds = self._create_vector_ds(layer.footprints)
+        filename_generator = FilenameGenerator('/vsimem/{uuid}.{extension}')
+        filename = filename_generator.generate("tif")
+        self._rasterize_footprints(map_obj, vector_ds, filename)
+
+        layer_obj = ms.layerObj(map_obj)
+        layer_obj.type = ms.MS_LAYER_RASTER
+        layer_obj.status = ms.MS_ON
+        layer_obj.data = filename
+
+        layer_obj.setProjection(map_obj.getProjection())
+
+        default_range = getattr(
+            settings, 'EOXS_MAPSERVER_HEATMAP_RANGE_DEFAULT',
+            DEFAULT_EOXS_MAPSERVER_HEATMAP_RANGE_DEFAULT
+        )
+
+        range_ = layer.range or default_range
+        _create_raster_style(
+            DEFAULT_RASTER_STYLES[layer.style or "plasma"],
+            layer_obj,
+            range_[0],
+            range_[1],
+            [0],
+        )
+
+        return filename_generator
+
+    def destroy(self, map_obj, layer, filename_generator):
+        # cleanup temporary files
+        for filename in filename_generator.filenames:
+            vsi.unlink(filename)
+
 # ------------------------------------------------------------------------------
 # utils
 # ------------------------------------------------------------------------------
 
 
-def _create_raster_layer_objs(map_obj, extent, sr, data, filename_generator,
-                              resample=None):
+def _create_raster_layer_objs(map_obj, extent, sr, data, filename_generator, env,
+                              browse_mode=None, resample=None) -> List[ms.layerObj]:
     layer_obj = ms.layerObj(map_obj)
     layer_obj.type = ms.MS_LAYER_RASTER
     layer_obj.status = ms.MS_ON
 
-    layer_obj.data = data
+    # if attempting to load NETCDF file, need to use a temporary file to extract only
+    # the required band data
+    if "NETCDF" in data:
+        # determine if attempting to load a specific band index
+        if ("https://" in data and data.count(":") == 4) or (not "https://" in data and data.count(":") == 3):
+            splitpath = data.rsplit(":",1)
+            data = splitpath[0]
+            index = int(splitpath[1]) + 1
+        temp_path = filename_generator.generate()
+        # extract only desired index to new temporary file
+        gdal.Translate(temp_path, data, bandList=[index])
+        data = temp_path
 
-    layer_obj.offsite = ms.colorObj(0, 0, 0)
+    layer_obj.data = data
+    # assumption that RGBA already has transparency in alpha band
+    if browse_mode != BROWSE_MODE_RGBA:
+        layer_obj.offsite = ms.colorObj(0, 0, 0)
 
     if extent:
         layer_obj.setMetaData("wms_extent", "%f %f %f %f" % extent)
@@ -666,10 +830,12 @@ def _create_raster_layer_objs(map_obj, extent, sr, data, filename_generator,
         wrapped_layer_obj.status = ms.MS_ON
 
         wrapped_data = filename_generator.generate()
-        vrt.with_extent(data, wrapped_extent, wrapped_data)
+        with gdal.config_env(env):
+            vrt.with_extent(data, wrapped_extent, wrapped_data)
         wrapped_layer_obj.data = wrapped_data
-
-        wrapped_layer_obj.offsite = ms.colorObj(0, 0, 0)
+        # assumption that RGBA already has transparency in alpha band
+        if browse_mode != BROWSE_MODE_RGBA:
+            wrapped_layer_obj.offsite = ms.colorObj(0, 0, 0)
 
         wrapped_layer_obj.setMetaData("ows_srs", short_epsg)
         wrapped_layer_obj.setMetaData("wms_srs", short_epsg)
@@ -759,10 +925,49 @@ def _build_vrt(size, field_locations):
     return path
 
 
-def _create_raster_style(name, layer, minvalue=0, maxvalue=255,
+def _create_raster_style(raster_style, layer, minvalue=0, maxvalue=255,
                          nil_values=None):
-    colors = COLOR_SCALES[name]
+    if raster_style.type == "ramp":
+        return _create_raster_style_ramp(
+            raster_style, layer, minvalue, maxvalue, nil_values
+        )
+    elif raster_style.type == "values":
+        for entry in raster_style.entries:
+            value = entry.value
+            if int(value) == value:
+                value = int(value)
+            cls = ms.classObj()
+            cls.setExpression("([pixel] = %s)" % value)
+            cls.group = entry.label
 
+            style = ms.styleObj()
+            style.color = ms.colorObj(*entry.color)
+            style.opacity = int(entry.opacity * 100)
+            cls.insertStyle(style)
+            layer.insertClass(cls)
+
+        cls = ms.classObj()
+        style = ms.styleObj()
+        style.color = ms.colorObj(0, 0, 0, 0)
+        style.opacity = 0
+        cls.insertStyle(style)
+        layer.insertClass(cls)
+        return
+
+    elif raster_style.type == "intervals":
+        # TODO
+        return
+    raise ValueError("Invalid raster style type %r" % raster_style.type)
+
+
+def _create_raster_style_ramp(raster_style, layer, minvalue=0, maxvalue=255,
+                              nil_values=None):
+    name = raster_style.name
+
+    colors = [
+        (entry.value, entry.color)
+        for entry in raster_style.entries
+    ]
     if nil_values and all(v is not None for v in nil_values):
         nil_values = [float(nil_value) for nil_value in nil_values]
     else:
@@ -820,7 +1025,7 @@ def _create_raster_style(name, layer, minvalue=0, maxvalue=255,
         next_perc, next_color = next_item
 
         cls = ms.classObj()
-        cls.setExpression("([pixel] > %s AND [pixel] < %s)" % (
+        cls.setExpression("([pixel] > %s AND [pixel] <= %s)" % (
             (minvalue + prev_perc * interval),
             (minvalue + next_perc * interval)
         ))
@@ -844,7 +1049,7 @@ def _create_raster_style(name, layer, minvalue=0, maxvalue=255,
         high_nil = min(high_nil_values)
         cls = ms.classObj()
         cls.setExpression(
-            "([pixel] > %s AND [pixel] < %s)" % (maxvalue, high_nil)
+            "([pixel] > %s AND [pixel] <= %s)" % (maxvalue, high_nil)
         )
         cls.group = name
         style = ms.styleObj()
@@ -861,7 +1066,7 @@ def _create_raster_style(name, layer, minvalue=0, maxvalue=255,
         layer.insertClass(cls)
 
 
-def _get_range(field, range_=None):
+def _get_range(field: Field, range_=None) -> Tuple[int, int]:
     """ Gets the numeric range of a field
     """
     if range_:
@@ -893,7 +1098,7 @@ def _setup_factories():
     ]
 
 
-def get_layer_factories():
+def get_layer_factories() -> List[BaseMapServerLayerFactory]:
     if LAYER_FACTORIES is None:
         _setup_factories()
     return LAYER_FACTORIES

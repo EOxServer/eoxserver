@@ -1,0 +1,75 @@
+[
+{
+    "model": "coverages.coveragetype",
+    "pk": 4,
+    "fields": {
+        "name": "SCL"
+    }
+},
+{
+    "model": "coverages.eoobject",
+    "pk": 21,
+    "fields": {
+        "identifier": "CLOUD_COVERAGE_PRODUCT",
+        "begin_time": "2020-02-15T07:59:36.409Z",
+        "end_time": "2020-02-20T08:00:36.342Z",
+        "footprint": "SRID=4326;MULTIPOLYGON (((69.1714578 80.1407449, 69.1714578 80.1333736, 69.2069740 80.1333736, 69.2069740 80.1407449, 69.1714578 80.1407449)))",
+        "inserted": "2019-01-01T00:00:00.000Z",
+        "updated": "2019-01-01T00:00:00.000Z"
+    }
+},
+{
+    "model": "coverages.product",
+    "pk": 21,
+    "fields": {
+        "product_type": null,
+        "package": null
+    }
+},
+{
+    "model": "coverages.eoobject",
+    "pk": 20,
+    "fields": {
+        "identifier": "CLOUD_COVERAGE",
+        "begin_time": null,
+        "end_time": null,
+        "footprint": "SRID=4326;MULTIPOLYGON (((69.1714578 80.1407449, 69.1714578 80.1333736, 69.2069740 80.1333736, 69.2069740 80.1407449, 69.1714578 80.1407449)))",
+        "inserted": "2019-01-01T00:00:00.000Z",
+        "updated": "2019-01-01T00:00:00.000Z"
+    }
+},
+{
+    "model": "coverages.coverage",
+    "pk": 20,
+    "fields": {
+        "grid": 1,
+        "axis_1_origin": null,
+        "axis_2_origin": null,
+        "axis_3_origin": null,
+        "axis_4_origin": null,
+        "axis_1_size": 569,
+        "axis_2_size": 486,
+        "axis_3_size": null,
+        "axis_4_size": null,
+        "coverage_type": 4,
+        "parent_product": 21,
+        "collections": [],
+        "mosaics": []
+    }
+},
+{
+    "model": "coverages.arraydataitem",
+    "pk": 20,
+    "fields": {
+        "storage": null,
+        "location": "autotest/data/SCL/SCL_clipped.tif",
+        "format": "image/tiff",
+        "coverage": 20,
+        "field_index": 0,
+        "band_count": 1,
+        "subdataset_type": null,
+        "subdataset_locator": null,
+        "bands_interpretation": 0
+    }
+}
+]

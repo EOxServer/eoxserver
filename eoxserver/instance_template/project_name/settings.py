@@ -126,11 +126,11 @@ MEDIA_URL = ''
 # Don't put anything in this directory yourself; store your static files
 # in apps' "static/" subdirectories and in STATICFILES_DIRS.
 # Example: "/var/www/example.com/static/"
-STATIC_ROOT = join(PROJECT_DIR, 'static')
+STATIC_ROOT = os.environ.get('STATIC_ROOT', join(PROJECT_DIR, 'static'))
 
 # URL prefix for static files.
 # Example: "http://example.com/static/", "http://static.example.com/"
-STATIC_URL = '/{{ project_name }}_static/'
+STATIC_URL = os.environ.get('STATIC_URL', '/{{ project_name }}_static/')
 
 # Additional locations of static files
 STATICFILES_DIRS = (
@@ -169,6 +169,7 @@ TEMPLATES = [
 ]
 
 MIDDLEWARE = [
+    'django_prometheus.middleware.PrometheusBeforeMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -179,6 +180,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     # # For management of the per/request cache system.
     # 'eoxserver.backends.middleware.BackendsCacheMiddleware',
+    'django_prometheus.middleware.PrometheusAfterMiddleware',
 ]
 
 MIDDLEWARE_CLASSES = (
@@ -217,6 +219,7 @@ INSTALLED_APPS = (
     #'south',
     # Enable for debugging
     #'django_extensions',
+   'django_prometheus',
     # Enable EOxServer:
     'eoxserver.core',
     'eoxserver.services',

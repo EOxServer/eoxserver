@@ -25,8 +25,8 @@
 # THE SOFTWARE.
 # -------------------------------------------------------------------------------
 
-import typing
 from logging import getLogger
+from typing import Any
 
 from eoxserver.services.ows.wps.util import get_process_by_identifier
 from eoxserver.services.ows.wps.interfaces import ProcessInterface
@@ -110,7 +110,7 @@ class WPS20ExecuteHandler(object):
             raise OperationNotSupportedError("Document mode not implemented")
 
 
-def _input_value(input_: pyows_types.Input) -> typing.Any:
+def _input_value(input_: pyows_types.Input) -> Any:
     if isinstance(input_.data, pyows_types.Data):
 
         data_value = input_.data.value
@@ -124,6 +124,7 @@ def _input_value(input_: pyows_types.Input) -> typing.Any:
                 crs=data_value.crs,
             )
         else:
-            raise OperationNotSupportedError("Unsupported input element")
+            # not a common type, process needs to handle it on its own
+            return data_value
     else:
         raise OperationNotSupportedError("References as input are not implemented")

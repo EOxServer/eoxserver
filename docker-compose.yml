@@ -1,0 +1,54 @@
+version: "3.6"
+services:
+  database:
+    image: mdillon/postgis:10
+    volumes:
+      - database-data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: "user"
+      POSTGRES_PASSWORD: "pw"
+      POSTGRES_DB: "dbms"
+
+  autotest:
+    image: eoxserver:autotest
+    build: .
+    env_file:
+      - ./sample.env
+    volumes:
+      - type: bind
+        source: ./eoxserver
+        target: /usr/local/lib/python2.7/dist-packages/eoxserver/
+      - type: bind
+        source: ./eoxserver
+        target: /usr/local/lib/python3.10/dist-packages/eoxserver/
+      - type: bind
+        source: ./eoxserver
+        target: /opt/eoxserver/eoxserver/
+      - type: bind
+        source: ./autotest
+        target: /opt/instance
+      - type: bind
+        source: ./schemas
+        target: /opt/schemas
+    working_dir: /opt/instance
+    command:
+      ["gunicorn", "--reload", "--bind=0.0.0.0:8000", "--chdir=/opt/instance", "autotest.wsgi:application", "--workers=3"]
+    ports:
+     - "8800:8000"
+
+  object-storage:
+    image: minio/minio
+    environment:
+      MINIO_ACCESS_KEY: AKIAIOSFODNN7EXAMPLE
+      MINIO_SECRET_KEY: wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+    volumes:
+      - type: bind
+        source: ./
+        target: /data
+    ports:
+     - "9000:9000"
+    command:
+      ['server', '/data']
+
+volumes:
+  database-data:

@@ -104,6 +104,19 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             '--alpha-nodata', type=float,
             dest='alpha_nodata', default=None,
         )
+        create_parser.add_argument(
+            '--show-out-of-bounds-data',
+            action="store_true",
+            default=False,
+        )
+        create_parser.add_argument(
+            '--replace', action='store_true',
+            default=False,
+            help=(
+                '''Change browse type if browse type already exists.'''
+            )
+        )
+
 
         list_parser.add_argument(
             'product_type_name', nargs=1,
@@ -134,6 +147,8 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
                       blue_range=(None, None), alpha_range=(None, None),
                       red_or_grey_nodata=None, green_nodata=None,
                       blue_nodata=None, alpha_nodata=None,
+                      show_out_of_bounds_data=False,
+                      replace=False,
                       *args, **kwargs):
         """ Handle the creation of a new browse type.
         """
@@ -151,27 +166,52 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
         green_min, green_max = green_range
         blue_min, blue_max = blue_range
         alpha_min, alpha_max = alpha_range
-
-        models.BrowseType.objects.create(
-            product_type=product_type,
-            name=browse_type_name,
-            red_or_grey_expression=red_or_grey_expression,
-            green_expression=green_expression,
-            blue_expression=blue_expression,
-            alpha_expression=alpha_expression,
-            red_or_grey_range_min=red_min,
-            red_or_grey_range_max=red_max,
-            green_range_min=green_min,
-            green_range_max=green_max,
-            blue_range_min=blue_min,
-            blue_range_max=blue_max,
-            alpha_range_min=alpha_min,
-            alpha_range_max=alpha_max,
-            red_or_grey_nodata_value=red_or_grey_nodata,
-            green_nodata_value=green_nodata,
-            blue_nodata_value=blue_nodata,
-            alpha_nodata_value=alpha_nodata,
-        )
+        if replace:
+            models.BrowseType.objects.update_or_create(
+                product_type=product_type,
+                name=browse_type_name,
+                defaults={
+                    'red_or_grey_expression':red_or_grey_expression,
+                    'green_expression':green_expression,
+                    'blue_expression':blue_expression,
+                    'alpha_expression':alpha_expression,
+                    'red_or_grey_range_min':red_min,
+                    'red_or_grey_range_max':red_max,
+                    'green_range_min':green_min,
+                    'green_range_max':green_max,
+                    'blue_range_min':blue_min,
+                    'blue_range_max':blue_max,
+                    'alpha_range_min':alpha_min,
+                    'alpha_range_max':alpha_max,
+                    'red_or_grey_nodata_value':red_or_grey_nodata,
+                    'green_nodata_value':green_nodata,
+                    'blue_nodata_value':blue_nodata,
+                    'alpha_nodata_value':alpha_nodata,
+                    'show_out_of_bounds_data':show_out_of_bounds_data,
+                },
+            )
+        else:
+            models.BrowseType.objects.create(
+                product_type=product_type,
+                name=browse_type_name,
+                red_or_grey_expression=red_or_grey_expression,
+                green_expression=green_expression,
+                blue_expression=blue_expression,
+                alpha_expression=alpha_expression,
+                red_or_grey_range_min=red_min,
+                red_or_grey_range_max=red_max,
+                green_range_min=green_min,
+                green_range_max=green_max,
+                blue_range_min=blue_min,
+                blue_range_max=blue_max,
+                alpha_range_min=alpha_min,
+                alpha_range_max=alpha_max,
+                red_or_grey_nodata_value=red_or_grey_nodata,
+                green_nodata_value=green_nodata,
+                blue_nodata_value=blue_nodata,
+                alpha_nodata_value=alpha_nodata,
+                show_out_of_bounds_data=show_out_of_bounds_data,
+            )
 
         if not browse_type_name:
             print(

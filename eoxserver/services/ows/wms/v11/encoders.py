@@ -145,9 +145,9 @@ class WMS11Encoder(XMLEncoder):
 
         elems.extend(
             E("Style",
-                E("Name", style),
-                E("Title", style),
-                E("Abstract", style),
+                E("Name", style.name),
+                E("Title", style.title),
+                E("Abstract", style.abstract),
             ) for style in layer_description.styles
         )
 

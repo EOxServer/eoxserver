@@ -418,9 +418,9 @@ class GMLCOV10Encoder(WCS20BaseXMLEncoder, GML32Encoder):
     def encode_field(self, field):
         return SWE("field",
             SWE("Quantity",
-                SWE("description", field.description),
+                SWE("description", field.description or ''),
                 self.encode_nil_values(field.nil_values),
-                SWE("uom", code=field.unit_of_measure),
+                SWE("uom", code=field.unit_of_measure or ''),
                 SWE("constraint",
                     SWE("AllowedValues",
                         *[
@@ -435,7 +435,7 @@ class GMLCOV10Encoder(WCS20BaseXMLEncoder, GML32Encoder):
                 ),
                 # TODO: lookup correct definition according to data type:
                 # http://www.opengis.net/def/dataType/OGC/0/
-                definition=field.definition
+                definition=field.definition or ''
             ),
             name=field.identifier
         )
