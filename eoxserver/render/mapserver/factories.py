@@ -362,7 +362,7 @@ class BrowseLayerMixIn(object):
                 layer_objs = _create_raster_layer_objs(
                     map_obj, browse.extent, browse.spatial_reference,
                     creation_info.filename if creation_info else '',
-                    filename_generator
+                    filename_generator, {}
                 )
 
                 for layer_obj in layer_objs:
