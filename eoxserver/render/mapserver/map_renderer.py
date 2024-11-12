@@ -233,7 +233,8 @@ class MapserverMapRenderer(object):
     ) -> List[Tuple[Layer, BaseMapServerLayerFactory]]:
         layers_plus_factories = []
         type_to_layer_factory = {}
-        for layer in render_map.layers:
+
+        for layer in render_map:
             layer_type = type(layer)
             if layer_type in type_to_layer_factory:
                 factory = type_to_layer_factory[layer_type]

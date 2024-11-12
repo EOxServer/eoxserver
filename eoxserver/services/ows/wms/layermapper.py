@@ -450,7 +450,7 @@ class LayerMapper(object):
                     footprints=[
                         product.footprint for product in self.iter_products(
                             eo_object, filters_expressions, sort_by,
-                            limit=limit_products
+                            limit=reader.limit_products
                         )
 
                     ],
