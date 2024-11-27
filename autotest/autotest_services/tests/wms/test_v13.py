@@ -429,6 +429,16 @@ class WMS13GetLegendGraphicTestCase(wmsbase.WMS13GetLegendTestCase):
     def getFileExtension(self, file_type):
         return "png"
 
+class WMS13GetLegendGraphicTestCaseCOllectionLevel(wmsbase.WMS13GetLegendTestCase):
+    """ Test a GetLegendGraphic request on Collection level. """
+
+    def getRequest(self):
+        params = "service=WMS&version=1.3.0&request=GetLegendGraphic&format=image/png&layer=MER_FRS_1P_reduced"
+        return params, "kvp"
+
+    def getFileExtension(self, file_type):
+        return "png"
+
 class WMS13GetLegendGraphicStyledTestCase(wmsbase.WMS13GetLegendTestCase):
     """ Test a GetLegendGraphic request for a dataset with an associated style. """
 

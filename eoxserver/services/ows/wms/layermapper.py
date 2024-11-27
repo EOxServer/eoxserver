@@ -310,7 +310,7 @@ class LayerMapper(object):
 
                 if not has_products:
                     coverages = self.iter_coverages(
-                        eo_object, filters_expressions, sort_by
+                        eo_object, filters_expressions, sort_by, limit
                     )
 
                     if suffix == '':
