@@ -39,13 +39,14 @@ import re
 from django.conf import settings
 from django.urls import reverse
 from django.http import HttpResponse
+from django.db.models import Q
 
 from eoxserver.core.decoders import kvp, typelist, InvalidParameterException
 from eoxserver.core.config import get_eoxserver_config
 from eoxserver.render.map.renderer import (
-    get_map_renderer,  # get_feature_info_renderer
+    get_map_renderer, get_legend_renderer,  # get_feature_info_renderer
 )
-from eoxserver.render.map.objects import Map
+from eoxserver.render.map.objects import Map, Legend
 from eoxserver.resources.coverages import crss
 from eoxserver.resources.coverages import models
 from eoxserver.services.ows.wms.util import (
@@ -100,8 +101,13 @@ class WMSBaseGetCapabilitiesHandler(object):
                     service_visibility__visibility=True
                 ),
                 models.Coverage.objects.filter(
-                    service_visibility__service='wms',
-                    service_visibility__visibility=True
+                    Q(
+                        service_visibility__service='wms',
+                        service_visibility__visibility=True
+                    ) | Q(  # include all Collections, exclude "WMS-invisible"
+                            # later
+                       collections__isnull=False
+                    )
                 )
             )
 
@@ -328,13 +334,61 @@ class WMSBaseGetFeatureInfoHandler(object):
             layers=layers
         )
 
-        result_bytes, content_type, filename = \
-            feature_info_renderer.render_feature_info(map_)
+        result_bytes, content_type, filename = feature_info_renderer.render_feature_info(map_)
 
         response = HttpResponse(result_bytes, content_type=content_type)
         if filename:
-            response['Content-Disposition'] = \
-                'inline; filename="%s"' % filename
+            response['Content-Disposition'] = 'inline; filename="%s"' % filename
+
+        return response
+
+
+class WMSBaseGetLegendGraphicHandler(object):
+    methods = ['GET']
+    service = "WMS"
+    request = "GetLegendGraphic"
+
+    def handle(self, request):
+        decoder = self.get_decoder(request)
+        layer_name = decoder.layer
+        style = decoder.style
+
+        if not layer_name:
+            raise InvalidParameterException("No layers specified", "layers")
+
+        renderer = get_legend_renderer()
+
+        layer_mapper = LayerMapper(renderer.get_supported_layer_types())
+
+        name, suffix = layer_mapper.split_layer_suffix_name(layer_name)
+        layer = layer_mapper.lookup_layer(
+            name,
+            suffix,
+            style,
+            filters_expressions=Q(),
+            sort_by=None,
+            time=None,
+            ranges=None,
+            bands=None,
+            wavelengths=None,
+            elevation=None,
+            zoom=decoder.scale,
+            limit=1,
+            variables={},
+        )
+
+        legend = Legend(
+            layer=layer,
+            width=decoder.width, height=decoder.height, format=decoder.format,
+        )
+
+        result_bytes, content_type, filename = renderer.render_legend(legend)
+
+        response = HttpResponse(result_bytes, content_type=content_type)
+        if filename:
+            response['Content-Disposition'] = 'inline; filename="%s"' % (
+                filename
+            )
 
         return response
 
@@ -407,3 +461,12 @@ def calculate_zoom(bbox, width, height, crs):
         if zoom < 1:
             zoom = 1
         return zoom
+
+
+class WMSBaseGetLegendGraphicDecoder(kvp.Decoder):
+    layer = kvp.Parameter(num=1)
+    style = kvp.Parameter(num='?')
+    width = kvp.Parameter(type=int, num='?')
+    height = kvp.Parameter(type=int, num='?')
+    format = kvp.Parameter(num=1)
+    scale = kvp.Parameter(type=float, default=0, num='?')

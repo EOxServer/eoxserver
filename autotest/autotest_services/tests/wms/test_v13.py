@@ -419,9 +419,37 @@ class WMS13GetFeatureInfoEOOMTestCase(testbase.XMLTestCase):
 #===============================================================================
 # Legend Graphic
 #===============================================================================
+class WMS13GetLegendGraphicTestCase(wmsbase.WMS13GetLegendTestCase):
+    """ Test a GetLegendGraphic request for a dataset with an associated style. """
+
+    def getRequest(self):
+        params = "service=WMS&version=1.3.0&request=GetLegendGraphic&format=image/png&layer=ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775"
+        return params, "kvp"
+
+    def getFileExtension(self, file_type):
+        return "png"
+
+class WMS13GetLegendGraphicTestCaseCOllectionLevel(wmsbase.WMS13GetLegendTestCase):
+    """ Test a GetLegendGraphic request on Collection level. """
+
+    def getRequest(self):
+        params = "service=WMS&version=1.3.0&request=GetLegendGraphic&format=image/png&layer=MER_FRS_1P_reduced"
+        return params, "kvp"
+
+    def getFileExtension(self, file_type):
+        return "png"
+
+class WMS13GetLegendGraphicStyledTestCase(wmsbase.WMS13GetLegendTestCase):
+    """ Test a GetLegendGraphic request for a dataset with an associated style. """
+
+    def getRequest(self):
+        params = "service=WMS&version=1.3.0&request=GetLegendGraphic&format=image/png&layer=ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775&style=earth"
+        return params, "kvp"
+
+    def getFileExtension(self, file_type):
+        return "png"
 
 # currently disabled because of segfaults in MapServer
-
 
 class WMS13GetLegendGraphicDatasetStyledTestCase(testbase.RasterTestCase):
     """ Test a GetLegendGraphic request for a dataset with an associated style. """

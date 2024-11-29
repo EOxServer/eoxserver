@@ -98,6 +98,12 @@ class WMS13Encoder(XMLEncoder):
                         ),
                         self.encode_dcptype(ows_url)
                     ),
+                    WMS("GetLegendGraphic",
+                        WMS("Format",
+                            # TODO
+                        ),
+                        self.encode_dcptype(ows_url)
+                    ),
                     # TODO: describe layer?
                 ),
                 WMS("Exception",

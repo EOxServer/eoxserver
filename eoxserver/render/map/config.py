@@ -29,3 +29,7 @@
 DEFAULT_EOXS_MAP_RENDERER = (
     "eoxserver.render.mapserver.map_renderer.MapserverMapRenderer"
 )
+
+DEFAULT_EOXS_LEGEND_RENDERER = (
+    "eoxserver.render.mapserver.map_renderer.MapserverMapRenderer"
+)

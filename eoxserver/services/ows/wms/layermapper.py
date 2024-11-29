@@ -13,8 +13,8 @@
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
-# The above copyright notice and this permission notice shall be included in all
-# copies of this Software or works derived from this Software.
+# The above copyright notice and this permission notice shall be included in
+# all copies of this Software or works derived from this Software.
 #
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -189,7 +189,9 @@ class LayerMapper(object):
 
             return LayerDescription(
                 name=eo_object.identifier,
-                bbox=eo_object.footprint.extent if eo_object.footprint else None,
+                bbox=(
+                    eo_object.footprint.extent if eo_object.footprint else None
+                ),
                 dimensions=dimensions,
                 sub_layers=sub_layers
             )
@@ -200,13 +202,18 @@ class LayerMapper(object):
 
     def lookup_layer(self, layer_name, suffix, style, filters_expressions,
                      sort_by, time, ranges, bands, wavelengths, elevation,
-                     zoom, variables):
+                     zoom, variables, limit=None):
         """ Lookup the layer from the registered objects.
         """
         reader = LayerMapperConfigReader(get_eoxserver_config())
-        limit_products = (
+        config_limit = (
             reader.limit_products if reader.limit_mode == 'hide' else None
         )
+        if config_limit is not None and limit is not None:
+            limit = min(limit, config_limit)
+        elif limit is None:
+            limit = config_limit
+
         min_render_zoom = reader.min_render_zoom
         full_name = '%s%s%s' % (layer_name, self.suffix_separator, suffix)
 
@@ -267,7 +274,7 @@ class LayerMapper(object):
                 browses = []
                 product_browses = self.iter_products_browses(
                     eo_object, filters_expressions, sort_by, None, style,
-                    limit=limit_products
+                    limit=limit
                 )
 
                 has_products = False
@@ -303,7 +310,7 @@ class LayerMapper(object):
 
                 if not has_products:
                     coverages = self.iter_coverages(
-                        eo_object, filters_expressions, sort_by
+                        eo_object, filters_expressions, sort_by, limit
                     )
 
                     if suffix == '':
@@ -343,9 +350,10 @@ class LayerMapper(object):
                         name=full_name, style=reader.color,
                         fill=reader.fill_opacity,
                         footprints=[
-                            product.footprint for product in self.iter_products(
+                            product.footprint
+                            for product in self.iter_products(
                                 eo_object, filters_expressions, sort_by,
-                                limit=limit_products
+                                limit=limit
                             )
                         ]
                     )
@@ -356,7 +364,7 @@ class LayerMapper(object):
                     footprints=[
                         product.footprint for product in self.iter_products(
                             eo_object, filters_expressions, sort_by,
-                            limit=limit_products
+                            limit=limit
                         )
                     ]
                 )
@@ -366,7 +374,7 @@ class LayerMapper(object):
 
                 product_browses_mask = self.iter_products_browses_masks(
                     eo_object, filters_expressions, sort_by, post_suffix,
-                    limit=limit_products
+                    limit=limit
                 )
                 footprints = []
                 masks = []
@@ -391,7 +399,7 @@ class LayerMapper(object):
 
                 product_browses_mask = self.iter_products_browses_masks(
                     eo_object, filters_expressions, sort_by, post_suffix,
-                    limit=limit_products
+                    limit=limit
                 )
                 for product, browse, mask, mask_type in product_browses_mask:
                     # When bands/wavelengths are specifically requested, make a
@@ -442,7 +450,7 @@ class LayerMapper(object):
                     footprints=[
                         product.footprint for product in self.iter_products(
                             eo_object, filters_expressions, sort_by,
-                            limit=limit_products
+                            limit=reader.limit_products
                         )
 
                     ],
@@ -457,7 +465,7 @@ class LayerMapper(object):
 
                     product_browses = self.iter_products_browses(
                         eo_object, filters_expressions, sort_by, suffix,
-                        style, limit=limit_products
+                        style, limit=limit
                     )
 
                     for product, browse, browse_type in product_browses:
@@ -488,8 +496,8 @@ class LayerMapper(object):
                         masks=[
                             Mask.from_model(mask_model, mask_type)
                             for _, mask_model in self.iter_products_masks(
-                                eo_object, filters_expressions, sort_by, suffix,
-                                limit=limit_products
+                                eo_object, filters_expressions, sort_by,
+                                suffix, limit=limit
                             )
                         ]
                     )
@@ -523,7 +531,8 @@ class LayerMapper(object):
     # iteration methods
     #
 
-    def iter_coverages(self, eo_object, filters_expressions, sort_by=None):
+    def iter_coverages(self, eo_object, filters_expressions, sort_by=None,
+                       limit=None):
         if isinstance(eo_object, models.Mosaic):
             base_filter = dict(mosaics=eo_object)
         elif isinstance(eo_object, models.Collection):
@@ -532,6 +541,7 @@ class LayerMapper(object):
             base_filter = dict(parent_product=eo_object)
 
         qs = models.Coverage.objects.filter(filters_expressions, **base_filter)
+
         if sort_by:
             qs = qs.order_by('%s%s' % (
                 '-' if sort_by[1] == 'DESC' else '',
@@ -541,6 +551,9 @@ class LayerMapper(object):
             qs = qs.order_by(
                 '-begin_time', '-end_time', 'identifier'
             )
+
+        if limit is not None:
+            qs = qs[:limit]
 
         return qs
 
@@ -552,8 +565,6 @@ class LayerMapper(object):
             base_filter = dict(pk=eo_object.pk)
 
         qs = models.Product.objects.filter(filters_expressions, **base_filter)
-        if limit is not None:
-            qs = qs[:limit]
 
         if sort_by:
             qs = qs.order_by('%s%s' % (
@@ -564,6 +575,9 @@ class LayerMapper(object):
             qs = qs.order_by(
                 '-begin_time', '-end_time', 'identifier'
             )
+
+        if limit is not None:
+            qs = qs[:limit]
 
         return qs
 
