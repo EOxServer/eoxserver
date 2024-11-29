@@ -56,6 +56,7 @@ from eoxserver.render.map.objects import (
 from eoxserver.render.coverage.objects import Coverage, Field
 from eoxserver.render.mapserver.config import (
     DEFAULT_EOXS_MAPSERVER_HEATMAP_RANGE_DEFAULT,
+    DEFAULT_EOXS_MAPSERVER_HEATMAP_STYLE_DEFAULT,
     DEFAULT_EOXS_MAPSERVER_LAYER_FACTORIES,
 )
 from eoxserver.render.colors import BASE_COLORS, COLOR_SCALES, OFFSITE_COLORS
@@ -763,9 +764,14 @@ class HeatmapLayerFactory(BaseMapServerLayerFactory):
             DEFAULT_EOXS_MAPSERVER_HEATMAP_RANGE_DEFAULT
         )
 
+        default_style = getattr(
+            settings, 'EOXS_MAPSERVER_HEATMAP_STYLE_DEFAULT',
+            DEFAULT_EOXS_MAPSERVER_HEATMAP_STYLE_DEFAULT
+        )
+
         range_ = layer.range or default_range
         _create_raster_style(
-            DEFAULT_RASTER_STYLES[layer.style or "plasma"],
+            DEFAULT_RASTER_STYLES[layer.style or default_style],
             layer_obj,
             range_[0],
             range_[1],
