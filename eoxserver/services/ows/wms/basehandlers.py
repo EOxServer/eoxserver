@@ -129,7 +129,7 @@ class WMSBaseGetCapabilitiesHandler(object):
             encoder.encode_capabilities(
                 conf, request.build_absolute_uri(reverse('ows')),
                 crss.getSupportedCRS_WMS(format_function=crss.asShortCode),
-                map_renderer.get_supported_formats(), [],
+                map_renderer.get_supported_formats(), [], get_legend_renderer().get_supported_formats(),
                 layer_descriptions
             ),
             pretty_print=settings.DEBUG
