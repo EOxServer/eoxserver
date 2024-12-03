@@ -297,6 +297,7 @@ def set_env(map_obj, env, fail_on_override=False, return_old=False):
 
     return old_values
 
+
 @contextlib.contextmanager
 def config_env(map_obj, env, fail_on_override=False, reset_old=True):
     old_env = set_env(env, fail_on_override, reset_old)
