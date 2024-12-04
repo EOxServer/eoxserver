@@ -32,7 +32,7 @@ from eoxserver.core.util.xmltools import XMLEncoder
 
 
 class WMS10Encoder(XMLEncoder):
-    def encode_capabilities(self, config, ows_url, srss, formats, info_formats,
+    def encode_capabilities(self, config, ows_url, srss, formats, info_formats, legend_formats,
                             layer_descriptions):
 
         mime_to_name = {
@@ -81,6 +81,19 @@ class WMS10Encoder(XMLEncoder):
                     E("FeatureInfo",
                         E("Format",
                             # TODO
+                        ),
+                        E("DCPType",
+                            E("HTTP",
+                                E("Get", onlineResource=ows_url)
+                            )
+                        )
+                    ),
+                    E("LegendGraphic",
+                        E("Format", *[
+                                E(mime_to_name[frmt.mimeType])
+                                for frmt in legend_formats
+                                if frmt.mimeType in mime_to_name
+                            ]
                         ),
                         E("DCPType",
                             E("HTTP",

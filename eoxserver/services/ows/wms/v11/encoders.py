@@ -36,7 +36,7 @@ E_WITH_XLINK = ElementMaker(nsmap=nsmap)
 
 
 class WMS11Encoder(XMLEncoder):
-    def encode_capabilities(self, config, ows_url, srss, formats, info_formats,
+    def encode_capabilities(self, config, ows_url, srss, formats, info_formats, legend_formats,
                             layer_descriptions):
         return E("WMT_MS_Capabilities",
             E("Service",
@@ -91,6 +91,12 @@ class WMS11Encoder(XMLEncoder):
                         ),
                         self.encode_dcptype(ows_url)
                     ),
+                    E("GetLegendGraphic",*[
+                            E("Format", frmt.mimeType)
+                            for frmt in legend_formats
+                        ] + [
+                            self.encode_dcptype(ows_url)
+                        ]),
                     # TODO: describe layer?
                 ),
                 E("Exception",
