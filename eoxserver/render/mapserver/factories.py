@@ -41,7 +41,7 @@ from eoxserver.core.util.iteratortools import pairwise_iterative
 from eoxserver.contrib import mapserver as ms
 from eoxserver.contrib import vsi, vrt, gdal, osr, ogr
 from eoxserver.render.browse.objects import (
-    Browse, GeneratedBrowse, BROWSE_MODE_GRAYSCALE, BROWSE_MODE_RGBA
+    Browse, GeneratedBrowse, BROWSE_MODE_GRAYSCALE, BROWSE_MODE_RGBA, RasterStyle
 )
 from eoxserver.render.browse.generate import (
     generate_browse, FilenameGenerator
@@ -54,6 +54,7 @@ from eoxserver.render.map.objects import (
     Layer, Map,
 )
 from eoxserver.render.coverage.objects import Coverage, Field
+
 from eoxserver.render.mapserver.config import (
     DEFAULT_EOXS_MAPSERVER_HEATMAP_RANGE_DEFAULT,
     DEFAULT_EOXS_MAPSERVER_HEATMAP_STYLE_DEFAULT,
@@ -347,7 +348,7 @@ class MosaicLayerFactory(CoverageLayerFactoryMixIn, BaseMapServerLayerFactory):
 class BrowseLayerMixIn(object):
     def make_browse_layer_generator(self, map_obj, browses, map_,
                                     filename_generator, group_name, ranges,
-                                    style):
+                                    style: str):
         for browse in browses:
             if isinstance(browse, GeneratedBrowse):
                 creation_info, filename_generator, reset_info = \
@@ -423,7 +424,7 @@ class BrowseLayerMixIn(object):
 
                         for layer_obj in layer_objs:
                             _create_raster_style(
-                                style or "blackwhite", layer_obj,
+                                DEFAULT_RASTER_STYLES[style or "blackwhite"], layer_obj,
                                 browse_range[0], browse_range[1],
                                 browse.nodata_values
                             )
@@ -432,8 +433,8 @@ class BrowseLayerMixIn(object):
                                 # final LUT for min,max 200,700 and nodata=0 should look like:
                                 # 0:0,1:1,200:1,700:256
                                 lut_inputs = {
-                                    range_[0]: 1,
-                                    range_[1]: 256,
+                                    browse_range[0]: 1,
+                                    browse_range[1]: 256,
                                 }
                                 if nodata_value is not None:
                                     # no_data_value_plus +1 to ensure that only no_data_value is
@@ -453,7 +454,7 @@ class BrowseLayerMixIn(object):
                                 # due to offsite 0,0,0 will make all pixels below or equal to min transparent
                                 layer_obj.setProcessingKey(
                                     "SCALE_%d" % i,
-                                    "%s,%s" % tuple(range_)
+                                    "%s,%s" % tuple(browse_range)
                                 )
 
                     else:
@@ -931,7 +932,7 @@ def _build_vrt(size, field_locations):
     return path
 
 
-def _create_raster_style(raster_style, layer, minvalue=0, maxvalue=255,
+def _create_raster_style(raster_style: RasterStyle, layer, minvalue=0, maxvalue=255,
                          nil_values=None):
     if raster_style.type == "ramp":
         return _create_raster_style_ramp(
