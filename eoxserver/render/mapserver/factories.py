@@ -423,11 +423,6 @@ class BrowseLayerMixIn(object):
                             browse_range = _get_range(field)
 
                         for layer_obj in layer_objs:
-                            _create_raster_style(
-                                DEFAULT_RASTER_STYLES[style or "blackwhite"], layer_obj,
-                                browse_range[0], browse_range[1],
-                                browse.nodata_values
-                            )
                             # NOTE: Only works if browsetype nodata is lower than browse_type_min by at least 1
                             if browse.show_out_of_bounds_data:
                                 # final LUT for min,max 200,700 and nodata=0 should look like:
