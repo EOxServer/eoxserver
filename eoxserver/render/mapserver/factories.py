@@ -351,16 +351,20 @@ class BrowseLayerMixIn(object):
                                     style: str):
         for browse in browses:
             if isinstance(browse, GeneratedBrowse):
-                creation_info, filename_generator, reset_info = \
-                    generate_browse(
-                        browse.band_expressions,
-                        browse.fields_and_coverages,
-                        map_.width, map_.height,
-                        map_.bbox,
-                        map_.crs,
-                        filename_generator,
-                        browse.variables,
-                    )
+                if map_ is not None:
+                    creation_info, filename_generator, reset_info = \
+                        generate_browse(
+                            browse.band_expressions,
+                            browse.fields_and_coverages,
+                            map_.width, map_.height,
+                            map_.bbox,
+                            map_.crs,
+                            filename_generator,
+                            browse.variables,
+                        )
+                else:
+                    creation_info, reset_info = (None, None)
+
                 layer_objs = _create_raster_layer_objs(
                     map_obj, browse.extent, browse.spatial_reference,
                     creation_info.filename if creation_info else '',
