@@ -405,19 +405,20 @@ class ComplexData(Parameter):
                 json.loads(_unicode(data, text_encoding)), **fattr
             )
         elif format_.is_text:
-            # pylint: disable=redefined-variable-type
             parsed_data = CDTextBuffer(_unicode(data, text_encoding), **fattr)
             parsed_data.seek(0)
-        else: # generic binary byte-stream
-            parsed_data = CDByteBuffer(data, **fattr)
-            if format_.encoding is not None:
-                data_out = BytesIO()
-                for chunk in format_.decode(parsed_data, **opt):
-                    if isinstance(chunk, binary_type):
-                        chunk = chunk.decode('utf-8')
-                    data_out.write(chunk)
-                parsed_data = data_out
+        elif format_.encoding is not None:
+            # encoded binary format - this can be a text encoding
+            parsed_data = CDByteBuffer(**fattr)
+            if not isinstance(data, binary_type):
+                data = data.encode(text_encoding)
+            data_in = BytesIO(data)
+            for chunk in format_.decode(data_in, **opt):
+                parsed_data.write(chunk)
             parsed_data.seek(0)
+        else:
+            # raw non-encoded binary format
+            parsed_data = CDByteBuffer(data, **fattr)
         return parsed_data
 
     def encode_xml(self, data):
