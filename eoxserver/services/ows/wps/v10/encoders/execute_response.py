@@ -29,31 +29,42 @@
 #-------------------------------------------------------------------------------
 #pylint: disable=too-many-arguments, too-many-locals, bad-continuation
 
+import uuid
 from lxml import etree
 from django.utils.timezone import now
 from django.utils.six import itervalues
 
 from eoxserver.core.config import get_eoxserver_config
-from eoxserver.services.ows.common.config import CapabilitiesConfigReader
 from eoxserver.core.util.timetools import isoformat
+from eoxserver.services.result import to_http_response, ResultBuffer
+from eoxserver.services.ows.common.config import CapabilitiesConfigReader
 from eoxserver.services.ows.wps.v10.util import WPS, OWS, ns_xlink, ns_xml
 
 from eoxserver.services.ows.wps.exceptions import OWS10Exception
 from eoxserver.services.ows.wps.parameters import (
     Parameter, LiteralData, ComplexData, BoundingBoxData,
-    fix_parameter, InputReference, Reference, RequestParameter,
+    fix_parameter, InputReference, BaseReference, Reference, RequestParameter,
 )
+from eoxserver.services.ows.wps.exceptions import InvalidOutputValueError
 
 from .process_description import encode_process_brief
 from .parameters import (
     encode_input_exec, encode_output_exec, encode_output_def
 )
 from .base import WPS10BaseXMLEncoder
-from eoxserver.services.ows.wps.exceptions import InvalidOutputValueError
+from .execute_response_raw import encode_raw_complex
 
 
 class WPS10ExecuteResponseXMLEncoder(WPS10BaseXMLEncoder):
     """ WPS 1.0 ExecuteResponse XML response encoder. """
+
+    def serialize(self, tree, **kwargs):
+        payload, content_type = super(WPS10ExecuteResponseXMLEncoder, self).serialize(tree, **kwargs)
+        if not self.extra_parts:
+            return payload, content_type
+        # multi-part response
+        payload = ResultBuffer(payload, content_type=content_type)
+        return to_http_response([payload] + self.extra_parts)
 
     def __init__(self, process, resp_form, raw_inputs, inputs=None,
                  status_location=None):
@@ -63,11 +74,12 @@ class WPS10ExecuteResponseXMLEncoder(WPS10BaseXMLEncoder):
         self.raw_inputs = raw_inputs
         self.inputs = inputs
         self.status_location = status_location
+        self.extra_parts = []
 
     def _encode_common(self, status):
         """ Encode common response element. """
-        elem = _encode_common_response(
-            self.process, status, self.inputs, self.raw_inputs, self.resp_form
+        elem = self._encode_common_response(
+            status, self.inputs, self.raw_inputs, self.resp_form
         )
         if self.status_location:
             elem.set("statusLocation", self.status_location)
@@ -81,7 +93,7 @@ class WPS10ExecuteResponseXMLEncoder(WPS10BaseXMLEncoder):
         ))
         outputs = []
         for result, prm, req in itervalues(results):
-            outputs.append(_encode_output(result, prm, req))
+            outputs.append(self._encode_output(result, prm, req))
         elem.append(WPS("ProcessOutputs", *outputs))
         return elem
 
@@ -126,86 +138,110 @@ class WPS10ExecuteResponseXMLEncoder(WPS10BaseXMLEncoder):
             "ProcessAccepted", "The processes was accepted for execution."
         ))
 
-#-------------------------------------------------------------------------------
+    def _encode_common_response(self, status_elem, inputs, raw_inputs, resp_doc):
+        """Encode common execute response part shared by all specific responses.
+        """
+        inputs = inputs or {}
+        conf = CapabilitiesConfigReader(get_eoxserver_config())
+        url = conf.http_service_url
+        if url[-1] == "?":
+            url = url[:-1]
+        elem = WPS("ExecuteResponse",
+            encode_process_brief(self.process),
+            WPS("Status", status_elem, creationTime=isoformat(now())),
+            {
+                "service": "WPS",
+                "version": "1.0.0",
+                ns_xml("lang"): "en-US",
+                "serviceInstance": (
+                    "%s?service=WPS&version=1.0.0&request=GetCapabilities" % url
+                )
+            },
+        )
 
-def _encode_common_response(process, status_elem, inputs, raw_inputs, resp_doc):
-    """Encode common execute response part shared by all specific responses."""
-    inputs = inputs or {}
-    conf = CapabilitiesConfigReader(get_eoxserver_config())
-    url = conf.http_service_url
-    if url[-1] == "?":
-        url = url[:-1]
-    elem = WPS("ExecuteResponse",
-        encode_process_brief(process),
-        WPS("Status", status_elem, creationTime=isoformat(now())),
-        {
-            "service": "WPS",
-            "version": "1.0.0",
-            ns_xml("lang"): "en-US",
-            "serviceInstance": (
-                "%s?service=WPS&version=1.0.0&request=GetCapabilities" % url
-            )
-        },
-    )
+        if resp_doc.lineage:
+            inputs_data = []
+            for id_, prm in self.process.inputs:
+                if isinstance(prm, RequestParameter):
+                    continue
+                prm = fix_parameter(id_, prm)
+                data = inputs.get(id_)
+                rawinp = raw_inputs.get(prm.identifier)
+                if rawinp is not None:
+                    inputs_data.append(self._encode_input(data, prm, rawinp))
+            elem.append(WPS("DataInputs", *inputs_data))
 
-    if resp_doc.lineage:
-        inputs_data = []
-        for id_, prm in process.inputs:
-            if isinstance(prm, RequestParameter):
-                continue
-            prm = fix_parameter(id_, prm)
-            data = inputs.get(id_)
-            rawinp = raw_inputs.get(prm.identifier)
-            if rawinp is not None:
-                inputs_data.append(_encode_input(data, prm, rawinp))
-        elem.append(WPS("DataInputs", *inputs_data))
+            outputs_def = []
+            for id_, prm in self.process.outputs:
+                prm = fix_parameter(id_, prm)
+                outdef = resp_doc.get(prm.identifier)
+                if outdef is not None:
+                    outputs_def.append(encode_output_def(outdef))
+            elem.append(WPS("OutputDefinitions", *outputs_def))
 
-        outputs_def = []
-        for id_, prm in process.outputs:
-            prm = fix_parameter(id_, prm)
-            outdef = resp_doc.get(prm.identifier)
-            if outdef is not None:
-                outputs_def.append(encode_output_def(outdef))
-        elem.append(WPS("OutputDefinitions", *outputs_def))
+        return elem
 
-    return elem
+    def _collect_extra_parts(self, prm, data):
+        """ Identify complex data items which cannot be directly embedded in
+        the XML response document, replace them with CID reference and collect
+        them into the provides dictionary.
+        """
+        if prm.allows_xml_embedding(data):
+            return data
+        # replace data with a reference to a separate response part
+        content_id = str(uuid.uuid4())
+        self.extra_parts.append(encode_raw_complex(
+            data, prm, identifier=content_id
+        ))
+        return BaseReference(
+            href="cid:{cid}".format(cid=content_id),
+            mime_type=getattr(data, "mime_type", None),
+            encoding=getattr(data, "encoding", None),
+            schema=getattr(data, "schema", None),
+        )
 
+    def _encode_input(self, data, prm, raw):
+        """ Encode one DataInputs sub-element. """
+        elem = encode_input_exec(raw)
+        if isinstance(raw, InputReference):
+            elem.append(_encode_input_reference(raw))
+        elif isinstance(prm, LiteralData):
+            elem.append(WPS("Data", _encode_raw_input_literal(raw, prm)))
+        elif isinstance(prm, BoundingBoxData):
+            if data is None:
+                data = prm.parse(raw.data)
+            elem.append(WPS("Data", _encode_bbox(data, prm)))
+        elif isinstance(prm, ComplexData):
+            if data is None:
+                data = prm.parse(
+                    data=raw.data, mime_type=raw.mime_type, encoding=raw.encoding,
+                    schema=raw.schema
+                )
+            data = self._collect_extra_parts(prm, data)
+            if isinstance(data, BaseReference):
+                elem.append(_encode_complex_data_reference(data, prm))
+            else:
+                elem.append(WPS("Data", _encode_complex(data, prm)))
+        return elem
 
-def _encode_input(data, prm, raw):
-    """ Encode one DataInputs sub-element. """
-    elem = encode_input_exec(raw)
-    if isinstance(raw, InputReference):
-        elem.append(_encode_input_reference(raw))
-    elif isinstance(prm, LiteralData):
-        elem.append(WPS("Data", _encode_raw_input_literal(raw, prm)))
-    elif isinstance(prm, BoundingBoxData):
-        if data is None:
-            data = prm.parse(raw.data)
-        elem.append(WPS("Data", _encode_bbox(data, prm)))
-    elif isinstance(prm, ComplexData):
-        if data is None:
-            data = prm.parse(
-                data=raw.data, mime_type=raw.mime_type, encoding=raw.encoding,
-                schema=raw.schema
-            )
-        elem.append(WPS("Data", _encode_complex(data, prm)))
-    return elem
-
-
-def _encode_output(data, prm, req):
-    """ Encode one ProcessOutputs sub-element. """
-    elem = encode_output_exec(Parameter(
-        prm.identifier, req.title or prm.title, req.abstract or prm.abstract
-    ))
-    if isinstance(data, Reference):
-        elem.append(_encode_output_reference(data, prm))
-    elif isinstance(prm, LiteralData):
-        elem.append(WPS("Data", _encode_literal(data, prm, req)))
-    elif isinstance(prm, BoundingBoxData):
-        elem.append(WPS("Data", _encode_bbox(data, prm)))
-    elif isinstance(prm, ComplexData):
-        elem.append(WPS("Data", _encode_complex(data, prm)))
-    return elem
+    def _encode_output(self, data, prm, req):
+        """ Encode one ProcessOutputs sub-element. """
+        elem = encode_output_exec(Parameter(
+            prm.identifier, req.title or prm.title, req.abstract or prm.abstract
+        ))
+        if isinstance(data, BaseReference):
+            elem.append(_encode_complex_data_reference(data, prm))
+        elif isinstance(prm, LiteralData):
+            elem.append(WPS("Data", _encode_literal(data, prm, req)))
+        elif isinstance(prm, BoundingBoxData):
+            elem.append(WPS("Data", _encode_bbox(data, prm)))
+        elif isinstance(prm, ComplexData):
+            data = self._collect_extra_parts(prm, data)
+            if isinstance(data, BaseReference):
+                elem.append(_encode_complex_data_reference(data, prm))
+            else:
+                elem.append(WPS("Data", _encode_complex(data, prm)))
+        return elem
 
 
 def _encode_input_reference(ref):
@@ -214,8 +250,8 @@ def _encode_input_reference(ref):
     return WPS("Reference", **{ns_xlink("href"): ref.href})
 
 
-def _encode_output_reference(ref, prm):
-    """ Encode ProcessOutputs/Reference element. """
+def _encode_complex_data_reference(ref, prm):
+    """ Encode ComplexData/Reference element. """
     #TODO proper output reference encoding
     mime_type = getattr(ref, 'mime_type', None)
     encoding = getattr(ref, 'encoding', None)

@@ -62,7 +62,7 @@ class WPS10ExecuteResponseRawEncoder(object):
         outputs = []
         for data, prm, req in itervalues(results):
             if prm.identifier in self.resp_form:
-                outputs.append(_encode_raw_output(data, prm, req))
+                outputs.append(encode_raw_output(data, prm, req))
 
         if len(outputs) == 1:
             self.content_type = outputs[0].content_type
@@ -122,18 +122,18 @@ class ResultAlt(ResultItem):
 #-------------------------------------------------------------------------------
 
 
-def _encode_raw_output(data, prm, req):
+def encode_raw_output(data, prm, req):
     """ Encode a raw output item."""
     if isinstance(prm, LiteralData):
-        return _encode_raw_literal(data, prm, req)
+        return encode_raw_literal(data, prm, req)
     elif isinstance(prm, BoundingBoxData):
-        return _encode_raw_bbox(data, prm, req)
+        return encode_raw_bbox(data, prm, req)
     elif isinstance(prm, ComplexData):
-        return _encode_raw_complex(data, prm)
+        return encode_raw_complex(data, prm)
     raise TypeError("Invalid output type! %r"%(prm))
 
 
-def _encode_raw_literal(data, prm, req):
+def encode_raw_literal(data, prm, req):
     """ Encode a raw literal."""
     content_type = "text/plain" if req.mime_type is None else req.mime_type
     content_type = "%s; charset=utf-8" % content_type
@@ -146,7 +146,7 @@ def _encode_raw_literal(data, prm, req):
     )
 
 
-def _encode_raw_bbox(data, prm, req):
+def encode_raw_bbox(data, prm, req):
     """ Encode a raw bounding box."""
     content_type = "text/plain" if req.mime_type is None else req.mime_type
     content_type = "%s; charset=utf-8"%content_type
@@ -160,11 +160,13 @@ def _encode_raw_bbox(data, prm, req):
     )
 
 
-def _encode_raw_complex(data, prm):
+def encode_raw_complex(data, prm, identifier=None):
     """ Encode raw complex data."""
     payload, content_type = prm.encode_raw(data)
     return ResultAlt(
-        payload, identifier=prm.identifier, content_type=content_type,
+        payload,
+        identifier=(identifier or prm.identifier),
+        content_type=content_type,
         filename=getattr(data, "filename", None),
         headers=getattr(data, "headers", None),
     )

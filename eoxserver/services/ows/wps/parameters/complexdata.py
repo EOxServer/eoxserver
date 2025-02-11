@@ -421,6 +421,17 @@ class ComplexData(Parameter):
             parsed_data = CDByteBuffer(data, **fattr)
         return parsed_data
 
+    def allows_xml_embedding(self, data):
+        """ Check the data and return True if it can be embedded in XML.
+        """
+        mime_type = getattr(data, 'mime_type', None)
+        encoding = getattr(data, 'encoding', None)
+        schema = getattr(data, 'schema', None)
+        format_ = self.get_format(mime_type, encoding, schema)
+        if format_ is None:
+            return True # let the XML encoder resolve the missing format
+        return format_.allows_xml_embedding
+
     def encode_xml(self, data):
         """ encode complex data to be embedded to an XML document"""
         mime_type = getattr(data, 'mime_type', None)

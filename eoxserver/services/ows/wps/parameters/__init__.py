@@ -54,6 +54,7 @@ from .response_form import (
     Output, ResponseForm, ResponseDocument, RawDataOutput
 )
 
+
 class RequestParameter(object):
     """ Special input parameter extracting input from the request metadata.
     This might be used to pass information such as, e.g., HTTP headers or
@@ -63,7 +64,7 @@ class RequestParameter(object):
     method get overloaded by inheritance or by a function passed as
     an argument to the constructor.
     """
-    # pylint: disable=method-hidden, too-few-public-methods
+    # pylint: disable=method-hidden
 
     def __init__(self, request_parser=None):
         if request_parser:
@@ -79,17 +80,33 @@ def fix_parameter(name, prm):
     """ Expand short-hand definition of the parameter."""
     if isinstance(prm, Parameter):
         return prm
-    elif isinstance(prm, RequestParameter):
+    if isinstance(prm, RequestParameter):
         # The leading backslash indicates an internal parameter.
         # Note: backslash is not an allowed URI character and it cannot appear
         # in the WPS inputs' names.
         prm.identifier = "\\" + name
         return prm
-    else:
-        return LiteralData(name, dtype=prm)
+    return LiteralData(name, dtype=prm)
 
 
-class Reference(object):
+class BaseReference(object):
+    """ Base reference object. An instance of this class defines a CommplexData
+    passed by a reference.
+
+    Constructor parameters:
+        href        public URL of the output reference
+        mime_type   output ComplexData mime-type
+        encoding    output ComplexData encoding
+        schema      output ComplexData schema
+    """
+    def __init__(self, href, mime_type=None, encoding=None, schema=None, **kwarg):
+        self.href = href
+        self.mime_type = mime_type
+        self.encoding = encoding
+        self.schema = schema
+
+
+class Reference(BaseReference):
     """ Output reference. An instance of this class defines a CommplexData
     output passed by a reference. The output must be stored in a file.
 
@@ -100,11 +117,6 @@ class Reference(object):
         encoding    output ComplexData encoding
         schema      output ComplexData schema
     """
-    # pylint: disable=too-few-public-methods, too-many-arguments
-    def __init__(self, path, href, mime_type=None, encoding=None, schema=None,
-                 **kwarg):
+    def __init__(self, path, *args, **kwarg):
+        super(Reference, self).__init__(*args, **kwargs)
         self.path = path
-        self.href = href
-        self.mime_type = mime_type
-        self.encoding = encoding
-        self.schema = schema
