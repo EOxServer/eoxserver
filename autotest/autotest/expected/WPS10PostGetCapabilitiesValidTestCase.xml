@@ -127,6 +127,15 @@ Copyright (C) European Space Agency - ESA</ows:Abstract>
       <ows:Abstract>This test process demonstrates use of the RequestParameters input. The request parameter is a special input which passes meta-data extracted from the Django HTTPRequest object to the executed process.</ows:Abstract>
     </wps:Process>
     <wps:Process wps:processVersion="1.0.0">
+      <ows:Identifier>TC10:identity:complex:binary</ows:Identifier>
+      <ows:Title>Test Case 10: Binary complex data identity.</ows:Title>
+      <ows:Abstract> Test identity process (the outputs are copies of the inputs)
+    demonstrating various features of the binary complex data inputs and outputs.
+    </ows:Abstract>
+      <ows:Metadata xlink:href="http://www.metadata.com/test-metadata" xlink:title="test-metadata"/>
+      <wps:Profile>test_profile</wps:Profile>
+    </wps:Process>
+    <wps:Process wps:processVersion="1.0.0">
       <ows:Identifier>Test06MinimalAllowedProcess</ows:Identifier>
       <ows:Title>Test06MinimalAllowedProcess</ows:Title>
     </wps:Process>

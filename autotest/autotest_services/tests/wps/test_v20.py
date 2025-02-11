@@ -168,7 +168,7 @@ class WPS20ExecuteHandleDefaultAndOptionalParameters(
 
 
 class WPS20ExecuteHandleMimeType(
-    ContentTypeCheckMixIn, ContentDispositionCheckMixIn, testbase.WPS10BinaryComparison
+    ContentTypeCheckMixIn, ContentDispositionCheckMixIn, testbase.WPS10RasterImageComparison
 ):
     expectedContentType = "image/jpeg"
     expectedContentDisposition = 'attachment; filename="test03_binary_complex.jpg"'

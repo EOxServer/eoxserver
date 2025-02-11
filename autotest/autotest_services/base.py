@@ -7,7 +7,7 @@
 #          Martin Paces <martin.paces@eox.at>
 #
 #-------------------------------------------------------------------------------
-# Copyright (C) 2011 EOX IT Services GmbH
+# Copyright (C) 2011-2025 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -29,8 +29,10 @@
 #-------------------------------------------------------------------------------
 
 import re
+import os
 import os.path
 import logging
+import shutil
 from lxml import etree
 import tempfile
 import mimetypes
@@ -210,10 +212,12 @@ class OWSTestCase(TransactionTestCase):
     def getDataFileDir(self):
         return os.path.join(root_dir, "data")
 
-    def getResponseFileName(self, file_type):
-        return "%s.%s" % (
-            self.__class__.__name__, self.getFileExtension(file_type)
-        )
+    def getResponseFileName(self, file_type=None, extension=None):
+        name = self.__class__.__name__
+        extension = extension or self.getFileExtension(file_type)
+        if extension:
+            name = "%s.%s" % (name, extension)
+        return name
 
     def getResponseData(self):
         return self.response.content
@@ -1208,12 +1212,12 @@ class RasdamanTestCaseMixIn(object):
 
         super(RasdamanTestCaseMixIn, self).setUp()
 
+
 class WPS10XMLComparison(XMLTestCase):
-    def getFileExtension(self, part=None):
-        if part == "xml":
-            return "xml"
-        elif part == "raster":
-            return "tif"
+    data_file_extension = ".tif"
+
+    def getFileExtension(self, file_type=None):
+        return "xml"
 
     @staticmethod
     def parseFileName(src) :
@@ -1225,7 +1229,6 @@ class WPS10XMLComparison(XMLTestCase):
 
     def parse( self, src) :
         return  self.parseFileName(src)
-
 
     def testXMLComparison(self):
 
@@ -1249,49 +1252,62 @@ class WPS10XMLComparison(XMLTestCase):
 
         super(WPS10XMLComparison, self).testXMLComparison()
 
+    def testEmbeddedData(self):
+        self._testData(self._decodeData(self._extractData()))
 
-    def testBinaryComparisonRaster(self):
+    def _testData(self, data):
 
-        response_path = os.path.join(
-            self.getResponseFileDir(), self.getResponseFileName("raster")
-        )
-        expected_path= os.path.join(
-            self.getExpectedFileDir(), self.getExpectedFileName("raster")
-        )
-        # creates a response image that contains the encoded text of the response xml file
-        doc = etree.fromstring( self.prepareXMLData(self.getXMLData()))
+        filename = self.getResponseFileName(extension=self.data_file_extension)
+        expected_path= os.path.join(self.getExpectedFileDir(), filename)
+        response_path = os.path.join(self.getResponseFileDir(), filename)
+
+        _, self.tmp_path = tempfile.mkstemp(filename)
+        with open(self.tmp_path, 'wb') as file:
+            file.write(data)
 
         try:
-            encodedText = doc.xpath('//wps:ComplexData', namespaces= {'wps': 'http://www.opengis.net/wps/1.0.0'})[0].text
+            self._compareDataFiles(self.tmp_path, expected_path)
+        except:
+            shutil.move(self.tmp_path, response_path)
+            raise
+
+    def _compareDataFiles(self, path_received, path_expected):
+        gdal.AllRegister()
+
+        try:
+            ds_received = gdal.Open(path_received, gdal.GA_ReadOnly)
+        except RuntimeError as error:
+            self.fail("Response could not be opened with GDAL. Error was %s" % error)
+
+        try:
+            ds_expected = gdal.Open(path_expected, gdal.GA_ReadOnly)
+        except RuntimeError:
+            self.skipTest("Valid expected response in '%s' is not present." % path_expected)
+
+        # compare the size
+        self.assertEqual((ds_received.RasterXSize, ds_received.RasterYSize),
+                         (ds_expected.RasterXSize, ds_expected.RasterYSize))
+        # compare the band count
+        self.assertEqual(ds_received.RasterCount, ds_expected.RasterCount)
+
+    def _decodeData(self, data):
+        return b64decode(data)
+
+    def _extractData(self):
+        doc = etree.fromstring( self.prepareXMLData(self.getXMLData()))
+        try:
+            return doc.xpath('//wps:ComplexData', namespaces= {'wps': 'http://www.opengis.net/wps/1.0.0'})[0].text
         except IndexError:
             self.fail('No complex data found in the XML tree')
 
-        _, self.tmppath = tempfile.mkstemp("." + self.getFileExtension("raster"))
-        with open(self.tmppath, 'wb') as f:
-            f.write(b64decode(encodedText))
-        gdal.AllRegister()
+    def tearDown(self):
+        super(WPS10XMLComparison, self).tearDown()
+        if hasattr(self, "tmp_path"):
+            if os.path.exists(self.tmp_path):
+                os.remove(self.tmp_path)
 
-        exp_path = os.path.join(
-            self.getExpectedFileDir(), self.getExpectedFileName("raster")
-        )
 
-        try:
-            self.res_ds = gdal.Open(self.tmppath, gdal.GA_ReadOnly)
-        except RuntimeError as e:
-            self.fail("Response could not be opened with GDAL. Error was %s" % e)
-
-        try:
-            self.exp_ds = gdal.Open(expected_path, gdal.GA_ReadOnly)
-        except RuntimeError:
-            self.skipTest("Expected response in '%s' is not present" % exp_path)
-
-        # compare the size
-        self.assertEqual((self.res_ds.RasterXSize, self.res_ds.RasterYSize),
-                         (self.exp_ds.RasterXSize, self.exp_ds.RasterYSize))
-        # compare the band count
-        self.assertEqual(self.res_ds.RasterCount, self.exp_ds.RasterCount)
-
-class WPS10BinaryComparison(GDALDatasetTestCase):
+class WPS10RasterImageComparison(GDALDatasetTestCase):
     def testBinaryComparisonRaster(self):
         self.skipTest('Only need to compare the band size and band count')
 
@@ -1305,7 +1321,7 @@ class WPS10BinaryComparison(GDALDatasetTestCase):
         self.assertEqual(self.res_ds.RasterCount, self.exp_ds.RasterCount)
 
         def tearDown(self):
-            super(WPS10BinaryComparison, self).tearDown()
+            super(WPS10RasterImageComparison, self).tearDown()
             try:
                 del self.res_ds
                 del self.exp_ds

@@ -5,7 +5,7 @@
 #          Fabian Schindler <fabian.schindler@eox.at>
 #
 #-------------------------------------------------------------------------------
-# Copyright (C) 2014 EOX IT Services GmbH
+# Copyright (C) 2014-2025 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -27,6 +27,7 @@
 #-------------------------------------------------------------------------------
 #pylint: disable=missing-docstring,line-too-long,too-many-ancestors
 
+import base64
 from autotest_services import base as testbase
 from autotest_services.tests.wps.base import (
     WPS10ExecuteMixIn, ContentTypeCheckMixIn, ContentDispositionCheckMixIn,
@@ -43,6 +44,7 @@ ALLOWED_PROCESSES = [
     'Test06MinimalValidProcess',
     'Test06MinimalAllowedProcess',
     'TC07:request-parameter',
+    'TC10:identity:complex:binary',
 ]
 XML_CONTENT_TYPE = "application/xml; charset=utf-8"
 
@@ -120,6 +122,17 @@ class WPS10DescribeProcessTC06MinimalAllowedProcess(ContentTypeCheckMixIn, testb
     expectedContentType = XML_CONTENT_TYPE
     def getRequest(self):
         params = "service=WPS&version=1.0.0&request=DescribeProcess&identifier=Test06MinimalAllowedProcess"
+        return (params, "kvp")
+
+    def testValidate(self, XMLData=None):
+        # NOTE: The minimal process allowed by the implementation is not
+        # standard compliant as it does not contain any input nor output.
+        pass
+
+class WPS10DescribeProcessTC10BinaryComplexDataIndentity(ContentTypeCheckMixIn, testbase.XMLTestCase):
+    expectedContentType = XML_CONTENT_TYPE
+    def getRequest(self):
+        params = "service=WPS&version=1.0.0&request=DescribeProcess&identifier=TC10:identity:complex:binary"
         return (params, "kvp")
 
     def testValidate(self, XMLData=None):
@@ -654,7 +667,7 @@ class WPS10ExecuteComplexDataPNGRawOutputKVPTestCase(ContentTypeCheckMixIn, Cont
         params = "service=WPS&version=1.0.0&request=Execute&identifier=TC03:image_generator:complex&DataInputs=TC03:seed=0&RawDataOutput=TC03:output00"
         return (params, "kvp")
 
-class WPS10ExecuteComplexDataTIFRawOutputKVPTestCase(ContentTypeCheckMixIn, ContentDispositionCheckMixIn, testbase.WPS10BinaryComparison):
+class WPS10ExecuteComplexDataTIFRawOutputKVPTestCase(ContentTypeCheckMixIn, ContentDispositionCheckMixIn, testbase.WPS10RasterImageComparison):
     expectedContentType = "image/tiff"
     expectedContentDisposition = 'attachment; filename="test03_binary_complex.tif"'
     def getFileExtension(self, file_type):
@@ -663,32 +676,83 @@ class WPS10ExecuteComplexDataTIFRawOutputKVPTestCase(ContentTypeCheckMixIn, Cont
         params = "service=WPS&version=1.0.0&request=Execute&identifier=TC03:image_generator:complex&DataInputs=TC03:seed=0&RawDataOutput=TC03:output00@mimeType=image%2Ftiff"
         return (params, "kvp")
 
-class WPS10ExecuteComplexDataJPGRawOutputTestCase(ContentTypeCheckMixIn, ContentDispositionCheckMixIn, testbase.WPS10BinaryComparison):
-    expectedContentType = "image/jpeg"
-    expectedContentDisposition = 'attachment; filename="test03_binary_complex.jpg"'
+
+class WPS10ExecuteComplexDataEmbeddedBase64EncodedBinaryInput(ContentTypeCheckMixIn, ContentDispositionCheckMixIn, testbase.OWSTestCase):
+    expectedContentType = "application/octet-stream"
+    expectedContentDisposition = 'attachment; filename="data.bin"'
+
+    base64_encoded_data = (
+        "piBpPz01HSrZPLVeybmK1ayMQ0RVk1ee8NfPDhXIqDQbe6jveMAL3kUvIjGgYGA2ZiCaI"
+        "zwanTd+E7+V1Mj0gQ=="
+    )
+
     def getFileExtension(self, file_type):
-        return "jpg"
+        return "bin"
+
     def getRequest(self):
         params = """<wps:Execute version="1.0.0" service="WPS"
         xmlns:wps="http://www.opengis.net/wps/1.0.0"
         xmlns:ows="http://www.opengis.net/ows/1.1">
-          <ows:Identifier>TC03:image_generator:complex</ows:Identifier>
+          <ows:Identifier>TC10:identity:complex:binary</ows:Identifier>
           <wps:DataInputs>
             <wps:Input>
-              <ows:Identifier>TC03:seed</ows:Identifier>
+              <ows:Identifier>TC10:input</ows:Identifier>
               <wps:Data>
-                <wps:LiteralData>0</wps:LiteralData>
+                <wps:ComplexData mimeType="application/octet-stream" encoding="base64">{data}</wps:ComplexData>
               </wps:Data>
             </wps:Input>
           </wps:DataInputs>
           <wps:ResponseForm>
-           <wps:RawDataOutput mimeType="image/jpeg">
-             <ows:Identifier>TC03:output00</ows:Identifier>
+           <wps:RawDataOutput mimeType="application/octet-stream">
+             <ows:Identifier>TC10:output</ows:Identifier>
            </wps:RawDataOutput>
           </wps:ResponseForm>
         </wps:Execute>
-        """
+        """.format(data=self.base64_encoded_data)
         return (params, "xml")
+
+    def testResponse(self):
+        data = self.getResponseData()
+        expected_data = base64.b64decode(self.base64_encoded_data)
+        self.assertEqual(data, expected_data)
+
+
+class WPS10ExecuteComplexDataEmbeddedBase64EncodedBinaryOutput(ContentTypeCheckMixIn, WPS10ExecuteMixIn, testbase.WPS10XMLComparison):
+    expectedContentType = XML_CONTENT_TYPE
+
+    base64_encoded_data = (
+        "piBpPz01HSrZPLVeybmK1ayMQ0RVk1ee8NfPDhXIqDQbe6jveMAL3kUvIjGgYGA2ZiCaI"
+        "zwanTd+E7+V1Mj0gQ=="
+    )
+
+    def getRequest(self):
+        params = """<wps:Execute version="1.0.0" service="WPS"
+        xmlns:wps="http://www.opengis.net/wps/1.0.0"
+        xmlns:ows="http://www.opengis.net/ows/1.1">
+          <ows:Identifier>TC10:identity:complex:binary</ows:Identifier>
+          <wps:DataInputs>
+            <wps:Input>
+              <ows:Identifier>TC10:input</ows:Identifier>
+              <wps:Data>
+                <wps:ComplexData mimeType="application/octet-stream" encoding="base64">{data}</wps:ComplexData>
+              </wps:Data>
+            </wps:Input>
+          </wps:DataInputs>
+          <wps:ResponseForm>
+            <wps:ResponseDocument lineage="true" storeExecuteResponse="false" status="false">
+              <wps:Output mimeType="application/octet-stream" encoding="base64">
+                <ows:Identifier>TC10:output</ows:Identifier>
+              </wps:Output>
+            </wps:ResponseDocument>
+          </wps:ResponseForm>
+        </wps:Execute>
+        """.format(data=self.base64_encoded_data)
+        return (params, "xml")
+
+    def _testData(self, data):
+        expected_data = base64.b64decode(self.base64_encoded_data)
+        self.assertEqual(data, expected_data)
+
 
 #===============================================================================
 # request parameter input test

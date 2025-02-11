@@ -165,5 +165,13 @@ Copyright (C) European Space Agency - ESA</ows:Abstract>
       <ows:Abstract>Test processes mimicking real world get statistics with complex output</ows:Abstract>
       <ows:Identifier>TC:GetStatisticsComplex</ows:Identifier>
     </wps:ProcessSummary>
+    <wps:ProcessSummary jobControlOptions="" outputTransmission="" processVersion="1.0.0">
+      <ows:Title>Test Case 10: Binary complex data identity.</ows:Title>
+      <ows:Abstract> Test identity process (the outputs are copies of the inputs)
+    demonstrating various features of the binary complex data inputs and outputs.
+    </ows:Abstract>
+      <ows:Identifier>TC10:identity:complex:binary</ows:Identifier>
+      <ows:Metadata href="http://www.metadata.com/test-metadata" about="test-metadata"/>
+    </wps:ProcessSummary>
   </wps:Contents>
 </wps:Capabilities>
