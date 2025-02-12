@@ -754,6 +754,42 @@ class WPS10ExecuteComplexDataEmbeddedBase64EncodedBinaryOutput(ContentTypeCheckM
         self.assertEqual(data, expected_data)
 
 
+class WPS10ExecuteComplexDataMultipartOutput(WPS10ExecuteMixIn, testbase.WPS10XMLMultipartComparison):
+
+    base64_encoded_data = (
+        "piBpPz01HSrZPLVeybmK1ayMQ0RVk1ee8NfPDhXIqDQbe6jveMAL3kUvIjGgYGA2ZiCaI"
+        "zwanTd+E7+V1Mj0gQ=="
+
+    )
+
+    def getRequest(self):
+        params = """<wps:Execute version="1.0.0" service="WPS"
+        xmlns:wps="http://www.opengis.net/wps/1.0.0"
+        xmlns:ows="http://www.opengis.net/ows/1.1">
+          <ows:Identifier>TC10:identity:complex:binary</ows:Identifier>
+          <wps:DataInputs>
+            <wps:Input>
+              <ows:Identifier>TC10:input</ows:Identifier>
+              <wps:Data>
+                <wps:ComplexData mimeType="application/octet-stream" encoding="base64">{data}</wps:ComplexData>
+              </wps:Data>
+            </wps:Input>
+          </wps:DataInputs>
+          <wps:ResponseForm>
+            <wps:ResponseDocument lineage="true" storeExecuteResponse="false" status="false">
+              <wps:Output mimeType="application/octet-stream">
+                <ows:Identifier>TC10:output</ows:Identifier>
+              </wps:Output>
+            </wps:ResponseDocument>
+          </wps:ResponseForm>
+        </wps:Execute>
+        """.format(data=self.base64_encoded_data)
+        return (params, "xml")
+
+    def _testData(self, data):
+        expected_data = base64.b64decode(self.base64_encoded_data)
+        self.assertEqual(data, expected_data)
+
 #===============================================================================
 # request parameter input test
 #===============================================================================

@@ -89,6 +89,16 @@ RE_MIME_TYPE_XML = re.compile(
 # Helper functions
 #===============================================================================
 
+def unpack_multipart_response(response):
+    # note that in case of multi-part response the first item is the global
+    # multi-part headers
+    headers = {b(key): b(value) for key, value in response.items()}
+    content = (
+        "".join(response) if getattr(response, "streaming", False)
+        else response.content
+    )
+    return mp.iterate(content, headers=headers)
+
 
 def extent_from_ds(ds):
     gt = ds.GetGeoTransform()
@@ -108,6 +118,7 @@ def resolution_from_ds(ds):
 
 def _getMime(s):
     return s.partition(';')[0].strip().lower()
+
 #===============================================================================
 # Common classes
 #===============================================================================
@@ -786,16 +797,7 @@ class MultipartTestCase(XMLTestCase):
         return etree.tostring(xml , encoding="UTF-8" , xml_declaration=True)"""
 
     def _unpackMultipartContent(self, response):
-
-        if getattr(response, "streaming", False):
-            content = "".join(response)
-        else:
-            content = response.content
-        headers = {
-            b(key): b(value)
-            for key, value in response.items()
-        }
-        for headers, data in mp.iterate(content, headers=headers):
+        for headers, data in unpack_multipart_response(response):
             if RE_MIME_TYPE_XML.match(headers[b"Content-Type"].decode("utf-8")):
                 self.xmlData = data.tobytes()
             else:
@@ -1214,45 +1216,44 @@ class RasdamanTestCaseMixIn(object):
 
 
 class WPS10XMLComparison(XMLTestCase):
+    namespace = {
+        'wps': 'http://www.opengis.net/wps/1.0.0',
+        'ows': 'http://www.opengis.net/ows/1.1',
+    }
+
     data_file_extension = ".tif"
 
     def getFileExtension(self, file_type=None):
         return "xml"
 
-    @staticmethod
-    def parseFileName(src) :
-        try :
-            with open(src, 'rb') as fid :
-                return fid.read()
-        except Exception as e :
-            raise XMLParseError ("Failed to parse the \"%s\" file! %s" % ( src , str(e) ))
-
-    def parse( self, src) :
-        return  self.parseFileName(src)
-
     def testXMLComparison(self):
+        response_bytes = self.prepareXMLData(self.getXMLData())
 
         expected_path= os.path.join(
             self.getExpectedFileDir(), self.getExpectedFileName('xml')
         )
 
-        expectedString= self.parse(expected_path)
-        expected_doc = etree.fromstring(expectedString)
-        # replace the encoded data so it compare other nodes in the xml files
-        response_doc = etree.fromstring(self.prepareXMLData(self.getXMLData()))
-        expected_elems = expected_doc.xpath('//wps:ComplexData', namespaces={'wps': 'http://www.opengis.net/wps/1.0.0'})
-        response_elems = response_doc.xpath('//wps:ComplexData', namespaces= {'wps': 'http://www.opengis.net/wps/1.0.0'})
+        if os.path.exists(expected_path):
+            response_xml = etree.fromstring(response_bytes)
+            with open(expected_path, "rb") as file:
+                expected_xml = etree.fromstring(file.read())
+            self._modifyXMLResponse(response_xml, expected_xml)
+            response_bytes = etree.tostring(response_xml, encoding="UTF-8")
 
-        for expected_elem, response_elem in zip(expected_elems, response_elems):
-            parent = response_elem.getparent()
-            # override the response elem with the expected elem
-            parent[parent.index(response_elem)] = expected_elem
+        self._testXMLComparison(response=response_bytes)
 
-        self.response.content = etree.tostring(response_doc, encoding="ISO-8859-1")
+    def _modifyXMLResponse(self, response_xml, expected_xml):
+        self._replaceElements(response_xml, expected_xml, '//wps:ComplexData', namespaces=self.namespace)
 
-        super(WPS10XMLComparison, self).testXMLComparison()
+    def _replaceElements(self, response_xml, expected_xml, *args, **kwargs):
+        expected_elements = expected_xml.xpath(*args, **kwargs)
+        response_elements = response_xml.xpath(*args, **kwargs)
+        for expected_element, response_element in zip(expected_elements, response_elements):
+            parent = response_element.getparent()
+            # override the response element with the expected one
+            parent[parent.index(response_element)] = expected_element
 
-    def testEmbeddedData(self):
+    def testResponseData(self):
         self._testData(self._decodeData(self._extractData()))
 
     def _testData(self, data):
@@ -1294,9 +1295,9 @@ class WPS10XMLComparison(XMLTestCase):
         return b64decode(data)
 
     def _extractData(self):
-        doc = etree.fromstring( self.prepareXMLData(self.getXMLData()))
+        doc = etree.fromstring(self.prepareXMLData(self.getXMLData()))
         try:
-            return doc.xpath('//wps:ComplexData', namespaces= {'wps': 'http://www.opengis.net/wps/1.0.0'})[0].text
+            return doc.xpath('//wps:ComplexData', namespaces=self.namespace)[0].text
         except IndexError:
             self.fail('No complex data found in the XML tree')
 
@@ -1305,6 +1306,118 @@ class WPS10XMLComparison(XMLTestCase):
         if hasattr(self, "tmp_path"):
             if os.path.exists(self.tmp_path):
                 os.remove(self.tmp_path)
+
+
+class WPS10XMLMultipartComparison(WPS10XMLComparison):
+
+    expectedNumberOfParts = 2
+    expectedContentType = "multipart/related"
+
+    @property
+    def response_parts(self):
+        if not hasattr(self, "_response_parts"):
+            parts = list(unpack_multipart_response(self.response))
+            self._response_parts = parts[1:] if len(parts) > 1 else parts
+        return self._response_parts
+
+    def testContentType(self):
+        content_type = self.getResponseHeader('Content-Type').partition(";")[0]
+        self.assertEqual(content_type, self.expectedContentType)
+
+    def testNumberOfParts(self):
+        self.assertEqual(len(self.response_parts), self.expectedNumberOfParts)
+
+    def getXMLData(self):
+        for headers, data in self.response_parts:
+            content_type = headers[b"Content-Type"].decode("ascii").partition(";")[0]
+            if RE_MIME_TYPE_XML.match(content_type):
+                return data.tobytes()
+        self.fail("No XML data received.")
+
+    def _modifyXMLResponse(self, response_xml, expected_xml):
+        self._replaceElements(response_xml, expected_xml, '//wps:ComplexData', namespaces=self.namespace)
+        self._replaceElements(response_xml, expected_xml, '//wps:Reference', namespaces=self.namespace)
+
+    def _decodeData(self, data):
+        return data
+
+    def _extractData(self):
+        xml = etree.fromstring(self.prepareXMLData(self.getXMLData()))
+
+        for element in xml.xpath('//wps:Reference', namespaces=self.namespace):
+            href = element.get("href")
+            if href and href.startswith("cid:"):
+                content_id = href[4:]
+                break
+        else:
+            self.fail('No valid complex data reference found in the XML tree.')
+
+        for headers, data in self.response_parts:
+            item_content_id = headers.get(b"Content-Id")
+            if item_content_id and content_id == item_content_id.decode("ascii"):
+                return data
+        self.fail('No valid complex data data found in the response parts.')
+
+    def testPartReferences(self):
+        # Check references to the attached response parts.
+        xml = etree.fromstring(self.prepareXMLData(self.getXMLData()))
+
+        def _collect_named_parts():
+            named_parts = {}
+            for headers, data in self.response_parts:
+                content_id = headers.get(b"Content-Id")
+                content_type = headers.get(b"Content-Type")
+                if content_id:
+                    named_parts[content_id.decode("ascii")] = (
+                        content_type.decode("ascii")
+                        if content_type else None
+                    )
+            return named_parts
+
+        def _find_part_references(xpath):
+            for element in xml.xpath(xpath, namespaces=self.namespace):
+                result = element.xpath("./ows:Identifier", namespaces=self.namespace)
+                if not result:
+                    continue
+                identifier = result[0].text
+
+                result = element.xpath("./wps:Reference", namespaces=self.namespace)
+                if not result:
+                    continue
+
+                content_id = result[0].get("href")
+                if not content_id or not content_id.startswith("cid:"):
+                    continue
+                content_id = content_id[4:]
+
+                content_type = result[0].get("mimeType")
+
+                yield identifier, content_id, content_type
+
+        def _check_parts(references, named_parts):
+            for identifier, content_id, content_type in references:
+                if content_id not in named_parts:
+                    self.fail(
+                        "Unresolved reference to part %s (%s)!" % (
+                            content_id, identifier
+                        )
+                    )
+                if content_type and not named_parts[content_id]:
+                    self.fail(
+                        "Missing content type of part %s (%s)! expected: %s" % (
+                            content_id, identifier, content_type
+                        )
+                    )
+                if content_type and named_parts[content_id] != content_type:
+                    self.fail(
+                        "Content type mismatch of part %s (%s)! received: %s, expected: %s" % (
+                            content_id, identifier, named_parts[content_id], content_type
+                        )
+                    )
+
+        named_parts = _collect_named_parts()
+        _check_parts(_find_part_references("//wps:InputData/wps:Input"), named_parts)
+        _check_parts(_find_part_references("//wps:ProcessOutputs/wps:Output"), named_parts)
 
 
 class WPS10RasterImageComparison(GDALDatasetTestCase):
