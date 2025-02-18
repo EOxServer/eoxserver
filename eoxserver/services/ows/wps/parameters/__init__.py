@@ -99,7 +99,7 @@ class BaseReference(object):
         encoding    output ComplexData encoding
         schema      output ComplexData schema
     """
-    def __init__(self, href, mime_type=None, encoding=None, schema=None, **kwarg):
+    def __init__(self, href, mime_type=None, encoding=None, schema=None, **kwargs):
         self.href = href
         self.mime_type = mime_type
         self.encoding = encoding
@@ -117,6 +117,6 @@ class Reference(BaseReference):
         encoding    output ComplexData encoding
         schema      output ComplexData schema
     """
-    def __init__(self, path, *args, **kwarg):
+    def __init__(self, path, *args, **kwargs):
         super(Reference, self).__init__(*args, **kwargs)
         self.path = path

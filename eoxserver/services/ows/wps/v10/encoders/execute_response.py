@@ -52,16 +52,21 @@ from .parameters import (
     encode_input_exec, encode_output_exec, encode_output_def
 )
 from .base import WPS10BaseXMLEncoder
-from .execute_response_raw import encode_raw_complex
+from .execute_response_raw import (
+    encode_raw_complex, encode_multipart_input_reference,
+)
 
 
 class WPS10ExecuteResponseXMLEncoder(WPS10BaseXMLEncoder):
     """ WPS 1.0 ExecuteResponse XML response encoder. """
 
-    def serialize(self, tree, **kwargs):
+    def serialize(self, tree, allow_multipart_response=True, **kwargs):
         payload, content_type = super(WPS10ExecuteResponseXMLEncoder, self).serialize(tree, **kwargs)
         if not self.extra_parts:
             return payload, content_type
+        if not allow_multipart_response:
+            # safeguard for the asynchronous file serialization
+            raise RuntimeError("Multi-part response serialization is forbiden!")
         # multi-part response
         payload = ResultBuffer(payload, content_type=content_type)
         return to_http_response([payload] + self.extra_parts)
@@ -75,6 +80,13 @@ class WPS10ExecuteResponseXMLEncoder(WPS10BaseXMLEncoder):
         self.inputs = inputs
         self.status_location = status_location
         self.extra_parts = []
+        self._sanitize_input = None # used by the Asynchronous backend
+
+    def add_input_sanitizer(self, sanitize_input):
+        """ Add callable fixing/modifying inputs before serialization.
+        E.g., complex data converted to file references.
+        """
+        self._sanitize_input = sanitize_input
 
     def _encode_common(self, status):
         """ Encode common response element. """
@@ -181,29 +193,19 @@ class WPS10ExecuteResponseXMLEncoder(WPS10BaseXMLEncoder):
 
         return elem
 
-    def _collect_extra_parts(self, prm, data):
-        """ Identify complex data items which cannot be directly embedded in
-        the XML response document, replace them with CID reference and collect
-        them into the provides dictionary.
-        """
-        if prm.allows_xml_embedding(data):
-            return data
-        # replace data with a reference to a separate response part
-        content_id = str(uuid.uuid4())
-        self.extra_parts.append(encode_raw_complex(
-            data, prm, identifier=content_id
-        ))
-        return BaseReference(
-            href="cid:{cid}".format(cid=content_id),
-            mime_type=getattr(data, "mime_type", None),
-            encoding=getattr(data, "encoding", None),
-            schema=getattr(data, "schema", None),
-        )
-
     def _encode_input(self, data, prm, raw):
         """ Encode one DataInputs sub-element. """
+        if self._sanitize_input:
+            data, prm, raw = self._sanitize_input(data, prm, raw)
         elem = encode_input_exec(raw)
-        if isinstance(raw, InputReference):
+        if isinstance(data, Reference):
+            # asynchronous backend may store inputs as file references
+            elem.append(_encode_complex_data_reference(data, prm))
+        elif isinstance(raw, InputReference):
+            if raw.href.startswith("cid:"):
+                self.extra_parts.append(
+                    encode_multipart_input_reference(raw, prm)
+                )
             elem.append(_encode_input_reference(raw))
         elif isinstance(prm, LiteralData):
             elem.append(WPS("Data", _encode_raw_input_literal(raw, prm)))
@@ -214,10 +216,11 @@ class WPS10ExecuteResponseXMLEncoder(WPS10BaseXMLEncoder):
         elif isinstance(prm, ComplexData):
             if data is None:
                 data = prm.parse(
-                    data=raw.data, mime_type=raw.mime_type, encoding=raw.encoding,
-                    schema=raw.schema
+                    data=raw.data,
+                    mime_type=raw.mime_type,
+                    encoding=raw.encoding,
+                    schema=raw.schema,
                 )
-            data = self._collect_extra_parts(prm, data)
             if isinstance(data, BaseReference):
                 elem.append(_encode_complex_data_reference(data, prm))
             else:
@@ -242,6 +245,25 @@ class WPS10ExecuteResponseXMLEncoder(WPS10BaseXMLEncoder):
             else:
                 elem.append(WPS("Data", _encode_complex(data, prm)))
         return elem
+
+    def _collect_extra_parts(self, prm, data):
+        """ Identify complex data items which cannot be directly embedded in
+        the XML response document, replace them with CID reference and collect
+        them into the dictionary of extra parts.
+        """
+        if prm.allows_xml_embedding(data):
+            return data
+        # replace data with a reference to a separate response part
+        content_id = str(uuid.uuid4())
+        self.extra_parts.append(encode_raw_complex(
+            data, prm, identifier=content_id
+        ))
+        return BaseReference(
+            href=f"cid:{content_id}",
+            mime_type=getattr(data, "mime_type", None),
+            encoding=getattr(data, "encoding", None),
+            schema=getattr(data, "schema", None),
+        )
 
 
 def _encode_input_reference(ref):

@@ -41,30 +41,10 @@ from django.conf import settings
 from django.utils.module_loading import import_string
 from django.utils.six.moves.urllib import parse, request, error
 
-from eoxserver.core.util.multiparttools import iterate as iterate_multipart
 from eoxserver.services.ows.wps.config import (
     DEFAULT_EOXS_PROCESSES, DEFAULT_EOXS_ASYNC_BACKENDS
 )
 from eoxserver.services.ows.wps.exceptions import NoSuchProcessError
-
-
-def parse_named_parts(request):
-    """ Extract named parts of the multi-part request
-    and return them as dictionary
-    """
-    parts = {}
-    if request.method == 'POST':
-        content_type = request.META.get("CONTENT_TYPE", "")
-        if content_type.startswith("multipart"):
-            parts = dict(
-                (content_id, data) for content_id, data in (
-                    (headers.get("Content-Id"), data)
-                    for headers, data in iterate_multipart(
-                        request.body, headers={"Content-Type": content_type}
-                    )
-                ) if content_id
-            )
-    return parts
 
 
 class InMemoryURLResolver(object):
@@ -73,8 +53,7 @@ class InMemoryURLResolver(object):
     The resolver resolves references and returns them as data strings.
     """
 
-    def __init__(self, parts=None, logger=None):
-        self.parts = parts or {}
+    def __init__(self, logger=None):
         self.logger = logger or getLogger(__name__)
 
     def __call__(self, href, body, headers):
@@ -82,20 +61,10 @@ class InMemoryURLResolver(object):
         self.logger.debug(
             "Resolving reference: %s%s", href, "" if body is None else " (POST)"
         )
-        url = parse.urlparse(href)
-        if url.scheme == "cid":
-            return self._resolve_multipart(url.path)
-        elif url.scheme in ('http', 'https'):
+        url_scheme, _, _ = href.partition(":")
+        if url_scheme in ('http', 'https'):
             return self._resolve_http(href, body, headers)
-        else:
-            raise ValueError("Unsupported URL scheme %r!" % url.scheme)
-
-    def _resolve_multipart(self, content_id):
-        """ Resolve multipart-related."""
-        try:
-            return self.parts[content_id]
-        except KeyError:
-            raise ValueError("No part with content-id %r." % content_id)
+        raise ValueError("Unsupported URL scheme %r!" % url_scheme)
 
     def _resolve_http(self, href, body=None, headers=None):
         """ Resolve the HTTP request."""

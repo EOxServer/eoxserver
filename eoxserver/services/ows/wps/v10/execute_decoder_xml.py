@@ -68,6 +68,35 @@ def _parse_input(element):
     return id_, value
 
 
+def _resolve_cid_references(inputs, related_parts):
+    """ Replace references to related parts with the actual content. """
+
+    data_cache = {} # cache data to prevent duplications
+
+    def _resolve_cid_reference(reference):
+        if not reference.href.startswith("cid:"):
+            return
+        # attach request part data to the reference object
+        identifier = reference.href[4:]
+
+        if identifier not in data_cache:
+            try:
+                data, headers = related_parts[identifier]
+            except KeyError:
+                raise ValueError(f"Failed to resolve the {reference.href} reference!") from None
+            data = data.tobytes()
+            data_cache[identifier] = data, headers
+        else:
+            data, headers = data_cache[identifier]
+
+        reference.data, reference.headers = data, headers
+
+    for id_, item in inputs:
+        if isinstance(item, InputReference):
+            _resolve_cid_reference(item)
+        yield id_, item
+
+
 def _parse_response_form(elem_rform):
     """ Parse ResponseForm element holding either ResponseDocument or
     RawDataOutput elements.
@@ -98,7 +127,7 @@ def _parse_response_form(elem_rform):
 
 def _parse_input_reference(elem, identifier, title, abstract):
     """ Parse one input item passed as a reference. """
-    href = elem.attrib.get(ns_xlink("href"))
+    href = elem.attrib.get("href") or elem.attrib.get(ns_xlink("href"))
     if href is None:
         raise ValueError("Missing the mandatory 'xlink:href' attribute!")
 
@@ -112,13 +141,17 @@ def _parse_input_reference(elem, identifier, title, abstract):
     )
 
     return InputReference(
-        identifier, title, abstract,
-        href, headers, body,
-        elem.attrib.get("method", "GET"),
-        elem.attrib.get("mimeType"),
-        elem.attrib.get("encoding"),
-        elem.attrib.get("schema"),
-        body_href,
+        href=href,
+        headers=headers,
+        body=body,
+        identifier=identifier,
+        title=title,
+        abstract=abstract,
+        method=elem.attrib.get("method", "GET"),
+        mime_type=elem.attrib.get("mimeType"),
+        encoding=elem.attrib.get("encoding"),
+        schema=elem.attrib.get("schema"),
+        body_href=body_href,
     )
 
 
@@ -185,10 +218,14 @@ class WPS10ExecuteXMLDecoder(xml.Decoder):
     namespaces = nsmap
     identifier = xml.Parameter("ows:Identifier/text()")
 
+    def __init__(self, tree, related_parts=None):
+        super().__init__(tree)
+        self._related_parts = related_parts or {}
+
     @property
     def inputs(self):
         """ Get the raw data inputs as a dictionary. """
-        return dict(self._inputs)
+        return dict(_resolve_cid_references(self._inputs, self._related_parts))
 
     @property
     def response_form(self):

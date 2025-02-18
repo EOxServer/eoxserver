@@ -29,10 +29,7 @@
 #-------------------------------------------------------------------------------
 
 import types
-try:
-    from StringIO import StringIO
-except ImportError:
-    from io import StringIO
+from io import BytesIO
 
 from eoxserver.services.result import (
     to_http_response, ResultItem,
@@ -83,10 +80,12 @@ class ResultAlt(ResultItem):
                  close=False, headers=None):
         # pylint: disable=too-many-arguments
         ResultItem.__init__(self, content_type, filename, identifier)
-        if isinstance(buf, string_types) or isinstance(buf, bytes):
-            self._file = StringIO(buf.decode('utf-8'))  # make sure a byte string is passed
+        if isinstance(buf, bytes):
+            self._file = BytesIO(buf)
+        elif isinstance(buf, str):
+            self._file = BytesIO(buf.encode('utf-8'))
         elif isinstance(buf, (tuple, list, types.GeneratorType)):
-            tmp = StringIO()
+            tmp = BytesIO()
             for chunk in buf:
                 tmp.write(chunk)
             self._file = tmp
@@ -169,4 +168,15 @@ def encode_raw_complex(data, prm, identifier=None):
         content_type=content_type,
         filename=getattr(data, "filename", None),
         headers=getattr(data, "headers", None),
+    )
+
+
+def encode_multipart_input_reference(data, prm):
+    if not data.href.startswith("cid:"):
+        raise ValueError("Content-id input reference expected!")
+    content_id = data.href[4:]
+    return ResultAlt(
+        data.data,
+        identifier=content_id,
+        content_type=data.headers.get("Content-Type") or data.mime_type,
     )

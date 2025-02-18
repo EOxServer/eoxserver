@@ -123,17 +123,21 @@ def _decode_input(input_def, raw_value):
 
 def _resolve_reference(input_ref, resolver):
     """ Get the input passed as a reference."""
-    # prepare HTTP/POST request
-    if input_ref.method == "POST":
-        if input_ref.body_href is not None:
-            input_ref.body = resolver(
-                input_ref.body_href, None, input_ref.headers
-            )
-        if input_ref.body is not None:
-            ValueError("Missing the POST request body!")
+    if input_ref.href.startswith("cid:"):
+        # multipart/related reference
+        data = input_ref.data
     else:
-        input_ref.body = None
-    data = resolver(input_ref.href, input_ref.body, input_ref.headers)
+        # prepare HTTP/POST request
+        if input_ref.method == "POST":
+            if input_ref.body_href is not None:
+                input_ref.body = resolver(
+                    input_ref.body_href, None, input_ref.headers
+                )
+            if input_ref.body is not None:
+                raise ValueError("Missing the POST request body!")
+        else:
+            input_ref.body = None
+        data = resolver(input_ref.href, input_ref.body, input_ref.headers)
     return InputData(
         data=data,
         identifier=input_ref.identifier,

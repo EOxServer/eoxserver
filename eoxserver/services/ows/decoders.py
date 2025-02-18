@@ -25,11 +25,12 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-
 from eoxserver.core.decoders import kvp, xml, upper, typelist
 from eoxserver.core.util.xmltools import NameSpace, NameSpaceMap
+from eoxserver.core.util.multiparttools import get_multipart_related_root
 from eoxserver.services.ows.version import parse_version_string
 
+DEFAULT_CONTENT_TYPE = "application/xml"
 
 ns_xlink = NameSpace("http://www.w3.org/1999/xlink", "xlink")
 ns_ows10 = NameSpace("http://www.opengis.net/ows/1.0", "ows10")
@@ -45,9 +46,20 @@ def get_decoder(request):
     """
     if request.method == "GET":
         return OWSCommonKVPDecoder(request.GET)
-    elif request.method == "POST":
-        # TODO: this may also be in a different format.
-        return OWSCommonXMLDecoder(request.body)
+    if request.method == "POST":
+        return _decode_post_request(request.body, request.headers)
+    raise ValueError(f"Unexpected request method {request.method}!")
+
+
+def _decode_post_request(body, headers, level=0):
+    content_type = headers.get("Content-Type")
+    mime_type, _, _ = (content_type or DEFAULT_CONTENT_TYPE).partition(";")
+    if mime_type in ("application/xml", "text/xml"):
+        return OWSCommonXMLDecoder(body)
+    if level == 0 and mime_type == "multipart/related":
+        body, headers = get_multipart_related_root(body, headers)
+        return _decode_post_request(body.tobytes(), headers, level + 1)
+    raise ValueError(f"Unsupported {mime_type} request format!")
 
 
 class OWSCommonKVPDecoder(kvp.Decoder):

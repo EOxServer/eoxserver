@@ -28,12 +28,12 @@
 
 from logging import getLogger
 
-from eoxserver.core.util import multiparttools as mp
+from eoxserver.core.util.multiparttools import parse_multipart_related
 from eoxserver.services.ows.wps.interfaces import (
     ProcessInterface, AsyncBackendInterface,
 )
 from eoxserver.services.ows.wps.util import (
-    parse_named_parts, InMemoryURLResolver, get_process_by_identifier
+    InMemoryURLResolver, get_process_by_identifier
 )
 from eoxserver.services.ows.wps.exceptions import (
     InvalidParameterValue, StorageNotSupported,
@@ -55,6 +55,8 @@ from eoxserver.services.ows.wps.v10.execute_util import (
 
 from eoxserver.services.ows.wps.util import get_async_backends
 
+DEFAULT_CONTENT_TYPE = "application/xml"
+
 
 class WPS10ExecuteHandler(object):
     """ WPS 1.0 Execute service handler. """
@@ -67,16 +69,25 @@ class WPS10ExecuteHandler(object):
     @staticmethod
     def get_decoder(request):
         """ Get request decoder matching the request format. """
+
+        def _get_content_type(headers):
+            content_type = headers.get("Content-Type") or DEFAULT_CONTENT_TYPE
+            return content_type.partition(";")[0]
+
         if request.method == "GET":
             return WPS10ExecuteKVPDecoder(
                 parse_query_string(request.META['QUERY_STRING'])
             )
         elif request.method == "POST":
-            # support for multipart items
-            if request.META["CONTENT_TYPE"].startswith("multipart/"):
-                _, data = next(mp.iterate(request.body))
-                return WPS10ExecuteXMLDecoder(data)
-            return WPS10ExecuteXMLDecoder(request.body)
+            body, headers, extra_parts = request.body, request.headers, None
+            mime_type = _get_content_type(headers)
+            if mime_type == "multipart/related":
+                (body, headers), extra_parts = parse_multipart_related(body, headers)
+                body = body.tobytes() # the XML parser cannot handle memoryview
+                mime_type = _get_content_type(headers)
+            if mime_type in ("application/xml", "text/xml"):
+                return WPS10ExecuteXMLDecoder(body, extra_parts)
+            raise ValueError(f"Unsupported {mime_type} POST request format!") from None
 
     def get_async_backend(self):
         """ Get available asynchronous back-end matched by the service version.
@@ -92,9 +103,6 @@ class WPS10ExecuteHandler(object):
         logger = getLogger(__name__)
         # decode request
         decoder = self.get_decoder(request)
-
-        # parse named requests parts used in case of cid references
-        extra_parts = parse_named_parts(request)
 
         # get the process and convert input/output definitions to a common format
         process = get_process_by_identifier(decoder.identifier)
@@ -138,7 +146,10 @@ class WPS10ExecuteHandler(object):
 
             # pass the control over the processing to the asynchronous back-end
             job_id = async_backend.execute(
-                process, raw_inputs, resp_form, extra_parts, request=request,
+                process=process,
+                raw_inputs=raw_inputs,
+                resp_form=resp_form,
+                request=request,
             )
 
             # encode the StatusAccepted response
@@ -163,7 +174,7 @@ class WPS10ExecuteHandler(object):
             inputs = {}
             inputs.update(decode_output_requests(resp_form, output_defs))
             inputs.update(decode_raw_inputs(
-                raw_inputs, input_defs, InMemoryURLResolver(extra_parts, logger)
+                raw_inputs, input_defs, InMemoryURLResolver(logger=logger)
             ))
             if not resp_form.raw:
                 encoder.inputs = inputs
