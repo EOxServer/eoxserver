@@ -300,14 +300,10 @@ def parse_headers(headers):
     """
     content_type = headers.get(b"Content-Type", b"application/octet-stream")
     _, params = mp.parse_parametrized_option(
-        headers.get(b"Content-Disposition", b"")
+        headers.get(b"Content-Disposition", b""),
+        delimiter=b";", assignment=b"=", quote=b"\""
     )
     filename = params.get(b"filename")
-    if filename:
-        if filename.startswith(b'"'):
-            filename = filename[1:]
-        if filename.endswith(b'"'):
-            filename = filename[:-1]
 
     identifier = headers.get(b"Content-Id")
     return content_type, filename, identifier

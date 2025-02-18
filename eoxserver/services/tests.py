@@ -48,99 +48,260 @@ import eoxserver.services.views
 
 
 
-class MultipartTest(TestCase):
+class BaseMultipartTest(TestCase):
     """ Test class for multipart parsing/splitting
     """
 
-    example_multipart = b(dedent("""\
-        MIME-Version: 1.0\r
-        Content-Type: multipart/mixed; boundary=frontier\r
-        \r
-        This is a message with multiple parts in MIME format.\r
-        --frontier
-        Content-Type: text/plain\r
-        \r
-        This is the body of the message.\r
-        --frontier
-        Content-Type: application/octet-stream\r
-        Content-Transfer-Encoding: base64\r
-        \r
-        PGh0bWw+CiAgPGhlYWQ+CiAgPC9oZWFkPgogIDxib2R5PgogICAgPHA+VGhpcyBpcyB0aGUgYm9keSBvZiB0aGUgbWVzc2FnZS48L3A+CiAgPC9ib2R5Pgo8L2h0bWw+Cg==\r
-        --frontier--
-    """))
+    @staticmethod
+    def _headers_string_to_bytes(headers):
+        return {
+            key.encode("ascii"): value.encode("ascii")
+            for key, value in headers.items()
+        }
+
+    test_data = mp.CRLF.join([
+        b"MIME-Version: 1.0",
+        b"Content-Type: multipart/mixed; boundary=frontier",
+        b"",
+        b"This is a message with multiple parts in MIME format.",
+        b"--frontier",
+        b"Content-Type: text/plain",
+        b"",
+        b"This is the body of the message.",
+        b"--frontier",
+        b"Content-Type: application/octet-stream",
+        b"Content-Transfer-Encoding: base64",
+        b"",
+        b"PGh0bWw+CiAgPGhlYWQ+CiAgPC9oZWFkPgogIDxib2R5PgogICAgPHA+VGhpcyBpcyB0aGUgYm9keSBvZiB0aGUgbWVzc2FnZS48L3A+CiAgPC9ib2R5Pgo8L2h0bWw+Cg==",
+        b"--frontier--",
+    ])
+
+    expected_global_headers = {
+        "MIME-Version": "1.0",
+        "Content-Type": "multipart/mixed; boundary=frontier",
+    }
+
+    expected_parts = [
+        (
+            b"This is the body of the message.",
+            {"Content-Type": "text/plain"},
+        ),
+        (
+            b"PGh0bWw+CiAgPGhlYWQ+CiAgPC9oZWFkPgogIDxib2R5PgogICAgPHA+VGhpcyBpcyB0aGUgYm9keSBvZiB0aGUgbWVzc2FnZS48L3A+CiAgPC9ib2R5Pgo8L2h0bWw+Cg==",
+            {
+                "Content-Type": "application/octet-stream",
+                "Content-Transfer-Encoding": "base64",
+            },
+        )
+    ]
+
+    def test_gloabal_header_parsing(self):
+        global_headers = mp.parse_headers(self.test_data)
+        self.assertEqual(global_headers, self.expected_global_headers)
 
     def test_multipart_iteration(self):
-        parsed = [
-            (i[0], i[1].tobytes() if isinstance(i[1], memoryview) else i[1])
-            for i in mp.iterate(self.example_multipart)
-        ]
+        global_headers = mp.parse_headers(self.test_data)
+        parts = list(mp.iterate_multipart_data(self.test_data, global_headers))
+        self.assertEqual(parts, self.expected_parts)
 
-        self.assertEqual([
-                ({b"MIME-Version": b"1.0", b"Content-Type": b"multipart/mixed; boundary=frontier"}, b""),
-                ({b"Content-Type": b"text/plain"}, b"This is the body of the message."),
-                ({b"Content-Type": b"application/octet-stream", b"Content-Transfer-Encoding": b"base64"}, b"PGh0bWw+CiAgPGhlYWQ+CiAgPC9oZWFkPgogIDxib2R5PgogICAgPHA+VGhpcyBpcyB0aGUgYm9keSBvZiB0aGUgbWVzc2FnZS48L3A+CiAgPC9ib2R5Pgo8L2h0bWw+Cg==")
-            ], parsed
+    def test_multipart_iteration_old(self):
+        parts = list(mp.iterate(self.test_data))
+        expected_parts = [
+            (self._headers_string_to_bytes(self.expected_global_headers), b""),
+            *(
+                (self._headers_string_to_bytes(headers), data)
+                for data, headers in self.expected_parts
+            )
+        ]
+        self.assertEqual(parts, expected_parts)
+
+
+class BaseMultipartRelatedTest(BaseMultipartTest):
+    """ Test class for multipart/related parsing/splitting
+    """
+
+    test_data = mp.CRLF.join([
+        b"Content-Type: multipart/related; boundary=frontier",
+        b"",
+        b"This is a message with multiple parts in MIME format.",
+        b"--frontier",
+        b"Content-Type: text/plain",
+        b"",
+        b"This is the body of the message.",
+        b"--frontier",
+        b"Content-Id: 69a2a211-33c5-430f-a5c5-b4b284f86940",
+        b"Content-Type: application/octet-stream",
+        b"Content-Transfer-Encoding: base64",
+        b"",
+        b"PGh0bWw+CiAgPGhlYWQ+CiAgPC9oZWFkPgogIDxib2R5PgogICAgPHA+VGhpcyBpcyB0aGUgYm9keSBvZiB0aGUgbWVzc2FnZS48L3A+CiAgPC9ib2R5Pgo8L2h0bWw+Cg==",
+        b"--frontier",
+        b"Content-Id: c13f681f-0547-49b6-b785-3de96f2abd95",
+        b"Content-Type: application/octet-stream",
+        b"",
+        b"\xccX\xccI\xfe\x04\xb6\xb5\x8c\xb2\xd0\xf5\x0f\xf1H\xe6",
+        b"--frontier--",
+    ])
+
+    expected_global_headers = {
+        "Content-Type": "multipart/related; boundary=frontier",
+    }
+
+    expected_parts = [
+        (
+            b"This is the body of the message.",
+            {"Content-Type": "text/plain"},
+        ),
+        (
+            b"PGh0bWw+CiAgPGhlYWQ+CiAgPC9oZWFkPgogIDxib2R5PgogICAgPHA+VGhpcyBpcyB0aGUgYm9keSBvZiB0aGUgbWVzc2FnZS48L3A+CiAgPC9ib2R5Pgo8L2h0bWw+Cg==",
+            {
+                "Content-Id": "69a2a211-33c5-430f-a5c5-b4b284f86940",
+                "Content-Type": "application/octet-stream",
+                "Content-Transfer-Encoding": "base64",
+            },
+        ),
+        (
+            b"\xccX\xccI\xfe\x04\xb6\xb5\x8c\xb2\xd0\xf5\x0f\xf1H\xe6",
+            {
+                "Content-Id": "c13f681f-0547-49b6-b785-3de96f2abd95",
+                "Content-Type": "application/octet-stream",
+            },
         )
+    ]
+
+    expected_root_part = expected_parts[0]
+    expected_extra_parts = {
+        "69a2a211-33c5-430f-a5c5-b4b284f86940": expected_parts[1],
+        "c13f681f-0547-49b6-b785-3de96f2abd95": expected_parts[2],
+    }
+
+    def test_multipart_related_root_extraction(self):
+        global_headers = mp.parse_headers(self.test_data)
+        root_part = mp.get_multipart_related_root(self.test_data, global_headers)
+        self.assertEqual(root_part, self.expected_root_part)
+
+    def test_multipart_parsing(self):
+        global_headers = mp.parse_headers(self.test_data)
+        root_part, extra_parts = mp.parse_multipart_related(self.test_data, global_headers)
+        self.assertEqual(root_part, self.expected_root_part)
+
+
+class AdvancedMultipartRelatedTest(BaseMultipartRelatedTest):
+    """ Test class for multipart/related parsing/splitting
+    """
+
+    test_data = mp.CRLF.join([
+        b"Content-Type: multipart/related; type=\"text/plain\"; boundary=\"frontier\"; start=\"685a49b1-8c50-4a6a-a06e-b0ef742c706c\"",
+        b"",
+        b"This is a message with multiple parts in MIME format.",
+        b"--frontier",
+        b"Content-Id: 69a2a211-33c5-430f-a5c5-b4b284f86940",
+        b"Content-Type: application/octet-stream",
+        b"Content-Transfer-Encoding: base64",
+        b"",
+        b"PGh0bWw+CiAgPGhlYWQ+CiAgPC9oZWFkPgogIDxib2R5PgogICAgPHA+VGhpcyBpcyB0aGUgYm9keSBvZiB0aGUgbWVzc2FnZS48L3A+CiAgPC9ib2R5Pgo8L2h0bWw+Cg==",
+        b"--frontier",
+        b"Content-Id: 685a49b1-8c50-4a6a-a06e-b0ef742c706c",
+        b"Content-Type: text/plain",
+        b"",
+        b"This is the body of the message.",
+        b"--frontier",
+        b"Content-Id: c13f681f-0547-49b6-b785-3de96f2abd95",
+        b"Content-Type: application/octet-stream",
+        b"",
+        b"\xccX\xccI\xfe\x04\xb6\xb5\x8c\xb2\xd0\xf5\x0f\xf1H\xe6",
+
+        b"--frontier--",
+    ])
+
+    expected_global_headers = {
+        "Content-Type": "multipart/related; type=\"text/plain\"; boundary=\"frontier\"; start=\"685a49b1-8c50-4a6a-a06e-b0ef742c706c\"",
+    }
+
+    expected_parts = [
+        (
+            b"PGh0bWw+CiAgPGhlYWQ+CiAgPC9oZWFkPgogIDxib2R5PgogICAgPHA+VGhpcyBpcyB0aGUgYm9keSBvZiB0aGUgbWVzc2FnZS48L3A+CiAgPC9ib2R5Pgo8L2h0bWw+Cg==",
+            {
+                "Content-Id": "69a2a211-33c5-430f-a5c5-b4b284f86940",
+                "Content-Type": "application/octet-stream",
+                "Content-Transfer-Encoding": "base64",
+            },
+        ),
+        (
+            b"This is the body of the message.",
+            {
+                "Content-Id": "685a49b1-8c50-4a6a-a06e-b0ef742c706c",
+                "Content-Type": "text/plain",
+            },
+        ),
+        (
+            b"\xccX\xccI\xfe\x04\xb6\xb5\x8c\xb2\xd0\xf5\x0f\xf1H\xe6",
+            {
+                "Content-Id": "c13f681f-0547-49b6-b785-3de96f2abd95",
+                "Content-Type": "application/octet-stream",
+            },
+        )
+    ]
+
+    expected_root_part = expected_parts[1]
+    expected_extra_parts = {
+        "69a2a211-33c5-430f-a5c5-b4b284f86940": expected_parts[0],
+        "c13f681f-0547-49b6-b785-3de96f2abd95": expected_parts[2],
+    }
 
 
 class ResultSetTestCase(TestCase):
 
-    example_multipart = b(dedent("""\
-        MIME-Version: 1.0\r
-        Content-Type: multipart/mixed; boundary=frontier\r
-        \r
-        This is a message with multiple parts in MIME format.\r
-        --frontier
-        Content-Type: text/plain\r
-        Content-Disposition: attachmet; filename="message.msg"\r
-        Content-Id: message-part\r
-        \r
-        This is the body of the message.\r
-        --frontier
-        Content-Type: application/octet-stream\r
-        Content-Transfer-Encoding: base64\r
-        \r
-        PGh0bWw+CiAgPGhlYWQ+CiAgPC9oZWFkPgogIDxib2R5PgogICAgPHA+VGhpcyBpcyB0aGUgYm9keSBvZiB0aGUgbWVzc2FnZS48L3A+CiAgPC9ib2R5Pgo8L2h0bWw+Cg==\r
-        --frontier--
-    """))
+    test_data = mp.CRLF.join([
+        b"MIME-Version: 1.0",
+        b"Content-Type: multipart/mixed; boundary=frontier",
+        b"",
+        b"This is a message with multiple parts in MIME format.",
+        b"--frontier",
+        b"Content-Type: text/plain",
+        b"Content-Disposition: attachmet; filename=\"message.msg\"",
+        b"Content-Id: message-part",
+        b"",
+        b"This is the body of the message.",
+        b"--frontier",
+        b"Content-Type: application/octet-stream",
+        b"Content-Transfer-Encoding: base64",
+        b"",
+        b"PGh0bWw+CiAgPGhlYWQ+CiAgPC9oZWFkPgogIDxib2R5PgogICAgPHA+VGhpcyBpcyB0aGUgYm9keSBvZiB0aGUgbWVzc2FnZS48L3A+CiAgPC9ib2R5Pgo8L2h0bWw+Cg==",
+        b"--frontier--",
+    ])
+
+    expected_result_set = [
+        {
+            "data": b"This is the body of the message.",
+            "type": b"text/plain",
+            "identifier": b"message-part",
+            "filename": b"message.msg",
+        },
+        {
+            "data": b"PGh0bWw+CiAgPGhlYWQ+CiAgPC9oZWFkPgogIDxib2R5PgogICAgPHA+VGhpcyBpcyB0aGUgYm9keSBvZiB0aGUgbWVzc2FnZS48L3A+CiAgPC9ib2R5Pgo8L2h0bWw+Cg==",
+            "type": b"application/octet-stream",
+            "filename": None,
+            "identifier": None,
+        },
+    ]
 
     def test_result_set_from_raw(self):
-        result_set = result_set_from_raw_data(self.example_multipart)
+        result_set = result_set_from_raw_data(self.test_data)
+
         self.assertTrue(len(result_set) == 2)
 
-        first = result_set[0]
-        second = result_set[1]
-        
-        if isinstance(first.data, str):
-            first_data = b(first.data)
-        else:
-            first_data = first.data
+        first, second  = result_set
+        expected_first, expected_second = self.expected_result_set
 
-        if isinstance(second.data, str):
-            second_data = b(second.data)
-        else:
-            second_data = second.data
-        
-        self.assertEqual(
-            first_data,
-            b"This is the body of the message."
-        )
-        self.assertEqual(
-            first.content_type,
-            b"text/plain"
-        )
-        self.assertEqual(
-            first.filename,
-            b"message.msg"
-        )
-        self.assertEqual(
-            first.identifier,
-            b"message-part"
-        )
-        self.assertEqual(
-            second_data,
-            b"PGh0bWw+CiAgPGhlYWQ+CiAgPC9oZWFkPgogIDxib2R5PgogICAgPHA+VGhpcyBpcyB0aGUgYm9keSBvZiB0aGUgbWVzc2FnZS48L3A+CiAgPC9ib2R5Pgo8L2h0bWw+Cg=="
-        )
+        self.assertEqual(first.data, expected_first["data"])
+        self.assertEqual(first.content_type, expected_first["type"])
+        self.assertEqual(first.identifier, expected_first["identifier"])
+        self.assertEqual(first.filename, expected_first["filename"])
+
+        self.assertEqual(second.data, expected_second["data"])
+        self.assertEqual(second.content_type, expected_second["type"])
+        self.assertEqual(second.identifier, expected_second["identifier"])
+        self.assertEqual(second.filename, expected_second["filename"])
 
 
 class TemporalSubsetsTestCase(TransactionTestCase):

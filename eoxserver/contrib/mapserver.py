@@ -55,7 +55,6 @@ else:
     msversion = msGetVersionInt()
 
 from lxml import etree
-from eoxserver.core.util.multiparttools import iterate
 from eoxserver.contrib import gdal
 from eoxserver.services.result import result_set_from_raw_data
 
