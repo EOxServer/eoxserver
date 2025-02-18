@@ -756,10 +756,11 @@ class WPS10ExecuteComplexDataEmbeddedBase64EncodedBinaryOutput(ContentTypeCheckM
 
 class WPS10ExecuteComplexDataMultipartOutput(WPS10ExecuteMixIn, testbase.WPS10XMLMultipartComparison):
 
+    expectedNumberOfParts = 2
+
     base64_encoded_data = (
         "piBpPz01HSrZPLVeybmK1ayMQ0RVk1ee8NfPDhXIqDQbe6jveMAL3kUvIjGgYGA2ZiCaI"
         "zwanTd+E7+V1Mj0gQ=="
-
     )
 
     def getRequest(self):
@@ -789,6 +790,64 @@ class WPS10ExecuteComplexDataMultipartOutput(WPS10ExecuteMixIn, testbase.WPS10XM
     def _testData(self, data):
         expected_data = base64.b64decode(self.base64_encoded_data)
         self.assertEqual(data, expected_data)
+
+
+class WPS10ExecuteComplexDataMultipartInput(WPS10ExecuteMixIn, testbase.WPS10XMLMultipartComparison):
+
+    expectedNumberOfParts = 3
+
+    base64_encoded_data = (
+        "piBpPz01HSrZPLVeybmK1ayMQ0RVk1ee8NfPDhXIqDQbe6jveMAL3kUvIjGgYGA2ZiCaI"
+        "zwanTd+E7+V1Mj0gQ=="
+
+    )
+
+    def getRequest(self):
+        content_id = "ca7107cd-ec91-4caa-b1d3-e157e950d6fb"
+
+        xml_request = """<wps:Execute version="1.0.0" service="WPS"
+        xmlns:xlink="http://www.w3.org/1999/xlink"
+        xmlns:wps="http://www.opengis.net/wps/1.0.0"
+        xmlns:ows="http://www.opengis.net/ows/1.1">
+          <ows:Identifier>TC10:identity:complex:binary</ows:Identifier>
+          <wps:DataInputs>
+            <wps:Input>
+              <ows:Identifier>TC10:input</ows:Identifier>
+              <wps:Reference xlink:href="cid:{content_id}" mimeType="application/octet-stream"/>
+            </wps:Input>
+          </wps:DataInputs>
+          <wps:ResponseForm>
+            <wps:ResponseDocument lineage="true" storeExecuteResponse="false" status="false">
+              <wps:Output mimeType="application/octet-stream">
+                <ows:Identifier>TC10:output</ows:Identifier>
+              </wps:Output>
+            </wps:ResponseDocument>
+          </wps:ResponseForm>
+        </wps:Execute>
+        """.format(content_id=content_id)
+
+        return ([
+            (
+                {
+                    "Content-Type": XML_CONTENT_TYPE,
+                },
+                xml_request.encode("utf-8")
+            ),
+            (
+                {
+                    "Content-Id": content_id,
+                    "Content-Type": "application/octet-stream",
+                },
+                base64.b64decode(self.base64_encoded_data)
+            ),
+        ], "multi-part")
+
+    def _testData(self, data):
+        expected_data = base64.b64decode(self.base64_encoded_data)
+        self.assertEqual(data, expected_data)
+
+    def testInput(self):
+        self._testData(self._extractData("//wps:Input/wps:Reference"))
 
 #===============================================================================
 # request parameter input test

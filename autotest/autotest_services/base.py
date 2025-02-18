@@ -58,7 +58,7 @@ from django.conf import settings
 from django.utils.six import assertCountEqual, binary_type, b
 
 from eoxserver.core.config import get_eoxserver_config
-from eoxserver.core.util import multiparttools as mp
+from eoxserver.core.util.multiparttools import iterate_multipart_data, CRLF
 from eoxserver.contrib import gdal, osr
 from eoxserver.testing.xcomp import xmlCompareFiles, XMLParseError
 from eoxserver.testing.utils import tag
@@ -90,14 +90,30 @@ RE_MIME_TYPE_XML = re.compile(
 #===============================================================================
 
 def unpack_multipart_response(response):
-    # note that in case of multi-part response the first item is the global
-    # multi-part headers
-    headers = {b(key): b(value) for key, value in response.items()}
-    content = (
-        "".join(response) if getattr(response, "streaming", False)
-        else response.content
-    )
-    return mp.iterate(content, headers=headers)
+    def _get_content(response):
+        if getattr(response, "streaming", False):
+            return b"".join(response)
+        return response.content
+    return iterate_multipart_data(_get_content(response), headers=response.headers)
+
+
+def pack_multipart_request(parts, boundary):
+
+    def _format_header(key, value):
+        return b(f"{key}: {value}")
+
+    def _generate_multipart_request(parts):
+        yield b""
+        for headers, data in parts:
+            yield f"--{boundary}".encode("ascii")
+            for key, value in headers.items():
+                yield _format_header(key, value)
+            yield _format_header("Content-Length", len(data))
+            yield b""
+            yield data
+        yield f"--{boundary}--".encode("ascii")
+
+    return CRLF.join(_generate_multipart_request(parts))
 
 
 def extent_from_ds(ds):
@@ -169,6 +185,27 @@ class OWSTestCase(TransactionTestCase):
         elif req_type == "xml":
             self.response = client.post(
                 '/ows', request, "text/xml", {}, **headers
+            )
+
+        elif req_type == "multi-part":
+            boundary="part-boundary"
+
+            (root_headers, _), *_ = request
+
+            request = pack_multipart_request(request, boundary)
+
+            # build multipart/related content type
+            # see https://www.ietf.org/rfc/rfc2387.txt
+            content_type = f"multipart/related; boundary=\"{boundary}\""
+            root_type, _, _ = (root_headers.get("Content-Type") or "").partition("=")
+            if root_type:
+                content_type = f"{content_type}; type=\"{root_type}\""
+            root_cid = root_headers.get("Content-Id")
+            if root_cid:
+                content_type = f"{content_type}; start=\"{root_cid}\""
+
+            self.response = client.post(
+                '/ows', request, content_type, {}, **headers
             )
 
         else:
@@ -797,8 +834,8 @@ class MultipartTestCase(XMLTestCase):
         return etree.tostring(xml , encoding="UTF-8" , xml_declaration=True)"""
 
     def _unpackMultipartContent(self, response):
-        for headers, data in unpack_multipart_response(response):
-            if RE_MIME_TYPE_XML.match(headers[b"Content-Type"].decode("utf-8")):
+        for data, headers in unpack_multipart_response(response):
+            if RE_MIME_TYPE_XML.match(headers["Content-Type"]):
                 self.xmlData = data.tobytes()
             else:
                 self.imageData = data.tobytes()
@@ -1316,8 +1353,7 @@ class WPS10XMLMultipartComparison(WPS10XMLComparison):
     @property
     def response_parts(self):
         if not hasattr(self, "_response_parts"):
-            parts = list(unpack_multipart_response(self.response))
-            self._response_parts = parts[1:] if len(parts) > 1 else parts
+            self._response_parts = list(unpack_multipart_response(self.response))
         return self._response_parts
 
     def testContentType(self):
@@ -1328,8 +1364,8 @@ class WPS10XMLMultipartComparison(WPS10XMLComparison):
         self.assertEqual(len(self.response_parts), self.expectedNumberOfParts)
 
     def getXMLData(self):
-        for headers, data in self.response_parts:
-            content_type = headers[b"Content-Type"].decode("ascii").partition(";")[0]
+        for data, headers in self.response_parts:
+            content_type = headers["Content-Type"].partition(";")[0]
             if RE_MIME_TYPE_XML.match(content_type):
                 return data.tobytes()
         self.fail("No XML data received.")
@@ -1341,21 +1377,21 @@ class WPS10XMLMultipartComparison(WPS10XMLComparison):
     def _decodeData(self, data):
         return data
 
-    def _extractData(self):
+    def _extractData(self, xpath="//wps:Output/wps:Reference"):
         xml = etree.fromstring(self.prepareXMLData(self.getXMLData()))
 
-        for element in xml.xpath('//wps:Reference', namespaces=self.namespace):
-            href = element.get("href")
+        for element in xml.xpath(xpath, namespaces=self.namespace):
+            href = element.get("href") or element.get("{http://www.w3.org/1999/xlink}href")
             if href and href.startswith("cid:"):
                 content_id = href[4:]
                 break
         else:
             self.fail('No valid complex data reference found in the XML tree.')
 
-        for headers, data in self.response_parts:
-            item_content_id = headers.get(b"Content-Id")
-            if item_content_id and content_id == item_content_id.decode("ascii"):
-                return data
+        for data, headers in self.response_parts:
+            item_content_id = headers.get("Content-Id")
+            if item_content_id and content_id == item_content_id:
+                return data.tobytes()
         self.fail('No valid complex data data found in the response parts.')
 
     def testPartReferences(self):
@@ -1364,13 +1400,12 @@ class WPS10XMLMultipartComparison(WPS10XMLComparison):
 
         def _collect_named_parts():
             named_parts = {}
-            for headers, data in self.response_parts:
-                content_id = headers.get(b"Content-Id")
-                content_type = headers.get(b"Content-Type")
+            for data, headers in self.response_parts:
+                content_id = headers.get("Content-Id")
+                content_type = headers.get("Content-Type")
                 if content_id:
-                    named_parts[content_id.decode("ascii")] = (
-                        content_type.decode("ascii")
-                        if content_type else None
+                    named_parts[content_id] = (
+                        content_type if content_type else None
                     )
             return named_parts
 

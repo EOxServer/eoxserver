@@ -49,7 +49,7 @@ class TestProcess10(Component):
             abstract="Binary complex data input.",
             formats=[
                 FormatBinaryBase64("application/octet-stream"),
-                #FormatBinaryRaw("application/octet-stream"),
+                FormatBinaryRaw("application/octet-stream"),
             ],
         )),
     ]

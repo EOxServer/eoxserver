@@ -1,0 +1,34 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<wps:ExecuteResponse xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:ows="http://www.opengis.net/ows/1.1" xmlns:wps="http://www.opengis.net/wps/1.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" service="WPS" version="1.0.0" xml:lang="en-US" serviceInstance="http://testserver/ows?service=WPS&amp;version=1.0.0&amp;request=GetCapabilities" xsi:schemaLocation="wps http://schemas.opengis.net/wps/1.0.0/wpsAll.xsd">
+  <wps:Process wps:processVersion="1.0.0">
+    <ows:Identifier>TC10:identity:complex:binary</ows:Identifier>
+    <ows:Title>Test Case 10: Binary complex data identity.</ows:Title>
+    <ows:Abstract> Test identity process (the outputs are copies of the inputs)
+    demonstrating various features of the binary complex data inputs and outputs.
+    </ows:Abstract>
+    <ows:Metadata xlink:title="test-metadata" xlink:href="http://www.metadata.com/test-metadata"/>
+    <wps:Profile>test_profile</wps:Profile>
+  </wps:Process>
+  <wps:Status creationTime="2000-01-01T00:00:00.000000Z">
+    <wps:ProcessSucceeded>The processes execution completed successfully.</wps:ProcessSucceeded>
+  </wps:Status>
+  <wps:DataInputs>
+    <wps:Input>
+      <ows:Identifier>TC10:input</ows:Identifier>
+      <wps:Reference xlink:href="cid:ca7107cd-ec91-4caa-b1d3-e157e950d6fb"/>
+    </wps:Input>
+  </wps:DataInputs>
+  <wps:OutputDefinitions>
+    <wps:Output mimeType="application/octet-stream">
+      <ows:Identifier>TC10:output</ows:Identifier>
+    </wps:Output>
+  </wps:OutputDefinitions>
+  <wps:ProcessOutputs>
+    <wps:Output>
+      <ows:Identifier>TC10:output</ows:Identifier>
+      <ows:Title>Test case #10: Binary complex output #00</ows:Title>
+      <ows:Abstract>Binary complex data output (copy of the input).</ows:Abstract>
+      <wps:Reference href="cid:9242613b-2c35-4541-86e4-4eee65d327dc" mimeType="application/octet-stream"/>
+    </wps:Output>
+  </wps:ProcessOutputs>
+</wps:ExecuteResponse>
