@@ -45,9 +45,10 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
         exclude_parser = self.add_subparser(parser, 'exclude')
         purge_parser = self.add_subparser(parser, 'purge')
         summary_parser = self.add_subparser(parser, 'summary')
+        import_parser = self.add_subparser(parser, 'import')
         parsers = [
             create_parser, insert_parser, exclude_parser,
-            purge_parser, summary_parser
+            purge_parser, summary_parser, import_parser
         ]
 
         # identifier is a common argument (except for delete it is optional,
@@ -91,8 +92,8 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
         )
 
         delete_parser.add_argument(
-                'identifier', default=None, nargs='?',
-                help='The identifier of the collection to delete.'
+            'identifier', default=None, nargs='?',
+            help='The identifier of the collection to delete.'
         )
         # common arguments for insertion/exclusion
         insert_parser.add_argument(
@@ -131,19 +132,45 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
         )
         summary_parser.add_argument(
             '--no-products', action='store_false', default=True,
-            dest='coverage_summary',
+            dest='product_summary',
             help=("Don't collect summary product metadata.")
         )
 
         summary_parser.add_argument(
             '--coverages', action='store_true', default=True,
-            dest='product_summary',
+            dest='coverage_summary',
             help=('Collect summary coverage metadata. Default.')
         )
         summary_parser.add_argument(
             '--no-coverages', action='store_false', default=True,
             dest='coverage_summary',
             help=("Don't collect summary coverage metadata.")
+        )
+
+        import_parser.add_argument(
+            '--from', action='append', default=[], dest="from_collections",
+            help=("Declare to import from that collection")
+        )
+        import_parser.add_argument(
+            '--products', action='store_true', default=True,
+            dest='product_import',
+            help=('Import products. Default.')
+        )
+        import_parser.add_argument(
+            '--no-products', action='store_false', default=True,
+            dest='product_import',
+            help=("Don't import products.")
+        )
+
+        import_parser.add_argument(
+            '--coverages', action='store_true', default=True,
+            dest='coverage_import',
+            help=('Import coverages. Default.')
+        )
+        import_parser.add_argument(
+            '--no-coverages', action='store_false', default=True,
+            dest='coverage_import',
+            help=("Don't import coverages.")
         )
 
     @transaction.atomic
@@ -162,6 +189,8 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             self.handle_purge(identifier[0], *args, **kwargs)
         elif subcommand == "summary":
             self.handle_summary(identifier[0], *args, **kwargs)
+        elif subcommand == "import":
+            self.handle_import(identifier[0], *args, **kwargs)
 
     def handle_create(self, identifier, type_name, grid_name, replace, **kwargs):
         """ Handle the creation of a new collection.
@@ -188,8 +217,8 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             models.Collection.objects.update_or_create(
                 identifier=identifier,
                 defaults={
-                    'collection_type':collection_type,
-                    'grid':grid,
+                    'collection_type': collection_type,
+                    'grid': grid,
                 }
             )
         else:
@@ -307,6 +336,23 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             False, False, False, product_summary, coverage_summary
         )
         print('Successfully collected metadata for collection %r' % identifier)
+
+    def handle_import(self, identifier, from_collections, product_import,
+                      coverage_import, **kwargs):
+        collection = self.get_collection(identifier)
+
+        collections = [
+            self.get_collection(from_collection)
+            for from_collection in from_collections
+        ]
+
+        if product_import:
+            for product in models.Product.objects.filter(collections__in=collections):
+                models.collection_insert_eo_object(collection, product)
+
+        if coverage_import:
+            for coverage in models.Coverage.objects.filter(collections__in=collections):
+                models.collection_insert_eo_object(collection, coverage)
 
     def get_collection(self, identifier):
         """ Helper method to get a collection by identifier or raise a
