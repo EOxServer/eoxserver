@@ -1,9 +1,9 @@
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
 #
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Copyright (C) 2015 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -23,7 +23,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 
 from itertools import chain
@@ -67,8 +67,10 @@ class OpenSearch11DescriptionEncoder(XMLEncoder):
         """ Encode an OpenSearch 1.1 description document.
         """
         OS = self.OS
-        description = OS("OpenSearchDescription",
-            OS("ShortName",
+        description = OS(
+            "OpenSearchDescription",
+            OS(
+                "ShortName",
                 collection.identifier if collection is not None else ""
             ),
             OS("Description")
@@ -99,14 +101,16 @@ class OpenSearch11DescriptionEncoder(XMLEncoder):
             the whole service.
         """
         if collection is not None:
-            search_url = reverse("opensearch:collection:search",
+            search_url = reverse(
+                "opensearch:collection:search",
                 kwargs={
                     "collection_id": collection.identifier,
                     "format_name": result_format.name
                 }
             )
         else:
-            search_url = reverse("opensearch:search",
+            search_url = reverse(
+                "opensearch:search",
                 kwargs={
                     "format_name": result_format.name
                 }
@@ -144,7 +148,8 @@ class OpenSearch11DescriptionEncoder(XMLEncoder):
             for parameter in parameters
         )
 
-        url = self.OS("Url", *[
+        url = self.OS(
+            "Url", *[
                 self.encode_parameter(parameter, parameter.get("namespace"))
                 for parameter in parameters
             ],
@@ -186,7 +191,8 @@ class OpenSearch11DescriptionEncoder(XMLEncoder):
             self.PARAM("Option", value=option, label=option)
             for option in options
         ] + [
-            self.ATOM("link",
+            self.ATOM(
+                "link",
                 rel="profile", href=profile["href"], title=profile["title"]
             )
             for profile in profiles
@@ -199,7 +205,8 @@ class OpenSearch11DescriptionHandler(object):
     def handle(self, request, collection_id=None):
         collection = None
         if collection_id:
-            collection = get_object_or_404(models.Collection,
+            collection = get_object_or_404(
+                models.Collection,
                 identifier=collection_id
             )
 
