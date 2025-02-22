@@ -648,6 +648,7 @@ class CollectionImportCommandTestCase(CommandTestCaseMixIn, TestCase):
             from_coveragetypes=[],
             coverage_import=True,
             product_import=False,
+            use_extent=False,
         )
 
         self.assertIn(self.coverage, self.collection.coverages.all())
@@ -669,6 +670,7 @@ class CollectionImportCommandTestCase(CommandTestCaseMixIn, TestCase):
             from_coveragetypes=[],
             coverage_import=False,
             product_import=True,
+            use_extent=False,
         )
 
         self.assertIn(self.product, self.collection.products.all())
@@ -683,6 +685,7 @@ class CollectionImportCommandTestCase(CommandTestCaseMixIn, TestCase):
             from_coveragetypes=[self.coverage_type.name],
             coverage_import=True,
             product_import=False,
+            use_extent=False,
         )
 
         self.assertIn(self.coverage, self.collection.coverages.all())
@@ -697,6 +700,7 @@ class CollectionImportCommandTestCase(CommandTestCaseMixIn, TestCase):
             from_coveragetypes=[],
             coverage_import=False,
             product_import=True,
+            use_extent=False,
         )
 
         self.assertIn(self.product, self.collection.products.all())
