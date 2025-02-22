@@ -27,6 +27,7 @@
 
 from django.core.management.base import CommandError, BaseCommand
 from django.db import transaction
+from django.db.models import Q
 
 from eoxserver.resources.coverages import models
 from eoxserver.resources.coverages.management.commands import (
@@ -152,6 +153,16 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             help=("Declare to import from that collection")
         )
         import_parser.add_argument(
+            '--from-producttype', action='append', default=[],
+            dest="from_producttypes",
+            help=("Declare to import from that product type")
+        )
+        import_parser.add_argument(
+            '--from-coveragetype', action='append', default=[],
+            dest="from_coveragetypes",
+            help=("Declare to import from that coverage type")
+        )
+        import_parser.add_argument(
             '--products', action='store_true', default=True,
             dest='product_import',
             help=('Import products. Default.')
@@ -161,7 +172,6 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             dest='product_import',
             help=("Don't import products.")
         )
-
         import_parser.add_argument(
             '--coverages', action='store_true', default=True,
             dest='coverage_import',
@@ -337,7 +347,8 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
         )
         print('Successfully collected metadata for collection %r' % identifier)
 
-    def handle_import(self, identifier, from_collections, product_import,
+    def handle_import(self, identifier, from_collections, from_producttypes,
+                      from_coveragetypes, product_import,
                       coverage_import, **kwargs):
         collection = self.get_collection(identifier)
 
@@ -347,12 +358,40 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
         ]
 
         if product_import:
-            for product in models.Product.objects.filter(collections__in=collections):
+            # get distinct products that are in the collections in
+            # `from_collections` associated with a product type in
+            # `from_producttypes`
+            product_types = [
+                models.ProductType.objects.get(name=name)
+                for name in from_producttypes
+            ]
+            qs = models.Product.objects.filter(
+                Q(collections__in=collections)
+                | Q(product_type__in=product_types)
+            ).exclude(collections__in=[collection])
+
+            num_products = len(qs)
+            for product in qs:
                 models.collection_insert_eo_object(collection, product)
+            print("Imported %d products." % num_products)
 
         if coverage_import:
-            for coverage in models.Coverage.objects.filter(collections__in=collections):
+            # get distinct coverages that are in the collections in
+            # `from_collections` associated with a coverage type in
+            # `from_coveragetypes`
+            coverage_types = [
+                models.CoverageType.objects.get(name=name)
+                for name in from_coveragetypes
+            ]
+            qs = models.Coverage.objects.filter(
+                Q(collections__in=collections)
+                | Q(coverage_type__in=coverage_types)
+            ).exclude(collections__in=[collection])
+
+            num_coverages = len(qs)
+            for coverage in qs:
                 models.collection_insert_eo_object(collection, coverage)
+            print("Imported %d coverages." % num_coverages)
 
     def get_collection(self, identifier):
         """ Helper method to get a collection by identifier or raise a

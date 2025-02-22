@@ -1,11 +1,11 @@
-#-----------------------------------------------------------------------
+# -----------------------------------------------------------------------
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
 #          Stephan Meissl <stephan.meissl@eox.at>
 #          Stephan Krause <stephan.krause@eox.at>
 #
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 # Copyright (C) 2011 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -25,10 +25,11 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 
 import sys
 from datetime import datetime
+
 try:
     from StringIO import StringIO
 except ImportError:
@@ -36,17 +37,18 @@ except ImportError:
 from textwrap import dedent
 from unittest import skipIf
 
+from django.core import management
 from django.test import TestCase
-from django.core.exceptions import ValidationError
 from django.contrib.gis.geos import GEOSGeometry, Polygon, MultiPolygon
 from django.utils.dateparse import parse_datetime
 from django.utils.timezone import utc
 
 from eoxserver.core import env
-from eoxserver.resources.coverages.models import *
+from eoxserver.resources.coverages import models
 from eoxserver.resources.coverages.util import collect_eo_metadata
 from eoxserver.resources.coverages.metadata.coverage_formats import (
-    native, eoom, dimap_general
+    native,
+    eoom,
 )
 
 
@@ -88,85 +90,93 @@ class GeometryMixIn(object):
         except Exception:
             pass
 
-        self.fail(
-            ga.equals_exact(gb, tolerance),
-            "%r != %r" % (ga.wkt, gb.wkt)
-        )
+        self.fail(ga.equals_exact(gb, tolerance), "%r != %r" % (ga.wkt, gb.wkt))
+
 
 class ModelTests(GeometryMixIn, TestCase):
     def setUp(self):
-        self.coverage_type = create(CoverageType,
-            name="RGB"
+        self.coverage_type = create(models.CoverageType, name="RGB")
+        self.rectified_grid = models.Grid.objects.create(
+            name="rectified_grid",
+            coordinate_reference_system="EPSG:4326",
+            axis_1_name="x",
+            axis_1_type=0,
+            axis_1_offset="5",
+            axis_2_name="y",
+            axis_2_type=0,
+            axis_2_offset="5",
         )
-        self.rectified_grid = Grid.objects.create(
-          name="rectified_grid",
-          coordinate_reference_system="EPSG:4326",
-          axis_1_name="x",
-          axis_1_type=0,
-          axis_1_offset="5",
-          axis_2_name="y",
-          axis_2_type=0,
-          axis_2_offset="5"
+        self.referenced_grid = models.Grid.objects.create(
+            name="referenced_grid",
+            coordinate_reference_system="EPSG:4326",
+            axis_1_name="x",
+            axis_1_type=0,
+            axis_2_name="y",
+            axis_2_type=0,
         )
-        self.referenced_grid= Grid.objects.create(
-          name="referenced_grid",
-          coordinate_reference_system="EPSG:4326",
-          axis_1_name="x",
-          axis_1_type=0,
-          axis_2_name="y",
-          axis_2_type=0
-
-        )
-        self.rectified_1 = create(Coverage,
+        self.rectified_1 = create(
+            models.Coverage,
             identifier="rectified-1",
-            footprint=GEOSGeometry("MULTIPOLYGON (((-111.6210939999999994 26.8588260000000005, -113.0273439999999994 -4.0786740000000004, -80.6835939999999994 -9.7036739999999995, -68.0273439999999994 15.6088260000000005, -111.6210939999999994 26.8588260000000005)))"),
+            footprint=GEOSGeometry(
+                "MULTIPOLYGON (((-111.6210939999999994 26.8588260000000005, -113.0273439999999994 -4.0786740000000004, -80.6835939999999994 -9.7036739999999995, -68.0273439999999994 15.6088260000000005, -111.6210939999999994 26.8588260000000005)))"
+            ),
             begin_time=parse_datetime("2013-06-11T14:55:23Z"),
             end_time=parse_datetime("2013-06-11T14:55:23Z"),
             grid=self.rectified_grid,
             axis_1_size=100,
             axis_2_size=100,
-            coverage_type=self.coverage_type
+            coverage_type=self.coverage_type,
         )
 
-        self.rectified_2 = create(Coverage,
+        self.rectified_2 = create(
+            models.Coverage,
             identifier="rectified-2",
-            footprint=GEOSGeometry("MULTIPOLYGON (((-28.0371090000000009 19.4760129999999982, -32.9589840000000009 -0.9146120000000000, -2.8125000000000000 -3.8150019999999998, 4.2187500000000000 19.1244510000000005, -28.0371090000000009 19.4760129999999982)))"),
+            footprint=GEOSGeometry(
+                "MULTIPOLYGON (((-28.0371090000000009 19.4760129999999982, -32.9589840000000009 -0.9146120000000000, -2.8125000000000000 -3.8150019999999998, 4.2187500000000000 19.1244510000000005, -28.0371090000000009 19.4760129999999982)))"
+            ),
             begin_time=parse_datetime("2013-06-10T18:52:34Z"),
             end_time=parse_datetime("2013-06-10T18:52:32Z"),
             grid=self.rectified_grid,
             axis_1_size=100,
             axis_2_size=100,
-            coverage_type=self.coverage_type
+            coverage_type=self.coverage_type,
         )
 
-        self.rectified_3 = create(Coverage,
+        self.rectified_3 = create(
+            models.Coverage,
             identifier="rectified-3",
-            footprint=GEOSGeometry("MULTIPOLYGON (((-85.5175780000000003 14.2904660000000003, -116.2792969999999997 -8.3853150000000003, -63.7207030000000003 -19.4595340000000014, -58.7988280000000003 7.2592160000000003, -85.5175780000000003 14.2904660000000003)))"),
+            footprint=GEOSGeometry(
+                "MULTIPOLYGON (((-85.5175780000000003 14.2904660000000003, -116.2792969999999997 -8.3853150000000003, -63.7207030000000003 -19.4595340000000014, -58.7988280000000003 7.2592160000000003, -85.5175780000000003 14.2904660000000003)))"
+            ),
             begin_time=parse_datetime("2013-06-10T18:55:54Z"),
             end_time=parse_datetime("2013-06-10T18:55:54Z"),
             grid=self.rectified_grid,
             axis_1_size=100,
             axis_2_size=100,
-            coverage_type=self.coverage_type
+            coverage_type=self.coverage_type,
         )
 
-        self.referenceable = create(Coverage,
+        self.referenceable = create(
+            models.Coverage,
             identifier="referenceable-1",
-            footprint=GEOSGeometry("MULTIPOLYGON (((-85.5175780000000003 14.2904660000000003, -116.2792969999999997 -8.3853150000000003, -63.7207030000000003 -19.4595340000000014, -58.7988280000000003 7.2592160000000003, -85.5175780000000003 14.2904660000000003)))"),
+            footprint=GEOSGeometry(
+                "MULTIPOLYGON (((-85.5175780000000003 14.2904660000000003, -116.2792969999999997 -8.3853150000000003, -63.7207030000000003 -19.4595340000000014, -58.7988280000000003 7.2592160000000003, -85.5175780000000003 14.2904660000000003)))"
+            ),
             begin_time=parse_datetime("2013-06-10T18:55:54Z"),
             end_time=parse_datetime("2013-06-10T18:55:54Z"),
             grid=self.referenced_grid,
             axis_1_size=100,
             axis_2_size=100,
-            coverage_type=self.coverage_type
+            coverage_type=self.coverage_type,
         )
 
-        self.mosaic = create(Mosaic,
+        self.mosaic = create(
+            models.Mosaic,
             identifier="mosaic-1",
             grid=self.rectified_grid,
             axis_1_size=100,
             axis_2_size=100,
-            coverage_type=self.coverage_type
+            coverage_type=self.coverage_type,
         )
 
         # TODO: bug, requires identifier to be set manually again
@@ -174,50 +184,47 @@ class ModelTests(GeometryMixIn, TestCase):
         self.mosaic.full_clean()
         self.mosaic.save()
 
-        #=======================================================================
+        # =======================================================================
         # Collections
-        #=======================================================================
+        # =======================================================================
 
-        self.series_1 = create(Collection,
-            identifier="series-1"
-        )
+        self.series_1 = create(models.Collection, identifier="series-1")
 
-        self.series_2 = create(Collection,
-            identifier="series-2"
-        )
+        self.series_2 = create(models.Collection, identifier="series-2")
 
     def tearDown(self):
         pass
 
     def test_insertion(self):
         rectified_1, rectified_2, rectified_3 = (
-            self.rectified_1, self.rectified_2, self.rectified_3
+            self.rectified_1,
+            self.rectified_2,
+            self.rectified_3,
         )
         mosaic, series_1, series_2 = self.mosaic, self.series_1, self.series_2
 
-        mosaic_insert_coverage(mosaic, rectified_1)
-        mosaic_insert_coverage(mosaic, rectified_2)
-        mosaic_insert_coverage(mosaic, rectified_3)
+        models.mosaic_insert_coverage(mosaic, rectified_1)
+        models.mosaic_insert_coverage(mosaic, rectified_2)
+        models.mosaic_insert_coverage(mosaic, rectified_3)
         mosaic_list = mosaic.coverages.all()
 
         self.assertIn(rectified_1, mosaic_list)
         self.assertIn(rectified_2, mosaic_list)
         self.assertIn(rectified_3, mosaic_list)
 
+        models.collection_insert_eo_object(series_1, rectified_1)
+        models.collection_insert_eo_object(series_1, rectified_2)
+        models.collection_insert_eo_object(series_1, rectified_3)
 
-        collection_insert_eo_object(series_1, rectified_1)
-        collection_insert_eo_object(series_1, rectified_2)
-        collection_insert_eo_object(series_1, rectified_3)
-
-        series_1_list= series_1.coverages.all()
+        series_1_list = series_1.coverages.all()
 
         self.assertIn(rectified_1, series_1_list)
         self.assertIn(rectified_2, series_1_list)
         self.assertIn(rectified_3, series_1_list)
 
-        collection_insert_eo_object(series_2, rectified_1)
-        collection_insert_eo_object(series_2, rectified_2)
-        collection_insert_eo_object(series_2, rectified_3)
+        models.collection_insert_eo_object(series_2, rectified_1)
+        models.collection_insert_eo_object(series_2, rectified_2)
+        models.collection_insert_eo_object(series_2, rectified_3)
 
         series_2_list = series_2.coverages.all()
 
@@ -229,14 +236,14 @@ class ModelTests(GeometryMixIn, TestCase):
         self.assertEqual(len(series_1_list), 3)
         self.assertEqual(len(series_2_list), 3)
 
-        mosaic = Mosaic.objects.get(identifier="mosaic-1")
+        mosaic = models.Mosaic.objects.get(identifier="mosaic-1")
         mosaic, series_1, series_2 = refresh(mosaic, series_1, series_2)
 
         # TODO: further check metadata
         self.assertTrue(series_1.begin_time is not None)
 
         begin_time, end_time, all_rectified_footprints = collect_eo_metadata(
-            Coverage.objects.all()
+            models.Coverage.objects.all()
         )
         time_extent = begin_time, end_time
 
@@ -261,17 +268,20 @@ class ModelTests(GeometryMixIn, TestCase):
 
     def test_insertion_cascaded(self):
         rectified_1, mosaic, series_1, series_2 = (
-            self.rectified_1, self.mosaic, self.series_1, self.series_2
+            self.rectified_1,
+            self.mosaic,
+            self.series_1,
+            self.series_2,
         )
-        mosaic_insert_coverage(mosaic, rectified_1)
-        collection_insert_eo_object(series_1, rectified_1)
-        collection_insert_eo_object(series_2, rectified_1)
+        models.mosaic_insert_coverage(mosaic, rectified_1)
+        models.collection_insert_eo_object(series_1, rectified_1)
+        models.collection_insert_eo_object(series_2, rectified_1)
 
         series_1 = refresh(series_1)
 
-        series_1_list= series_1.coverages.all()
-        series_2_list= series_2.coverages.all()
-        mosaic_list= mosaic.coverages.all()
+        series_1_list = series_1.coverages.all()
+        series_2_list = series_2.coverages.all()
+        mosaic_list = mosaic.coverages.all()
 
         self.assertIn(rectified_1, series_2_list)
         self.assertIn(rectified_1, series_1_list)
@@ -284,35 +294,35 @@ class ModelTests(GeometryMixIn, TestCase):
     def test_insertion_failed(self):
         referenceable, mosaic = self.referenceable, self.mosaic
 
-        with self.assertRaises(ManagementError):
-            mosaic_insert_coverage(mosaic, referenceable)
+        with self.assertRaises(models.ManagementError):
+            models.mosaic_insert_coverage(mosaic, referenceable)
 
         mosaic = refresh(mosaic)
-        mosaic_list= mosaic.coverages.all()
+        mosaic_list = mosaic.coverages.all()
         self.assertNotIn(referenceable, mosaic_list)
 
     def test_insertion_and_removal(self):
         rectified_1, rectified_2, series_1 = (
-            self.rectified_1, self.rectified_2, self.series_1
+            self.rectified_1,
+            self.rectified_2,
+            self.series_1,
         )
-        collection_insert_eo_object(series_1, rectified_1)
-        collection_insert_eo_object(series_1, rectified_2)
+        models.collection_insert_eo_object(series_1, rectified_1)
+        models.collection_insert_eo_object(series_1, rectified_2)
 
         series_1 = refresh(series_1)
 
-
-        collection_exclude_eo_object(series_1, rectified_2)
+        models.collection_exclude_eo_object(series_1, rectified_2)
 
         series_1 = refresh(series_1)
 
         rectified_1_time_extent = rectified_1.begin_time, rectified_1.end_time
         series_1_time_extent = series_1.begin_time, series_1.end_time
         self.assertEqual(rectified_1_time_extent, series_1_time_extent)
-        self.assertGeometryEqual(rectified_1.footprint,series_1.footprint)
+        self.assertGeometryEqual(rectified_1.footprint, series_1.footprint)
 
     def test_propagate_eo_metadata_change(self):
         rectified_1, series_1 = self.rectified_1, self.series_1
-
 
         new_begin_time = parse_datetime("2010-06-11T14:55:23Z")
         new_end_time = parse_datetime("2010-06-11T14:55:23Z")
@@ -321,13 +331,12 @@ class ModelTests(GeometryMixIn, TestCase):
         rectified_1.end_time = new_end_time
         rectified_1.full_clean()
         rectified_1.save()
-        collection_insert_eo_object(series_1, rectified_1)
+        models.collection_insert_eo_object(series_1, rectified_1)
 
         series_1 = refresh(series_1)
 
         self.assertEqual(series_1.begin_time, new_begin_time)
         self.assertEqual(series_1.end_time, new_end_time)
-
 
 
 class MetadataFormatTests(GeometryMixIn, TestCase):
@@ -354,33 +363,37 @@ class MetadataFormatTests(GeometryMixIn, TestCase):
         self.assertTrue(reader.test(xml))
         values = reader.read(xml)
 
-        self.assertEqual({
-            "identifier": "some_unique_id",
-            "begin_time": datetime(2013, 8, 27, 10, 0, 0, tzinfo=utc),
-            "end_time": datetime(2013, 8, 27, 10, 0, 10, tzinfo=utc),
-            "footprint": MultiPolygon(
-                Polygon.from_bbox((0, 0, 10, 20)),
-                Polygon.from_bbox((10, 10, 30, 40))
-            ),
-            "format": "native"
-        }, values)
+        self.assertEqual(
+            {
+                "identifier": "some_unique_id",
+                "begin_time": datetime(2013, 8, 27, 10, 0, 0, tzinfo=utc),
+                "end_time": datetime(2013, 8, 27, 10, 0, 10, tzinfo=utc),
+                "footprint": MultiPolygon(
+                    Polygon.from_bbox((0, 0, 10, 20)),
+                    Polygon.from_bbox((10, 10, 30, 40)),
+                ),
+                "format": "native",
+            },
+            values,
+        )
 
-    @skipIf(sys.version_info.major == 3, 'segfault in Django')
+    @skipIf(sys.version_info.major == 3, "segfault in Django")
     def test_native_writer(self):
         values = {
             "identifier": "some_unique_id",
             "begin_time": datetime(2013, 8, 27, 10, 0, 0, tzinfo=utc),
             "end_time": datetime(2013, 8, 27, 10, 0, 10, tzinfo=utc),
             "footprint": MultiPolygon(
-                Polygon.from_bbox((0, 0, 10, 20)),
-                Polygon.from_bbox((10, 10, 30, 40))
-            )
+                Polygon.from_bbox((0, 0, 10, 20)), Polygon.from_bbox((10, 10, 30, 40))
+            ),
         }
         writer = native.NativeFormat(env)
 
         f = StringIO()
         writer.write(values, f, pretty=True)
-        self.assertEqual(dedent("""\
+        self.assertEqual(
+            dedent(
+                """\
             <Metadata>
               <EOID>some_unique_id</EOID>
               <BeginTime>2013-08-27T10:00:00Z</BeginTime>
@@ -394,7 +407,10 @@ class MetadataFormatTests(GeometryMixIn, TestCase):
                 </Polygon>
               </Footprint>
             </Metadata>
-            """), dedent(f.getvalue()))
+            """
+            ),
+            dedent(f.getvalue()),
+        )
 
     def test_eoom_reader(self):
         xml = """<?xml version="1.0" encoding="utf-8"?>
@@ -486,33 +502,33 @@ class MetadataFormatTests(GeometryMixIn, TestCase):
             "begin_time": datetime(2006, 8, 16, 9, 9, 29, tzinfo=utc),
             "end_time": datetime(2006, 8, 16, 9, 12, 46, tzinfo=utc),
             "footprint": MultiPolygon(
-                Polygon.from_bbox((10, 20, 30, 40)),
-                Polygon.from_bbox((50, 60, 70, 80))
+                Polygon.from_bbox((10, 20, 30, 40)), Polygon.from_bbox((50, 60, 70, 80))
             ),
-            'format': 'eogml',
-            'metadata': {
-              'acquisition_station': 'PDHS-E',
-              'acquisition_sub_type': None,
-              'antenna_look_direction': None,
-              'availability_time': datetime(2006, 8, 16, 11, 3, 8, tzinfo=utc),
-              'cloud_cover': None,
-              'completion_time_from_ascending_node': None,
-              'doppler_frequency': None,
-              'highest_location': None,
-              'illumination_azimuth_angle': None,
-              'illumination_elevation_angle': None,
-              'illumination_zenith_angle': None,
-              'incidence_angle_variation': None,
-              'lowest_location': None,
-              'maximum_incidence_angle': None,
-              'minimum_incidence_angle': None,
-              'across_track_incidence_angle': None,
-              'along_track_incidence_angle': None,
-              'modification_date': None,
-              'polarisation_mode': None,
-              'polarization_channels': None,
-              'snow_cover': None,
-              'start_time_from_ascending_node': None}
+            "format": "eogml",
+            "metadata": {
+                "acquisition_station": "PDHS-E",
+                "acquisition_sub_type": None,
+                "antenna_look_direction": None,
+                "availability_time": datetime(2006, 8, 16, 11, 3, 8, tzinfo=utc),
+                "cloud_cover": None,
+                "completion_time_from_ascending_node": None,
+                "doppler_frequency": None,
+                "highest_location": None,
+                "illumination_azimuth_angle": None,
+                "illumination_elevation_angle": None,
+                "illumination_zenith_angle": None,
+                "incidence_angle_variation": None,
+                "lowest_location": None,
+                "maximum_incidence_angle": None,
+                "minimum_incidence_angle": None,
+                "across_track_incidence_angle": None,
+                "along_track_incidence_angle": None,
+                "modification_date": None,
+                "polarisation_mode": None,
+                "polarization_channels": None,
+                "snow_cover": None,
+                "start_time_from_ascending_node": None,
+            },
         }
         self.maxDiff = None
         # self.assertEqual(expected, values)
@@ -532,31 +548,155 @@ class MetadataFormatTests(GeometryMixIn, TestCase):
 
 class CastingTest(TestCase):
     def test_cast(self):
-        coverage_type = create(CoverageType,
-            name="RGB"
+        coverage_type = create(models.CoverageType, name="RGB")
+        rectified_grid = models.Grid.objects.create(
+            name="rectified_grid",
+            coordinate_reference_system="EPSG:4326",
+            axis_1_name="x",
+            axis_1_type=0,
+            axis_1_offset="5",
+            axis_2_name="y",
+            axis_2_type=0,
+            axis_2_offset="5",
         )
-        rectified_grid = Grid.objects.create(
-          name="rectified_grid",
-          coordinate_reference_system="EPSG:4326",
-          axis_1_name="x",
-          axis_1_type=0,
-          axis_1_offset="5",
-          axis_2_name="y",
-          axis_2_type=0,
-          axis_2_offset="5"
-        )
-        create(Coverage,
+        create(
+            models.Coverage,
             identifier="rectified-1",
-            footprint=GEOSGeometry("MULTIPOLYGON (((-111.6210939999999994 26.8588260000000005, -113.0273439999999994 -4.0786740000000004, -80.6835939999999994 -9.7036739999999995, -68.0273439999999994 15.6088260000000005, -111.6210939999999994 26.8588260000000005)))"),
+            footprint=GEOSGeometry(
+                "MULTIPOLYGON (((-111.6210939999999994 26.8588260000000005, -113.0273439999999994 -4.0786740000000004, -80.6835939999999994 -9.7036739999999995, -68.0273439999999994 15.6088260000000005, -111.6210939999999994 26.8588260000000005)))"
+            ),
             begin_time=parse_datetime("2013-06-11T14:55:23Z"),
             end_time=parse_datetime("2013-06-11T14:55:23Z"),
             grid=rectified_grid,
             axis_1_size=100,
             axis_2_size=100,
-            coverage_type=coverage_type
+            coverage_type=coverage_type,
         )
 
-        eo_object = EOObject.objects.get(identifier="rectified-1")
-        cast_object = cast_eo_object(eo_object)
+        eo_object = models.EOObject.objects.get(identifier="rectified-1")
+        cast_object = models.cast_eo_object(eo_object)
 
-        self.assertEqual(type(cast_object), Coverage)
+        self.assertEqual(type(cast_object), models.Coverage)
+
+
+class CommandTestCaseMixIn(object):
+    def call_command(self, command_name, *args, **kwargs):
+        stdout = StringIO()
+        management.call_command(
+            command_name,
+            *args,
+            **kwargs,
+            stdout=stdout,
+        )
+        return stdout
+
+
+class CollectionImportCommandTestCase(CommandTestCaseMixIn, TestCase):
+    def setUp(self):
+        super().setUp()
+        self.coverage_type = create(models.CoverageType, name="RGB")
+        self.rectified_grid = models.Grid.objects.create(
+            name="rectified_grid",
+            coordinate_reference_system="EPSG:4326",
+            axis_1_name="x",
+            axis_1_type=0,
+            axis_1_offset="5",
+            axis_2_name="y",
+            axis_2_type=0,
+            axis_2_offset="5",
+        )
+        self.coverage = create(
+            models.Coverage,
+            identifier="rectified-1",
+            grid=self.rectified_grid,
+            axis_1_size=100,
+            axis_2_size=100,
+            coverage_type=self.coverage_type,
+        )
+
+        self.product_type = create(models.ProductType, name="ProductTypeA")
+        self.product = models.Product.objects.create(
+            identifier="product-1",
+            product_type=self.product_type,
+        )
+
+        self.collection_type = models.CollectionType.objects.create(
+            name="CollectionTypeA"
+        )
+        self.collection_type.allowed_coverage_types.add(self.coverage_type)
+        self.collection_type.allowed_product_types.add(self.product_type)
+
+        self.collection = models.Collection.objects.create(
+            identifier="collection-1",
+            collection_type=self.collection_type,
+        )
+
+    def test_import_coverages_from_other_collection(self):
+        other_collection = models.Collection.objects.create(
+            identifier="collection-2",
+            collection_type=self.collection_type,
+        )
+
+        models.collection_insert_eo_object(other_collection, self.coverage)
+
+        self.call_command(
+            "collection",
+            "import",
+            self.collection.identifier,
+            from_collections=[other_collection.identifier],
+            from_producttypes=None,
+            from_coveragetypes=[],
+            coverage_import=True,
+            product_import=False,
+        )
+
+        self.assertIn(self.coverage, self.collection.coverages.all())
+
+    def test_import_products_from_other_collection(self):
+        other_collection = models.Collection.objects.create(
+            identifier="collection-2",
+            collection_type=self.collection_type,
+        )
+
+        models.collection_insert_eo_object(other_collection, self.product)
+
+        self.call_command(
+            "collection",
+            "import",
+            self.collection.identifier,
+            from_collections=[other_collection.identifier],
+            from_producttypes=[],
+            from_coveragetypes=[],
+            coverage_import=False,
+            product_import=True,
+        )
+
+        self.assertIn(self.product, self.collection.products.all())
+
+    def test_import_coverages_from_coverage_type(self):
+        self.call_command(
+            "collection",
+            "import",
+            self.collection.identifier,
+            from_collections=[],
+            from_producttypes=[],
+            from_coveragetypes=[self.coverage_type.name],
+            coverage_import=True,
+            product_import=False,
+        )
+
+        self.assertIn(self.coverage, self.collection.coverages.all())
+
+    def test_import_products_from_product_type(self):
+        self.call_command(
+            "collection",
+            "import",
+            self.collection.identifier,
+            from_collections=[],
+            from_producttypes=[self.product_type.name],
+            from_coveragetypes=[],
+            coverage_import=False,
+            product_import=True,
+        )
+
+        self.assertIn(self.product, self.collection.products.all())
