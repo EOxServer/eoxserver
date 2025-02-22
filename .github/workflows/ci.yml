@@ -78,7 +78,7 @@ jobs:
         run: |
           docker exec -i eoxserver-autotest-1 python3 ${{ matrix.command }}
       - name: Upload logs and outputs of failed tests
-        uses: 'actions/upload-artifact@v3'
+        uses: 'actions/upload-artifact@v4'
         with:
           name: logs ${{ matrix.command }}
           path: |
@@ -159,7 +159,7 @@ jobs:
           pip install setuptools wheel
           sudo apt-get install -y gdal-bin
           python setup.py sdist bdist_wheel
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: eoxserver-dist
           path: ./dist/
@@ -185,7 +185,7 @@ jobs:
     if: contains(github.ref, 'refs/tags/')
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/download-artifact@v3.0.1
+      - uses: actions/download-artifact@v4
         with:
           name: eoxserver-dist
       - name: Branch name
