@@ -373,7 +373,7 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             num_products = len(qs)
             for product in qs:
                 models.collection_insert_eo_object(collection, product)
-            print("Imported %d products." % num_products)
+            print("Imported %d products into collection %r." % (num_products, collection))
 
         if coverage_import:
             # get distinct coverages that are in the collections in
@@ -391,7 +391,11 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             num_coverages = len(qs)
             for coverage in qs:
                 models.collection_insert_eo_object(collection, coverage)
-            print("Imported %d coverages." % num_coverages)
+            print(
+                "Imported %d coverages into collection %r." % (
+                    num_coverages, collection
+                )
+            )
 
     def get_collection(self, identifier):
         """ Helper method to get a collection by identifier or raise a
