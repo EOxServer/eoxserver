@@ -182,6 +182,13 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
             dest='coverage_import',
             help=("Don't import coverages.")
         )
+        import_parser.add_argument(
+            '--use-extent', action='store_true', default=False,
+            help=(
+                'Whether to simply collect the bounding box of the '
+                'footprint as the collections footprint'
+            )
+        )
 
     @transaction.atomic
     def handle(self, subcommand, identifier, *args, **kwargs):
@@ -348,8 +355,8 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
         print('Successfully collected metadata for collection %r' % identifier)
 
     def handle_import(self, identifier, from_collections, from_producttypes,
-                      from_coveragetypes, product_import,
-                      coverage_import, **kwargs):
+                      from_coveragetypes, product_import, coverage_import,
+                      use_extent, **kwargs):
         collection = self.get_collection(identifier)
 
         collections = [
@@ -372,7 +379,7 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
 
             num_products = len(qs)
             for product in qs:
-                models.collection_insert_eo_object(collection, product)
+                models.collection_insert_eo_object(collection, product, use_extent)
             print("Imported %d products into collection %r." % (num_products, collection))
 
         if coverage_import:
@@ -390,7 +397,7 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
 
             num_coverages = len(qs)
             for coverage in qs:
-                models.collection_insert_eo_object(collection, coverage)
+                models.collection_insert_eo_object(collection, coverage, use_extent)
             print(
                 "Imported %d coverages into collection %r." % (
                     num_coverages, collection
