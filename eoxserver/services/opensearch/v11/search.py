@@ -1,9 +1,9 @@
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
 #
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Copyright (C) 2015 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -23,12 +23,13 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 from collections import namedtuple
 
 from django.http import Http404
 from django.db.models import Q
+from django.shortcuts import get_object_or_404
 
 from eoxserver.core.config import get_eoxserver_config
 from eoxserver.core.decoders import kvp
@@ -43,9 +44,9 @@ from eoxserver.services.opensearch.extensions import get_extensions
 
 
 class SearchContext(namedtuple("SearchContext", [
-        "total_count", "start_index", "page_size", "count",
-        "parameters", "namespaces"
-        ])):
+    "total_count", "start_index", "page_size", "count",
+    "parameters", "namespaces"
+])):
 
     @property
     def page_count(self):
@@ -78,6 +79,11 @@ class OpenSearch11SearchHandler(object):
         if collection_id:
             # search for products in that collection and coverages not
             # associated with a product but contained in this collection
+
+            get_object_or_404(
+                models.Collection,
+                identifier=collection_id
+            )
 
             ModelClass = get_opensearch_record_model()
 
@@ -141,7 +147,7 @@ class OpenSearch11SearchHandler(object):
         if requested_count == 0:
             qs = models.EOObject.objects.none()
         else:
-            qs = qs[start_index:start_index+requested_count]
+            qs = qs[start_index:start_index + requested_count]
 
         result_count = qs[:].count()
 

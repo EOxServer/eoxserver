@@ -25,6 +25,8 @@
 # THE SOFTWARE.
 # ------------------------------------------------------------------------------
 
+from typing import List
+
 from django.conf import settings
 from django.utils.module_loading import import_string
 
@@ -41,7 +43,7 @@ DEFAULT_EOXS_OPENSEARCH_FORMATS = [
 
 ]
 
-DEFAULT_EOXS_RESULT_ITEM_FEED_LINK_GENERATORS = []
+DEFAULT_EOXS_RESULT_ITEM_FEED_LINK_GENERATORS: List[str] = []
 
 # default for EOXS_OPENSEARCH_EXTENSIONS
 DEFAULT_EOXS_OPENSEARCH_EXTENSIONS = [
@@ -62,6 +64,7 @@ DEFAULT_EOXS_OPENSEARCH_DEFAULT_ORDERING = None
 
 # when True, adds exceptions=text/html to all GetCoverage links in opensearch response
 DEFAULT_EOXS_OPENSEARCH_GETCOVERAGE_HTML_EXCEPTION = False
+
 
 def get_opensearch_record_model():
     class_name = getattr(

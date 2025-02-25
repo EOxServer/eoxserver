@@ -1,9 +1,9 @@
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
 #
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Copyright (C) 2015 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -23,7 +23,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 
 from itertools import chain
@@ -74,7 +74,8 @@ class AtomResultFormat(BaseFeedResultFormat):
         namespaces.update(search_context.namespaces)
         ATOM = ElementMaker(namespace=ns_atom.uri, nsmap=namespaces)
 
-        tree = ATOM("feed",
+        tree = ATOM(
+            "feed",
             ATOM("id", request.build_absolute_uri()),
             ATOM("title", "%s Search" % collection_id),
             ATOM("description"),
@@ -96,7 +97,8 @@ class AtomResultFormat(BaseFeedResultFormat):
         return etree.tostring(tree, pretty_print=True)
 
     def encode_entry(self, request, collection_id, item):
-        entry = ATOM("entry",
+        entry = ATOM(
+            "entry",
             ATOM("title", item.identifier),
             ATOM("id", self._create_self_link(request, collection_id, item)),
             DC("identifier", item.identifier),
@@ -164,7 +166,8 @@ class AtomResultFormat(BaseFeedResultFormat):
             'eo_om_link': eo_om_link,
         }
 
-        return ATOM("summary",
+        return ATOM(
+            "summary",
             CDATA(
                 render_to_string(
                     template_name, template_params,

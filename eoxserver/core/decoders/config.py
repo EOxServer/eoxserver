@@ -1,9 +1,9 @@
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
 #
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Copyright (C) 2013 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -23,12 +23,13 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 """ This module contains facilities to help decoding configuration files.
 It relies on the :mod:`ConfigParser` module for actually reading the file.
 """
 
+from typing import Union
 import sys
 
 try:
@@ -86,7 +87,7 @@ class Option(property):
         self.section = section
 
     def fget(self, reader):
-        
+
         section = self.section or reader.section
         try:
             if self.type is bool:
@@ -180,7 +181,7 @@ class Reader(with_metaclass(ReaderMetaclass, object)):
 
     __metaclass__ = ReaderMetaclass
 
-    section = None
+    section: Union[str, None] = None
 
     def __init__(self, config):
         self._config = config

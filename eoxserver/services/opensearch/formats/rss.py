@@ -1,9 +1,9 @@
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
 #
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Copyright (C) 2015 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -23,12 +23,13 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 from itertools import chain
 
 from lxml.etree import CDATA
 from lxml.builder import ElementMaker
+
 try:
     from django.core.urlresolvers import reverse
 except ImportError:
@@ -38,8 +39,13 @@ from django.utils.http import urlencode
 from eoxserver.core.util.xmltools import etree, NameSpace, NameSpaceMap, typemap
 from eoxserver.core.util.timetools import isoformat
 from eoxserver.services.opensearch.formats.base import (
-    BaseFeedResultFormat, ns_opensearch, ns_dc, ns_atom, ns_media, ns_owc,
-    ns_eoxs
+    BaseFeedResultFormat,
+    ns_opensearch,
+    ns_dc,
+    ns_atom,
+    ns_media,
+    ns_owc,
+    ns_eoxs,
 )
 from eoxserver.resources.coverages import models
 
@@ -50,8 +56,7 @@ ns_gml = NameSpace("http://www.opengis.net/gml", "gml")
 
 # namespace map
 nsmap = NameSpaceMap(
-    ns_georss, ns_gml, ns_opensearch, ns_dc, ns_atom, ns_media, ns_owc,
-    ns_eoxs
+    ns_georss, ns_gml, ns_opensearch, ns_dc, ns_atom, ns_media, ns_owc, ns_eoxs
 )
 
 # Element factories
@@ -61,8 +66,7 @@ RSS = ElementMaker(typemap=typemap)
 
 
 class RSSResultFormat(BaseFeedResultFormat):
-    """ RSS result format.
-    """
+    """RSS result format."""
 
     mimetype = "application/rss+xml"
     name = "rss"
@@ -73,38 +77,44 @@ class RSSResultFormat(BaseFeedResultFormat):
         namespaces.update(search_context.namespaces)
         RSS = ElementMaker(namespace=None, nsmap=namespaces)
 
-        tree = RSS("rss",
-            RSS("channel",
+        tree = RSS(
+            "rss",
+            RSS(
+                "channel",
                 RSS("title", "%s Search" % collection_id),
                 RSS("link", request.build_absolute_uri()),
                 RSS("description"),
                 *chain(
                     self.encode_opensearch_elements(search_context),
-                    self.encode_feed_links(request, search_context), [
-                        self.encode_item(
-                            request, collection_id, item, search_context
-                        )
+                    self.encode_feed_links(request, search_context),
+                    [
+                        self.encode_item(request, collection_id, item, search_context)
                         for item in queryset
-                    ]
+                    ],
                 )
             ),
-            version="2.0"
+            version="2.0",
         )
         return etree.tostring(tree, pretty_print=True)
 
     def encode_item(self, request, collection_id, item, search_context):
         link_url = request.build_absolute_uri(
-            "%s?%s" % (
-                reverse("ows"), urlencode(dict(
-                    service="WCS",
-                    version="2.0.1",
-                    request="DescribeCoverage",
-                    coverageId=item.identifier,
-                ))
+            "%s?%s"
+            % (
+                reverse("ows"),
+                urlencode(
+                    dict(
+                        service="WCS",
+                        version="2.0.1",
+                        request="DescribeCoverage",
+                        coverageId=item.identifier,
+                    )
+                ),
             )
         )
 
-        rss_item = RSS("item",
+        rss_item = RSS(
+            "item",
             RSS("title", item.identifier),
             RSS("description", CDATA(item.identifier)),
             RSS("link", link_url),
@@ -120,7 +130,8 @@ class RSSResultFormat(BaseFeedResultFormat):
         # TODO: remove this for the general dc:date?
         if item.begin_time and item.end_time:
             rss_item.append(
-                GML("TimePeriod",
+                GML(
+                    "TimePeriod",
                     GML("beginPosition", isoformat(item.begin_time)),
                     GML("endPosition", isoformat(item.end_time)),
                     **{ns_gml("id"): item.identifier}
