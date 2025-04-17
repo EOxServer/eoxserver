@@ -117,6 +117,7 @@ class CloudCoverageProcess(Component):
     # sometimes bit 4 also seems to count things as cloud which don't appear to
     # be clouds
     CLM_MASK_ONLY_CLOUD = 0b11110000
+    MG2_MASK_ONLY_CLOUD = 0b00001010
 
     @staticmethod
     def execute(
@@ -148,6 +149,14 @@ class CloudCoverageProcess(Component):
             calculation_fun = cloud_coverage_ratio_for_CLM
             coverages = coverages_clm
             # CLM is a bitmask, this value would mean that all types of cloud were found
+            # hopefully this never occurs naturally, so we can use it as no_data
+            no_data_value = 0b11111111
+
+        elif coverages_mg2 := relevant_coverages.filter(coverage_type__name="MG2"):
+            logger.info("Matched %s MG2 covs for cloud coverage", coverages_mg2.count())
+            calculation_fun = cloud_coverage_ratio_for_MG2
+            coverages = coverages_mg2
+            # MG2 is a bitmask, this value would mean that all types in mask were found
             # hopefully this never occurs naturally, so we can use it as no_data
             no_data_value = 0b11111111
 
@@ -215,6 +224,18 @@ def cloud_coverage_ratio_for_CLM(histogram: List[int], cloud_mask: Any) -> float
     num_pixels = sum(histogram)
     return ((num_is_cloud / num_pixels)) if num_pixels != 0 else 0.0
 
+def cloud_coverage_ratio_for_MG2(histogram: List[int], cloud_mask: Any) -> float:
+    cloud_mask = (
+        cloud_mask
+        if cloud_mask is not None
+        else CloudCoverageProcess.MG2_MASK_ONLY_CLOUD
+    )
+    num_is_cloud = sum(
+        value for index, value in enumerate(histogram) if index & cloud_mask > 0
+    )
+
+    num_pixels = sum(histogram)
+    return ((num_is_cloud / num_pixels)) if num_pixels != 0 else 0.0
 
 def cloud_coverage_ratio_for_SCL(histogram: List[int], cloud_mask: Any) -> float:
     cloud_mask = (

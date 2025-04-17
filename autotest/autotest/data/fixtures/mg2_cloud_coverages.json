@@ -1,0 +1,75 @@
+[
+    {
+        "model": "coverages.coveragetype",
+        "pk": 5,
+        "fields": {
+            "name": "MG2"
+        }
+    },
+    {
+        "model": "coverages.eoobject",
+        "pk": 22,
+        "fields": {
+            "identifier": "MG2_CLOUD_COVERAGE_PRODUCT",
+            "begin_time": "2024-08-12T10:00:31.342Z",
+            "end_time": "2024-08-12T10:00:31.342Z",
+            "footprint": "SRID=4326;POLYGON ((15.2626688586643 48.582734343236,15.2633437132633 48.582734343236,15.2633437132633 48.585342119825,15.2626688586643 48.585342119825,15.2626688586643 48.582734343236))",
+            "inserted": "2019-01-01T00:00:00.000Z",
+            "updated": "2019-01-01T00:00:00.000Z"
+        }
+    },
+    {
+        "model": "coverages.product",
+        "pk": 22,
+        "fields": {
+            "product_type": null,
+            "package": null
+        }
+    },
+    {
+        "model": "coverages.eoobject",
+        "pk": 23,
+        "fields": {
+            "identifier": "MG2_CLOUD_COVERAGE",
+            "begin_time": null,
+            "end_time": null,
+            "footprint": "SRID=4326;POLYGON ((15.2626688586643 48.582734343236,15.2633437132633 48.582734343236,15.2633437132633 48.585342119825,15.2626688586643 48.585342119825,15.2626688586643 48.582734343236))",
+            "inserted": "2019-01-01T00:00:00.000Z",
+            "updated": "2019-01-01T00:00:00.000Z"
+        }
+    },
+    {
+        "model": "coverages.coverage",
+        "pk": 23,
+        "fields": {
+            "grid": 1,
+            "axis_1_origin": null,
+            "axis_2_origin": null,
+            "axis_3_origin": null,
+            "axis_4_origin": null,
+            "axis_1_size": 5,
+            "axis_2_size": 29,
+            "axis_3_size": null,
+            "axis_4_size": null,
+            "coverage_type": 5,
+            "parent_product": 22,
+            "collections": [],
+            "mosaics": []
+        }
+    },
+    {
+        "model": "coverages.arraydataitem",
+        "pk": 21,
+        "fields": {
+            "storage": null,
+            "location": "autotest/data/MG2_clipped.tif",
+            "format": "image/tiff",
+            "coverage": 23,
+            "field_index": 0,
+            "band_count": 1,
+            "subdataset_type": null,
+            "subdataset_locator": null,
+            "bands_interpretation": 0
+        }
+    }
+    ]
