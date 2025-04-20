@@ -28,9 +28,7 @@
 import logging
 
 from django.conf import settings
-# from django.utils.module_loading import import_string
 from django.http import HttpResponse
-from django.utils.six import string_types
 
 from eoxserver.services.ows.config import (
     DEFAULT_EOXS_OWS_SERVICE_HANDLERS,
@@ -223,7 +221,8 @@ def query_exception_handler(request):
 
     try:
         decoder = get_decoder(request)
-        handlers = sorted([
+        handlers = sorted(
+            [
                 handler()
                 for handler in EXCEPTION_HANDLERS
                 if handler_supports_service(handler, decoder.service)
@@ -314,7 +313,7 @@ def filter_handlers(handlers=None, service=None, versions=None, request=None,
 def handler_supports_service(handler, service=None):
     """ Convenience method to check whether or not a handler supports a service.
     """
-    if isinstance(handler.service, string_types):
+    if isinstance(handler.service, str):
         return handler.service.upper() == service
     else:
         return service in handler.service

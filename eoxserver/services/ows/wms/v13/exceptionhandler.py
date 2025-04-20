@@ -26,10 +26,7 @@
 #-------------------------------------------------------------------------------
 
 
-try:
-    from io import StringIO 
-except ImportError:
-    from cStringIO import StringIO
+from io import StringIO
 
 try:
     from PIL import Image, ImageFont, ImageDraw
@@ -43,12 +40,6 @@ from eoxserver.core.decoders import kvp, lower
 from eoxserver.core.util.xmltools import XMLEncoder, NameSpace, NameSpaceMap
 from eoxserver.services.ows.interfaces import ExceptionHandlerInterface
 
-try:
-    # Python 2
-    xrange
-except NameError:
-    # Python 3, xrange is now named range
-    xrange = range
 
 class WMS13ExceptionHandler(Component):
     implements(ExceptionHandlerInterface)
@@ -80,8 +71,8 @@ class WMS13ExceptionHandler(Component):
                 encoder.encode_exception(
                     str(exception), code, locator
                 ),
-            ), 
-            encoder.content_type, 
+            ),
+            encoder.content_type,
             400
         )
 
@@ -148,7 +139,7 @@ class WMS13ExceptionImageEncoder(object):
             draw = ImageDraw.Draw(image)
             yoffset = 0
             while len(message):
-                for i in xrange(len(message)):
+                for i in range(len(message)):
                     part = message if i == 0 else message[:-i]
                     xsize, ysize = font.getsize(part)
                     print (i, xsize, ysize, part)

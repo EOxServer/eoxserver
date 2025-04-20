@@ -30,7 +30,7 @@ import shutil
 import tarfile
 import zipfile
 import fnmatch
-from django.utils.six.moves.urllib import parse, request
+from urllib import parse, request
 
 import ftplib
 import glob
@@ -261,9 +261,9 @@ class FTPStorageHandler(BaseStorageHandler):
 
     def __init__(self, url, streaming):
         self.url = url
-        self.parsed_url = urlparse(url)
+        self.parsed_url = parse.urlparse(url)
         self.ftp = None
-        self.streaming=streaming
+        self.streaming = streaming
 
     def __enter__(self):
         self.ftp = ftplib.FTP()
@@ -303,7 +303,7 @@ class FTPStorageHandler(BaseStorageHandler):
     @classmethod
     def test(cls, locator):
         try:
-            return urlparse(locator).scheme.lower() == 'ftp'
+            return parse.urlparse(locator).scheme.lower() == 'ftp'
         except:
             return False
 

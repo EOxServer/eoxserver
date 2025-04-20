@@ -1,10 +1,10 @@
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
 #          Stephan Meissl <stephan.meissl@eox.at>
 #
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Copyright (C) 2012 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -24,10 +24,12 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
-from django.utils.six import string_types
+# ------------------------------------------------------------------------------
+
+
 # global format selection registry
 _registry = {}
+
 
 def get_format_selection(driver, *args, **kwargs):
     """ Format selection factory method. """
@@ -42,35 +44,31 @@ class FormatSelectionMetaclass(type):
     """ Metaclass for format selections
     """
     def __init__(cls, name, bases, dct):
-        if isinstance(dct["driver_name"], string_types):
+        if isinstance(dct["driver_name"], str):
             _registry[dct["driver_name"]] = cls
         super(FormatSelectionMetaclass, cls).__init__(name, bases, dct)
 
 
-#===============================================================================
+# ==============================================================================
 # Format selection
-#===============================================================================
+# ==============================================================================
 
 class FormatSelection(object):
     """ Format selection with format specific options. """
 
     __metaclass__ = FormatSelectionMetaclass
 
-
     @property
     def driver_name(self):
         raise NotImplementedError
-
 
     @property
     def extension(self):
         raise NotImplementedError
 
-
     @property
     def creation_options(self):
         return []
-
 
 
 class GeoTIFFFormatSelection(FormatSelection):
@@ -79,7 +77,6 @@ class GeoTIFFFormatSelection(FormatSelection):
 
     SUPPORTED_COMPRESSIONS = ("JPEG", "LZW", "PACKBITS", "DEFLATE", "CCITTRLE",
                               "CCITTFAX3", "CCITTFAX4", "NONE")
-
 
     def __init__(self, tiling=True, compression=None,
                  jpeg_quality=None, zlevel=None, creation_options=None):
@@ -110,10 +107,8 @@ class GeoTIFFFormatSelection(FormatSelection):
         if creation_options:
             self.final_options.update(dict(creation_options))
 
-
     driver_name = "GTiff"
     extension = ".tif"
-
 
     @property
     def creation_options(self):

@@ -1,9 +1,9 @@
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
 #
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Copyright (C) 2013 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -23,14 +23,14 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 """ This module contains facilities to help decoding XML structures.
 """
 
 from lxml import etree
+
 from eoxserver.core.decoders.base import BaseParameter
-from django.utils.six import string_types
 
 
 class Parameter(BaseParameter):
@@ -61,11 +61,11 @@ class Parameter(BaseParameter):
 
     def select(self, decoder):
         # prepare the XPath selector if necessary
-        if isinstance(self.selector, string_types):
+        if isinstance(self.selector, str):
             namespaces = self.namespaces or decoder.namespaces
             self.selector = etree.XPath(self.selector, namespaces=namespaces)
         results = self.selector(decoder._tree)
-        if isinstance(results, (string_types + (float, int))):
+        if isinstance(results, (str, float, int)):
             results = [results]
 
         return results
@@ -117,10 +117,10 @@ class Decoder(object):
     namespaces = {}  # must be overriden if the XPath expressions use namespaces
 
     def __init__(self, tree):
-        if isinstance(tree, string_types) or isinstance(tree, bytes):
+        if isinstance(tree, str) or isinstance(tree, bytes):
             try:
                 tree = etree.fromstring(tree)
-                
+
             except etree.XMLSyntaxError as exc:
                 # NOTE: lxml.etree.XMLSyntaxError is incorretly identified as
                 #       an OWS exception by the exception handler leading

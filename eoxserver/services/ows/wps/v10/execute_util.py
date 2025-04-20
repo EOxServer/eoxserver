@@ -4,7 +4,7 @@
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Martin Paces <martin.paces@eox.at>
 #
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Copyright (C) 2016 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -24,9 +24,8 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
-from django.utils.six import iteritems, itervalues
 from eoxserver.services.ows.wps.util import OrderedDict
 from eoxserver.services.ows.wps.parameters import (
     fix_parameter, LiteralData, BoundingBoxData, ComplexData,
@@ -42,7 +41,7 @@ from eoxserver.services.ows.wps.exceptions import (
 def parse_params(param_defs):
     """ Parse process's inputs/outputs parameter definitions. """
     if isinstance(param_defs, dict):
-        param_defs = iteritems(param_defs)
+        param_defs = param_defs.items()
     return OrderedDict(
         (param.identifier, (name, param)) for name, param in (
             (name, fix_parameter(name, param)) for name, param in param_defs
@@ -68,7 +67,7 @@ def check_invalid_outputs(outputs, output_defs):
 
 def resolve_request_parameters(inputs, input_defs, request):
     """ Resolve request parameters. """
-    for identifier, (_, input_def) in iteritems(input_defs):
+    for identifier, (_, input_def) in input_defs.items():
         if isinstance(input_def, RequestParameter):
             inputs[identifier] = input_def.parse_request(request)
     return inputs
@@ -79,7 +78,7 @@ def decode_raw_inputs(raw_inputs, input_defs, resolver):
         all given inputs. This also includes resolving of references.
     """
     decoded_inputs = {}
-    for identifier, (name, input_def) in iteritems(input_defs):
+    for identifier, (name, input_def) in input_defs.items():
         raw_value = raw_inputs.get(identifier)
         if isinstance(input_def, RequestParameter):
             value = raw_value
@@ -118,7 +117,7 @@ def _decode_input(input_def, raw_value):
             raw_value.schema, raw_value.encoding, urlsafe=raw_value.asurl
         )
     else:
-        raise TypeError("Unsupported parameter type %s!"%(type(input_def)))
+        raise TypeError("Unsupported parameter type %s!" % (type(input_def)))
 
 
 def _resolve_reference(input_ref, resolver):
@@ -150,7 +149,7 @@ def decode_output_requests(response_form, output_defs):
         is passed as an input to the process
     """
     output_requests = {}
-    for identifier, (name, output_def) in iteritems(output_defs):
+    for identifier, (name, output_def) in output_defs.items():
         request = response_form.get_output(identifier)
         if isinstance(output_def, ComplexData):
             format_ = output_def.get_format(
@@ -181,7 +180,7 @@ def pack_outputs(outputs, response_form, output_defs):
     # Normalize the outputs to a dictionary.
     if not isinstance(outputs, dict):
         if len(output_defs) == 1:
-            outputs = {list(itervalues(output_defs))[0][0]: outputs}
+            outputs = {list(output_defs.values())[0][0]: outputs}
         else:
             outputs = dict(outputs)
     # Pack the outputs to a tuple containing:
@@ -189,7 +188,7 @@ def pack_outputs(outputs, response_form, output_defs):
     #   - the process output declaration (ProcessDescription/Output)
     #   - the output's requested form (RequestForm/Output)
     packed = OrderedDict()
-    for identifier, (name, output_def) in iteritems(output_defs):
+    for identifier, (name, output_def) in output_defs.items():
         request = response_form.get_output(identifier)
         result = outputs.get(name)
         # TODO: Can we silently skip the missing outputs? Check the standard!

@@ -1,4 +1,4 @@
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #
 # WPS 1.0 parameters' XML encoders
 #
@@ -6,7 +6,7 @@
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
 #          Martin Paces <martin.paces@eox.at>
 #
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Copyright (C) 2013 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -26,9 +26,8 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # pylint: disable=bad-continuation
-from django.utils.six import itervalues
 
 from eoxserver.services.ows.wps.parameters import (
     LiteralData, ComplexData, BoundingBoxData,
@@ -183,7 +182,7 @@ def _encode_complex(prm, is_input):
     """
     return NIL("ComplexData" if is_input else "ComplexOutput",
         NIL("Default", _encode_format(prm.default_format)),
-        NIL("Supported", *[_encode_format(f) for f in itervalues(prm.formats)])
+        NIL("Supported", *[_encode_format(f) for f in prm.formats.values()])
     )
 
 

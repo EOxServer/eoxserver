@@ -32,12 +32,7 @@ It relies on the :mod:`ConfigParser` module for actually reading the file.
 from typing import Union
 import sys
 
-try:
-    from ConfigParser import NoOptionError, NoSectionError
-except ImportError:
-    from configparser import NoOptionError, NoSectionError
-
-from django.utils.six import with_metaclass
+from configparser import NoOptionError, NoSectionError
 
 
 def section(name):
@@ -126,7 +121,7 @@ class ReaderMetaclass(type):
         super(ReaderMetaclass, cls).__init__(name, bases, dct)
 
 
-class Reader(with_metaclass(ReaderMetaclass, object)):
+class Reader(metaclass=ReaderMetaclass):
     """ Base class for config readers.
 
     :param config: an instance of :class:`ConfigParser.RawConfigParser`

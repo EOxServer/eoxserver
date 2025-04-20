@@ -1,4 +1,4 @@
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #
 #  WPS Literal Data type
 #
@@ -6,7 +6,7 @@
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
 #          Martin Paces <martin.paces@eox.at>
 #
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Copyright (C) 2013 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -26,20 +26,16 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
-try:
-    # available in Python 2.7+
-    from collections import OrderedDict
-except ImportError:
-    from django.utils.datastructures import SortedDict as OrderedDict
+from collections import OrderedDict
+
+from django.utils.encoding import smart_str
 
 from .base import Parameter
 from .data_types import BaseType, String, DTYPES
 from .allowed_values import BaseAllowed, AllowedAny, AllowedEnum
 from .units import UnitOfMeasure, UnitLinear
-from django.utils.encoding import smart_str
-from django.utils.six import text_type
 
 
 class LiteralData(Parameter):
@@ -192,7 +188,7 @@ class LiteralData(Parameter):
         """
 
         try:
-            if isinstance(raw_value, text_type):
+            if isinstance(raw_value, str):
                 _value = raw_value
             elif isinstance(raw_value, str):
                 _value = smart_str(raw_value, encoding)

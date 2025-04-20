@@ -1,9 +1,9 @@
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
 #
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Copyright (C) 2013 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -23,11 +23,10 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 import subprocess
 import math
-from django.utils.six import string_types
 
 from eoxserver.contrib import gdal, vsi, osr
 
@@ -147,7 +146,7 @@ class VRTBuilder(object):
                          <eoxserver.core.util.rect.Rect>` specifying the target
                          area to contribute
         """
-        if isinstance(src, string_types):
+        if isinstance(src, str):
             pass
 
         else:
@@ -217,7 +216,7 @@ class VRTBuilder2(object):
                          <eoxserver.core.util.rect.Rect>` specifying the target
                          area to contribute
         """
-        if isinstance(src, string_types):
+        if isinstance(src, str):
             pass
 
         else:
