@@ -1,9 +1,9 @@
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
 #
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Copyright (C) 2013 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -23,10 +23,10 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 
-from io import StringIO
+from io import BytesIO
 
 try:
     from PIL import Image, ImageFont, ImageDraw
@@ -55,10 +55,12 @@ class WMS13ExceptionHandler(Component):
             return WMS13ExceptionXMLEncoder()
         elif exceptions in ("inimage", "blank"):
             return WMS13ExceptionImageEncoder(
-                decoder.width, decoder.height, decoder.format, decoder.bgcolor,
-                exceptions=="blank"
+                decoder.width,
+                decoder.height,
+                decoder.format,
+                decoder.bgcolor,
+                exceptions == "blank",
             )
-        print (decoder.exceptions)
 
     def handle_exception(self, request, exception):
         encoder = self.get_encoder(request)
@@ -68,12 +70,10 @@ class WMS13ExceptionHandler(Component):
 
         return (
             encoder.serialize(
-                encoder.encode_exception(
-                    str(exception), code, locator
-                ),
+                encoder.encode_exception(str(exception), code, locator),
             ),
             encoder.content_type,
-            400
+            400,
         )
 
 
@@ -89,20 +89,17 @@ ns_ogc = NameSpace("http://www.opengis.net/ogc", "ogc")
 nsmap = NameSpaceMap(ns_ogc)
 OGC = ElementMaker(namespace=ns_ogc.uri, nsmap=nsmap)
 
+
 class WMS13ExceptionXMLEncoder(XMLEncoder):
     def encode_exception(self, message, code, locator=None):
-        attributes = {
-            "code": code
-        }
+        attributes = {"code": code}
         if locator:
             attributes["locator"] = locator
 
-        return OGC("ServiceExceptionReport",
-            OGC("ServiceException",
-                str(message),
-                **attributes
-            ),
-            version="1.3.0"
+        return OGC(
+            "ServiceExceptionReport",
+            OGC("ServiceException", str(message), **attributes),
+            version="1.3.0",
         )
 
     @property
@@ -120,7 +117,7 @@ class WMS13ExceptionImageEncoder(object):
         self.width = width if width > 0 else 256
         self.height = height if height > 0 else 256
         if "/" in format:
-            format = format[format.find("/") + 1:]
+            format = format[format.find("/") + 1 :]
         self.format = format or "jpeg"
         self.bgcolor = bgcolor or "white"
         self.blank = blank
@@ -141,8 +138,9 @@ class WMS13ExceptionImageEncoder(object):
             while len(message):
                 for i in range(len(message)):
                     part = message if i == 0 else message[:-i]
-                    xsize, ysize = font.getsize(part)
-                    print (i, xsize, ysize, part)
+                    left, top, right, bottom = font.getbbox(part)
+                    xsize = right - left
+                    ysize = bottom - top
                     if xsize < width:
                         break
                 draw.text((0, yoffset), part, font=font, fill="red")
@@ -153,9 +151,9 @@ class WMS13ExceptionImageEncoder(object):
         return image
 
     def serialize(self, image):
-        f = StringIO()
+        f = BytesIO()
         try:
             image.save(f, self.format)
         except (IOError, KeyError):
-            image.save(f, "jpeg") # Fallback solution
+            image.save(f, "jpeg")  # Fallback solution
         return f.getvalue()
