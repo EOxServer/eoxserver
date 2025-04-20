@@ -1,10 +1,10 @@
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Stephan Krause <stephan.krause@eox.at>
 #          Stephan Meissl <stephan.meissl@eox.at>
 #
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Copyright (C) 2011 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -24,20 +24,14 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 import re
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
-from django.utils.timezone import utc, make_aware, is_aware
-#from django.utils.dateparse import parse_datetime, parse_date
+from django.utils.timezone import make_aware, is_aware
 
-try:
-    from dateutil.parser import parse
-    HAVE_DATEUTIL = True
-except ImportError:
-    from django.utils.dateparse import parse_datetime, parse_date
-    HAVE_DATEUTIL = False
+from dateutil.parser import parse as parse_dateutil
 
 
 def isoformat(dt):
@@ -69,26 +63,24 @@ def parse_iso8601(value, tzinfo=None):
         :returns: a :class:`datetime.datetime`
     """
 
-    tzinfo = tzinfo or utc
-    parsers = (parse,) if HAVE_DATEUTIL else (parse_datetime, parse_date)
-    for parser in parsers:
-        try:
-            temporal = parser(value)
-        except Exception as e:
-            raise ValueError(
-                "Could not parse '%s' to a temporal value. "
-                "Error was: %s" % (value, e)
-            )
-        if temporal:
-            # convert to datetime if necessary
-            if not isinstance(temporal, datetime):
-                temporal = datetime.combine(temporal, datetime.min.time())
+    tzinfo = tzinfo or timezone.utc
+    try:
+        temporal = parse_dateutil(value)
+    except Exception as e:
+        raise ValueError(
+            "Could not parse '%s' to a temporal value. "
+            "Error was: %s" % (value, e)
+        )
+    if temporal:
+        # convert to datetime if necessary
+        if not isinstance(temporal, datetime):
+            temporal = datetime.combine(temporal, datetime.min.time())
 
-            # use UTC, if the datetime is not already time-zone aware
-            if not is_aware(temporal):
-                temporal = make_aware(temporal, tzinfo)
+        # use UTC, if the datetime is not already time-zone aware
+        if not is_aware(temporal):
+            temporal = make_aware(temporal, tzinfo)
 
-            return temporal
+        return temporal
 
     raise ValueError("Could not parse '%s' to a temporal value" % value)
 

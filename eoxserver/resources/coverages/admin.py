@@ -28,10 +28,8 @@
 # ------------------------------------------------------------------------------
 
 from django.contrib.gis import admin
-try:
-    from django.core.urlresolvers import reverse, NoReverseMatch
-except ImportError:
-    from django.urls import reverse, NoReverseMatch
+
+from django.urls import reverse, NoReverseMatch
 from django.utils.safestring import mark_safe
 from django.conf import settings
 from django.forms import ModelForm, TextInput
@@ -46,7 +44,6 @@ from eoxserver.resources.coverages import models
 
 class FieldTypeInline(admin.StackedInline):
     model = models.FieldType
-    filter_horizontal = ['nil_values']
     extra = 0
 
     def get_queryset(self, *args, **kwargs):
@@ -169,7 +166,7 @@ class CollectionMetadataInline(admin.StackedInline):
 # Abstract admins
 # ==============================================================================
 
-class EOObjectAdmin(admin.GeoModelAdmin):
+class EOObjectAdmin(admin.GISModelAdmin):
     date_hierarchy = 'inserted'
 
     @property

@@ -1,11 +1,11 @@
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Stephan Krause <stephan.krause@eox.at>
 #          Stephan Meissl <stephan.meissl@eox.at>
 #          Fabian Schindler <fabian.schindler@eox.at>
 #
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Copyright (C) 2011 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -25,14 +25,13 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 import logging
 import traceback
 from optparse import OptionValueError
 
 import django
-from django.db import transaction
 from django.core.management.base import CommandParser
 
 
@@ -136,18 +135,11 @@ class CommandOutputMixIn(object):
             self.print_msg(traceback.format_exc())
 
 
-def create_parser(cmd, kwargs):
-    if django.VERSION[0] < 2:
-        return CommandParser(cmd, **kwargs)
-    else:
-        return CommandParser(**kwargs)
-
-class SubParserMixIn(object):
-    def add_subparser(self, parser, name, *args, **kwargs):
+class SubParserMixIn:
+    def add_subparser(self, parser: CommandParser, name, *args, **kwargs):
         if not getattr(self, 'subparsers', None):
             self.subparsers = parser.add_subparsers(
                 title="subcommands",
-                parser_class=lambda **kw: create_parser(self, kw)
             )
         subparser = self.subparsers.add_parser(name, *args, **kwargs)
         subparser.set_defaults(subcommand=name)

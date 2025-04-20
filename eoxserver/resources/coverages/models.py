@@ -43,7 +43,6 @@ from django.db.models import Min, Max, Q, F, ExpressionWrapper
 from django.db.models.functions import Cast
 from django.utils.timezone import now
 from model_utils.managers import InheritanceManager
-from jsonfield import JSONField
 
 from eoxserver.backends import models as backends
 from eoxserver.core.util.timetools import isoformat
@@ -380,7 +379,7 @@ class EOObject(models.Model):
         return self.identifier
 
     class Meta:
-        index_together = [['begin_time', 'end_time']]
+        indexes = [models.Index(fields=['begin_time', 'end_time'])]
 
 
 class Collection(EOObject):
@@ -540,7 +539,7 @@ class BandStatistics(models.Model):
     maximum = models.FloatField(**optional)
     stddev = models.FloatField(**optional)
     valid_percent = models.FloatField(**optional)
-    histogram = JSONField(**optional)
+    histogram = models.JSONField(**optional)
 
     class Meta:
         unique_together = [('arraydata_item', 'band_index')]
