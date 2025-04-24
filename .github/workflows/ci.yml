@@ -43,6 +43,7 @@ jobs:
         command:
           - "-m eoxserver.services.ows.wps.test_data_types"
           - "-m eoxserver.services.ows.wps.test_allowed_values"
+          - "-m eoxserver.core.test_config"
           - "manage.py test --pythonpath=./eoxserver/ eoxserver.core -v2"
           - "manage.py test --pythonpath=./eoxserver/ eoxserver.backends -v2"
           - "manage.py test --pythonpath=./eoxserver/ eoxserver.services -v2"
