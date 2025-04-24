@@ -27,12 +27,14 @@
 
 from typing import List
 
+from django.core.handlers.wsgi import WSGIRequest
 from eoxserver.core.config import get_eoxserver_config
 from eoxserver.services.ows.common.config import CapabilitiesConfigReader
 from eoxserver.services.ows.dispatch import filter_handlers
 from eoxserver.services.ows.wps.util import get_processes
 from eoxserver.services.ows.wps.interfaces import ProcessInterface
 from eoxserver.services.ows.wps.v20.common import encode_process_summary
+from eoxserver.services.urls import get_http_service_url
 
 from ows.wps.v20 import encoders
 from ows.wps.types import ProcessSummary, ServiceCapabilities
@@ -81,7 +83,7 @@ class WPS20GetCapabilitiesHandler(object):
             hours_of_service=conf.hours_of_service,
             contact_instructions=conf.contact_instructions,
             role=conf.role,
-            operations=self._encode_operations_metadata(conf),
+            operations=self._encode_operations_metadata(request),
             process_summaries=encode_process_summaries(),
         )
 
@@ -90,7 +92,7 @@ class WPS20GetCapabilitiesHandler(object):
         return result.value, result.content_type
 
     def _encode_operations_metadata(
-        self, conf: CapabilitiesConfigReader
+        self, request: WSGIRequest
     ) -> List[Operation]:
         get_handlers = filter_handlers(
             service="WPS", versions=self.versions, method="GET"
@@ -101,7 +103,7 @@ class WPS20GetCapabilitiesHandler(object):
         all_handlers = sorted(
             set(get_handlers + post_handlers), key=lambda h: h.request
         )
-        url = conf.http_service_url
+        url = get_http_service_url(request)
         return [
             Operation(
                 name=handler.request,

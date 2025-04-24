@@ -35,6 +35,7 @@ from eoxserver.services.ows.common.config import CapabilitiesConfigReader
 from eoxserver.services.ows.wps.v10.util import (
     OWS, WPS, ns_xlink, ns_xml,
 )
+from eoxserver.services.urls import get_http_service_url
 from .process_description import encode_process_brief
 from .base import WPS10BaseXMLEncoder
 
@@ -42,7 +43,7 @@ from .base import WPS10BaseXMLEncoder
 class WPS10CapabilitiesXMLEncoder(WPS10BaseXMLEncoder):
     """ WPS 1.0 Capabilities XML response encoder. """
     @staticmethod
-    def encode_capabilities(processes):
+    def encode_capabilities(processes, request):
         """ Encode Capabilities XML document. """
         conf = CapabilitiesConfigReader(get_eoxserver_config())
 
@@ -92,7 +93,7 @@ class WPS10CapabilitiesXMLEncoder(WPS10BaseXMLEncoder):
                     )
                 )
             ),
-            _encode_operations_metadata(conf),
+            _encode_operations_metadata(request),
             WPS("ProcessOfferings", *process_offerings),
             WPS("Languages",
                 WPS("Default",
@@ -112,7 +113,7 @@ class WPS10CapabilitiesXMLEncoder(WPS10BaseXMLEncoder):
         )
 
 
-def _encode_operations_metadata(conf):
+def _encode_operations_metadata(request):
     """ Encode OperationsMetadata XML element. """
     versions = ("1.0.0",)
     get_handlers = filter_handlers(
@@ -124,7 +125,7 @@ def _encode_operations_metadata(conf):
     all_handlers = sorted(
         set(get_handlers + post_handlers), key=lambda h: h.request
     )
-    url = conf.http_service_url
+    url = get_http_service_url(request)
     return OWS("OperationsMetadata", *[
         OWS("Operation",
             OWS("DCP",
