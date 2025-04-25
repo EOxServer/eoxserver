@@ -25,6 +25,9 @@
               <MimeType>application/octet-stream</MimeType>
               <Encoding>base64</Encoding>
             </Format>
+            <Format>
+              <MimeType>application/octet-stream</MimeType>
+            </Format>
           </Supported>
         </ComplexData>
       </Input>
