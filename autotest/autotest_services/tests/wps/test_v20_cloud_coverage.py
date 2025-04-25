@@ -307,3 +307,35 @@ class WPS20ExecuteCloudCoverageOnCLMCustomMask(
         </wps:Execute>
         """
         return (params, "xml")
+
+class WPS20ExecuteCloudCoverageOnMG2Mask(
+    ContentTypeCheckMixIn, testbase.JSONTestCase
+):
+    fixtures = testbase.JSONTestCase.fixtures + ["mg2_cloud_coverages.json"]
+
+    expectedContentType = "application/json; charset=utf-8"
+
+    def getRequest(self):
+        params = """<wps:Execute
+        version="2.0.0"
+        service="WPS"
+        response="raw"
+        mode="sync"
+        xmlns:wps="http://www.opengis.net/wps/2.0"
+        xmlns:ows="http://www.opengis.net/ows/2.0" >
+          <ows:Identifier>CloudCoverage</ows:Identifier>
+          <wps:Input id="begin_time">
+              <wps:Data>2024-07-24T00:00:00</wps:Data>
+          </wps:Input>
+          <wps:Input id="end_time">
+              <wps:Data>2024-09-07T23:59:59.999999</wps:Data>
+          </wps:Input>
+          <wps:Input id="geometry">
+              <wps:Data>
+                  <wps:ComplexData mimeType="text/plain">POLYGON ((15.26296613234851 48.58522462654059, 15.26296735097763 48.58522820523471, 15.26296950923901 48.58513721140181, 15.26293893596117 48.58494329218298, 15.26293562146881 48.58491266740388, 15.2628906951924 48.5845887096719, 15.26288918309506 48.58458090727659, 15.26285420179431 48.58435611129113, 15.26284224281491 48.58428649235474, 15.26278921072745 48.58391615404845, 15.26278178059723 48.58390601986801, 15.26277314522215 48.58362419997486, 15.26274651286159 48.58346674304842, 15.26272692413581 48.58329819402794, 15.26266885866426 48.58295276970647, 15.26298491336765 48.58273434323597, 15.26305158064178 48.5832916822765, 15.26308885283483 48.58361765545947, 15.26309211355407 48.58364684163951, 15.26309580485187 48.58370930916529, 15.26316843092786 48.58427725612233, 15.26321277587909 48.58457837134077, 15.26326042238476 48.58489886540605, 15.26334371326326 48.58534211982499, 15.26303031950466 48.58529113679988, 15.26296684142374 48.58523271205242, 15.26296613234851 48.58522462654059))</wps:ComplexData>
+              </wps:Data>
+          </wps:Input>
+          <wps:Output id="result"></wps:Output>
+        </wps:Execute>
+        """
+        return (params, "xml")
