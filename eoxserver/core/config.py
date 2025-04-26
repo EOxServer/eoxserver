@@ -1,10 +1,10 @@
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Stephan Krause <stephan.krause@eox.at>
 #          Stephan Meissl <stephan.meissl@eox.at>
 #
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Copyright (C) 2011 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -24,27 +24,22 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 """
 This module provides an implementation of a system configuration that relies
 on different configuration files.
 """
-
-import imp
-from os.path import join, getmtime
+from os.path import join, getmtime, dirname
 from sys import prefix
 import threading
 import logging
 from time import time
-
-try:
-    from ConfigParser import RawConfigParser
-except ImportError:
-    from configparser import RawConfigParser
-
+from configparser import RawConfigParser
 
 from django.conf import settings
+
+import eoxserver
 
 
 config_lock = threading.RLock()
@@ -71,9 +66,8 @@ def reload_eoxserver_config():
         :class:`ConfigParser.RawConfigParser`.
     """
     global _cached_config, _last_access_time
-    _, eoxs_path, _ = imp.find_module("eoxserver")
     paths = [
-        join(eoxs_path, "conf", "default.conf"),
+        join(dirname(eoxserver.__file__), "conf", "default.conf"),
         join(prefix, "eoxserver/conf/default.conf"),
         get_instance_config_path()
     ]

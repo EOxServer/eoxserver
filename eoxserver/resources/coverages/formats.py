@@ -32,12 +32,12 @@
 
 import re
 import sys
-import imp
 import logging
 import os.path
 
 from django.conf import settings
 
+import eoxserver
 from eoxserver.contrib import gdal
 from eoxserver.core.config import get_eoxserver_config
 from eoxserver.core.decoders import config, typelist, strip
@@ -395,7 +395,7 @@ class FormatRegistry(object):
         """
 
         try:
-            return imp.find_module("eoxserver")[1]
+            return os.path.dirname(eoxserver.__file__)
         except ImportError:
             raise FormatRegistryException(
                 "Filed to find the 'eoxserver' module! Check your modules' path!"

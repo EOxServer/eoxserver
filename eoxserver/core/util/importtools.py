@@ -1,9 +1,9 @@
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
 #
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Copyright (C) 2013 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -23,7 +23,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 """ This module contains utilities to easily import hierarchies of packages and
 modules.
@@ -33,16 +33,7 @@ import logging
 import traceback
 import pkgutil
 
-try:
-    # Python >= 3.1
-    from importlib import import_module
-except:
-    try:
-        # Django versions >= 1.9
-        from django.utils.module_loading import import_module
-    except ImportError:
-        # Django versions < 1.9
-        from django.utils.importlib import import_module
+from importlib import import_module
 
 
 logger = logging.getLogger(__name__)
@@ -114,14 +105,14 @@ def import_string(dotted_path):
     """
     try:
         module_path, class_name = dotted_path.rsplit('.', 1)
-    except ValueError as err:
+    except ValueError:
         raise ImportError("%s doesn't look like a module path" % dotted_path)
 
     module = import_module(module_path)
 
     try:
         return getattr(module, class_name)
-    except AttributeError as err:
+    except AttributeError:
         raise ImportError('Module "%s" does not define a "%s" attribute/class' % (
             module_path, class_name)
         )
