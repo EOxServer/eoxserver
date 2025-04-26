@@ -1,10 +1,10 @@
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Stephan Krause <stephan.krause@eox.at>
 #          Stephan Meissl <stephan.meissl@eox.at>
 #
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Copyright (C) 2012 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -24,7 +24,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 """
 WSGI config for EOxServer's autotest instance.
@@ -48,9 +48,9 @@ path = "/var/eoxserver/autotest"
 if path not in sys.path:
     sys.path.append(path)
 
-# NOTE: The Apache mod_wsgi, by default, shares the enviroment variables 
+# NOTE: The Apache mod_wsgi, by default, shares the enviroment variables
 #       between different WSGI apps which leads to conflicts between
-#       multiple EOxServer instance. Therefore we cannot rely on the 
+#       multiple EOxServer instance. Therefore we cannot rely on the
 #       DJANGO_SETTINGS_MODULE enviromental variable we must always set it
 #       to the proper value.
 #os.environ.setdefault("DJANGO_SETTINGS_MODULE", "autotest.settings")

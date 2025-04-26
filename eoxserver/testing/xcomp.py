@@ -74,7 +74,7 @@ class XMLParseError( XMLError ) :
 class XMLMismatchError( XMLError ) :
     """ XML mismatch error """
 
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # low level  utilities
 
 def _getNodeName( node ) :
@@ -198,7 +198,7 @@ def _compareNode( n0 , n1 , level = 0 , path = "/" , verbose = False ) :
     if not (( nn0 is None ) and ( nn1 is None )) :
         raise XMLMismatchError("Childern count mismatch! PATH=\"%s\""%path0)
 
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 def xmlCompareDOMs( xml0 , xml1  , verbose = False ) :
     """ Compare two XML documents passed as DOM trees (xml.dom.minidom)."""
@@ -239,5 +239,5 @@ def xmlCompareFiles( src0 , src1 , verbose = False ) :
 
     return xmlCompareDOMs( parse(src0,"the first") , parse(src1,"the second") , verbose )
 
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 

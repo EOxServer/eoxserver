@@ -75,9 +75,9 @@ template_attribute = "<Attribute AttributeId=\"{0}\" DataType=\"{1}\">" + \
                      "<AttributeValue>{2}</AttributeValue></Attribute>"
 
 
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # PDP implementation for the CHARON Authorization Service
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 class CharonPDP(BasePDP):
     implements(PolicyDecisionPointInterface)
@@ -181,9 +181,9 @@ class CharonPDP(BasePDP):
         )
         return result
 
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # SOAP client for the CHARON Policy Management and Authorization Service
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 class AuthorisationClient(object):
     """
@@ -304,9 +304,9 @@ class AuthorisationClient(object):
                                        self._getPartEnvironment())
 
 
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # AuthorisationClientException
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 class AuthorisationClientException(Exception):
     """ Exception that is thrown by the AuthorisationClient in case of an error

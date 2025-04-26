@@ -239,7 +239,7 @@ def query_exception_handler(request):
             # return the exception handler with the highest version,
             # if one is available
             return handlers[0]
-    except:
+    except Exception:
         # swallow any exception here, because we *really* need a handler
         # to correctly show the exception.
         pass

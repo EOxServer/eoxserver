@@ -1,9 +1,9 @@
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
 #
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Copyright (C) 2013 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -23,7 +23,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 
 import re
@@ -79,8 +79,8 @@ MONTHS = {
 def parse_datetime(timestamp):
     """ Datetime parsing function for special Envisat datetime format.
     """
-    
-    
+
+
     match = re.match(
         r"(\d{2})-([A-Z]{3})-(\d{4}) (\d{2}):(\d{2}):(\d{2}).*", timestamp
     )
@@ -90,5 +90,5 @@ def parse_datetime(timestamp):
     hour = int(match.group(4))
     minute = int(match.group(5))
     second = int(match.group(6))
-    
+
     return datetime(year, month, day, hour, minute, second, tzinfo=utc)

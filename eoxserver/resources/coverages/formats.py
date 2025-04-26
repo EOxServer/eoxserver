@@ -1,9 +1,9 @@
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Martin Paces <martin.paces@eox.at>
 #
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Copyright (C) 2011 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -23,12 +23,12 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 """
  This module contains format handling utilities.
 """
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 import re
 import sys
@@ -42,16 +42,10 @@ from eoxserver.contrib import gdal
 from eoxserver.core.config import get_eoxserver_config
 from eoxserver.core.decoders import config, typelist, strip
 
-try:
-    # Python 2
-    xrange
-except NameError:
-    # Python 3, xrange is now named range
-    xrange = range
 
 logger = logging.getLogger(__name__)
 
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 
 class FormatRegistryException(Exception):
@@ -125,7 +119,7 @@ class FormatRegistry(object):
     Configuration values are read from these files.
     """
 
-    #---------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
 
     def __init__(self, config):
         # get path to EOxServer installation
@@ -211,8 +205,8 @@ class FormatRegistry(object):
             Get list of formats to be announced as supported WCS formats.
 
             The the listed formats must be:
-            * defined in EOxServers configuration (section "services.ows.wcs", item "supported_formats") 
-            * defined in the formats' configuration ("default_formats.conf" or "formats.conf")   
+            * defined in EOxServers configuration (section "services.ows.wcs", item "supported_formats")
+            * defined in the formats' configuration ("default_formats.conf" or "formats.conf")
             * supported by the used GDAL installation
         """
         return self.__wcs_supported_formats
@@ -222,8 +216,8 @@ class FormatRegistry(object):
             Get list of formats to be announced as supported WMS formats.
 
             The the listed formats must be:
-            * defined in EOxServers configuration (section "services.ows.wms", item "supported_formats") 
-            * defined in the formats' configuration ("default_formats.conf" or "formats.conf")   
+            * defined in EOxServers configuration (section "services.ows.wms", item "supported_formats")
+            * defined in the formats' configuration ("default_formats.conf" or "formats.conf")
             * supported by the used GDAL installation
         """
         return self.__wms_supported_formats
@@ -232,7 +226,7 @@ class FormatRegistry(object):
         """ Map source format to WCS 2.0 native format.
 
         Both the input and output shall be instances of :class:`Formats` class.
-        The input format can be obtained, e.g., by the `getFormatByDriver` or `getFormatByMIME` 
+        The input format can be obtained, e.g., by the `getFormatByDriver` or `getFormatByMIME`
         method.
 
         To force the default native format use None as the source format.
@@ -245,7 +239,7 @@ class FormatRegistry(object):
         2. If the format resulting from step 1 is not a writable GDAL format or
            it is not among the supported WCS formats than it is
            replaced by the default native format (defined in EOxServers
-           configuration, section "services.ows.wcs20", item "default_native_format"). 
+           configuration, section "services.ows.wcs20", item "default_native_format").
            In case of writable GDAL format, the result of step 1 is returned.
         """
 
@@ -296,7 +290,7 @@ class FormatRegistry(object):
 
         tmp = reader.source_to_native_format_map
         tmp = list(map(lambda m: self.getFormatByMIME(m.strip()), list(tmp.split(','))))
-        tmp = [(tmp[i], tmp[i + 1]) for i in xrange(0, (len(tmp) >> 1) << 1, 2)]
+        tmp = [(tmp[i], tmp[i + 1]) for i in range(0, (len(tmp) >> 1) << 1, 2)]
         tmp = list(filter(lambda p: list(p)[0] is not None and list(p)[1] is not None, tmp))
         self.__wcs20_format_mapping = dict(tmp)
 
@@ -347,7 +341,7 @@ class FormatRegistry(object):
 
         # parse line
         try:
-            line = line.partition("#")[0].strip()  # strip comments and white characters 
+            line = line.partition("#")[0].strip()  # strip comments and white characters
 
             if not line:
                 return
@@ -420,7 +414,7 @@ class FormatConfigReader(config.Reader):
     source_to_native_format_map = config.Option()
 
 
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # regular expression validators
 
 #: MIME-type regular expression validator (compiled reg.ex. pattern)
@@ -443,7 +437,7 @@ def valMimeType(string):
 
 def valDriver(string):
     """
-    Driver identifier reg.ex. validator. If pattern not matched 'None' is returned 
+    Driver identifier reg.ex. validator. If pattern not matched 'None' is returned
     otherwise the input is returned.
     """
     rv = string if _gerexValDriv.match(string) else None
@@ -451,7 +445,7 @@ def valDriver(string):
         logger.warning("Invalid driver's identifier \"%s\"." % string)
     return rv
 
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # public API
 
 
@@ -477,4 +471,4 @@ def getFormatRegistry():
 
     return __FORMAT_REGISTRY
 
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------

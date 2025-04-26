@@ -1,9 +1,9 @@
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
 #
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Copyright (C) 2013 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -23,7 +23,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 from unittest import skip
 from autotest_services import base as testbase
 from . import base as wmsbase
@@ -204,9 +204,9 @@ class WMS13GetMapCollectionTimeIntervalBorderTestCase(wmsbase.WMS13GetMapTestCas
     bbox = (-3.75, 32.158895, 28.326165, 46.3)
     time = "2006-08-01T00:00:00Z/2006-08-16T09:09:29Z"
 
-#===============================================================================
+# ==============================================================================
 # Outlines
-#===============================================================================
+# ==============================================================================
 
 class WMS13GetMapCollectionOutlinesTestCase(wmsbase.WMS13GetMapTestCase):
     layers = ("MER_FRS_1P_reduced__outlines",)
@@ -230,9 +230,9 @@ class WMS13GetMapCollectionOutlinesTimeIntervalTestCase(wmsbase.WMS13GetMapTestC
     bbox = (-3.75, 32.158895, 28.326165, 46.3)
     time = "2006-08-16T09:09:29Z/2006-08-16T09:15:46Z"
 
-#===============================================================================
+# ==============================================================================
 # Bands
-#===============================================================================
+# ==============================================================================
 
 class WMS13GetMapDatasetOneBandTestCase(wmsbase.WMS13GetMapTestCase):
     """ Test a GetMap request with a dataset containing 15 bands. """
@@ -250,9 +250,9 @@ class WMS13GetMapDatasetThreeBandsTestCase(wmsbase.WMS13GetMapTestCase):
     width = 1000
     height = 1000
 
-#===============================================================================
+# ==============================================================================
 # Reprojected
-#===============================================================================
+# ==============================================================================
 
 class WMS13GetMapReprojectedDatasetTestCase(wmsbase.WMS13GetMapTestCase):
     """ Test a GetMap request with a reprojected dataset. """
@@ -261,9 +261,9 @@ class WMS13GetMapReprojectedDatasetTestCase(wmsbase.WMS13GetMapTestCase):
     layers = ("MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed_reprojected",)
     bbox = (8.487755775451660, 32.195316643454134, 25.407486727461219, 46.249103546142578)
 
-#===============================================================================
+# ==============================================================================
 # Dateline crossing
-#===============================================================================
+# ==============================================================================
 
 class WMS13GetMapCrossesDatelineDatasetTestCase(wmsbase.WMS13GetMapTestCase):
     """ Test a GetMap request with a reprojected dataset. """
@@ -273,9 +273,9 @@ class WMS13GetMapCrossesDatelineDatasetTestCase(wmsbase.WMS13GetMapTestCase):
     bbox = (-180, -90, 180, 90)
     width = 200
 
-#===============================================================================
+# ==============================================================================
 # Masked
-#===============================================================================
+# ==============================================================================
 
 MASK_FIXTURES = [
     "range_types.json", "meris_range_type.json", "meris_products_rgb.json"
@@ -295,9 +295,9 @@ class WMS13GetMapCollectionMaskedTestCase(wmsbase.WMS13GetMapTestCase):
     layers = ("MER_FRS_1P_reduced_products_RGB__masked_clouds",)
     bbox = (11, 32, 28, 46)
 
-#===============================================================================
+# ==============================================================================
 # Cloud Mask
-#===============================================================================
+# ==============================================================================
 
 class WMS13GetMapProductCloudMaskTestCase(wmsbase.WMS13GetMapTestCase):
     """ Test a GetMap request for cloudmask of a dataset. """
@@ -315,9 +315,9 @@ class WMS13GetMapCollectionCloudMaskTestCase(wmsbase.WMS13GetMapTestCase):
     styles = ("magenta",)
     bbox = (11, 32, 28, 46)
 
-#===============================================================================
+# ==============================================================================
 # Masked Outlines
-#===============================================================================
+# ==============================================================================
 
 class WMS13GetMapProductMaskedOutlinesTestCase(wmsbase.WMS13GetMapTestCase):
     """ Test a GetMap request with the masked outlines layer for a dataset. """
@@ -373,9 +373,9 @@ class WMS13GetMapCollectionHeatmapTestCase(wmsbase.WMS13GetMapTestCase):
     frmt = "image/png"
 
 
-#===============================================================================
+# ==============================================================================
 # Feature Info
-#===============================================================================
+# ==============================================================================
 
 class WMS13GetFeatureInfoTestCase(testbase.HTMLTestCase):
     """ Test a GetFeatureInfo on an outline layer. """
@@ -416,9 +416,9 @@ class WMS13GetFeatureInfoEOOMTestCase(testbase.XMLTestCase):
         params = "SERVICE=WMS&VERSION=1.3.0&REQUEST=GetFeatureInfo&LAYERS=MER_FRS_1P_reduced_RGB_outlines&QUERY_LAYERS=MER_FRS_1P_reduced_RGB_outlines&STYLES=&BBOX=32.158895,-3.75,46.3,28.326165&FEATURE_COUNT=10&HEIGHT=100&WIDTH=200&FORMAT=image%2Fpng&INFO_FORMAT=application/xml&CRS=EPSG:4326&I=100&J=50";
         return (params, "kvp")
 
-#===============================================================================
+# ==============================================================================
 # Legend Graphic
-#===============================================================================
+# ==============================================================================
 class WMS13GetLegendGraphicTestCase(wmsbase.WMS13GetLegendTestCase):
     """ Test a GetLegendGraphic request for a dataset with an associated style. """
 

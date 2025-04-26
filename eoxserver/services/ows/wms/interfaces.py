@@ -1,9 +1,9 @@
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
 #
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Copyright (C) 2011 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -23,7 +23,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 
 class WMSCapabilitiesRendererInterface(object):
@@ -31,7 +31,7 @@ class WMSCapabilitiesRendererInterface(object):
     """
 
     def render(self, collections, coverages, request_values):
-        """ Render a capabilities document, containing metadata of the given 
+        """ Render a capabilities document, containing metadata of the given
             collections and coverages.
         """
 
@@ -46,7 +46,7 @@ class WMSMapRendererInterface(object):
         """
 
     def render(self, layer_groups, request_values, **options):
-        """ Render the given layer hierarchy with the provided request values 
+        """ Render the given layer hierarchy with the provided request values
             and further options.
 
             ``options`` contains relevant options such as specified bands.
@@ -62,7 +62,7 @@ class WMSFeatureInfoRendererInterface(object):
         """
 
     def render(self, layer_groups, request_values, **options):
-        """ Render the given layer hierarchy with the provided request values 
+        """ Render the given layer hierarchy with the provided request values
             and further options.
 
             ``options`` contains relevant options such as specified bands.

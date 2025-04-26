@@ -1,10 +1,10 @@
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Stephan Krause <stephan.krause@eox.at>
 #          Stephan Meissl <stephan.meissl@eox.at>
 #
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Copyright (C) 2011 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -24,7 +24,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 """
 This module contains basic classes and functions for the security layer (which
@@ -44,9 +44,9 @@ from eoxserver.services.auth.interfaces import PolicyDecisionPointInterface
 
 logger = logging.getLogger(__name__)
 
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Config reader
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 class AuthConfigReader(config.Reader):
     section = "services.auth.base"
@@ -59,9 +59,9 @@ class AuthConfigReader(config.Reader):
     pdp_type = config.Option()
 
 
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # PDP Base Class
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 class BasePDP(object):
     """
@@ -108,9 +108,9 @@ class BasePDP(object):
 
         return (True, "")
 
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # utility functions
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 class PDPComponent(Component):
     pdps = ExtensionPoint(PolicyDecisionPointInterface)

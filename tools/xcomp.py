@@ -1,19 +1,19 @@
 #!/usr/bin/env python
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #
-# simple CLI tool comparing XML documents 
+# simple CLI tool comparing XML documents
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Martin Paces <martin.paces@eox.at>
 #
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Copyright (C) 2011 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
-# copies of the Software, and to permit persons to whom the Software is 
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
 # The above copyright notice and this permission notice shall be included in all
@@ -26,32 +26,32 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #
 
-import sys 
-from eoxserver.testing import xcomp # NOTE : make sure to set the right PYTHONPATH 
+import sys
+from eoxserver.testing import xcomp # NOTE : make sure to set the right PYTHONPATH
 
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
-if __name__ == "__main__" : 
+if __name__ == "__main__" :
 
     try :
-        src0 = sys.argv[1] 
-        src1 = sys.argv[2] 
-        
+        src0 = sys.argv[1]
+        src1 = sys.argv[2]
+
         print ("< FILE: %s" % src0)
         print ("> FILE: %s" % src1)
     except :
-        sys.stderr.write( "ERROR: Not enough input arguments!\n" ) 
-        sys.stderr.write( "USAGE: %s <xml-file> <xml-file> \n" % sys.argv[0] ) 
+        sys.stderr.write( "ERROR: Not enough input arguments!\n" )
+        sys.stderr.write( "USAGE: %s <xml-file> <xml-file> \n" % sys.argv[0] )
         sys.exit(1)
 
-    try : 
-        xcomp.xmlCompareFiles( src0 , src1 , True ) 
-    except Exception as e : 
-        sys.stderr.write( "ERROR: %s\n" % str(e) ) 
+    try :
+        xcomp.xmlCompareFiles( src0 , src1 , True )
+    except Exception as e :
+        sys.stderr.write( "ERROR: %s\n" % str(e) )
         sys.exit(1)
 
     print (" OK - XML files match. ")
-    sys.exit(0) 
+    sys.exit(0)

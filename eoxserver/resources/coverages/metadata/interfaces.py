@@ -1,9 +1,9 @@
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
 #
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Copyright (C) 2013 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -23,7 +23,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 
 class MetadataReaderInterface(object):
@@ -31,14 +31,14 @@ class MetadataReaderInterface(object):
     """
 
     def test(self, obj):
-        """ Return a boolean value, whether or not metadata can be extracted 
+        """ Return a boolean value, whether or not metadata can be extracted
             from the given object.
         """
         pass
 
 
     def format(self, obj):
-        """ Returns a format specifier for the given object. Can be ignored, 
+        """ Returns a format specifier for the given object. Can be ignored,
             when the reader only supports one format.
         """
         pass
@@ -54,8 +54,8 @@ class MetadataReaderInterface(object):
             - begin_time (a python datetime.datetime)
             - end_time (a python datetime.datetime)
 
-            The argument obj is of an arbitrary type, the reader needs to 
-            determine whether or not the type is supported and an exception 
+            The argument obj is of an arbitrary type, the reader needs to
+            determine whether or not the type is supported and an exception
             shall be raised if not.
         """
         pass
@@ -91,14 +91,14 @@ class GDALDatasetMetadataReaderInterface(object):
     """
 
     def test_ds(self, obj):
-        """ Return a boolean value, whether or not metadata can be extracted 
+        """ Return a boolean value, whether or not metadata can be extracted
             from the given object.
         """
         pass
 
 
     def format(self, obj):
-        """ Returns a format specifier for the given object. Can be ignored, 
+        """ Returns a format specifier for the given object. Can be ignored,
             when the reader only supports one format.
         """
         pass
