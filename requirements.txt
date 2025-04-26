@@ -13,4 +13,4 @@ python-keystoneclient<6.0.0
 python-swiftclient<5.0.0
 gunicorn==23.0.*
 mapscript==8.0.*
-jsonfield==3.4.*
+jsonfield==3.1.*
