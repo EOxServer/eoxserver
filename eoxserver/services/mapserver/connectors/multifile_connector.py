@@ -1,9 +1,9 @@
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
 #
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Copyright (C) 2011 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -23,7 +23,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 from os.path import join
 from uuid import uuid4
@@ -70,7 +70,7 @@ class MultiFileConnector(object):
 
         # if coverage.grid.is_referenceable:
         #     vrt_builder.copy_gcps(gdal.OpenShared(data_items[0].path))
-        #     layer.setMetaData("eoxs_ref_data", path)
+        #     layer.metadata.set("eoxs_ref_data", path)
 
         # layer.data = path
 
@@ -95,10 +95,10 @@ class MultiFileConnector(object):
             vrt_path = join("/vsimem", uuid4().hex)
             reftools.create_rectified_vrt(path, vrt_path)
             layer.data = vrt_path
-            layer.setMetaData("eoxs_ref_data", path)
+            layer.metadata.set("eoxs_ref_data", path)
 
             with vsi.open(vrt_path) as f:
-                print (f.read(100000))
+                print(f.read(100000))
 
         """
         # TODO!!

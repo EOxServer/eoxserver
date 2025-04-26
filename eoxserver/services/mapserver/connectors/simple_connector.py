@@ -1,9 +1,9 @@
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
 #
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Copyright (C) 2011 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -23,7 +23,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 from os.path import join
 from uuid import uuid4
@@ -49,7 +49,7 @@ class SimpleConnector(object):
             vrt_path = join("/vsimem", uuid4().hex)
             reftools.create_rectified_vrt(data, vrt_path)
             data = vrt_path
-            layer.setMetaData("eoxs_ref_data", data)
+            layer.metadata.set("eoxs_ref_data", data)
 
         if not layer.metadata.get("eoxs_wrap_dateline") == "true":
             layer.data = data

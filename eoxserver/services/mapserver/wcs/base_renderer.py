@@ -1,9 +1,9 @@
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
 #
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Copyright (C) 2013 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -23,7 +23,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 
 from django.db.models import Q
@@ -55,12 +55,12 @@ class BaseRenderer(Component):
         """ Helper function to create a WCS enabled MapServer mapObj.
         """
         map_ = ms.mapObj()
-        map_.setMetaData("ows_enable_request", "*")
-        map_.setMetaData("ows_onlineresource", "*")
+        map_.web.metadata.set("ows_enable_request", "*")
+        map_.web.metadata.set("ows_onlineresource", "*")
         maxsize = WCSConfigReader(get_eoxserver_config()).maxsize
         if maxsize is not None:
             map_.maxsize = maxsize
-        map_.setMetaData("ows_updateSequence",
+        map_.web.metadata.set("ows_updateSequence",
             WCSConfigReader(get_eoxserver_config()).update_sequence
         )
         return map_
@@ -103,7 +103,7 @@ class BaseRenderer(Component):
 
         layer.setExtent(*extent)
 
-        ms.setMetaData(layer, {
+        ms.set_metadata(layer.metadata, {
             "title": coverage_identifier,
             "enable_request": "*"
         }, namespace="ows")
@@ -120,7 +120,7 @@ class BaseRenderer(Component):
         else:
             significant_figures = gdal.GDT_SIGNIFICANT_FIGURES[data_type]
 
-        ms.setMetaData(layer, {
+        ms.set_metadata(layer.metadata, {
             "label": coverage_identifier,
             "extent": "%.10g %.10g %.10g %.10g" % extent,
             "resolution": "%.10g %.10g" % resolution,
@@ -138,11 +138,11 @@ class BaseRenderer(Component):
         }, namespace="wcs")
 
         if version is None or version.startswith("2.0"):
-            ms.setMetaData(layer, {
+            ms.set_metadata(layer.metadata, {
                 "band_names": " ".join([band.identifier for band in bands]),
             }, namespace="wcs")
         else:
-            ms.setMetaData(layer, {
+            ms.set_metadata(layer.metadata, {
                 "rangeset_axes": ",".join(band.identifier for band in bands),
             }, namespace="wcs")
 
@@ -152,7 +152,7 @@ class BaseRenderer(Component):
                     x.wcs10name for x in self.get_wcs_formats()
                     if x.mimeType == native_format), native_format
                 )
-            ms.setMetaData(layer, {
+            ms.set_metadata(layer.metadata, {
                 "native_format": native_format,
                 "nativeformat": native_format
             }, namespace="wcs")
@@ -166,11 +166,11 @@ class BaseRenderer(Component):
         all_crss.insert(0, native_crs)
 
         supported_crss = " ".join(all_crss)
-        layer.setMetaData("ows_srs", supported_crss)
-        layer.setMetaData("wcs_srs", supported_crss)
+        layer.metadata.set("ows_srs", supported_crss)
+        layer.metadata.set("wcs_srs", supported_crss)
 
         for band in bands:
-            ms.setMetaData(layer, {
+            ms.set_metadata(layer.metadata, {
                 "band_description": band.description or '',
                 "band_definition": band.definition or '',
                 "band_uom": band.unit_of_measure or '',
@@ -182,7 +182,7 @@ class BaseRenderer(Component):
                 interval = gdal.GDT_NUMERIC_LIMITS[band.data_type]
 
             # For MS WCS 1.x interface
-            ms.setMetaData(layer, {
+            ms.set_metadata(layer.metadata, {
                 "label": band.identifier,
                 "interval": "%d %d" % interval
             }, namespace="wcs_%s" % band.identifier)
@@ -192,7 +192,7 @@ class BaseRenderer(Component):
                 [nv[0], nv[1]] for nv in bands[0].nil_values]
             )
             if nilvalues:
-                ms.setMetaData(layer, {
+                ms.set_metadata(layer.metadata, {
                     "nilvalues": " ".join(nilvalues),
                     "nilvalues_reasons": " ".join(nilvalues_reasons)
                 }, namespace="wcs")

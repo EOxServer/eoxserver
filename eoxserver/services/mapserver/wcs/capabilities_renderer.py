@@ -1,9 +1,9 @@
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
 #
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Copyright (C) 2011 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -23,30 +23,24 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 from lxml import etree
 
-from eoxserver.core import Component, implements
 from eoxserver.core.config import get_eoxserver_config
-from eoxserver.core.util.timetools import isoformat
-from eoxserver.contrib.mapserver import create_request, Map, Layer
+from eoxserver.contrib.mapserver import create_request, Map, Layer, set_metadata
 from eoxserver.resources.coverages import crss
 from eoxserver.render.coverage.objects import Coverage
 from eoxserver.services.mapserver.wcs.base_renderer import BaseRenderer
 from eoxserver.services.ows.common.config import CapabilitiesConfigReader
-from eoxserver.services.ows.wcs.interfaces import (
-    WCSCapabilitiesRendererInterface
-)
 from eoxserver.services.ows.version import Version
-from eoxserver.services.result import result_set_from_raw_data, get_content_type, ResultBuffer
+from eoxserver.services.result import result_set_from_raw_data, ResultBuffer
 from eoxserver.services.urls import get_http_service_url
 
 
 class MapServerWCSCapabilitiesRenderer(BaseRenderer):
     """ WCS Capabilities renderer implementation using MapServer.
     """
-    implements(WCSCapabilitiesRendererInterface)
 
     versions = (Version(1, 0), Version(1, 1))
 
@@ -59,7 +53,7 @@ class MapServerWCSCapabilitiesRenderer(BaseRenderer):
         http_service_url = get_http_service_url(params.http_request)
 
         map_ = Map()
-        map_.setMetaData({
+        set_metadata(map_.web.metadata, {
             "enable_request": "*",
             "onlineresource": http_service_url,
             "service_onlineresource": conf.onlineresource,
@@ -105,7 +99,7 @@ class MapServerWCSCapabilitiesRenderer(BaseRenderer):
                           (extent[1] - extent[3]) / float(size[1]))
 
             layer.setExtent(*extent)
-            layer.setMetaData({
+            set_metadata(layer.metadata, {
                 "title": coverage.identifier,
                 "label": coverage.identifier,
                 "extent": "%.10g %.10g %.10g %.10g" % extent,

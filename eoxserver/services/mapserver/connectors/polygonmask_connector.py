@@ -1,9 +1,9 @@
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
 #
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Copyright (C) 2011 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -23,7 +23,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 from eoxserver.contrib import ogr
 from eoxserver.contrib import mapserver as ms
@@ -91,8 +91,8 @@ class PolygonMaskConnector(object):
             # TODO: more than one mask_item?
 
         layer.setProjection("EPSG:4326")
-        layer.setMetaData("ows_srs", "EPSG:4326")
-        layer.setMetaData("wms_srs", "EPSG:4326")
+        layer.metadata.set("ows_srs", "EPSG:4326")
+        layer.metadata.set("wms_srs", "EPSG:4326")
 
     def disconnect(self, coverage, data_items, layer, options):
         pass

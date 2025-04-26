@@ -84,7 +84,7 @@ class MetadataMixIn(object):
     def __setitem__(self, key, value):
         self.setMetaData(key, value)
 
-    def setMetaData(self, key_or_params, value=None, namespace=None):
+    def set_metadata(self, key_or_params, value=None, namespace=None):
         """ Convenvience method to allow setting multiple metadata values with
             one call and optionally setting a 'namespace' for each entry.
         """
@@ -122,7 +122,7 @@ def dispatch(map_, request):
         try:
             with os.fdopen(fd) as f:
                 map_.save(filename)
-                logger.debug(f.read())
+                # logger.debug(f.read())
         finally:
             os.remove(filename)
 
@@ -257,7 +257,7 @@ def gdalconst_to_imagemode_string(const):
         return "FLOAT32"
 
 
-def setMetaData(obj, key_or_params, value=None, namespace=None):
+def set_metadata(metadata, key_or_params, value=None, namespace=None):
     """ Convenvience function to allow setting multiple metadata values with
         one call and optionally setting a 'namespace' for each entry.
     """
@@ -266,17 +266,14 @@ def setMetaData(obj, key_or_params, value=None, namespace=None):
             if namespace:
                 key = "%s_%s" % (namespace, key)
 
-            obj.setMetaData(key, value)
+            metadata.set(key, value)
     else:
         if namespace:
             key = "%s_%s" % (namespace, key_or_params)
         else:
             key = key_or_params
 
-        obj.setMetaData(key, value)
-
-# alias
-set_metadata = setMetaData
+        metadata.set(key, value)
 
 
 def set_env(map_obj, env, fail_on_override=False, return_old=False):
