@@ -279,8 +279,6 @@ def iterate(data, offset=0, end=None, headers=None):
         delimiter=b";", assignment=b"=", quote=b"\""
     )
 
-    raise Exception((content_type, params))
-
     # check if this is a multipart
     if content_type.startswith(b"multipart"):
         # if this is a multipart, yield only its headers and an empty string
