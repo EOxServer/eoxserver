@@ -27,11 +27,9 @@
 # ------------------------------------------------------------------------------
 
 import re
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 
 from django.utils.timezone import make_aware, is_aware
-
-from dateutil.parser import parse as parse_dateutil
 
 
 def isoformat(dt):
@@ -48,14 +46,11 @@ def isoformat(dt):
     return dt.isoformat("T")
 
 
-def parse_iso8601(value, tzinfo=None):
-    """ Parses an ISO 8601 date or datetime string to a python date or datetime.
+def parse_iso8601(value: str, tzinfo=None):
+    """ Parses an ISO 8601 date or datetime string to a python datetime.
         Raises a `ValueError` if a conversion was not possible. The returned
         datetime is always considered time-zone aware and defaulting to the
         given timezone `tzinfo` or UTC Zulu if none was specified.
-
-        If the optional module :mod:`dateutil` is installed, it is used in
-        preference over the :mod:`dateparse <django.utils.dateparse>` functions.
 
         :param value: the string value to be parsed
         :param tzinfo: an optional tzinfo object that is used when the input
@@ -64,23 +59,23 @@ def parse_iso8601(value, tzinfo=None):
     """
 
     tzinfo = tzinfo or timezone.utc
+
     try:
-        temporal = parse_dateutil(value)
-    except Exception as e:
-        raise ValueError(
-            "Could not parse '%s' to a temporal value. "
-            "Error was: %s" % (value, e)
-        )
-    if temporal:
-        # convert to datetime if necessary
-        if not isinstance(temporal, datetime):
-            temporal = datetime.combine(temporal, datetime.min.time())
+        if value.endswith("Z"):
+            value = value[:-1]
+            tzinfo = timezone.utc  # force Zulu here
+        result = datetime.fromisoformat(value)
+    except ValueError:
+        try:
+            result = datetime.combine(date.fromisoformat(value), datetime.min.time())
+        except ValueError:
+            result = None
 
+    if result is not None:
         # use UTC, if the datetime is not already time-zone aware
-        if not is_aware(temporal):
-            temporal = make_aware(temporal, tzinfo)
-
-        return temporal
+        if not is_aware(result):
+            result = make_aware(result, tzinfo)
+        return result
 
     raise ValueError("Could not parse '%s' to a temporal value" % value)
 
