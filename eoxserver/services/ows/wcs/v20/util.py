@@ -1,9 +1,9 @@
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
 #
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Copyright (C) 2013 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -23,14 +23,13 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 
 import re
 from datetime import datetime
 
 from lxml.builder import ElementMaker
-from django.utils.six import string_types
 
 from eoxserver.core.util.xmltools import NameSpace, NameSpaceMap, ns_xsi
 from eoxserver.core.util.timetools import parse_iso8601
@@ -86,11 +85,10 @@ SCALEEXTENT_RE = re.compile(r'(\w+)\(([^:]*):([^)]*)\)')
 
 class RangeSubset(list):
     def get_band_indices(self, range_type, offset=0):
-        current_idx = -1
         all_bands = range_type[:]
 
         for subset in self:
-            if isinstance(subset, string_types):
+            if isinstance(subset, str):
                 # slice, i.e single band
                 start = stop = subset
 
@@ -101,18 +99,17 @@ class RangeSubset(list):
             if start != stop:
                 stop_idx = self._find(all_bands, stop)
                 if stop_idx <= start_idx:
-                    raise IllegalFieldSequenceException(
+                    raise InvalidFieldSequenceException(
                         "Invalid interval '%s:%s'." % (start, stop), start
                     )
 
                 # expand interval to indices
-                for i in range(start_idx, stop_idx+1):
+                for i in range(start_idx, stop_idx + 1):
                     yield i + offset
 
             else:
                 # return the item
                 yield start_idx + offset
-
 
     def _find(self, all_bands, name):
         for i, band in enumerate(all_bands):
@@ -299,6 +296,7 @@ SUPPORTED_INTERPOLATIONS = (
     "average", "nearest-neighbour", "bilinear", "cubic", "cubic-spline",
     "lanczos", "mode"
 )
+
 
 def parse_interpolation(raw):
     """ Returns a unified string denoting the interpolation method used.

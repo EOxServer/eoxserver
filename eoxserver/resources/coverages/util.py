@@ -1,11 +1,11 @@
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
 #          Stephan Meissl <stephan.meissl@eox.at>
 #          Stephan Krause <stephan.krause@eox.at>
 #
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Copyright (C) 2011 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -25,7 +25,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 
 import operator
@@ -35,7 +35,6 @@ from django.contrib.gis.db.models import Union
 from django.contrib.gis.geos import MultiPolygon, Polygon
 from django.utils.timezone import is_naive, make_aware, get_current_timezone
 from django.utils.dateparse import parse_datetime
-from django.utils.six import string_types
 
 from eoxserver.contrib import gdal
 
@@ -76,10 +75,10 @@ def collect_eo_metadata(qs, insert=None, exclude=None, bbox=False):
     )
 
     # workaround for Django 1.4 bug: aggregate times are strings
-    if isinstance(begin_time, string_types):
+    if isinstance(begin_time, str):
         begin_time = parse_datetime(begin_time)
 
-    if isinstance(end_time, string_types):
+    if isinstance(end_time, str):
         end_time = parse_datetime(end_time)
 
     if begin_time and is_naive(begin_time):

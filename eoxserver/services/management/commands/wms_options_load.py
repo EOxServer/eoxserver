@@ -1,9 +1,9 @@
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Martin Paces <martin.paces@eox.at>
 #
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Copyright (C) 2016 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -23,7 +23,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # pylint: disable=missing-docstring
 
 from sys import stdin
@@ -31,7 +31,6 @@ import traceback
 import json
 from optparse import make_option
 from django.core.management.base import BaseCommand, CommandError
-from django.utils.six import string_types
 from eoxserver.resources.coverages.management.commands import (
     CommandOutputMixIn, nested_commit_on_success,
 )
@@ -147,7 +146,7 @@ def set_from_dict(wms_opt_obj, options):
     def _scales(scales):
         if scales is None:
             return None
-        if isinstance(scales, string_types):
+        if isinstance(scales, str):
             scales = scales.split(',')
         return ",".join(str(int(round(float(v)))) for v in scales)
 

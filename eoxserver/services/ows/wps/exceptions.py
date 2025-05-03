@@ -1,10 +1,10 @@
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
 #          Martin Paces <martin.paces@eox.at>
 #
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Copyright (C) 2013-2014 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -24,7 +24,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 class OWS10Exception(Exception):
     """ Base OWS 1.0 exception of the WPS 1.0.0 exceptions """
@@ -34,7 +34,7 @@ class OWS10Exception(Exception):
         self.locator = locator
         Exception.__init__(self, message)
 
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # All possible WPS 1.0.0 exceptions. For list of OWS exception used by WPS
 # see OGC 05-007r7 Table 38 and Table 62
 
@@ -73,7 +73,7 @@ class VersionNegotiationFailed(OWS10Exception):
     def __init__(self, message, locator):
         OWS10Exception.__init__(self, "VersionNegotiationFailed", locator, message)
 
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Derived specific exceptions.
 #
 # Note that WPS 1.0.0 allows use of "vendor specific exception code" as locator

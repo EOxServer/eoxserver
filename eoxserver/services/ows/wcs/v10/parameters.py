@@ -1,9 +1,9 @@
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
 #
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Copyright (C) 2013 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -23,7 +23,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 from eoxserver.services.ows.wcs.parameters import (
     CoverageRenderParams, CoverageDescriptionRenderParams
@@ -41,8 +41,8 @@ class WCS10CoverageDescriptionRenderParams(CoverageDescriptionRenderParams):
 
 
 class WCS10CoverageRenderParams(CoverageRenderParams):
-    def __init__(self, coverage, bbox, crs, format, response_crs=None, 
-                 width=None, height=None, resx=None, resy=None, 
+    def __init__(self, coverage, bbox, crs, format, response_crs=None,
+                 width=None, height=None, resx=None, resy=None,
                  interpolation=None):
 
         super(WCS10CoverageRenderParams, self).__init__(coverage, "1.0.0")
@@ -83,21 +83,21 @@ class WCS10CoverageRenderParams(CoverageRenderParams):
         yield ("bbox", ",".join(map(str, self.bbox)))
         yield ("crs", self.crs)
         yield ("format", self.format)
-        
+
         if self.response_crs:
             yield ("response_crs", self.response_crs)
-        
+
         if self.width is not None:
             yield ("width", str(self.width))
-        
+
         if self.height is not None:
             yield ("height", str(self.height))
-        
+
         if self.resx is not None:
             yield ("resx", self.resx)
 
         if self.resy is not None:
             yield ("resy", self.resy)
-        
+
         if self.interpolation:
             yield ("interpolation", self.interpolation)

@@ -1,9 +1,9 @@
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
 #
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Copyright (C) 2013 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -23,7 +23,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 
 class WCSCapabilitiesRendererInterface(object):
@@ -31,12 +31,12 @@ class WCSCapabilitiesRendererInterface(object):
     """
 
     def render(self, params):
-        """ Render the capabilities including information about the given 
+        """ Render the capabilities including information about the given
             coverages.
         """
 
     def supports(self, params):
-        """ Returns a boolean value to indicate whether or not the renderer is 
+        """ Returns a boolean value to indicate whether or not the renderer is
             able to render the capabilities with the given parameters.
         """
 
@@ -50,7 +50,7 @@ class WCSCoverageDescriptionRendererInterface(object):
         """
 
     def supports(self, params):
-        """ Returns a boolean value to indicate whether or not the renderer is 
+        """ Returns a boolean value to indicate whether or not the renderer is
             able to render the coverage and the given WCS version.
         """
 
@@ -64,7 +64,7 @@ class WCSCoverageRendererInterface(object):
         """
 
     def supports(self, params):
-        """ Returns a boolean value to indicate whether or not the renderer is 
+        """ Returns a boolean value to indicate whether or not the renderer is
             able to render the coverage with the given parameters.
         """
 
@@ -74,12 +74,12 @@ class PackageWriterInterface(object):
     """
 
     def supports(self, format, params):
-        """ Return a boolen value, whether or not a writer supports a given 
+        """ Return a boolen value, whether or not a writer supports a given
             format.
         """
 
     def create_package(self, filename, format, params):
-        """ Create a package, which the encoder can later add items to with the 
+        """ Create a package, which the encoder can later add items to with the
             `cleanup` and `add_to_package` method.
         """
 
@@ -88,7 +88,7 @@ class PackageWriterInterface(object):
         """
 
     def add_to_package(self, package, file_obj, size, location):
-        """ Add the file object to the package, that is returned by the 
+        """ Add the file object to the package, that is returned by the
             `create_package` method.
         """
 
@@ -98,18 +98,18 @@ class PackageWriterInterface(object):
         """
 
     def get_file_extension(self, package, format, params):
-        """ Retrieve the file extension for the given package and format 
+        """ Retrieve the file extension for the given package and format
             specifier.
         """
 
 
 class EncodingExtensionInterface(object):
     def supports(self, format, options):
-        """ Return a boolen value, whether or not an encoding extension 
+        """ Return a boolen value, whether or not an encoding extension
             supports a given format.
         """
 
     def parse_encoding_params(self, request):
-        """ Return a dict, containing all additional encoding parameters from a 
+        """ Return a dict, containing all additional encoding parameters from a
             given request.
         """

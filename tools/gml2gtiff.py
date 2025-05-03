@@ -1,18 +1,18 @@
 #!/usr/bin/env python
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Stephan Krause <stephan.krause@eox.at>
 #          Stephan Meissl <stephan.meissl@eox.at>
 #
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Copyright (C) 2011 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
-# copies of the Software, and to permit persons to whom the Software is 
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
 # The above copyright notice and this permission notice shall be included in all
@@ -25,31 +25,14 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
-from osgeo import gdal, osr
-try:
-  from lxml import etree
-except ImportError:
-  try:
-    import xml.etree.cElementTree as etree
-  except ImportError:
-    try:
-      import xml.etree.ElementTree as etree
-    except ImportError:
-      try:
-        import cElementTree as etree
-      except ImportError:
-        try:
-          import elementtree.ElementTree as etree
-        except ImportError:
-          print("Failed to import ElementTree from any known place")
-import sys
-import numpy
 from argparse import ArgumentParser
 from decimal import Decimal
 
-from django.utils.six import iteritems
+from osgeo import gdal, osr
+import numpy
+from lxml import etree
 
 """
     Helper functions to namespaceify xml tag names
@@ -72,7 +55,7 @@ parser.add_argument("input", help = "the path to the input GML file")
 parser.add_argument("output", help = "the path to the output GTiff file")
 options = parser.parse_args()
 
-""" 
+"""
     Parse the XML file into an ElementTree structure
 """
 f = open(options.input)
@@ -124,7 +107,7 @@ for band in root.findall(ns_gmlcov("rangeType/")
                                         + ns_swe("significantFigures"))
     if significant_figures is not None:
         bandinfo['significant_figures'] = int(significant_figures)
-    
+
     bands.append(bandinfo)
 
 """
@@ -142,13 +125,13 @@ for tup in tuples:
     assert(len(values) == len(bands))
     for index, value in enumerate(values):
         band_values[index].append(float(value))
-        
+
         # find out significant figures
         e = abs(Decimal(value).as_tuple().exponent)
         try:
             if bands[index]['significant_figures'] < e:
                 bands[index]['significant_figures'] = e
-        except KeyError: 
+        except KeyError:
             bands[index]['significant_figures'] = e
 
 """
@@ -177,7 +160,7 @@ for i in range(len(bands)):
     To set the projection, create a osr.SpatialReference, load the EPSG
     into it and export it as WKT to set as projection in the dataset.
 """
-srs = root.find(ns_gml("boundedBy/") 
+srs = root.find(ns_gml("boundedBy/")
                 + ns_gml("Envelope")
                 ).get("srsName")
 
@@ -192,11 +175,11 @@ ds.SetProjection(wkt)
     Create a textual representation of the extent.
 """
 
-extent = "%s %s" % (root.findtext(ns_gml("boundedBy/") 
+extent = "%s %s" % (root.findtext(ns_gml("boundedBy/")
                                   + ns_gml("Envelope/")
                                   + ns_gml("lowerCorner")
                                   ),
-                    root.findtext(ns_gml("boundedBy/") 
+                    root.findtext(ns_gml("boundedBy/")
                                   + ns_gml("Envelope/")
                                   + ns_gml("upperCorner")
                                   )
@@ -206,7 +189,7 @@ extent = "%s %s" % (root.findtext(ns_gml("boundedBy/")
     To set the geotransform, find out the origin and the two offset
     vectors.
 """
-origin = [float(string) for string in 
+origin = [float(string) for string in
                                 root.findtext(ns_gml("domainSet/")
                                               + ns_gml("RectifiedGrid/")
                                               + ns_gml("origin/")
@@ -256,16 +239,16 @@ if options.map is not None:
     layer.setMetaData("wcs_extent", extent)
     layer.setMetaData("wcs_size", "%d %d" % (width, height))
     layer.setMetaData("wcs_default_format", "application/gml+xml")
-    
+
     # set band metadata
     layer.setMetaData("wcs_bandcount", str(len(bands)))
     layer.setMetaData("wcs_band_names", " ".join([band['band_name'] for band in bands]))
     for band in bands:
-        for key, value in iteritems(band):
+        for key, value in band.items():
             if value is None or key == "band_name":
                 continue
             layer.setMetaData("%s_%s" % (band['band_name'], key), str(value))
-    
+
     # append GML outputformat
     format = outputFormatObj("GDAL/GTiff", "GML")
     format.setExtension("xml")

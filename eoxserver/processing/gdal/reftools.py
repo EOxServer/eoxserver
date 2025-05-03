@@ -1,10 +1,10 @@
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Stephan Krause <stephan.krause@eox.at>
 #          Martin Paces <martin.paces@eox.at>
 #
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Copyright (C) 2011 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -24,16 +24,12 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 import ctypes as C
 from ctypes.util import find_library
 import logging
-try:
-    from itertools import chain, izip
-except ImportError :
-    from itertools import chain
-    izip = zip
+from itertools import chain
 
 import math
 
@@ -41,22 +37,15 @@ from eoxserver.contrib import gdal, osr
 from eoxserver.core.util.rect import Rect
 from eoxserver.core.util.xmltools import parse, etree
 from eoxserver.contrib import vsi
-from django.utils.six import string_types, b
 
-try:
-    # Python 2
-    xrange
-except NameError:
-    # Python 3, xrange is now named range
-    xrange = range
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # approximation transformer's threshold in pixel units
 # 0.125 is the default value used by CLI gdalwarp tool
 
 
 APPROX_ERR_TOL = 0.125
 
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # GDAL transfomer methods
 
 METHOD_GCP = 1
@@ -69,7 +58,7 @@ METHOD2STR = {
     METHOD_TPS_LSQ: "METHOD_TPS_LSQ"
 }
 
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 logger = logging.getLogger(__name__)
 
@@ -113,6 +102,7 @@ class WARP_OPTIONS(C.Structure):
         ("dfCutlineBlendDist", C.c_double),
     ]
 
+
 _libgdal = C.LibraryLoader(C.CDLL).LoadLibrary(find_library("gdal"))
 
 
@@ -127,8 +117,9 @@ class GCP(C.Structure):
         ("dfGCPZ", C.c_double),
     ]
 
+
 GDALGetGCPs = _libgdal.GDALGetGCPs
-GDALGetGCPs.restype = C.c_void_p # actually array of GCPs, but more info not required
+GDALGetGCPs.restype = C.c_void_p  # actually array of GCPs, but more info not required
 GDALGetGCPs.argtypes = [C.c_void_p]
 
 
@@ -449,26 +440,26 @@ def get_footprint_wkt(ds, method=METHOD_GCP, order=0):
 
     success = (C.c_int * num_points)()
 
-    for i in xrange(1, x_e + 1):
+    for i in range(1, x_e + 1):
         x[i] = float(i * x_size / x_e)
         y[i] = 0.0
 
     x[x_e + 1] = x_size
 
-    for i in xrange(1, y_e + 1):
+    for i in range(1, y_e + 1):
         x[x_e + 1 + i] = float(x_size)
         y[x_e + 1 + i] = float(i * y_size / y_e)
 
     x[x_e + y_e + 2] = x_size
     y[x_e + y_e + 2] = y_size
 
-    for i in xrange(1, x_e + 1):
+    for i in range(1, x_e + 1):
         x[x_e + y_e + 2 + i] = float(x_size - i * x_size / x_e)
         y[x_e + y_e + 2 + i] = y_size
 
     y[x_e * 2 + y_e + 3] = y_size
 
-    for i in xrange(1, y_e + 1):
+    for i in range(1, y_e + 1):
         x[x_e * 2 + y_e + 3 + i] = 0.0
         y[x_e * 2 + y_e + 3 + i] = float(y_size - i * y_size / y_e)
 
@@ -477,7 +468,7 @@ def get_footprint_wkt(ds, method=METHOD_GCP, order=0):
     return "POLYGON((%s))" % (
         ",".join(
             "%f %f" % (coord_x, coord_y)
-            for coord_x, coord_y in chain(izip(x, y), ((x[0], y[0]),))
+            for coord_x, coord_y in chain(zip(x, y), ((x[0], y[0]),))
         )
     )
 
@@ -563,28 +554,28 @@ def rect_from_subset(path_or_ds, srid, minx, miny, maxx, maxy,
     x[0] = minx
     y[0] = miny
 
-    for i in xrange(1, num_x + 1):
+    for i in range(1, num_x + 1):
         x[i] = minx + i * x_step
         y[i] = miny
 
     x[num_x + 1] = maxx
     y[num_x + 1] = miny
 
-    for i in xrange(1, num_y + 1):
+    for i in range(1, num_y + 1):
         x[num_x + 1 + i] = maxx
         y[num_x + 1 + i] = miny + i * y_step
 
     x[num_x + num_y + 2] = maxx
     y[num_x + num_y + 2] = maxy
 
-    for i in xrange(1, num_x + 1):
+    for i in range(1, num_x + 1):
         x[num_x + num_y + 2 + i] = maxx - i * x_step
         y[num_x + num_y + 2 + i] = maxy
 
     x[num_x * 2 + num_y + 3] = minx
     y[num_x * 2 + num_y + 3] = maxy
 
-    for i in xrange(1, num_y + 1):
+    for i in range(1, num_y + 1):
         x[num_x * 2 + num_y + 3 + i] = minx
         y[num_x * 2 + num_y + 3 + i] = maxy - i * y_step
 
@@ -704,11 +695,11 @@ def create_rectified_vrt(path_or_ds, vrt_path, srid_or_wkt=None,
 
     # vrt_ds = GDALCreateWarpedVRT(ptr, x_size, y_size, geotransform, options)
     if isinstance(wkt, str):
-        wkt = b(wkt)
+        wkt = wkt.encode()
     vrt_ds = GDALAutoCreateWarpedVRT(ptr, None, wkt, resample, max_error, None)
     # GDALSetProjection(vrt_ds, wkt)
     if isinstance(vrt_path, str):
-       vrt_path = b(vrt_path)
+        vrt_path = vrt_path.encode()
 
     GDALSetDescription(vrt_ds, vrt_path)
     GDALClose(vrt_ds)
@@ -881,7 +872,7 @@ def reproject_image(src_ds, src_wkt, dst_ds, dst_wkt,
 
 
 def _open_ds(path_or_ds):
-    if isinstance(path_or_ds, string_types):
+    if isinstance(path_or_ds, str):
         gdal.AllRegister()
         return gdal.OpenShared(str(path_or_ds))
     return path_or_ds

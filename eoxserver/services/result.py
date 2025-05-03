@@ -1,9 +1,9 @@
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
 #
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Copyright (C) 2013 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -23,19 +23,14 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 import os
 import os.path
-try:
-    from io import StringIO
-except ImportError:
-    from cStringIO import StringIO
-
+from io import StringIO
 from uuid import uuid4
 
 from django.http import HttpResponse
-from django.utils.six import b
 
 from eoxserver.core.util import multiparttools as mp
 
@@ -73,7 +68,7 @@ class ResultItem(object):
         """ Reterns a binary value of content-type if it is a string.
         """
         if isinstance(self._content_type, str):
-            self._content_type = b(self._content_type)
+            self._content_type = self._content_type.encode()
         return self._content_type
 
     def __len__(self):
@@ -160,7 +155,7 @@ class ResultBuffer(ResultItem):
 
         i = 0
         while i < size:
-            yield self.buf[i:i+chunksize]
+            yield self.buf[i:i + chunksize]
             i += chunksize
 
 
@@ -183,8 +178,8 @@ def get_headers(result_item):
     yield b"Content-Type", result_item.content_type or b"application/octet-stream"
     if result_item.identifier:
         yield b"Content-Id", result_item.identifier.encode('utf-8')
-        if  isinstance(result_item.filename, str):
-            result_item.filename = b(result_item.filename)
+        if isinstance(result_item.filename, str):
+            result_item.filename = result_item.filename.encode()
     if result_item.filename:
         yield (
             b"Content-Disposition", b'attachment; filename="%s"'
@@ -244,7 +239,7 @@ def to_http_response(result_set, response_type=HttpResponse, boundary=None):
     elif len(result_set) < 1 or result_set[0].content_type is None:
         boundary = None
         content_type = b"application/octet-stream"
-        headers = (('Content-Length', 0 ),)
+        headers = (('Content-Length', 0),)
 
     else:
         boundary = None
@@ -261,8 +256,8 @@ def to_http_response(result_set, response_type=HttpResponse, boundary=None):
                 if boundary:
                     yield boundary_str
                     yield mp.CRLF.join(
-                    b"%s: %s" % (key, value)
-                    for key, value in get_headers(item)
+                        b"%s: %s" % (key, value)
+                        for key, value in get_headers(item)
                     ) + mp.CRLFCRLF
                 yield item.data
             if boundary:

@@ -1,9 +1,9 @@
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
 #
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Copyright (C) 2011 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -23,7 +23,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 
 from eoxserver.contrib.mapserver import Layer
@@ -40,8 +40,8 @@ class CoverageBandsLayerFactory(OffsiteColorMixIn, AbstractLayerFactory):
     def generate(self, eo_object, group_layer, suffix, options):
         name = eo_object.identifier + "_bands"
         layer = Layer(name)
-        layer.setMetaData("ows_title", name)
-        layer.setMetaData("wms_label", name)
+        layer.metadata.set("ows_title", name)
+        layer.metadata.set("wms_label", name)
         layer.addProcessing("CLOSE_CONNECTION=CLOSE")
 
         coverage = eo_object.cast()

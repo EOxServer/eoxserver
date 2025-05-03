@@ -1,4 +1,4 @@
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #
 # WPS 1.0 execute response XML encoder
 #
@@ -6,7 +6,7 @@
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
 #          Martin Paces <martin.paces@eox.at>
 #
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Copyright (C) 2013 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -26,12 +26,11 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
-#pylint: disable=too-many-arguments, too-many-locals, bad-continuation
+# ------------------------------------------------------------------------------
+# pylint: disable=too-many-arguments, too-many-locals, bad-continuation
 
 from lxml import etree
 from django.utils.timezone import now
-from django.utils.six import itervalues
 
 from eoxserver.core.config import get_eoxserver_config
 from eoxserver.services.ows.common.config import CapabilitiesConfigReader
@@ -80,7 +79,7 @@ class WPS10ExecuteResponseXMLEncoder(WPS10BaseXMLEncoder):
             "The processes execution completed successfully."
         ))
         outputs = []
-        for result, prm, req in itervalues(results):
+        for result, prm, req in results.values():
             outputs.append(_encode_output(result, prm, req))
         elem.append(WPS("ProcessOutputs", *outputs))
         return elem
@@ -126,7 +125,8 @@ class WPS10ExecuteResponseXMLEncoder(WPS10BaseXMLEncoder):
             "ProcessAccepted", "The processes was accepted for execution."
         ))
 
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+
 
 def _encode_common_response(process, status_elem, inputs, raw_inputs, resp_doc):
     """Encode common execute response part shared by all specific responses."""
@@ -210,13 +210,13 @@ def _encode_output(data, prm, req):
 
 def _encode_input_reference(ref):
     """ Encode DataInputs/Reference element. """
-    #TODO proper input reference encoding
+    # TODO proper input reference encoding
     return WPS("Reference", **{ns_xlink("href"): ref.href})
 
 
 def _encode_output_reference(ref, prm):
     """ Encode ProcessOutputs/Reference element. """
-    #TODO proper output reference encoding
+    # TODO proper output reference encoding
     mime_type = getattr(ref, 'mime_type', None)
     encoding = getattr(ref, 'encoding', None)
     schema = getattr(ref, 'schema', None)
@@ -226,7 +226,7 @@ def _encode_output_reference(ref, prm):
         encoding = default_format.encoding
         schema = default_format.schema
     attr = {
-        #ns_xlink("href"): ref.href,
+        # ns_xlink("href"): ref.href,
         'href': ref.href,
     }
     if mime_type:
@@ -271,9 +271,9 @@ def _encode_bbox(data, prm):
         OWS("LowerCorner", lower),
         OWS("UpperCorner", upper),
         crs=crs,
-        #dimension="%d"%prm.dimension,
+        # dimension="%d"%prm.dimension,
     )
-    #NOTE: Although derived from OWS BoundingBox the WPS (schema) does not
+    # NOTE: Although derived from OWS BoundingBox the WPS (schema) does not
     #      allow the dimension attribute.
 
 

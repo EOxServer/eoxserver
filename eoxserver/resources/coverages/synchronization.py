@@ -1,9 +1,9 @@
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
 #
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Copyright (C) 2014 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -23,7 +23,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 """
 This module provides functionality to synchronize the database models in one
@@ -43,7 +43,6 @@ from eoxserver.resources.coverages import models
 from eoxserver.resources.coverages.registration.component import (
     RegistratorComponent
 )
-from django.utils.six import string_types
 
 logger = logging.getLogger(__name__)
 
@@ -79,7 +78,7 @@ def synchronize(collection, recursive=False, force=False):
     """
 
     # allow both model and identifier
-    if isinstance(collection, string_types):
+    if isinstance(collection, str):
         collection = models.Collection.objects.get(identifier=collection)
 
     collection = collection.cast()

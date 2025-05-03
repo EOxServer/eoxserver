@@ -1,9 +1,9 @@
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
 #
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Copyright (C) 2013 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -23,18 +23,16 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 import http
 from textwrap import dedent
 import importlib
 import sys
 
-
 from django.conf import settings
 from django.test import TestCase, TransactionTestCase, Client, override_settings
 from django.contrib.gis.geos import Polygon, MultiPolygon
-from django.utils.six import assertCountEqual, b
 from django.urls import clear_url_caches
 
 from eoxserver.core.util import multiparttools as mp
@@ -47,12 +45,11 @@ import eoxserver.services.config
 import eoxserver.services.views
 
 
-
 class MultipartTest(TestCase):
     """ Test class for multipart parsing/splitting
     """
 
-    example_multipart = b(dedent("""\
+    example_multipart = dedent("""\
         MIME-Version: 1.0\r
         Content-Type: multipart/mixed; boundary=frontier\r
         \r
@@ -67,7 +64,7 @@ class MultipartTest(TestCase):
         \r
         PGh0bWw+CiAgPGhlYWQ+CiAgPC9oZWFkPgogIDxib2R5PgogICAgPHA+VGhpcyBpcyB0aGUgYm9keSBvZiB0aGUgbWVzc2FnZS48L3A+CiAgPC9ib2R5Pgo8L2h0bWw+Cg==\r
         --frontier--
-    """))
+    """).encode()
 
     def test_multipart_iteration(self):
         parsed = [
@@ -75,17 +72,35 @@ class MultipartTest(TestCase):
             for i in mp.iterate(self.example_multipart)
         ]
 
-        self.assertEqual([
-                ({b"MIME-Version": b"1.0", b"Content-Type": b"multipart/mixed; boundary=frontier"}, b""),
-                ({b"Content-Type": b"text/plain"}, b"This is the body of the message."),
-                ({b"Content-Type": b"application/octet-stream", b"Content-Transfer-Encoding": b"base64"}, b"PGh0bWw+CiAgPGhlYWQ+CiAgPC9oZWFkPgogIDxib2R5PgogICAgPHA+VGhpcyBpcyB0aGUgYm9keSBvZiB0aGUgbWVzc2FnZS48L3A+CiAgPC9ib2R5Pgo8L2h0bWw+Cg==")
+        self.assertEqual(
+            [
+                (
+                    {
+                        b"MIME-Version": b"1.0",
+                        b"Content-Type": b"multipart/mixed; boundary=frontier"
+                    },
+                    b""
+                ),
+                (
+                    {
+                        b"Content-Type": b"text/plain"
+                    },
+                    b"This is the body of the message."),
+                (
+                    {
+                        b"Content-Type": b"application/octet-stream",
+                        b"Content-Transfer-Encoding": b"base64"
+                    },
+                    b"PGh0bWw+CiAgPGhlYWQ+CiAgPC9oZWFkPgogIDxib2R5PgogICAgPHA+VGh"
+                    b"pcyBpcyB0aGUgYm9keSBvZiB0aGUgbWVzc2FnZS48L3A+CiAgPC9ib2R5Pg"
+                    b"o8L2h0bWw+Cg==")
             ], parsed
         )
 
 
 class ResultSetTestCase(TestCase):
 
-    example_multipart = b(dedent("""\
+    example_multipart = dedent("""\
         MIME-Version: 1.0\r
         Content-Type: multipart/mixed; boundary=frontier\r
         \r
@@ -102,7 +117,7 @@ class ResultSetTestCase(TestCase):
         \r
         PGh0bWw+CiAgPGhlYWQ+CiAgPC9oZWFkPgogIDxib2R5PgogICAgPHA+VGhpcyBpcyB0aGUgYm9keSBvZiB0aGUgbWVzc2FnZS48L3A+CiAgPC9ib2R5Pgo8L2h0bWw+Cg==\r
         --frontier--
-    """))
+    """).encode()
 
     def test_result_set_from_raw(self):
         result_set = result_set_from_raw_data(self.example_multipart)
@@ -110,17 +125,17 @@ class ResultSetTestCase(TestCase):
 
         first = result_set[0]
         second = result_set[1]
-        
+
         if isinstance(first.data, str):
-            first_data = b(first.data)
+            first_data = first.data.encode()
         else:
             first_data = first.data
 
         if isinstance(second.data, str):
-            second_data = b(second.data)
+            second_data = second.data.encode()
         else:
             second_data = second.data
-        
+
         self.assertEqual(
             first_data,
             b"This is the body of the message."
@@ -139,7 +154,8 @@ class ResultSetTestCase(TestCase):
         )
         self.assertEqual(
             second_data,
-            b"PGh0bWw+CiAgPGhlYWQ+CiAgPC9oZWFkPgogIDxib2R5PgogICAgPHA+VGhpcyBpcyB0aGUgYm9keSBvZiB0aGUgbWVzc2FnZS48L3A+CiAgPC9ib2R5Pgo8L2h0bWw+Cg=="
+            b"PGh0bWw+CiAgPGhlYWQ+CiAgPC9oZWFkPgogIDxib2R5PgogICAgPHA+VGhpcyBpcy"
+            b"B0aGUgYm9keSBvZiB0aGUgbWVzc2FnZS48L3A+CiAgPC9ib2R5Pgo8L2h0bWw+Cg=="
         )
 
 
@@ -158,8 +174,8 @@ class TemporalSubsetsTestCase(TransactionTestCase):
             axis_2_name='lat',
             axis_1_type=0,
             axis_2_type=0,
-            axis_1_offset=5/100,
-            axis_2_offset=5/100,
+            axis_1_offset=5 / 100,
+            axis_2_offset=5 / 100,
         )
 
         coverage_type = models.CoverageType.objects.create(name="RGB")
@@ -748,6 +764,7 @@ class TemporalSubsetsTestCase(TransactionTestCase):
             self.make_subsets("2000-01-01T00:00:40Z"), "contains", ("H",)
         )
 
+
 class CachingTest(TestCase):
     def _reload_ows_views(self):
         # NOTE: we have to do this dance because the setting
@@ -757,7 +774,6 @@ class CachingTest(TestCase):
         importlib.reload(sys.modules[settings.ROOT_URLCONF])
         clear_url_caches()
 
-
     def test_ows_view_not_cached_by_default(self):
         response = Client().get("/ows", {"service": "WMS", "request": "GetCapabilities"})
         self.assertEqual(response.status_code, http.HTTPStatus.OK)
@@ -766,7 +782,10 @@ class CachingTest(TestCase):
     def test_ows_view_cached_if_configured(self):
         with override_settings(EOXS_RENDERER_CACHE_TIME="3"):
             self._reload_ows_views()
-            response = Client().get("/ows", {"service": "WMS", "request": "GetCapabilities"})
+            response = Client().get(
+                "/ows",
+                {"service": "WMS", "request": "GetCapabilities"}
+            )
 
         self._reload_ows_views()
 

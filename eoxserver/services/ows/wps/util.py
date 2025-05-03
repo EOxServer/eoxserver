@@ -1,11 +1,11 @@
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #
 #  WPS specific utilities.
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Martin Paces <martin.paces@eox.at>
 #
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Copyright (C) 2016 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -25,21 +25,16 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 
 from contextlib import closing
 from logging import getLogger
-
-try:
-    # available in Python 2.7+
-    from collections import OrderedDict
-except ImportError:
-    from django.utils.datastructures import SortedDict as OrderedDict
+from urllib import parse, request, error
+from collections import OrderedDict
 
 from django.conf import settings
 from django.utils.module_loading import import_string
-from django.utils.six.moves.urllib import parse, request, error
 
 from eoxserver.core.util.multiparttools import iterate as iterate_multipart
 from eoxserver.services.ows.wps.config import (
@@ -109,6 +104,7 @@ class InMemoryURLResolver(object):
 PROCESSES = None
 ASYNC_BACKENDS = None
 
+
 def _setup_processes():
     global PROCESSES
     specifiers = getattr(
@@ -119,6 +115,7 @@ def _setup_processes():
         import_string(identifier)()
         for identifier in specifiers
     ]
+
 
 def _setup_async_backends():
     global ASYNC_BACKENDS

@@ -1,10 +1,10 @@
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Stephan Krause <stephan.krause@eox.at>
 #          Stephan Meissl <stephan.meissl@eox.at>
 #
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Copyright (C) 2011 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -24,41 +24,22 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 """
 This module contains utils for XML encoding, decoding and printing.
 """
-from django.utils.six import string_types
+
 import logging
-try:
-    from lxml import etree
-except ImportError:
-    try:
-        # Python 2.5
-        import xml.etree.cElementTree as etree
-    except ImportError:
-        try:
-            # Python 2.5
-            import xml.etree.ElementTree as etree
-        except ImportError:
-            try:
-                # normal cElementTree install
-                import cElementTree as etree
-            except ImportError:
-                try:
-                    # normal ElementTree install
-                    import elementtree.ElementTree as etree
-                except ImportError:
-                    pass  # could not get etree
+from lxml import etree
 
 
 logger = logging.getLogger(__name__)
 
 
-#-----------------------------------------------------------------------
+# ----------------------------------------------------------------------
 # lxml.etree helpers
-#-----------------------------------------------------------------------
+# ----------------------------------------------------------------------
 
 
 class NameSpace(object):
@@ -91,7 +72,7 @@ class NameSpace(object):
     def __eq__(self, other):
         if isinstance(other, NameSpace):
             return self.uri == other.uri
-        elif isinstance(other, string_types):
+        elif isinstance(other, str):
             return self.uri == other
 
         raise TypeError
@@ -165,6 +146,7 @@ def add_cdata(element, cdata):
         )
 
     element.text = cdata
+
 
 try:
     typemap = {

@@ -1,27 +1,27 @@
-#!/bin/sh 
-#-----------------------------------------------------------------------
+#!/bin/sh
+# ----------------------------------------------------------------------
 #
-# Description: 
+# Description:
 #
-#   Automatic installation and configuration on CentOS 
-#   (applicable also to RHEL and its clones). 
+#   Automatic installation and configuration on CentOS
+#   (applicable also to RHEL and its clones).
 #
-#   The script creates and configures EOxServer instance. 
-#   set the instance name as the first argument. 
+#   The script creates and configures EOxServer instance.
+#   set the instance name as the first argument.
 #
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Martin Paces <martin.paces@eox.at>
 #
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Copyright (C) 2013 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
-# copies of the Software, and to permit persons to whom the Software is 
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
 # The above copyright notice and this permission notice shall be included in all
@@ -34,13 +34,13 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
-set -x 
-set -e 
+set -x
+set -e
 
-#-------------------------------------------------------------------------------
-# if not set the default HOSTNAME is used  
+# ------------------------------------------------------------------------------
+# if not set the default HOSTNAME is used
 
 #HOSTNAME=<fill-your-hostname-or-IP-here>
 INSTANCE=${1:-"instance00"}
@@ -66,40 +66,40 @@ PG_HBA="/var/lib/pgsql/data/pg_hba.conf"
 MNGCMD="${INSTROOT}/${INSTANCE}/manage.py"
 SOCKET_PREFIX="run/wsgi"
 
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
-if [ -z "$HOSTNAME" ] 
-then 
+if [ -z "$HOSTNAME" ]
+then
     echo "Set the HOSTNAME variable!" 1>&2
-    exit 1 
-fi 
+    exit 1
+fi
 
-#-------------------------------------------------------------------------------
-# 4 create instance 
+# ------------------------------------------------------------------------------
+# 4 create instance
 
 if [ -d "$INSTROOT/$INSTANCE" ]
 then
     echo "Instance directory: $INSTROOT/$INSTANCE" 1>&2
     echo "Instance directory exists! The instance seems to exists already." 1>&2
-    exit 1 
+    exit 1
 fi
 
 # ver.: 0.2
-#sudo -u eoxserver eoxserver-admin.py create_instance "$INSTANCE" -d "$INSTROOT" 
+#sudo -u eoxserver eoxserver-admin.py create_instance "$INSTANCE" -d "$INSTROOT"
 
 # ver.: 0.3
 sudo -u eoxserver mkdir -p "$INSTROOT/$INSTANCE"
-sudo -u eoxserver eoxserver-admin.py create_instance "$INSTANCE" "$INSTROOT/$INSTANCE" 
+sudo -u eoxserver eoxserver-admin.py create_instance "$INSTANCE" "$INSTROOT/$INSTANCE"
 
-#-------------------------------------------------------------------------------
-# 5 DB setup part 2 
+# ------------------------------------------------------------------------------
+# 5 DB setup part 2
 
-# 5.1 - create DB 
+# 5.1 - create DB
 sudo -u postgres psql -q -c "CREATE USER $DBUSER WITH ENCRYPTED PASSWORD '$DBPASSWD' NOSUPERUSER NOCREATEDB NOCREATEROLE ;"
 sudo -u postgres psql -q -c "CREATE DATABASE $DBNAME WITH OWNER $DBUSER TEMPLATE template_postgis ENCODING 'UTF-8' ;"
 
-# prepend to the beginning of the acess list 
-sudo -u postgres ex "$PG_HBA" <<END 
+# prepend to the beginning of the acess list
+sudo -u postgres ex "$PG_HBA" <<END
 /#[	 ]*TYPE[	 ]*DATABASE[	 ]*USER[	 ]*CIDR-ADDRESS[	 ]*METHOD/a
 
 # EOxServer instance: $INSTROOT/$INSTANCE
@@ -109,10 +109,10 @@ local	$DBNAME	all	reject
 wq
 END
 
-# you must restart the service 
+# you must restart the service
 service postgresql restart
 
-# 4.2 DJango datadase backend 
+# 4.2 DJango datadase backend
 
 sudo -u eoxserver ex "$SETTINGS" <<END
 1,\$s/\('ENGINE'[	 ]*:[	 ]*'\).*\('[	 ]*,\)/\1$DBENGINE\2/
@@ -125,21 +125,21 @@ sudo -u eoxserver ex "$SETTINGS" <<END
 wq
 END
 
-# 5.3 django syncdb (without interactive prompts) 
+# 5.3 django syncdb (without interactive prompts)
 
-sudo -u eoxserver python $MNGCMD syncdb --noinput 
+sudo -u eoxserver python $MNGCMD syncdb --noinput
 
-#TODO: django admin user account creation 
+#TODO: django admin user account creation
 #sudo -u eoxserver python $MNGCMD createsuperuser
 
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # 6 HTTPD setup part 2
 
-## 6.1 set path to settings in WSGI module 
-## not necessary for 0.3 relase 
+## 6.1 set path to settings in WSGI module
+## not necessary for 0.3 relase
 #sudo -u eoxserver ex "$WSGI" <<END
-#/^import os/a  
-#import sys 
+#/^import os/a
+#import sys
 
 
 #path = "${INSTROOT}/${INSTANCE}"
@@ -150,48 +150,48 @@ sudo -u eoxserver python $MNGCMD syncdb --noinput
 #wq
 #END
 
-# ... not needed anymore 
+# ... not needed anymore
 
 
-# 6.2 collect statics 
+# 6.2 collect statics
 sudo -u eoxserver python $MNGCMD collectstatic -l --noinput
 
-# 6.3 allow access to log-file 
+# 6.3 allow access to log-file
 chmod g+w "$INSTLOG"
 
-# 6.x apache configuration 
+# 6.x apache configuration
 
-# locate proper configuration file 
+# locate proper configuration file
 
 CONFS="/etc/httpd/conf/httpd.conf /etc/httpd/conf.d/*.conf"
 CONF_DEFAULT="/etc/httpd/conf.d/00_default_site.conf"
 CONF=
 
-for F in $CONFS 
+for F in $CONFS
 do
-    if [ 0 -lt `grep -c '^[ 	]*<VirtualHost[ 	]*\*:80>' $F` ] 
-    then 
+    if [ 0 -lt `grep -c '^[ 	]*<VirtualHost[ 	]*\*:80>' $F` ]
+    then
         CONF=$F
-        break 
+        break
     fi
 done
 
-#if the virtual host is not present - create one 
+#if the virtual host is not present - create one
 
 if [ -z "$CONF" ]
 then
     CONF="$CONF_DEFAULT"
-    echo "Default virtual host not located creting own one in: $CONF" 
+    echo "Default virtual host not located creting own one in: $CONF"
     cat >"$CONF" <<END
-# default site generated by the automatic EOxServer instance configuration 
+# default site generated by the automatic EOxServer instance configuration
 <VirtualHost *:80>
 </VirtualHost>
 END
 else
-    echo "Default virtual host located in: $CONF" 
+    echo "Default virtual host located in: $CONF"
 fi
 
-# insert the configuration to the virtual host 
+# insert the configuration to the virtual host
 
 ex "$CONF" <<END
 /^[ 	]*<VirtualHost[ 	]*\*:80>/a
@@ -210,7 +210,7 @@ ex "$CONF" <<END
             Allow from all
     </Directory>
 
-    # static content 
+    # static content
     Alias $INSTSTAT_URL "$INSTSTAT_DIR"
     <Directory "$INSTSTAT_DIR">
             Options -MultiViews +FollowSymLinks
@@ -222,29 +222,29 @@ ex "$CONF" <<END
 wq
 END
 
-# set the daemon socket to a readable location 
+# set the daemon socket to a readable location
 
 CONF=
-for F in $CONFS 
+for F in $CONFS
 do
-    if [ 0 -lt `grep -c '^[ 	]*WSGISocketPrefix' $F` ] 
-    then 
+    if [ 0 -lt `grep -c '^[ 	]*WSGISocketPrefix' $F` ]
+    then
         CONF=$F
-        break 
+        break
     fi
 done
 
-if [ -z "$CONF" ] 
+if [ -z "$CONF" ]
 then # set socket prefix if not already set
-    echo "WSGISocketPrefix $SOCKET_PREFIX" >> /etc/httpd/conf.d/wsgi.conf 
+    echo "WSGISocketPrefix $SOCKET_PREFIX" >> /etc/httpd/conf.d/wsgi.conf
 fi
 
-# set the service url 
+# set the service url
 sudo -u eoxserver ex "$EOXSCONF" <<END
 /^[	 ]*http_service_url[	 ]*=/s;\(^[	 ]*http_service_url[	 ]*=\).*;\1http://${HOSTNAME}/${INSTANCE}/ows;
 wq
 END
 
-# restart apache  
+# restart apache
 
 service httpd restart

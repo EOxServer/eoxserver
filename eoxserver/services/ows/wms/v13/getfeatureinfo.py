@@ -1,9 +1,9 @@
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
 #
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Copyright (C) 2011 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -23,7 +23,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 from itertools import chain
 
@@ -79,9 +79,9 @@ class WMS13GetFeatureInfoHandler(Component):
             Trim("x", minx, maxx),
             Trim("y", miny, maxy),
         ), crs=crs)
-        if time: 
+        if time:
             subsets.append(time)
-        
+
         renderer = self.renderer
         root_group = lookup_layers(layers, subsets, renderer.suffixes)
 

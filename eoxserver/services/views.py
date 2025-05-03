@@ -1,11 +1,11 @@
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
 #          Stephan Krause <stephan.krause@eox.at>
 #          Stephan Meissl <stephan.meissl@eox.at>
 #
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Copyright (C) 2011 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -25,7 +25,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 """This model contains Django views for the EOxServer software. Its main
 function is :func:`ows` which handles all incoming OWS requests"""
@@ -35,13 +35,9 @@ import traceback
 
 from django.conf import settings
 from django.http import HttpResponse
-try:
-    from django.http import StreamingHttpResponse
-except:
-    class StreamingHttpResponse(object):
-        pass
+from django.http import StreamingHttpResponse
+
 from django.views.decorators.csrf import csrf_exempt
-from django.utils.six import string_types
 
 from eoxserver.core import env
 from eoxserver.services.ows.component import ServiceComponent
@@ -95,7 +91,7 @@ def ows(request):
     if isinstance(result, (HttpResponse, StreamingHttpResponse)):
         return result
 
-    elif isinstance(result, string_types):
+    elif isinstance(result, str):
         return HttpResponse(result)
 
     # convert result to a django response

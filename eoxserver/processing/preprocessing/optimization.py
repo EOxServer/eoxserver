@@ -1,10 +1,10 @@
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
 #          Stephan Meissl <stephan.meissl@eox.at>
 #
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Copyright (C) 2012 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -24,7 +24,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 import logging
 import math
@@ -38,13 +38,12 @@ from eoxserver.processing.preprocessing.util import (
 from eoxserver.resources.coverages.crss import (
     parseEPSGCode, fromShortCode, fromURL, fromURN, fromProj4Str
 )
-from django.utils.six import string_types
 
 logger = logging.getLogger(__name__)
 
-#===============================================================================
+# ==============================================================================
 # Dataset Optimization steps
-#===============================================================================
+# ==============================================================================
 
 
 class DatasetOptimization(object):
@@ -65,7 +64,7 @@ class ReprojectionOptimization(DatasetOptimization):
     def __init__(self, crs_or_srid, temporary_directory=None):
         if isinstance(crs_or_srid, int):
             pass
-        elif isinstance(crs_or_srid, string_types):
+        elif isinstance(crs_or_srid, str):
             crs_or_srid = parseEPSGCode(crs_or_srid, (fromShortCode, fromURL,
                                                       fromURN, fromProj4Str))
         else:
@@ -319,9 +318,9 @@ class NoDataValueOptimization(DatasetOptimization):
         return ds
 
 
-#===============================================================================
+# ==============================================================================
 # Post-create optimization steps
-#===============================================================================
+# ==============================================================================
 
 class DatasetPostOptimization(object):
     """ Abstract base class for dataset post-creation optimization steps. These
@@ -378,9 +377,9 @@ class OverviewOptimization(DatasetPostOptimization):
         return ds
 
 
-#===============================================================================
+# ==============================================================================
 # AlphaBand Optimization
-#===============================================================================
+# ==============================================================================
 
 class AlphaBandOptimization(object):
     """ This optimization renders the footprint into the alpha channel of the
@@ -416,13 +415,13 @@ class AlphaBandOptimization(object):
         gdal.RasterizeLayer(src_ds, [4], layer, burn_values=[get_limits(dt)[1]])
 
 
-#===============================================================================
+# ==============================================================================
 # Color To Alpha Optimization
-#===============================================================================
+# ==============================================================================
 
 class ColorToAlphaOptimization(DatasetOptimization):
     """
-    Pixel-wise optimization burns color_to_alpha pixels of RGB 
+    Pixel-wise optimization burns color_to_alpha pixels of RGB
     into alpha channel as 0 (transparent) if all bands have pixel value = [color_to_alpha +- margin].
     Default black is turned to transparent. Returns modified dataset.
     """

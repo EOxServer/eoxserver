@@ -385,7 +385,7 @@ class BrowseLayerMixIn(object):
                     if reset_info:
                         sr = osr.SpatialReference(map_.crs)
                         extent = map_.bbox
-                        layer_obj.setMetaData(
+                        layer_obj.metadata.set(
                             "wms_extent",
                             "%f %f %f %f" % extent
                         )
@@ -393,8 +393,8 @@ class BrowseLayerMixIn(object):
 
                         if sr.srid is not None:
                             short_epsg = "EPSG:%d" % sr.srid
-                            layer_obj.setMetaData("ows_srs", short_epsg)
-                            layer_obj.setMetaData("wms_srs", short_epsg)
+                            layer_obj.metadata.set("ows_srs", short_epsg)
+                            layer_obj.metadata.set("wms_srs", short_epsg)
                         layer_obj.setProjection(sr.proj)
 
                 if browse.mode == BROWSE_MODE_GRAYSCALE:
@@ -815,13 +815,13 @@ def _create_raster_layer_objs(map_obj, extent, sr, data, filename_generator, env
         layer_obj.offsite = ms.colorObj(0, 0, 0)
 
     if extent:
-        layer_obj.setMetaData("wms_extent", "%f %f %f %f" % extent)
+        layer_obj.metadata.set("wms_extent", "%f %f %f %f" % extent)
         layer_obj.setExtent(*extent)
 
         if sr.srid is not None:
             short_epsg = "EPSG:%d" % sr.srid
-            layer_obj.setMetaData("ows_srs", short_epsg)
-            layer_obj.setMetaData("wms_srs", short_epsg)
+            layer_obj.metadata.set("ows_srs", short_epsg)
+            layer_obj.metadata.set("wms_srs", short_epsg)
 
     layer_obj.setProjection(sr.proj)
 
@@ -843,12 +843,12 @@ def _create_raster_layer_objs(map_obj, extent, sr, data, filename_generator, env
         if browse_mode != BROWSE_MODE_RGBA:
             wrapped_layer_obj.offsite = ms.colorObj(0, 0, 0)
 
-        wrapped_layer_obj.setMetaData("ows_srs", short_epsg)
-        wrapped_layer_obj.setMetaData("wms_srs", short_epsg)
+        wrapped_layer_obj.metadata.set("ows_srs", short_epsg)
+        wrapped_layer_obj.metadata.set("wms_srs", short_epsg)
         wrapped_layer_obj.setProjection(sr.proj)
 
         wrapped_layer_obj.setExtent(*wrapped_extent)
-        wrapped_layer_obj.setMetaData(
+        wrapped_layer_obj.metadata.set(
             "wms_extent", "%f %f %f %f" % wrapped_extent
         )
         return [layer_obj, wrapped_layer_obj]
@@ -865,8 +865,8 @@ def _create_polygon_layer(map_obj):
 
     srid = 4326
     layer_obj.setProjection(crss.asProj4Str(srid))
-    layer_obj.setMetaData("ows_srs", crss.asShortCode(srid))
-    layer_obj.setMetaData("wms_srs", crss.asShortCode(srid))
+    layer_obj.metadata.set("ows_srs", crss.asShortCode(srid))
+    layer_obj.metadata.set("wms_srs", crss.asShortCode(srid))
 
     layer_obj.dump = True
 

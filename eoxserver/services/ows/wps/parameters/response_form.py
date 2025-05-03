@@ -1,4 +1,4 @@
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #
 #  Response form objects.
 #
@@ -6,7 +6,7 @@
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
 #          Martin Paces <martin.paces@eox.at>
 #
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Copyright (C) 2013 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -26,14 +26,9 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
-try:
-    # available in Python 2.7+
-    from collections import OrderedDict
-except ImportError:
-    from django.utils.datastructures import SortedDict as OrderedDict
-from django.utils.six import iteritems
+from collections import OrderedDict
 
 from .base import ParamMetadata
 
@@ -102,10 +97,10 @@ class ResponseDocument(ResponseForm):
         self.status = status
         self.store_response = store_response
 
-    def __reduce__(self): # NOTE: needed for correct async-WPS request pickling
+    def __reduce__(self):  # NOTE: needed for correct async-WPS request pickling
         return (
             self.__class__, (self.lineage, self.status, self.store_response),
-            None, None, iteritems(self)
+            None, None, self.items()
         )
 
     def __str__(self):

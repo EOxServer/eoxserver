@@ -1,10 +1,10 @@
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
 #          Stephan Meissl <stephan.meissl@eox.at>
 #
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Copyright (C) 2012 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -24,7 +24,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 from os.path import exists, join
 from uuid import uuid4
@@ -53,9 +53,9 @@ def get_limits(dt):
     return info.min, info.max
 
 
-#===============================================================================
+# ==============================================================================
 # helper functions
-#===============================================================================
+# ==============================================================================
 
 def create_mem_copy(ds, *args, **kwargs):
     """ Create a new In-Memory Dataset as copy from an existing dataset. """

@@ -25,15 +25,10 @@
 # THE SOFTWARE.
 # ------------------------------------------------------------------------------
 
-try:
-    from itertools import izip_longest
-except ImportError:
-    from itertools import zip_longest as izip_longest
-
+from itertools import zip_longest
 from copy import deepcopy
 from typing import List, Optional, Union
 
-from django.utils.six import string_types
 from eoxserver.core.util.timetools import parse_iso8601, parse_duration
 from eoxserver.contrib import gdal, osr
 from eoxserver.contrib.osr import SpatialReference
@@ -150,7 +145,7 @@ class RangeType(list):
     def subset(self, subsets):
         fields = []
         for subset in subsets:
-            if isinstance(subset, string_types):
+            if isinstance(subset, str):
                 fields.append(deepcopy(self.get_field(subset)))
             elif isinstance(subset, (list, tuple)):
                 start_id, stop_id = subset
@@ -338,7 +333,7 @@ class Grid(list):
 
         axes = []
 
-        axes_iter = izip_longest(names, types, offsets)
+        axes_iter = zip_longest(names, types, offsets)
         for name, type_, offset in axes_iter:
             if is_ref:
                 offset = None
@@ -581,7 +576,7 @@ class Coverage(object):
         highs = []
 
         if offsets[0] is not None:
-            axes = izip_longest(types, offsets, self.origin, self.size)
+            axes = zip_longest(types, offsets, self.origin, self.size)
             for type_, offset, origin, size in axes:
                 a = origin
                 b = origin + size * offset
@@ -624,6 +619,7 @@ class Coverage(object):
         for location in self.arraydata_locations:
             if index >= location.start_field and index <= location.end_field:
                 return location
+        return None
 
     def get_band_index_for_field(self, field_or_identifier):
         field = self.lookup_field(field_or_identifier)
@@ -778,7 +774,7 @@ class Mosaic(object):
         lows = []
         highs = []
 
-        axes = izip_longest(types, offsets, self.origin, self.size)
+        axes = zip_longest(types, offsets, self.origin, self.size)
         for type_, offset, origin, size in axes:
             a = origin
             b = origin + size * offset
