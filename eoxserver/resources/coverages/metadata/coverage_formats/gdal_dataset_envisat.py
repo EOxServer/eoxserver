@@ -29,8 +29,7 @@
 import re
 from datetime import datetime
 from os.path import splitext
-
-from django.utils.timezone import utc
+from datetime import timezone
 
 
 class GDALDatasetEnvisatMetadataFormatReader(object):
@@ -80,7 +79,6 @@ def parse_datetime(timestamp):
     """ Datetime parsing function for special Envisat datetime format.
     """
 
-
     match = re.match(
         r"(\d{2})-([A-Z]{3})-(\d{4}) (\d{2}):(\d{2}):(\d{2}).*", timestamp
     )
@@ -91,4 +89,4 @@ def parse_datetime(timestamp):
     minute = int(match.group(5))
     second = int(match.group(6))
 
-    return datetime(year, month, day, hour, minute, second, tzinfo=utc)
+    return datetime(year, month, day, hour, minute, second, tzinfo=timezone.utc)
