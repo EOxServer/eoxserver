@@ -69,7 +69,7 @@ def main():
     error_stream = OutputWrapper(sys.stderr, color_style().ERROR)
 
     if not args:
-        error_stream.write("Mandatory argument 'instance-name' not given.\n")
+        error_stream.write("Mandatory argument 'instance-name' not given.", ending="\n")
         sys.exit(1)
 
     name = args[0]
@@ -85,7 +85,7 @@ def main():
     except Exception as e:
         if options.traceback:
             raise
-        error_stream.write("%s: %s\n" % (e.__class__.__name__, e))
+        error_stream.write("%s: %s" % (e.__class__.__name__, e), ending="\n")
 
 if __name__ == "__main__":
     main()
