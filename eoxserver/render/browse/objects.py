@@ -151,7 +151,7 @@ class Browse(object):
 class GeneratedBrowse(Browse):
     def __init__(self, name, band_expressions, ranges, nodata_values,
                  fields_and_coverages, field_list, footprint, raster_styles,
-                 variables, show_out_of_bounds_data=False,
+                 variables, show_out_of_bounds_data=False, env=None
                  ):
         self._name = name
         self._band_expressions = band_expressions
@@ -163,6 +163,7 @@ class GeneratedBrowse(Browse):
         self._raster_styles = raster_styles
         self._variables = variables
         self._show_out_of_bounds_data = show_out_of_bounds_data
+        self._env = env or {}
 
     @property
     def name(self):
@@ -244,6 +245,17 @@ class GeneratedBrowse(Browse):
             for field_name, coverages in fields_and_coverage_models.items()
         }
 
+        env = None
+
+        for coverage_models in fields_and_coverage_models.values():
+            for coverage_model in coverage_models:
+                arraydata_item = coverage_model.arraydata_items.first()
+                if arraydata_item:
+                    env = get_vsi_env(arraydata_item.storage)
+                    break
+            if env:
+                break
+
         return cls(
             product_model.identifier,
             band_expressions,
@@ -259,6 +271,7 @@ class GeneratedBrowse(Browse):
             raster_styles,
             variables,
             show_out_of_bounds_data,
+            env,
         )
 
 

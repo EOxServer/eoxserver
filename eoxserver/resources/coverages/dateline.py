@@ -30,6 +30,8 @@
 from osgeo import ogr
 from osgeo import osr
 
+from eoxserver.resources.coverages.crss import crs_bounds
+
 
 EXTENT_EPSG_4326 = ogr.CreateGeometryFromWkt(
     'POLYGON ((-180 -90, -180 90, 180 90, 180 -90, -180 -90))'
@@ -93,3 +95,34 @@ def wrap_extent_around_dateline(extent, srid=4326):
             "%d. Supported are SRIDs %s." %
             (srid, ", ".join(str(v) for v in CRS_WIDTH.keys()))
         )
+
+
+def get_extent_wrappings(extent, srid=4326):
+    """ Returns a list of extents covering the dateline if the given extent
+    crosses the dateline. Otherwise a list containing only the given extent
+    is returned.
+    """
+
+    crs_minx, _, crs_maxx, _ = crs_bounds(srid)
+    crs_width = crs_maxx - crs_minx
+
+    extents = []
+    working_extent = extent
+    while True:
+        working_extent = (working_extent[0] - crs_width, working_extent[1],
+                          working_extent[2] - crs_width, working_extent[3])
+        if working_extent[2] > crs_minx:
+            extents.append(working_extent)
+        else:
+            break
+
+    working_extent = extent
+    while True:
+        working_extent = (working_extent[0] + crs_width, working_extent[1],
+                          working_extent[2] + crs_width, working_extent[3])
+        if working_extent[0] < crs_maxx:
+            extents.append(working_extent)
+        else:
+            break
+
+    return extents

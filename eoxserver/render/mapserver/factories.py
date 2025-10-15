@@ -63,11 +63,13 @@ from eoxserver.render.mapserver.config import (
 from eoxserver.render.colors import BASE_COLORS, COLOR_SCALES, OFFSITE_COLORS
 from eoxserver.resources.coverages import crss
 from eoxserver.resources.coverages.dateline import (
-    extent_crosses_dateline, wrap_extent_around_dateline
+    extent_crosses_dateline,
+    get_extent_wrappings,
 )
 from eoxserver.processing.gdal import reftools
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 
@@ -366,14 +368,16 @@ class BrowseLayerMixIn(object):
                     creation_info, reset_info = (None, None)
 
                 layer_objs = _create_raster_layer_objs(
-                    map_obj, browse.extent, browse.spatial_reference,
-                    creation_info.filename if creation_info else '',
-                    filename_generator, {}
+                    map_obj,
+                    browse.extent,
+                    browse.spatial_reference,
+                    creation_info.filename if creation_info else "",
+                    filename_generator,
+                    browse.env,
                 )
 
                 for layer_obj in layer_objs:
                     if creation_info:
-                        layer_obj.data = creation_info.filename
                         if creation_info.env:
                             ms.set_env(map_obj, creation_info.env, True)
 
@@ -479,8 +483,13 @@ class BrowseLayerMixIn(object):
 
             elif isinstance(browse, Browse):
                 layer_objs = _create_raster_layer_objs(
-                    map_obj, browse.extent, browse.spatial_reference,
-                    browse.filename, filename_generator, browse.env, browse.mode,
+                    map_obj,
+                    browse.extent,
+                    browse.spatial_reference,
+                    browse.filename,
+                    filename_generator,
+                    browse.env,
+                    browse.mode,
                 )
                 ms.set_env(map_obj, browse.env, True)
             elif browse is None:
@@ -828,32 +837,31 @@ def _create_raster_layer_objs(map_obj, extent, sr, data, filename_generator, env
     if resample:
         layer_obj.setProcessingKey('RESAMPLE', resample)
 
+    layers = [layer_obj]
     if extent and sr.srid and extent_crosses_dateline(extent, sr.srid):
-        wrapped_extent = wrap_extent_around_dateline(extent, sr.srid)
+        for wrapped_extent in get_extent_wrappings(extent, sr.srid):
+            wrapped_layer_obj = ms.layerObj(map_obj)
+            wrapped_layer_obj.type = ms.MS_LAYER_RASTER
+            wrapped_layer_obj.status = ms.MS_ON
 
-        wrapped_layer_obj = ms.layerObj(map_obj)
-        wrapped_layer_obj.type = ms.MS_LAYER_RASTER
-        wrapped_layer_obj.status = ms.MS_ON
+            wrapped_data = filename_generator.generate()
+            with gdal.config_env(env):
+                vrt.with_extent(data, wrapped_extent, wrapped_data)
+            wrapped_layer_obj.data = wrapped_data
 
-        wrapped_data = filename_generator.generate()
-        with gdal.config_env(env):
-            vrt.with_extent(data, wrapped_extent, wrapped_data)
-        wrapped_layer_obj.data = wrapped_data
-        # assumption that RGBA already has transparency in alpha band
-        if browse_mode != BROWSE_MODE_RGBA:
-            wrapped_layer_obj.offsite = ms.colorObj(0, 0, 0)
+            # assumption that RGBA already has transparency in alpha band
+            if browse_mode != BROWSE_MODE_RGBA:
+                wrapped_layer_obj.offsite = ms.colorObj(0, 0, 0)
 
-        wrapped_layer_obj.metadata.set("ows_srs", short_epsg)
-        wrapped_layer_obj.metadata.set("wms_srs", short_epsg)
-        wrapped_layer_obj.setProjection(sr.proj)
+            wrapped_layer_obj.metadata.set("ows_srs", short_epsg)
+            wrapped_layer_obj.metadata.set("wms_srs", short_epsg)
+            wrapped_layer_obj.setProjection(sr.proj)
 
-        wrapped_layer_obj.setExtent(*wrapped_extent)
-        wrapped_layer_obj.metadata.set(
-            "wms_extent", "%f %f %f %f" % wrapped_extent
-        )
-        return [layer_obj, wrapped_layer_obj]
-    else:
-        return [layer_obj]
+            wrapped_layer_obj.setExtent(*wrapped_extent)
+            wrapped_layer_obj.metadata.set("wms_extent", "%f %f %f %f" % wrapped_extent)
+            layers.append(wrapped_layer_obj)
+
+    return layers
 
 
 def _create_polygon_layer(map_obj):
