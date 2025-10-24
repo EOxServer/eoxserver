@@ -137,10 +137,10 @@ def product_register(request):
                 'text/html',
             )
             _add_metadata(
-                product, zipfile, 'thumbnail\.(png|jpeg|jpg)', 'thumbnail'
+                product, zipfile, r'thumbnail\.(png|jpeg|jpg)', 'thumbnail'
             )
             _add_metadata(
-                product, zipfile, 'metadata\.xml', 'description', 'text/xml'
+                product, zipfile, r'metadata\.xml', 'description', 'text/xml'
             )
 
             granules = []
