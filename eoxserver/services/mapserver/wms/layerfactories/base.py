@@ -1,10 +1,10 @@
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
 #          Martin Paces <martin.paces@eox.at>
 #
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Copyright (C) 2011-2014 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -24,7 +24,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 
 import os.path
@@ -42,7 +42,7 @@ from eoxserver.resources.coverages.dateline import (
     extent_crosses_dateline, wrap_extent_around_dateline
 )
 
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 
 class BaseStyleMixIn(object):
@@ -123,8 +123,8 @@ class PolygonLayerMixIn(object):
 
         srid = 4326
         layer.setProjection(crss.asProj4Str(srid))
-        layer.setMetaData("ows_srs", crss.asShortCode(srid))
-        layer.setMetaData("wms_srs", crss.asShortCode(srid))
+        layer.metadata.set("ows_srs", crss.asShortCode(srid))
+        layer.metadata.set("wms_srs", crss.asShortCode(srid))
 
         layer.dump = True
 
@@ -132,8 +132,8 @@ class PolygonLayerMixIn(object):
         layer.template = os.path.join(settings.PROJECT_DIR, "conf", "outline_template_dataset.html")
         layer.footer = os.path.join(settings.PROJECT_DIR, "conf", "outline_template_footer.html")
 
-        layer.setMetaData("gml_include_items", "all")
-        layer.setMetaData("wms_include_items", "all")
+        layer.metadata.set("gml_include_items", "all")
+        layer.metadata.set("wms_include_items", "all")
 
         layer.addProcessing("ITEMS=identifier")
 
@@ -150,17 +150,17 @@ class PlainLayerMixIn(object):
         layer.name = name
         layer.type = ms.MS_LAYER_RASTER
         if extent:
-            layer.setMetaData("wms_extent", "%f %f %f %f" % extent)
+            layer.metadata.set("wms_extent", "%f %f %f %f" % extent)
             layer.setExtent(*extent)
 
-        #layer.setMetaData(
+        #layer.metadata.set(
         #    "wms_enable_request", "getcapabilities getmap getfeatureinfo"
         #)
 
         if wrapped:
             # set the info for the connector to wrap this layer around the
             # dateline
-            layer.setMetaData("eoxs_wrap_dateline", "true")
+            layer.metadata.set("eoxs_wrap_dateline", "true")
 
         self._set_projection(layer, coverage.spatial_reference)
         if group:
@@ -232,8 +232,8 @@ class PlainLayerMixIn(object):
     def _set_projection(self, layer, sr):
         if sr.srid is not None:
             short_epsg = "EPSG:%d" % sr.srid
-            layer.setMetaData("ows_srs", short_epsg)
-            layer.setMetaData("wms_srs", short_epsg)
+            layer.metadata.set("ows_srs", short_epsg)
+            layer.metadata.set("wms_srs", short_epsg)
         layer.setProjection(sr.proj)
 
 

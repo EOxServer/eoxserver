@@ -1,9 +1,9 @@
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
 #
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Copyright (C) 2013 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -23,7 +23,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 import sys
 from unittest import skipIf
@@ -38,9 +38,9 @@ GDAL_VERSION = gdal.VersionInfo()
 GDAL_VERSION = int(GDAL_VERSION[0]), int(GDAL_VERSION[1:3]), int(GDAL_VERSION[3:5])
 IS_PY2 = (sys.version_info.major == 2)
 
-#===============================================================================
+# ==============================================================================
 # WCS 2.0 Get Capabilities
-#===============================================================================
+# ==============================================================================
 
 @tag('wcs', 'wcs20')
 class WCS20GetCapabilitiesValidTestCase(testbase.XMLTestCase, testbase.SchematronTestMixIn):
@@ -163,9 +163,9 @@ class WCS20GetCapabilitiesCQLTestCase(testbase.XMLTestCase):
         params = "service=WCS&version=2.0.1&request=GetCapabilities&cql=identifier='mosaic_MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_RGB_reduced'"
         return (params, "kvp")
 
-#===============================================================================
+# ==============================================================================
 # WCS 2.0 DescribeCoverage
-#===============================================================================
+# ==============================================================================
 
 @tag('wcs', 'wcs20')
 class WCS20DescribeCoverageDatasetTestCase(testbase.XMLTestCase):
@@ -217,9 +217,9 @@ class WCS20DescribeCoverageMissingParameterFaultTestCase(testbase.ExceptionTestC
     def getExpectedExceptionCode(self):
         return "MissingParameterValue"
 
-#===============================================================================
+# ==============================================================================
 # WCS 2.0 DescribeEOCoverageSet
-#===============================================================================
+# ==============================================================================
 
 @tag('wcs', 'wcs20')
 class WCS20DescribeEOCoverageSetDatasetTestCase(testbase.XMLTestCase):
@@ -454,9 +454,9 @@ class WCS20DescribeEOCoverageSetInvalidAxisLabelFaultTestCase(testbase.Exception
     def getExpectedExceptionCode(self):
         return "InvalidAxisLabel"
 
-#===============================================================================
+# ==============================================================================
 # WCS 2.0: Paging testcases
-#===============================================================================
+# ==============================================================================
 
 @tag('wcs', 'wcs20')
 class WCS20DescribeEOCoverageSetDatasetPagingCountTestCase(testbase.WCS20DescribeEOCoverageSetPagingTestCase):
@@ -470,9 +470,9 @@ class WCS20DescribeEOCoverageSetDatasetPagingCountTestCase(testbase.WCS20Describ
         params = "service=WCS&version=2.0.0&request=DescribeEOCoverageSet&eoId=MER_FRS_1P_reduced&count=2"
         return (params, "kvp")
 
-#===============================================================================
+# ==============================================================================
 # WCS 2.0: Section test cases
-#===============================================================================
+# ==============================================================================
 
 @tag('wcs', 'wcs20')
 class WCS20DescribeEOCoverageSetSectionsAllTestCase(testbase.WCS20DescribeEOCoverageSetSectionsTestCase):
@@ -593,9 +593,9 @@ class WCS20DescribeEOCoverageSetDatasetSeriesStitchedMosaicTestCase(testbase.WCS
             "mosaic_MER_FRS_1P_reduced_RGB"
         ]
 
-#===============================================================================
+# ==============================================================================
 # WCS 2.0: Exceptions
-#===============================================================================
+# ==============================================================================
 
 # after WCS 2.0.1 implementation does not lead to an error anymore
 #class WCS20GetCoverageFormatMissingFaultTestCase(testbase.ExceptionTestCase):
@@ -636,9 +636,9 @@ class WCS20GetCoverageFormatUnknownFaultTestCase(testbase.ExceptionTestCase):
     def getExpectedExceptionCode(self):
         return "InvalidParameterValue"
 
-#===============================================================================
+# ==============================================================================
 # WCS 2.0: Simple requests
-#===============================================================================
+# ==============================================================================
 
 @tag('wcs', 'wcs20')
 class WCS20GetCoverageMosaicTestCase(testbase.RectifiedGridCoverageTestCase, testbase.WCSBinaryComparison):
@@ -652,9 +652,9 @@ class WCS20GetCoverageDatasetTestCase(testbase.RectifiedGridCoverageTestCase, te
         params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff"
         return (params, "kvp")
 
-#==============================================================================
+# =============================================================================
 # WCS 2.0: Formats
-#==============================================================================
+# =============================================================================
 
 # WCS 2.0.1 introduced the native format, i.e., default format in case of missing format specification
 @tag('wcs', 'wcs20')
@@ -708,9 +708,9 @@ class WCS20GetCoverageJPEG2000InputTestCase(testbase.RectifiedGridCoverageTestCa
         params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced_JPEG2000&format=image/tiff"
         return (params, "kvp")
 
-#===============================================================================
+# ==============================================================================
 # WCS 2.0: Multipart requests
-#===============================================================================
+# ==============================================================================
 
 @tag('wcs', 'wcs20')
 class WCS20GetCoverageMultipartMosaicTestCase(wcsbase.WCS20GetCoverageMixIn, testbase.WCS20GetCoverageRectifiedGridCoverageMultipartTestCase, testbase.WCSBinaryComparison):
@@ -733,9 +733,9 @@ class WCS20GetCoverageMultipartDatasetTestCase(wcsbase.WCS20GetCoverageMixIn, te
 #    def getExpectedExceptionCode(self):
 #        return "InvalidParameterValue"
 
-#===============================================================================
+# ==============================================================================
 # WCS 2.0: Subset requests
-#===============================================================================
+# ==============================================================================
 
 @tag('wcs', 'wcs20')
 class WCS20GetCoverageSubsetDatasetTestCase(wcsbase.WCS20GetCoverageMixIn, testbase.RectifiedGridCoverageTestCase, testbase.WCSBinaryComparison):
@@ -779,9 +779,9 @@ class WCS20GetCoverageSubsetInvalidEPSGFaultTestCase(testbase.ExceptionTestCase)
     def getExpectedHTTPStatus(self):
         return 404
 
-#===============================================================================
+# ==============================================================================
 # WCS 2.0: OutputCRS
-#===============================================================================
+# ==============================================================================
 
 @tag('wcs', 'wcs20')
 class WCS20GetCoverageOutputCRSDatasetTestCase(wcsbase.WCS20GetCoverageMixIn, testbase.WCS20GetCoverageRectifiedGridCoverageMultipartTestCase, testbase.WCSBinaryComparison):
@@ -807,9 +807,9 @@ class WCS20GetCoverageOutputCrsEPSGFaultTestCase(testbase.ExceptionTestCase):
     def getExpectedHTTPStatus(self):
         return 404
 
-#===============================================================================
+# ==============================================================================
 # WCS 2.0: Size
-#===============================================================================
+# ==============================================================================
 
 @tag('wcs', 'wcs20')
 class WCS20GetCoverageSizeDatasetTestCase(testbase.RectifiedGridCoverageTestCase, testbase.WCSBinaryComparison):
@@ -853,9 +853,9 @@ class WCS20GetCoverageInvalidSizeFaultTestCase(testbase.ExceptionTestCase):
     def getExpectedExceptionCode(self):
         return "InvalidScaleFactor"
 
-#===============================================================================
+# ==============================================================================
 # WCS 2.0: Resolution
-#===============================================================================
+# ==============================================================================
 
 # TODO: not supported anymore (WCS 2.0 Scaling Extension)
 
@@ -887,9 +887,9 @@ class WCS20GetCoverageInvalidSizeFaultTestCase(testbase.ExceptionTestCase):
 #    def getExpectedExceptionCode(self):
 #        return "InvalidParameterValue"
 
-#===============================================================================
+# ==============================================================================
 # WCS 2.0: Rangesubset
-#===============================================================================
+# ==============================================================================
 
 @tag('wcs', 'wcs20')
 class WCS20GetCoverageRangeSubsetIntervalDatasetTestCase(testbase.RectifiedGridCoverageTestCase, testbase.WCSBinaryComparison):
@@ -934,9 +934,9 @@ class WCS20GetCoverageMultipartRangeSubsetNamesDatasetTestCase(wcsbase.WCS20GetC
 #        params = "service=wcs&version=2.0.1&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&subset=x(100,200)&subset=y(200,300)&size=y(100)&resolution=x(0.1)&outputcrs=http://www.opengis.net/def/crs/EPSG/0/3035&rangesubset=MERIS_radiance_01_uint16:MERIS_radiance_03_uint16&mediatype=multipart/related"
 #        return (params, "kvp")
 
-#===============================================================================
+# ==============================================================================
 # WCS 2.0: Polygon Mask
-#===============================================================================
+# ==============================================================================
 
 # TODO: Enable these tests once the feature is implemented in MapServer
 
@@ -964,9 +964,9 @@ class WCS20GetCoverageMultipartRangeSubsetNamesDatasetTestCase(wcsbase.WCS20GetC
 #        </wcs:GetCoverage>"""
 #        return (params, "xml")
 
-#===============================================================================
+# ==============================================================================
 # WCS 2.0: Interpolation
-#===============================================================================
+# ==============================================================================
 
 @tag('wcs', 'wcs20')
 class WCS20GetCoverageDatasetInterpolationNearestTestCase(testbase.RectifiedGridCoverageTestCase, testbase.WCSBinaryComparison):
@@ -998,9 +998,9 @@ class WCS20GetCoverageInvalidInterpolationFaultTestCase(testbase.ExceptionTestCa
     def getExpectedHTTPStatus(self):
         return 404
 
-#===============================================================================
+# ==============================================================================
 # WCS 2.0 Rasdaman test cases
-#===============================================================================
+# ==============================================================================
 
 @tag('wcs', 'wcs20')
 class WCS20GetCoverageRasdamanMultipartDatasetTestCase(wcsbase.WCS20GetCoverageMixIn, testbase.RasdamanTestCaseMixIn, testbase.WCS20GetCoverageRectifiedGridCoverageMultipartTestCase, testbase.WCSBinaryComparison):
@@ -1057,9 +1057,9 @@ class WCS20GetCoverageRasdamanSubsetSizeResolutionOutputCRSRangeSubsetIndicesDat
         return (params, "kvp")
 
 
-#===============================================================================
+# ==============================================================================
 # WCS 2.0: GetCov with EPSG:3035 input images
-#===============================================================================
+# ==============================================================================
 
 @tag('wcs', 'wcs20')
 class WCS20DescribeCoverageReprojectedDatasetTestCase(testbase.XMLTestCase):
@@ -1097,9 +1097,9 @@ class WCS20GetCoverageReprojectedEPSG3857DatasetTestCase(wcsbase.WCS20GetCoverag
         params = "service=wcs&version=2.0.1&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed_reprojected&format=image/tiff&mediatype=multipart/related&outputcrs=http://www.opengis.net/def/crs/EPSG/0/3857"
         return (params, "kvp")
 
-#===============================================================================
+# ==============================================================================
 # WCS 2.0 Referenceable Grid Coverages
-#===============================================================================
+# ==============================================================================
 
 @tag('wcs', 'wcs20')
 class WCS20DescribeCoverageReferenceableDatasetTestCase(testbase.XMLTestCase):
@@ -1148,9 +1148,9 @@ class WCS20GetCoverageReferenceableDatasetGeogCRSSubsetOutsideExtentTestCase(tes
     def getExpectedExceptionCode(self):
         return "InvalidParameterValue"
 
-#===============================================================================
+# ==============================================================================
 # WCS 2.0.1 Corrigendum test cases
-#===============================================================================
+# ==============================================================================
 
 @tag('wcs', 'wcs20')
 class WCS20CorrigendumGetCapabilitiesEmptyTestCase(testbase.XMLTestCase):
@@ -1189,9 +1189,9 @@ class WCS20CorrigendumGetCoverageDatasetTestCase(testbase.RectifiedGridCoverageT
         return (params, "kvp")
 
 
-#===============================================================================
+# ==============================================================================
 # WCS 2.0 - POST
-#===============================================================================
+# ==============================================================================
 
 @tag('wcs', 'wcs20')
 class WCS20PostGetCapabilitiesValidTestCase(testbase.XMLTestCase):
@@ -1455,15 +1455,18 @@ class WCS20GetCoverageDatasetGeoTIFFPackBitsTestCase(wcsbase.GeoTIFFMixIn, testb
         params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&geotiff:compression=PackBits"
         return (params, "kvp")
 
-@tag('wcs', 'wcs20')
-class WCS20GetCoverageDatasetGeoTIFFHuffmanTestCase(wcsbase.GeoTIFFMixIn, testbase.RectifiedGridCoverageTestCase, testbase.WCSBinaryComparison):
-    expected_compression = "CCITTRLE"
-    def testBandStatistics(self):
-        self.skipTest('temporary hold the test to invistigate the issue')
 
-    def getRequest(self):
-        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&geotiff:compression=Huffman"
-        return (params, "kvp")
+# Deactivated because Huffman only allows 1 bit outputs
+# @tag('wcs', 'wcs20')
+# class WCS20GetCoverageDatasetGeoTIFFHuffmanTestCase(wcsbase.GeoTIFFMixIn, testbase.RectifiedGridCoverageTestCase, testbase.WCSBinaryComparison):
+#     expected_compression = "CCITTRLE"
+
+#     def testBandStatistics(self):
+#         self.skipTest('temporary hold the test to invistigate the issue')
+
+#     def getRequest(self):
+#         params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&geotiff:compression=Huffman"
+#         return (params, "kvp")
 
 @tag('wcs', 'wcs20')
 class WCS20GetCoverageDatasetGeoTIFFLZWTestCase(wcsbase.GeoTIFFMixIn, testbase.RectifiedGridCoverageTestCase, testbase.WCSBinaryComparison):
@@ -1473,6 +1476,8 @@ class WCS20GetCoverageDatasetGeoTIFFLZWTestCase(wcsbase.GeoTIFFMixIn, testbase.R
         params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&geotiff:compression=LZW"
         return (params, "kvp")
 
+
+# GDAL only supports <= 10 bands for JPEG compression with 8bits depth
 @tag('wcs', 'wcs20')
 class WCS20GetCoverageDatasetGeoTIFFJPEGLowTestCase(wcsbase.GeoTIFFMixIn, testbase.RectifiedGridCoverageTestCase, testbase.WCSBinaryComparison):
     expected_compression = "JPEG"
@@ -1480,7 +1485,7 @@ class WCS20GetCoverageDatasetGeoTIFFJPEGLowTestCase(wcsbase.GeoTIFFMixIn, testba
     def testBandStatistics(self):
         self.skipTest('temporary hold the test to invistigate the issue')
     def getRequest(self):
-        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&geotiff:compression=JPEG&geotiff:jpeg_quality=50"
+        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=mosaic_MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_RGB_reduced&format=image/tiff&geotiff:compression=JPEG&geotiff:jpeg_quality=50"
         return (params, "kvp")
 
 @tag('wcs', 'wcs20')
@@ -1490,7 +1495,7 @@ class WCS20GetCoverageDatasetGeoTIFFJPEGHighTestCase(wcsbase.GeoTIFFMixIn, testb
     def testBandStatistics(self):
         self.skipTest('temporary hold the test to invistigate the issue')
     def getRequest(self):
-        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&geotiff:compression=JPEG&geotiff:jpeg_quality=90"
+        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=mosaic_MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_RGB_reduced&format=image/tiff&geotiff:compression=JPEG&geotiff:jpeg_quality=90"
         return (params, "kvp")
 
 @tag('wcs', 'wcs20')
@@ -1517,13 +1522,16 @@ class WCS20GetCoverageDatasetGeoTIFFTiled16TestCase(wcsbase.GeoTIFFMixIn, testba
         params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&geotiff:tiling=true&geotiff:tilewidth=16&geotiff:tileheight=16"
         return (params, "kvp")
 
+
 @tag('wcs', 'wcs20')
 class WCS20GetCoverageDatasetGeoTIFFPostTestCase(wcsbase.GeoTIFFMixIn, testbase.RectifiedGridCoverageTestCase, testbase.WCSBinaryComparison):
     expected_tiling = (32, 64)
     expected_interleave = "BAND"
     expected_compression = "DEFLATE"
+
     def testBandStatistics(self):
         self.skipTest('temporary hold the test to invistigate the issue')
+
     def getRequest(self):
         params = """<wcs:GetCoverage service="WCS" version="2.0.1"
            xmlns:wcs="http://www.opengis.net/wcs/2.0"
@@ -1533,7 +1541,7 @@ class WCS20GetCoverageDatasetGeoTIFFPostTestCase(wcsbase.GeoTIFFMixIn, testbase.
           <wcs:Extension>
             <geotiff:parameters>
               <geotiff:compression>Deflate</geotiff:compression>
-              <geotiff:predictor>FloatingPoint</geotiff:predictor>
+              <geotiff:predictor>None</geotiff:predictor>
               <geotiff:interleave>Band</geotiff:interleave>
               <geotiff:tiling>true</geotiff:tiling>
               <geotiff:tilewidth>32</geotiff:tilewidth>
@@ -1542,6 +1550,7 @@ class WCS20GetCoverageDatasetGeoTIFFPostTestCase(wcsbase.GeoTIFFMixIn, testbase.
           </wcs:Extension>
         </wcs:GetCoverage>"""
         return (params, "xml")
+
 
 @tag('wcs', 'wcs20')
 class WCS20GetCoverageDatasetGeoTIFFCompressionNotSupportedTestCase(testbase.ExceptionTestCase):
@@ -1555,6 +1564,7 @@ class WCS20GetCoverageDatasetGeoTIFFCompressionNotSupportedTestCase(testbase.Exc
 
     def getExpectedExceptionCode(self):
         return "CompressionNotSupported"
+
 
 @tag('wcs', 'wcs20')
 class WCS20GetCoverageDatasetGeoTIFFCompressionInvalidTestCase(testbase.ExceptionTestCase):
@@ -1718,9 +1728,9 @@ class WCS20PostErrorFormatIsHtmlOnRequestTestCase(testbase.OWSTestCase):
         self.assertEqual(content_type, "text/html")
 
 
-#===============================================================================
+# ==============================================================================
 # WCS GetEOCoverageSet 2.0.1: Paging testcases
-#===============================================================================
+# ==============================================================================
 
 @tag('wcs', 'wcs20')
 class WCS20GetEOCoverageSetDatasetPagingTestCase(testbase.WCS20GetEOCoverageSetPagingTestCase):

@@ -1,31 +1,31 @@
 #!/usr/bin/env python
-#-----------------------------------------------------------------------
+# ----------------------------------------------------------------------
 #
-# Description: 
+# Description:
 #
-#   asynchronous task processing - simple test task feed 
+#   asynchronous task processing - simple test task feed
 #
-# Quick Start: 
+# Quick Start:
 #
-#  1) set PYTHONPATH env.var to point to both: 
-#        - EOxServer installation 
-#        - EOxServer (configured) instance  
-#  2) optionally set also DJANGO_SETTINGS_MODULE env.var 
-#  3) run this script 
+#  1) set PYTHONPATH env.var to point to both:
+#        - EOxServer installation
+#        - EOxServer (configured) instance
+#  2) optionally set also DJANGO_SETTINGS_MODULE env.var
+#  3) run this script
 #
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Martin Paces <martin.paces@iguassu.cz>
 #
-#-------------------------------------------------------------------------------
-# Copyright (C) 2011 Iguassu Software Systems, a.s 
+# ------------------------------------------------------------------------------
+# Copyright (C) 2011 Iguassu Software Systems, a.s
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
-# copies of the Software, and to permit persons to whom the Software is 
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
 # The above copyright notice and this permission notice shall be included in all
@@ -38,51 +38,51 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
-# imports 
+# ------------------------------------------------------------------------------
+# imports
 
 import os
 import sys
-import uuid 
-import time 
+import uuid
+import time
 try:
     # Python 2
     xrange
 except NameError:
     # Python 3, xrange is now named range
     xrange = range
-#----------------------------------------------------------------------
-#number of test tasks 
+# ---------------------------------------------------------------------
+#number of test tasks
 
 N=100
 
-#----------------------------------------------------------------------
+# ---------------------------------------------------------------------
 
-# default django settings module 
+# default django settings module
 DJANGO_SETTINGS_DEFAULT = "settings"
 
 os.environ["DJANGO_SETTINGS_MODULE"] = os.environ.get("DJANGO_SETTINGS_MODULE",DJANGO_SETTINGS_DEFAULT)
 
-# setup search paths 
+# setup search paths
 
-#paths = [] 
-#paths = [ 
+#paths = []
+#paths = [
 #    "/home/test/o3s/sandbox_wcst" ,
-#    "/home/test/o3s/sandbox_wcst_instance" ] 
-#for path in paths : 
+#    "/home/test/o3s/sandbox_wcst_instance" ]
+#for path in paths :
 
-for path in sys.argv[1:] : 
+for path in sys.argv[1:] :
     print (path )
     if path not in sys.path:
         sys.path.append(path)
 
-#----------------------------------------------------------------------
-# imports 
+# ---------------------------------------------------------------------
+# imports
 
 from eoxserver.resources.processes.tracker import QueueFull, registerTaskType, enqueueTask
 
-#----------------------------------------------------------------------
-# register new task handler 
+# ---------------------------------------------------------------------
+# register new task handler
 
 PROCESS_CLASS="TEST-PROCESS"
 ASYNC_HANDLER="tools.atp_test.testHandler"
@@ -91,68 +91,68 @@ ASYNC_TIMERET=60
 
 registerTaskType( PROCESS_CLASS , ASYNC_HANDLER , ASYNC_TIMEOUT , ASYNC_TIMERET )
 
-#----------------------------------------------------------------------
-# async handler 
+# ---------------------------------------------------------------------
+# async handler
 
 def testHandler( taskStatus , param ) :
 
     print ("HANDLER:" , param )
 
-    # change status  
+    # change status
     #taskStatus.setSuccess()
 
-#----------------------------------------------------------------------
+# ---------------------------------------------------------------------
 
-# optimal wait time 
+# optimal wait time
 
-WAIT_TIME = ( 0.05 , 0.1 , 0.2 , 0.4 , 0.8 , 1.6 , 3.2 , 6.4 , 12.8 ) 
+WAIT_TIME = ( 0.05 , 0.1 , 0.2 , 0.4 , 0.8 , 1.6 , 3.2 , 6.4 , 12.8 )
 
-def getWaitTime(idx ) : 
+def getWaitTime(idx ) :
 
     if ( idx >= len( WAIT_TIME ) ) : return WAIT_TIME[-1]
 
-    return WAIT_TIME[idx] 
+    return WAIT_TIME[idx]
 
 
-# enqueue task 
+# enqueue task
 
-def testEnqueue( param ) : 
+def testEnqueue( param ) :
 
-    cnt = 0 ; 
+    cnt = 0 ;
 
     tid = "test_%s"%uuid.uuid4().hex
 
-    while True : 
-       
-        try: 
+    while True :
 
-            # enqueue task for execution 
+        try:
+
+            # enqueue task for execution
             enqueueTask( PROCESS_CLASS , tid , param )
-        
-            print ("ENQUEUE: %s" % tid , param)  
-        
-            break 
 
-        except QueueFull : # retry if queue full 
+            print ("ENQUEUE: %s" % tid , param)
 
-            print (" --- QueueFull #%i - sleep: %g s"%( cnt + 1 , getWaitTime(cnt) )) 
+            break
 
-            time.sleep(getWaitTime(cnt)) 
+        except QueueFull : # retry if queue full
 
-            cnt += 1 
-            
-            continue 
+            print (" --- QueueFull #%i - sleep: %g s"%( cnt + 1 , getWaitTime(cnt) ))
+
+            time.sleep(getWaitTime(cnt))
+
+            cnt += 1
+
+            continue
 
 
-if __name__ == "__main__" : 
+if __name__ == "__main__" :
 
 
     from eoxserver.core.system import System
-    # initialize the system 
+    # initialize the system
     System.init()
 
-    for i in xrange(N) : 
-        
-        testEnqueue("%6.6u"%i) 
+    for i in xrange(N) :
 
-        #time.sleep(0.1) 
+        testEnqueue("%6.6u"%i)
+
+        #time.sleep(0.1)

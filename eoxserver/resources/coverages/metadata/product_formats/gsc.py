@@ -1,9 +1,9 @@
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
 #
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Copyright (C) 2019 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -23,7 +23,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 from eoxserver.core.util.xmltools import parse
 from eoxserver.core.decoders import xml, to_dict, InvalidParameterException
@@ -39,12 +39,12 @@ class GSCFormatExtendedDecoder(xml.Decoder):
     identifier = xml.Parameter("(gsc:sar_metadata|gsc:opt_metadata)/gml:metaDataProperty/gsc:EarthObservationMetaData/eop:identifier/text()", type=str, num="?")
     parent_identifier = xml.Parameter("(gsc:sar_metadata|gsc:opt_metadata)/gml:metaDataProperty/gsc:EarthObservationMetaData/eop:parentIdentifier/text()", type=str, num="?")
     production_status = xml.Parameter("(gsc:sar_metadata|gsc:opt_metadata)/gml:metaDataProperty/gsc:EarthObservationMetaData/eop:status/text()", type=str, num="?")
-    acquisition_type = xml.Parameter("(gsc:sar_metadata|gsc:opt_metadata)/gml:metaDataProperty/gsc:EarthObservationMetaData/eop:acquisitionType/text()", type=str, num="?") 
+    acquisition_type = xml.Parameter("(gsc:sar_metadata|gsc:opt_metadata)/gml:metaDataProperty/gsc:EarthObservationMetaData/eop:acquisitionType/text()", type=str, num="?")
     orbit_number = xml.Parameter("(gsc:sar_metadata|gsc:opt_metadata)/gml:using/eop:EarthObservationEquipment/eop:acquisitionParameters/opt:Acquisition/eop:orbitNumber/text()", type=int, num="?")
     orbit_direction = xml.Parameter("(gsc:sar_metadata|gsc:opt_metadata)/gml:using/eop:EarthObservationEquipment/eop:acquisitionParameters/opt:Acquisition/eop:orbitDirection/text()", type=str, num="?")
-    
+
     swath_identifier = xml.Parameter("(gsc:sar_metadata|gsc:opt_metadata)/gml:using/eop:EarthObservationEquipment/eop:sensor/eop:Sensor/eop:swathIdentifier/text()", type=str, num="?")
-   
+
 
     product_version = xml.Parameter("(gsc:sar_metadata|gsc:opt_metadata)/gml:resultOf/eop:EarthObservationResult/eop:product/eop:ProductInformation/eop:version/text()", type=float, num="?")
     product_quality_status = xml.Parameter("(gsc:sar_metadata|gsc:opt_metadata)/gml:resultOf/eop:EarthObservationMetaData/eop:productQualityStatus/text()", type=str, num="?")
@@ -57,7 +57,7 @@ class GSCFormatExtendedDecoder(xml.Decoder):
     archiving_center = xml.Parameter("(gsc:sar_metadata|gsc:opt_metadata)/gml:metaDataProperty/gsc:EarthObservationMetaData/eop:archivedIn/eop:ArchivingInformation/eop:archivingCenter/text()", type=str, num="?")
     processing_mode = xml.Parameter("(gsc:sar_metadata|gsc:opt_metadata)/gml:metaDataProperty/gsc:EarthObservationMetaData/eop:processing/eop:ProcessingInformation/eop:processingMode/text()", type=str, num="?")
     # acquisition type metadata
-    
+
     acquisition_station = xml.Parameter("(gsc:sar_metadata|gsc:opt_metadata)/gml:metaDataProperty/gsc:EarthObservationMetaData/eop:downlinkedTo/eop:DownlinkInformation/eop:acquisitionStation/text()", type=str, num="?")
     acquisition_sub_type = xml.Parameter("(gsc:sar_metadata|gsc:opt_metadata)/gml:metaDataProperty/gsc:EarthObservationMetaData/eop:acquisitionSubType/text()", type=str, num="?")
     start_time_from_ascending_node = xml.Parameter("(gsc:sar_metadata|gsc:opt_metadata)/gml:using/eop:EarthObservationEquipment/eop:acquisitionParameters/eop:Acquisition/eop:startTimeFromAscendingNode/text()", type=str, num="?")
@@ -78,9 +78,9 @@ class GSCFormatExtendedDecoder(xml.Decoder):
     # for OPT/ALT
     cloud_cover = xml.Parameter("(gsc:sar_metadata|gsc:opt_metadata)/gml:resultOf/opt:EarthObservationResult/opt:cloudCoverPercentage/text()", type=float, num="?")
     snow_cover = xml.Parameter("(gsc:sar_metadata|gsc:opt_metadata)/gml:resultOf/opt:EarthObservationResult/opt:snowCoverPercentage/text()", type=float, num="?")
-    
+
     #TODO
-    # add track and frame 
+    # add track and frame
     # add the following values:
     # availability_time = xml.Parameter("(gsc:sar_metadata|gsc:opt_metadata)/om:resultTime/gml:TimeInstant/ gml:timePosition/text()", type=str, num="?")
     # lowest_location = xml.Parameter("(gsc:sar_metadata|gsc:opt_metadata)/gml:using/lmb:Footprint/lmb:minimumAltitude/text()", type=float, num= "?")

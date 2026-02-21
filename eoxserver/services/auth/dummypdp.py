@@ -3,11 +3,10 @@ import os
 import datetime
 import httplib
 import xml.dom.minidom
+
+from urllib.parse import urlparse
+
 import eoxserver
-from urlparse import urlparse
-
-from django.utils.six import iteritems
-
 from eoxserver.core import implements
 from eoxserver.services.auth.base import BasePDP
 from eoxserver.services.auth.interfaces import PolicyDecisionPointInterface
@@ -17,9 +16,9 @@ from eoxserver.services.auth.charonpdp import CharonPDP
 logger = logging.getLogger(__name__)
 
 validUser = {
-    'uid': 'jdoe', 
-    'cn': 'Doe John', 
-    'sn': 'Doe', 
+    'uid': 'jdoe',
+    'cn': 'Doe John',
+    'sn': 'Doe',
     'description': 'Authorized User'
 }
 
@@ -42,7 +41,7 @@ class DummyPDP(BasePDP):
 
 class DummyAuthzClient(object):
     def authorize(self, userAttributes, resourceAttributes, action):
-        for key, value in iteritems(validUser):
+        for key, value in validUser.items():
             if key in userAttributes:
                 if value != userAttributes[key]:
                     return (False, 'Not Authorised')

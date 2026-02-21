@@ -1,10 +1,10 @@
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
 #          Martin Paces <martin.paces@eox.at>
 #
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Copyright (C) 2011-2014 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -24,7 +24,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 from eoxserver.contrib import mapserver as ms
 from eoxserver.resources.coverages import models
@@ -56,7 +56,7 @@ class CoverageMaskedLayerFactory(BaseCoverageLayerFactory):
             mask_layer.name = name
             mask_layer.type = ms.MS_LAYER_POLYGON
 
-            mask_layer.setMetaData("eoxs_geometry_reversed", "true")
+            mask_layer.metadata.set("eoxs_geometry_reversed", "true")
 
             cls = ms.classObj(mask_layer)
             style = ms.styleObj(cls)

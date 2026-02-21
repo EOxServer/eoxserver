@@ -1,4 +1,4 @@
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Stephan Krause <stephan.krause@eox.at>
@@ -6,7 +6,7 @@
 #          Fabian Schindler <fabian.schindler@eox.at>
 #          Martin Paces <martin.paces@eox.at>
 #
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Copyright (C) 2011-2025 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -26,7 +26,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 import re
 import os
@@ -39,23 +39,21 @@ import mimetypes
 from zipfile import ZipFile, ZipInfo
 from tarfile import TarFile, TarInfo
 from base64 import b64decode
+
+from io import BytesIO
+import cgi
+from unittest import SkipTest, skipIf
+import glob
+
 import numpy as np
 try:
     from scipy.stats import linregress
     HAVE_SCIPY = True
 except ImportError:
     HAVE_SCIPY = False
-try:
-    from cStringIO import StringIO as BytesIO
-except ImportError:
-    from io import BytesIO
-import cgi
-from unittest import SkipTest, skipIf
-import glob
 
 from django.test import Client, TransactionTestCase
 from django.conf import settings
-from django.utils.six import assertCountEqual, binary_type, b
 
 from eoxserver.core.config import get_eoxserver_config
 from eoxserver.core.util.multiparttools import iterate_multipart_data, CRLF
@@ -85,9 +83,9 @@ RE_MIME_TYPE_XML = re.compile(
     "^text/xml|application/(?:[a-z]+\+)?xml$", re.IGNORECASE
 )
 
-#===============================================================================
+# ==============================================================================
 # Helper functions
-#===============================================================================
+# ==============================================================================
 
 def unpack_multipart_response(response):
     def _get_content(response):
@@ -135,11 +133,13 @@ def resolution_from_ds(ds):
 def _getMime(s):
     return s.partition(';')[0].strip().lower()
 
-#===============================================================================
+# ==============================================================================
 # Common classes
-#===============================================================================
+# ==============================================================================
 
-REQUEST_CACHE = {}
+
+REQUEST_CACHE: dict[str, object] = {}
+
 
 @tag('ows')
 class OWSTestCase(TransactionTestCase):
@@ -154,6 +154,8 @@ class OWSTestCase(TransactionTestCase):
     #     "asar_range_type.json", "asar_coverages.json"
     # ]
     fixtures = BASE_FIXTURES
+
+    expect_success = False
 
     def setUp(self):
         super(OWSTestCase, self).setUp()
@@ -224,7 +226,7 @@ class OWSTestCase(TransactionTestCase):
         config = get_eoxserver_config()
         try:
             disabled_tests = config.get("testing", "disabled_tests").split(",")
-        except:
+        except Exception:
             disabled_tests = ()
         name = type(self).__name__
         if name in disabled_tests:
@@ -236,7 +238,7 @@ class OWSTestCase(TransactionTestCase):
         config = get_eoxserver_config()
         try:
             value = config.get("testing", config_key)
-        except:
+        except Exception:
             value = None
 
         if value is None:
@@ -311,7 +313,7 @@ class OWSTestCase(TransactionTestCase):
 
         # check that the expected XML response exists
         if not expected_paths:
-            if isinstance(response, binary_type):
+            if isinstance(response, bytes):
                 response = response.decode()
             with open(response_path, 'w') as f:
                 f.write(response)
@@ -331,7 +333,7 @@ class OWSTestCase(TransactionTestCase):
                 fails.append(e)
         else:
             with open(response_path, 'w') as f:
-                if isinstance(response, binary_type):
+                if isinstance(response, bytes):
                     response = response.decode()
                 f.write(response)
             reasons = ', '.join([
@@ -368,7 +370,7 @@ class OWSTestCase(TransactionTestCase):
 
         # read the expected response, either binary or as string
         try:
-            if isinstance(actual_response, binary_type):
+            if isinstance(actual_response, bytes):
                 open_type = 'rb'
             else:
                 open_type = 'r'
@@ -386,7 +388,7 @@ class OWSTestCase(TransactionTestCase):
                 )
 
             # save the contents of the file
-            if isinstance(actual_response, binary_type):
+            if isinstance(actual_response, bytes):
                 open_type = 'wb'
             else:
                 open_type = 'w'
@@ -470,7 +472,7 @@ class GDALDatasetTestCase(RasterTestCase):
         _, self.tmppath = tempfile.mkstemp("." + self.getFileExtension("raster"))
 
         data = self.getResponseData()
-        if isinstance(data, binary_type):
+        if isinstance(data, bytes):
             mode = 'wb'
         else:
             mode = 'w'
@@ -505,15 +507,17 @@ class GDALDatasetTestCase(RasterTestCase):
 
 class StatisticsMixIn(object):
     expected_minimum_correlation = 0.95
+
     def testBinaryComparisonRaster(self):
         try:
             super(StatisticsMixIn, self).testBinaryComparisonRaster()
-        except:
+        except Exception:
             self.skipTest('compare the band size, count, and statistics')
+
     @tag('stastics')
     @skipIf(not HAVE_SCIPY, "scipy modoule is not installed")
     def testBandStatistics(self):
-        for band in range( self.res_ds.RasterCount ):
+        for band in range(self.res_ds.RasterCount):
             band += 1
             if band:
                 exp_band = self.exp_ds.GetRasterBand(band)
@@ -521,7 +525,10 @@ class StatisticsMixIn(object):
                 array1 = np.array(exp_band.ReadAsArray()).flatten()
                 array2 = np.array(res_band.ReadAsArray()).flatten()
                 regress_result = linregress(array1, array2)
-                self.assertGreaterEqual(regress_result.rvalue, self.expected_minimum_correlation)
+                self.assertGreaterEqual(
+                    regress_result.rvalue,
+                    self.expected_minimum_correlation
+                )
 
 
 class WCSBinaryComparison(StatisticsMixIn, GDALDatasetTestCase):
@@ -542,13 +549,13 @@ class RectifiedGridCoverageTestCase(WCSBinaryComparison, GDALDatasetTestCase):
     @tag('extent')
     def testExtent(self):
         exp_resolution = resolution_from_ds(self.exp_ds)
-        epsilon = exp_resolution[0]/10
+        epsilon = exp_resolution[0] / 10
         res_extent = extent_from_ds(self.res_ds)
         exp_extent = extent_from_ds(self.exp_ds)
 
         if not max([
-                abs(res_extent[i] - exp_extent[i]) for i in range(0, 4)
-            ]) < epsilon:
+            abs(res_extent[i] - exp_extent[i]) for i in range(0, 4)
+        ]) < epsilon:
             self.fail("Extent does not match %s != %s" % (
                 res_extent, exp_extent
             ))
@@ -558,10 +565,10 @@ class RectifiedGridCoverageTestCase(WCSBinaryComparison, GDALDatasetTestCase):
         res_resolution = resolution_from_ds(self.res_ds)
         exp_resolution = resolution_from_ds(self.exp_ds)
         self.assertAlmostEqual(
-            res_resolution[0], exp_resolution[0], delta=exp_resolution[0]/10
+            res_resolution[0], exp_resolution[0], delta=exp_resolution[0] / 10
         )
         self.assertAlmostEqual(
-            res_resolution[1], exp_resolution[1], delta=exp_resolution[1]/10
+            res_resolution[1], exp_resolution[1], delta=exp_resolution[1] / 10
         )
 
     @tag('band-count')
@@ -588,7 +595,7 @@ class ReferenceableGridCoverageTestCase(WCSBinaryComparison, GDALDatasetTestCase
             self.fail("Expected Dataset has no GCP Projection defined")
         exp_srs = osr.SpatialReference(exp_proj)
 
-        self.assert_(res_srs.IsSame(exp_srs))
+        self.assertTrue(res_srs.IsSame(exp_srs))
 
 
 class XMLNoValTestCase(OWSTestCase):
@@ -625,7 +632,8 @@ class XMLTestCase(XMLNoValTestCase):
         locations = schema_locations.split() if schema_locations else []
 
         # get schema locations
-        schema_def = etree.Element("schema", attrib={
+        schema_def = etree.Element(
+            "schema", attrib={
                 "elementFormDefault": "qualified",
                 "version": "1.0.0",
             }, nsmap={
@@ -636,7 +644,8 @@ class XMLTestCase(XMLNoValTestCase):
         for ns, location in zip(locations[::2], locations[1::2]):
             if location == "../owsCoverages.xsd":
                 location = "http://schemas.opengis.net/wcs/1.1/wcsAll.xsd"
-            etree.SubElement(schema_def, "import", attrib={
+            etree.SubElement(
+                schema_def, "import", attrib={
                     "namespace": ns,
                     "schemaLocation": location
                 }
@@ -644,7 +653,7 @@ class XMLTestCase(XMLNoValTestCase):
 
         # TODO: ugly workaround. But otherwise, the doc is not
         # recognized as schema
-        schema = etree.XMLSchema(etree.XML(etree.tostring(schema_def)))
+        # schema = etree.XMLSchema(etree.XML(etree.tostring(schema_def)))
 
         try:
             # schema.assertValid(doc)
@@ -666,7 +675,8 @@ class SchematronTestMixIn(object):  # requires to be mixed in with XMLTestCase
         errors = []
         doc = etree.XML(self.getXMLData())
 
-        schematron_def = etree.Element("schema", attrib={
+        schematron_def = etree.Element(
+            "schema", attrib={
                 "queryBinding": "xslt2",
             }, nsmap={
                 None: "http://purl.oclc.org/dsdl/schematron"
@@ -714,7 +724,7 @@ class ExceptionTestCase(XMLTestCase):
 
     def testStatus(self):
         logger.info("Checking HTTP Status ...")
-        #pylint: disable=E1103
+        # pylint: disable=E1103
         self.assertEqual(self.response.status_code, self.getExpectedHTTPStatus())
 
     @tag('exception-code')
@@ -783,7 +793,7 @@ class MultipartTestCase(XMLTestCase):
         self.isSetUp = False
         super(MultipartTestCase, self).setUp()
 
-        #self._setUpMultiparts()
+        # self._setUpMultiparts()
 
     def _mangleXML(self, cbuffer):
         """ remove variable parts of selected XML elements text and attributes
@@ -891,9 +901,9 @@ class ReferenceableGridCoverageMultipartTestCase(
 ):
     pass
 
-#===============================================================================
+# ==============================================================================
 # WCS-T
-#===============================================================================
+# ==============================================================================
 
 
 class WCSTransactionTestCase(XMLTestCase):
@@ -996,7 +1006,7 @@ class WCSTransactionTestCase(XMLTestCase):
         requestAsync = """<wcst:ResponseHandler>http://NOTUSED</wcst:ResponseHandler>"""
         requestEnd = """</wcst:Transaction>"""
 
-        params =  requestBegin + self.ID + requestMid1 + self.getDataFullPath(self.ADDtiffFile) + requestMid2
+        params = requestBegin + self.ID + requestMid1 + self.getDataFullPath(self.ADDtiffFile) + requestMid2
         if self.ADDmetaFile is not None:
             params += requestMid3 + self.getDataFullPath(self.ADDmetaFile) + requestMid4
         params += requestMid5
@@ -1006,7 +1016,7 @@ class WCSTransactionTestCase(XMLTestCase):
         return (params, "xml")
 
     def getDataFullPath(self , path_to):
-        return os.path.abspath( os.path.join( self.getDataFileDir() , path_to) )
+        return os.path.abspath(os.path.join(self.getDataFileDir(), path_to))
 
     def testXMLComparison(self):
         # the TimeStamp and RequestId elements are set during ingestion and
@@ -1025,35 +1035,35 @@ class WCSTransactionTestCase(XMLTestCase):
         same
         """
         logger.debug("IDCompare testResponseIdComparison for ID: %s" % self.ID)
-        self._testResponseIdComparison( self.ID  , self.getXMLData()  )
+        self._testResponseIdComparison(self.ID, self.getXMLData())
 
     def testStatusDescribeCoverage(self):
         """
         Tests that the inserted coverage is available in a DescribeCoverage
         request
         """
-        #pylint: disable=E1103
+        # pylint: disable=E1103
         self.assertEqual(self.responseDescribeCoverage.status_code, 200)
 
     def testValidateDescribeCoverage(self):
         self.testValidate(self.responseDescribeCoverage.content)
 
     def testXMLComparisonDescribeCoverage(self):
-        #self._testBinaryComparison("TransactionDescribeCoverage", self.responseDescribeCoverage.content)
-        self._testXMLComparison( "TransactionDescribeCoverage" , self.responseDescribeCoverage.content )
+        # self._testBinaryComparison("TransactionDescribeCoverage", self.responseDescribeCoverage.content)
+        self._testXMLComparison("TransactionDescribeCoverage", self.responseDescribeCoverage.content)
 
     def testStatusGetCoverage(self):
         """
         Validate the inserted coverage via a GetCoverage request
         """
-        #pylint: disable=E1103
+        # pylint: disable=E1103
         self.assertEqual(self.responseGetCoverage.status_code, 200)
 
     def testStatusDeleteCoverage(self):
         """
         Test to delete the previously inserted coaverage
         """
-        #pylint: disable=E1103
+        # pylint: disable=E1103
         self.assertEqual(self.responseDeleteCoverage.status_code, 200)
 
     def testValidateDeleteCoverage(self):
@@ -1063,8 +1073,8 @@ class WCSTransactionTestCase(XMLTestCase):
         tree = etree.fromstring(self.responseDeleteCoverage.content)
         for node in tree.findall("{http://www.opengis.net/wcs/1.1/wcst}RequestId"):
             node.text = "identifier"
-        #self._testBinaryComparison("TransactionDeleteCoverage", etree.tostring(tree, encoding="ISO-8859-1"))
-        self._testXMLComparison( "TransactionDeleteCoverage" , etree.tostring(tree, encoding="ISO-8859-1"))
+        # self._testBinaryComparison("TransactionDeleteCoverage", etree.tostring(tree, encoding="ISO-8859-1"))
+        self._testXMLComparison("TransactionDeleteCoverage", etree.tostring(tree, encoding="ISO-8859-1"))
 
     def testResponseIdComparisonDelete(self):
         """
@@ -1072,32 +1082,33 @@ class WCSTransactionTestCase(XMLTestCase):
         same
         """
         logger.debug("IDCompare testResponseIdComparison for ID: %s" % self.ID)
-        self._testResponseIdComparison( self.ID , self.responseDeleteCoverage.content )
+        self._testResponseIdComparison(self.ID, self.responseDeleteCoverage.content)
 
     def testStatusDescribeCoverageDeleted(self):
         """
         Tests that the deletec coverage is not longer available in a
         DescribeCoverage request
         """
-        #pylint: disable=E1103
+        # pylint: disable=E1103
         self.assertEqual(self.responseDescribeCoverageDeleted.status_code, 404)
 
     def testValidateDescribeCoverageDeleted(self):
         self.testValidate(self.responseDescribeCoverageDeleted.content)
 
     def testXMLComparisonDescribeCoverageDeleted(self):
-        #self._testBinaryComparison("TransactionDescribeCoverageDeleted", self.responseDescribeCoverageDeleted.content)
-        self._testXMLComparison( "TransactionDescribeCoverageDeleted" , self.responseDescribeCoverageDeleted.content )
+        # self._testBinaryComparison("TransactionDescribeCoverageDeleted", self.responseDescribeCoverageDeleted.content)
+        self._testXMLComparison("TransactionDescribeCoverageDeleted", self.responseDescribeCoverageDeleted.content)
 
-    def _testResponseIdComparison(self , id , rcontent ):
+    def _testResponseIdComparison(self, id, rcontent):
         """
         Tests that the <ows:Identifier> in the XML request and response is the
         same
         """
         logger.debug("_testResponseIdComparison for ID: %s" % id)
-        tree = etree.fromstring( rcontent )
+        tree = etree.fromstring(rcontent)
         for node in tree.findall("{http://www.opengis.net/ows/1.1}Identifier"):
-            self.assertEqual( node.text, id )
+            self.assertEqual(node.text, id)
+
 
 class WCSTransactionRectifiedGridCoverageTestCase(
     RectifiedGridCoverageMultipartTestCase,
@@ -1109,14 +1120,16 @@ class WCSTransactionRectifiedGridCoverageTestCase(
     # Overwrite _setUpMultiparts() to return the GetCoverage response to be used
     # in MultipartTestCase tests
     def _setUpMultiparts(self):
-        if self.isSetUp: return
+        if self.isSetUp:
+            return
 
-        self._unpackMultipartContent( self.responseGetCoverage )
+        self._unpackMultipartContent(self.responseGetCoverage)
 
         self.isSetUp = True
 
     def getXMLData(self):
         return self.response.content
+
 
 class WCSTransactionReferenceableGridCoverageTestCase(
     ReferenceableGridCoverageMultipartTestCase,
@@ -1128,18 +1141,20 @@ class WCSTransactionReferenceableGridCoverageTestCase(
     # Overwrite _setUpMultiparts() to return the GetCoverage response to be used
     # in MultipartTestCase tests
     def _setUpMultiparts(self):
-        if self.isSetUp: return
+        if self.isSetUp:
+            return
 
-        self._unpackMultipartContent( self.responseGetCoverage )
+        self._unpackMultipartContent(self.responseGetCoverage)
 
         self.isSetUp = True
 
     def getXMLData(self):
         return self.response.content
 
-#===============================================================================
+# ==============================================================================
 # WCS 2.0
-#===============================================================================
+# ==============================================================================
+
 
 class WCS20DescribeEOCoverageSetSubsettingTestCase(XMLTestCase):
     def getExpectedCoverageIds(self):
@@ -1162,6 +1177,7 @@ class WCS20DescribeEOCoverageSetSubsettingTestCase(XMLTestCase):
         # assert that every coverage ID is unique in the response
         for coverage_id in result_coverage_ids:
             self.assertTrue(result_coverage_ids.count(coverage_id) == 1, "CoverageID %s is not unique." % coverage_id)
+
 
 class WCS20DescribeEOCoverageSetPagingTestCase(XMLTestCase):
     def getExpectedCoverageCount(self):
@@ -1205,6 +1221,7 @@ class WCS20DescribeEOCoverageSetSectionsTestCase(XMLTestCase):
         sections = [section.tag for section in sections]
         self.assertCountEqual(sections, self.getExpectedSections())
 
+
 class WCS20GetCoverageMultipartTestCase(MultipartTestCase):
     @tag('xml-comparison')
     def testXMLComparison(self):
@@ -1221,17 +1238,20 @@ class WCS20GetCoverageMultipartTestCase(MultipartTestCase):
 
         super(WCS20GetCoverageMultipartTestCase, self).testXMLComparison()
 
+
 class WCS20GetCoverageRectifiedGridCoverageMultipartTestCase(
     WCS20GetCoverageMultipartTestCase,
     RectifiedGridCoverageTestCase
 ):
     pass
 
+
 class WCS20GetCoverageReferenceableGridCoverageMultipartTestCase(
     WCS20GetCoverageMultipartTestCase,
     ReferenceableGridCoverageTestCase
 ):
     pass
+
 
 class RasdamanTestCaseMixIn(object):
     #fixtures = BASE_FIXTURES + ["testing_rasdaman_coverages.json"]
@@ -1305,7 +1325,7 @@ class WPS10XMLComparison(XMLTestCase):
 
         try:
             self._compareDataFiles(self.tmp_path, expected_path)
-        except:
+        except Exception:
             shutil.move(self.tmp_path, response_path)
             raise
 
@@ -1456,6 +1476,7 @@ class WPS10XMLMultipartComparison(WPS10XMLComparison):
 
 
 class WPS10RasterImageComparison(GDALDatasetTestCase):
+
     def testBinaryComparisonRaster(self):
         self.skipTest('Only need to compare the band size and band count')
 
@@ -1488,12 +1509,14 @@ class StreamingContentTestCase(OWSTestCase):
         self.responseData.seek(0)
         return self.responseData
 
+
 @tag('archive')
 class WCSGetEOCoverageArchiveTestCase(StreamingContentTestCase):
     """
     Base class for test cases that expects archive output.
     """
-    expectedContentType:str = None
+    expectedContentType: str
+
     def getArchiveMembers(self):
         """returning archive FileInfo of files contained in the request archive
 
@@ -1524,7 +1547,7 @@ class WCSGetEOCoverageArchiveTestCase(StreamingContentTestCase):
     def testHeader(self):
         self.assertEqual(self.getResponseHeader("Content-Type"), self.expectedContentType)
 
-    def fileExistsInArchive(self, f:str):
+    def fileExistsInArchive(self, f: str):
         """Returns if filepath is present in the archive
         Args:
             f (str): filename to search
@@ -1539,8 +1562,8 @@ class WCSGetEOCoverageArchiveTestCase(StreamingContentTestCase):
 
 
 class WCS20GetEOCoverageSetPagingTestCase(WCSGetEOCoverageArchiveTestCase):
-    files_should_exist:list = []
-    files_should_not_exist:list = []
+    files_should_exist: list = []
+    files_should_not_exist: list = []
 
     def testCoveragesPresent(self):
         """

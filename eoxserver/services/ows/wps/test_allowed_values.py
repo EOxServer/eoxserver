@@ -1,11 +1,11 @@
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #
 #  WPS Literal Data - allowed values - debuging unit-tests
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Martin Paces <martin.paces@eox.at>
 #
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Copyright (C) 2014 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -25,7 +25,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # pylint: disable=missing-docstring
 
 from unittest import TestCase, main
@@ -35,8 +35,8 @@ from eoxserver.services.ows.wps.parameters import (
     Integer, Double, String, Duration, Date, Time, DateTime,
 )
 
-from django.utils.six import text_type
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+
 
 class BaseTestMixin(object):
     # pylint: disable=too-few-public-methods
@@ -46,17 +46,18 @@ class BaseTestMixin(object):
                 self.assertTrue(self.domain.check(val))
                 self.assertTrue(val is self.domain.verify(val))
             except:
-                print ("\n%s: value: %r" % (type(self).__name__, val))
+                print("\n%s: value: %r" % (type(self).__name__, val))
                 raise
         for val in self.rejected:
             try:
                 self.assertFalse(self.domain.check(val))
                 self.assertRaises(ValueError, self.domain.verify, val)
             except:
-                print ("\n%s: value: %r" % (type(self).__name__, val))
+                print("\n%s: value: %r" % (type(self).__name__, val))
                 raise
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+
 
 class TestAllowedAny(TestCase, BaseTestMixin):
     def setUp(self):
@@ -70,7 +71,8 @@ class TestAllowedAny(TestCase, BaseTestMixin):
         ]
         self.rejected = []
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+
 
 class TestAllowedEnumFloat(TestCase, BaseTestMixin):
     def setUp(self):
@@ -126,7 +128,7 @@ class TestAllowedEnumString2(TestCase, BaseTestMixin):
 class TestAllowedEnumString3(TestCase, BaseTestMixin):
     def setUp(self):
         enum = ['John', 'James', 'Jeffrey', 'Jacob', 'Jerry']
-        self.domain = AllowedEnum(enum, dtype=text_type)
+        self.domain = AllowedEnum(enum, dtype=str)
         self.accepted = ['John', 'Jacob', 'Jerry']
         self.rejected = ['Alex', '']
 
@@ -202,7 +204,8 @@ class TestAllowedEnumDuration2(TestCase, BaseTestMixin):
         self.accepted = [vlist[1], Duration.parse(vlist[0])]
         self.rejected = [Duration.parse('P7DT15H8M')]
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+
 
 class TestAllowedRangeFloat(TestCase, BaseTestMixin):
     def setUp(self):
@@ -355,7 +358,8 @@ class TestAllowedRangeDuration(TestCase, BaseTestMixin):
             'P1Y',
         ]
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+
 
 class TestAllowedRangeDiscrFloat(TestCase, BaseTestMixin):
     def setUp(self):
@@ -379,7 +383,7 @@ class TestAllowedRangeDiscrDuration(TestCase, BaseTestMixin):
         )
         self.accepted = [
             Duration.parse('PT2H'),
-            timedelta(0, 3*3600, 0),
+            timedelta(0, 3 * 3600, 0),
             'PT4H',
             'PT5H',
             'PT2H0.000001S',
@@ -430,7 +434,7 @@ class TestAllowedRangeDiscrDateTime(TestCase, BaseTestMixin):
             '2014-01-11T10:30Z',
         ]
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 class TestAllowedRangeCollectionFloat(TestCase, BaseTestMixin):
@@ -450,7 +454,7 @@ class TestAllowedRangeCollectionFloat(TestCase, BaseTestMixin):
         self.accepted = ['-inf', -100., -3, 2, 6, 300]
         self.rejected = ['nan', '+inf', 7, 3, -0.5, -5]
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 if __name__ == '__main__':

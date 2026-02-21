@@ -1,11 +1,11 @@
 #!/usr/bin/env python
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
 #          Stephan Meissl <stephan.meissl@eox.at>
 #
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Copyright (C) 2011 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -25,7 +25,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 from os.path import splitext
 try:
@@ -87,9 +87,9 @@ class NativeMetadataFormatEncoder(XMLEncoder):
 # enum for bandmode
 RGB, RGBA, ORIG_BANDS = range(3)
 
-#===============================================================================
+# ==============================================================================
 # Pre-Processors
-#===============================================================================
+# ==============================================================================
 
 
 class PreProcessor(object):
@@ -323,7 +323,7 @@ class PreProcessor(object):
                 geometry.TransformTo(dst_sr.sr)
             except RuntimeError:
                 geometry.Transform(osr.CoordinateTransformation(sr.sr, dst_sr.sr))
-        
+
         gt = ds.GetGeoTransform()
         resolution = min(abs(gt[1]), abs(gt[5]))
 
@@ -430,9 +430,9 @@ class WMSPreProcessor(PreProcessor):
                                        self.overview_minsize)
 
 
-#===============================================================================
+# ==============================================================================
 # PreProcess result
-#===============================================================================
+# ==============================================================================
 
 class PreProcessResult(object):
     """ Result storage for preprocessed datasets. """

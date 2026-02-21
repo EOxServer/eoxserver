@@ -11,9 +11,13 @@ with open('requirements.txt', 'r') as reqs:
     ]
 
 try:
-    gdal_version = subprocess.check_output(['gdal-config','--version']).decode('utf-8').strip()
+    gdal_version = subprocess.check_output(
+        ['gdal-config', '--version']
+    ).decode('utf-8').strip()
 except FileNotFoundError:
-    gdal_version = subprocess.check_output(['gdalinfo','--version']).decode('utf-8').split(' ')[1].strip(',')
+    gdal_version = subprocess.check_output(
+        ['gdalinfo', '--version']
+    ).decode('utf-8').split(' ')[1].strip(',')
 
 install_requires.append(f'gdal=={gdal_version}')
 

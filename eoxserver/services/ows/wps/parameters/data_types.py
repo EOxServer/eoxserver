@@ -1,11 +1,11 @@
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #
 #  Library of primitive data type classes.
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Martin Paces <martin.paces@eox.at>
 #
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Copyright (C) 2014 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -25,27 +25,22 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
-from datetime import datetime, date, time, timedelta
-from django.utils.dateparse import parse_date, parse_datetime, parse_time, utc
-from django.utils.six import PY2, PY3, string_types
+from datetime import datetime, date, time, timedelta, timezone
+from django.utils.dateparse import parse_date, parse_datetime, parse_time
 from django.utils.encoding import smart_str
 from eoxserver.core.util.timetools import parse_duration
 
-try:
-    from datetime import timezone
+utc = timezone.utc
 
-    # as this class will be deprecated in Django 3.1, offer a constructor
-    def FixedOffset(offset, name=None):
-        if isinstance(offset, timedelta):
-            pass
-        else:
-            offset = timedelta(minutes=offset)
-        return timezone(offset) if name is None else timezone(offset, name)
 
-except ImportError:
-    from django.utils.timezone import FixedOffset
+def FixedOffset(offset, name=None):
+    if isinstance(offset, timedelta):
+        pass
+    else:
+        offset = timedelta(minutes=offset)
+    return timezone(offset) if name is None else timezone(offset, name)
 
 
 class BaseType(object):
@@ -53,10 +48,7 @@ class BaseType(object):
         This class defines the class interface.
     """
     name = None  # to be replaced by a name
-    if PY2:
-        dtype = str
-    elif PY3:
-        dtype = bytes
+    dtype = bytes
     zero = None  # when applicable to be replaced by a proper zero value
     comparable = True  # indicate whether the type can be compared (<,>,==)
 
@@ -96,7 +88,7 @@ class Boolean(BaseType):
     @classmethod
     def parse(cls, raw_value):
 
-        if isinstance(raw_value, string_types):
+        if isinstance(raw_value, str):
             raw_value = smart_str(raw_value.lower())
             if raw_value in ('1', 'true'):
                 return True
@@ -165,10 +157,7 @@ class Double(BaseType):
 class String(BaseType):
     """ Unicode character string literal data type class. """
     name = "string"
-    if PY2:
-        dtype = unicode
-    elif PY3:
-        dtype = str
+    dtype = str
     encoding = 'utf-8'
     comparable = False  # disabled although Python implements comparable strings
 
@@ -386,30 +375,14 @@ class DateTimeTZAware(DateTime):
 
 
 # mapping of plain Python types to data type classes
-if PY3:
-
-    DTYPES = {
-        bytes: String,
-        str: String,
-        bool: Boolean,
-        int: Integer,
-        float: Double,
-        date: Date,
-        datetime: DateTime,
-        time: Time,
-        timedelta: Duration,
-    }
-elif PY2:
-
-    DTYPES = {
-        str: String,
-        unicode: String,
-        bool: Boolean,
-        int: Integer,
-        long: Integer,
-        float: Double,
-        date: Date,
-        datetime: DateTime,
-        time: Time,
-        timedelta: Duration,
-    }
+DTYPES = {
+    bytes: String,
+    str: String,
+    bool: Boolean,
+    int: Integer,
+    float: Double,
+    date: Date,
+    datetime: DateTime,
+    time: Time,
+    timedelta: Duration,
+}

@@ -1,9 +1,9 @@
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
 #
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Copyright (C) 2013 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -23,7 +23,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 from lxml import etree
 from eoxserver.contrib import mapserver as ms
@@ -72,7 +72,7 @@ class CoverageDescriptionMapServerRenderer(BaseRenderer):
 
         request = ms.create_request(params)
         raw_result = ms.dispatch(map_, request)
-        
+
         result = result_set_from_raw_data(raw_result)
         # load XML using lxml
         # find and exclude <metadataLink> nodes if present
@@ -84,7 +84,7 @@ class CoverageDescriptionMapServerRenderer(BaseRenderer):
             elem.getparent().remove(elem)
 
         xml_result_data =  etree.tostring(xml_result, pretty_print=True, encoding='UTF-8', xml_declaration=True)
-        
+
         result[0] = ResultBuffer(xml_result_data, result[0].content_type)
-        
+
         return result

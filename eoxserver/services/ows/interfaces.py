@@ -1,9 +1,9 @@
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
 #
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Copyright (C) 2011 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -23,7 +23,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 
 class ServiceHandlerInterface(object):
@@ -32,8 +32,8 @@ class ServiceHandlerInterface(object):
 
     @property
     def service(self):
-        """ The name of the supported service in uppercase letters. This can 
-            also be an iterable, if the handler shall support more than one 
+        """ The name of the supported service in uppercase letters. This can
+            also be an iterable, if the handler shall support more than one
             service specifier.
             Some service specifications demand that the service parameter can be
             omitted for certain requests. In this case this property can alse be
@@ -51,31 +51,31 @@ class ServiceHandlerInterface(object):
         """
 
     def handle(self, request):
-        """ The main handling method. Takes a `django.http.Request` object as 
+        """ The main handling method. Takes a `django.http.Request` object as
             single parameter.
         """
 
     @property
     def constraints(self):
-        """ Optional property to return a dict with constraints for default 
+        """ Optional property to return a dict with constraints for default
             values.
         """
 
     @property
     def index(self):
-        """ Optional. The index this service handler shall have when being 
+        """ Optional. The index this service handler shall have when being
             reported in a capabilities document.
         """
 
 
-class ExceptionHandlerInterface(object): 
+class ExceptionHandlerInterface(object):
     """ Interface for OWS exception handlers.
     """
 
     @property
     def service(self):
-        """ The name of the supported service in uppercase letters. This can 
-            also be an iterable, if the handler shall support more than one 
+        """ The name of the supported service in uppercase letters. This can
+            also be an iterable, if the handler shall support more than one
             service specifier.
             Some service specifications demand that the service parameter can be
             omitted for certain requests. In this case this property can alse be
@@ -93,7 +93,7 @@ class ExceptionHandlerInterface(object):
         """
 
     def handle_exception(self, request, exception):
-        """ The main exception handling method. Parameters are an object of the 
+        """ The main exception handling method. Parameters are an object of the
             `django.http.Request` type and the raised exception.
         """
 

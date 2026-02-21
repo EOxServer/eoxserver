@@ -1,9 +1,9 @@
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Martin Paces <martin.paces@eox.at>
 #
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Copyright (C) 2016 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -23,7 +23,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #pylint: disable=missing-docstring,line-too-long,too-many-ancestors
 
 from autotest_services import base as testbase
@@ -33,9 +33,9 @@ from autotest_services.tests.wps.base import (
 
 XML_CONTENT_TYPE = "application/xml; charset=utf-8"
 
-#===============================================================================
+# ==============================================================================
 # advanced data types - time-zone aware input
-#===============================================================================
+# ==============================================================================
 
 class WPS10TZAwareDatetimeInputProcessDescriptionTestCase(ContentTypeCheckMixIn, testbase.XMLTestCase):
     expectedContentType = XML_CONTENT_TYPE
@@ -64,9 +64,9 @@ class WPS10TZAwareDatetimeInputUTCTestCase(ContentTypeCheckMixIn, WPS10ExecuteMi
         params = "service=WPS&version=1.0.0&request=Execute&identifier=TC04:identity:literal:datetime&DataInputs=TC04:datetime=2016-08-04T09:26:04Z&lineage=true"
         return (params, "kvp")
 
-#===============================================================================
+# ==============================================================================
 # advanced data types - time-zone aware input
-#===============================================================================
+# ==============================================================================
 
 class WPS10TZAwareDatetimeOutputProcessDescriptionTestCase(ContentTypeCheckMixIn, testbase.XMLTestCase):
     expectedContentType = XML_CONTENT_TYPE

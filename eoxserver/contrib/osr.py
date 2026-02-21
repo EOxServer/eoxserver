@@ -1,4 +1,4 @@
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Stephan Krause <stephan.krause@eox.at>
@@ -6,7 +6,7 @@
 #          Fabian Schindler <fabian.schindler@eox.at>
 #          Martin Paces <martin.paces@eox.at>
 #
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Copyright (C) 2011 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -26,10 +26,9 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 import os
-from django.utils.six import string_types
 
 
 if os.environ.get('READTHEDOCS', None) != 'True':
@@ -52,12 +51,12 @@ class SpatialReference(object):
         if raw is not None:
             format = format.upper() if format is not None else None
             if format == "WKT" or (
-                isinstance(raw, string_types) and (raw.startswith('PROJCS') or raw.startswith('GEOGCS'))
+                isinstance(raw, str) and (raw.startswith('PROJCS') or raw.startswith('GEOGCS'))
             ):
                 sr.ImportFromWkt(raw)
             elif isinstance(raw, int) or format == "EPSG":
                 sr.ImportFromEPSG(int(raw))
-            elif isinstance(raw, string_types) and raw.startswith('EPSG:'):
+            elif isinstance(raw, str) and raw.startswith('EPSG:'):
                 sr.ImportFromEPSG(int(raw.partition(':')[2]))
             else:
                 sr.SetFromUserInput(raw)

@@ -1,9 +1,9 @@
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
 #
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Copyright (C) 2013 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -23,16 +23,10 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 
-from functools import wraps
-try:
-    from functools import total_ordering
-except ImportError:
-    from eoxserver.core.util.functools import total_ordering
-
-from django.utils.six import string_types
+from functools import wraps, total_ordering
 
 
 __all__ = ["parse_version_string", "Version"]
@@ -52,7 +46,7 @@ def convert_to_version(f):
     def wrapper(self, other):
         if isinstance(other, Version):
             return f(self, other)
-        elif isinstance(other, string_types):
+        elif isinstance(other, str):
             return f(self, parse_version_string(other))
         try:
             return f(self, Version(*other))

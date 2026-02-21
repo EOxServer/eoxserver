@@ -28,12 +28,9 @@
 # -------------------------------------------------------------------------------
 
 import sys
-from datetime import datetime
+from datetime import datetime, timezone
 
-try:
-    from StringIO import StringIO
-except ImportError:
-    from io import StringIO
+from io import StringIO
 from textwrap import dedent
 from unittest import skipIf
 
@@ -41,7 +38,6 @@ from django.core import management
 from django.test import TestCase
 from django.contrib.gis.geos import GEOSGeometry, Polygon, MultiPolygon
 from django.utils.dateparse import parse_datetime
-from django.utils.timezone import utc
 
 from eoxserver.core import env
 from eoxserver.resources.coverages import models
@@ -50,6 +46,8 @@ from eoxserver.resources.coverages.metadata.coverage_formats import (
     native,
     eoom,
 )
+
+utc = timezone.utc
 
 
 def create(Class, **kwargs):

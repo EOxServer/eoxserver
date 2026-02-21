@@ -19,7 +19,7 @@ Package: python3-eoxserver
 Architecture: any
 Section: web
 Depends: ${shlibs:Depends},
-         ${misc:Depends}, 
+         ${misc:Depends},
          python3-lxml,
          python3-libxml2,
          python3,
@@ -27,12 +27,11 @@ Depends: ${shlibs:Depends},
          python3-ply,
          python3-django-model-utils,
          python3-zipstream,
-         python3-dateutil,
          python3-gdal,
          python3-pycql,
          python3-django
 Description: This package contains the EOxServer library
  .
- EOxServer is a Python 3 application and framework for presenting 
+ EOxServer is a Python 3 application and framework for presenting
  Earth Observation (EO) data and metadata.
 

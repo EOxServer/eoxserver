@@ -1,12 +1,7 @@
 import json
 
 from django.test import TestCase, Client, tag
-try:
-    from django.core.urlresolvers import reverse
-except ImportError:
-    from django.urls import reverse
-
-from django.utils.six import assertCountEqual
+from django.urls import reverse
 
 from eoxserver.core.util.xmltools import etree, parse
 from eoxserver.contrib import gdal, ogr

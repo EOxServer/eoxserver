@@ -1,9 +1,9 @@
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
 #
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Copyright (C) 2013 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -23,13 +23,12 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 import logging
 from datetime import datetime
 
-from django.utils.six.moves.urllib.parse import unquote
-from django.utils.six import binary_type, b
+from urllib.parse import unquote
 from lxml import etree
 
 from eoxserver.contrib import mapserver as ms
@@ -197,7 +196,7 @@ class RectifiedCoverageMapServerRenderer(BaseRenderer):
                 coverage._origin = origin
                 coverage._size = size
                 coverage._range_type = range_type
-                if isinstance(result_set[1].filename, binary_type):
+                if isinstance(result_set[1].filename, bytes):
                     file_name = result_set[1].filename.decode()
                 else:
                     file_name = result_set[1].filename

@@ -1,9 +1,9 @@
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Martin Paces <martin.paces@eox.at>
 #
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Copyright (C) 2011 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -23,15 +23,15 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 """
  This module provides CRS handling utilities.
 """
 
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
-import re 
+import re
 import logging
 import math
 
@@ -42,13 +42,13 @@ from eoxserver.core.decoders import config
 
 logger = logging.getLogger(__name__)
 
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #: Set (Python ``set`` type) of EPSG codes of CRS whose axes are displayed
-#: in reversed order. 
-#: Source:  GDAL 1.10.0, WKT/AXES definitions 
-EPSG_AXES_REVERSED = set([ 
-    # GEOGRAPHIC COORDINATE SYSTEMS 
-    # NOTE: Tested to be consistent with GDAL 
+#: in reversed order.
+#: Source:  GDAL 1.10.0, WKT/AXES definitions
+EPSG_AXES_REVERSED = set([
+    # GEOGRAPHIC COORDINATE SYSTEMS
+    # NOTE: Tested to be consistent with GDAL
     #       OGRSpatialReference::EPSGTreatsAsNorthingEasting()
     3819, 3821, 3824, 3889, 3906, 4001, 4002, 4003, 4004, 4005, 4006, 4007,
     4008, 4009, 4010, 4011, 4012, 4013, 4014, 4015, 4016, 4018, 4019, 4020,
@@ -89,11 +89,11 @@ EPSG_AXES_REVERSED = set([
     4823, 4824, 4901, 4902, 4903, 4904, 5013, 5132, 5228, 5229, 5233, 5246,
     5252, 5264, 5324, 5340, 5354, 5360, 5365, 5371, 5373, 5381, 5393, 5451,
     5464, 5467, 5489, 5524, 5527, 5546,
-    # PROJECTED COORDINATE SYSTEMS 
+    # PROJECTED COORDINATE SYSTEMS
     #TODO: verify with OGRSpatialReference::EPSGTreatsAsNorthingEasting()
     #      (avaiable only in GDAL 1.10.0 C/C++ API but not in Python)
     # SOUTH,WEST pointing projected coordinate systems:
-    # NOTE: These are probably inconsistent with 
+    # NOTE: These are probably inconsistent with
     #       OGRSpatialReference::EPSGTreatsAsNorthingEasting()
     #       as this fucntion check NORTH pointing coordinates only.
     2065, 5513,
@@ -204,7 +204,7 @@ EPSG_AXES_REVERSED = set([
     32661, 32761,
 ])
 
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # format functions
 
 
@@ -234,7 +234,7 @@ def asProj4Str(epsg):
     """ convert EPSG code to *proj4* ``+init=epsg:<code>`` notation """
     return "+init=epsg:%d" % int(epsg)
 
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # format parsers
 
 
@@ -304,7 +304,7 @@ def parseEPSGCode(string, parsers):
 
     return None
 
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # public API
 
 __SUPPORTED_CRS_WMS = None
@@ -340,7 +340,7 @@ def getSupportedCRS_WCS(format_function=asShortCode):
     # return formated list of EPSG codes
     return list(map(format_function, __SUPPORTED_CRS_WCS))
 
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 
 def hasSwappedAxes(epsg):
@@ -433,7 +433,7 @@ def is_image_crs(string):
     return string in image_crss_ids
 
 
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 def _parseListOfCRS(raw_value):
     """ parse CRS configuartion """
@@ -455,7 +455,7 @@ def _parseListOfCRS(raw_value):
     # filter out invalid EPSG codes and covert them to integer
     return list(map(int, filter(checkCode, tmp.split(","))))
 
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 
 class CRSsConfigReader(config.Reader):

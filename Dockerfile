@@ -1,5 +1,6 @@
-FROM ubuntu:22.04
+FROM ubuntu:24.04
 
+ENV VIRTUAL_ENV=/opt/venv
 ENV INSTANCE_NAME=instance
 ENV TZ=UTC
 ENV PYTHONPATH='/opt/eoxserver'
@@ -28,6 +29,7 @@ RUN apt-get update \
   && apt-get install -y \
     python3 \
     python3-pip \
+    python3-venv \
     libpq-dev \
     python3-gdal \
     python3-mapscript \
@@ -39,6 +41,10 @@ RUN apt-get update \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/partial/* /tmp/* /var/tmp/*
 
+# setting up a venv to install user packages in
+RUN python3 -m venv --system-site-packages $VIRTUAL_ENV
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
+
 ENV PROMETHEUS_MULTIPROC_DIR /var/tmp/prometheus_multiproc_dir
 RUN mkdir $PROMETHEUS_MULTIPROC_DIR  # make sure this is writable by webserver user
 
@@ -47,8 +53,7 @@ WORKDIR /opt/eoxserver
 
 # install dependencies
 COPY requirements.txt .
-RUN python3 -m pip install -U pip \
-  && python3 -m pip install --no-cache-dir -r requirements.txt
+RUN python3 -m pip install --no-cache-dir -r requirements.txt
 
 # install EOxServer
 COPY . .

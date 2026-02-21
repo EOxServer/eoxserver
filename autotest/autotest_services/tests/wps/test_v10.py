@@ -1,10 +1,10 @@
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Martin Paces <martin.paces@eox.at>
 #          Fabian Schindler <fabian.schindler@eox.at>
 #
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Copyright (C) 2014-2025 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -24,7 +24,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #pylint: disable=missing-docstring,line-too-long,too-many-ancestors
 
 import base64
@@ -48,9 +48,9 @@ ALLOWED_PROCESSES = [
 ]
 XML_CONTENT_TYPE = "application/xml; charset=utf-8"
 
-#===============================================================================
+# ==============================================================================
 # WCS 1.0 GetCapabilities
-#===============================================================================
+# ==============================================================================
 
 class WPS10GetCapabilitiesValidTestCase(ContentTypeCheckMixIn, WPS10CapabilitiesMixIn, testbase.XMLTestCase):
     allowedProcesses = ALLOWED_PROCESSES
@@ -72,9 +72,9 @@ class WPS10PostGetCapabilitiesValidTestCase(ContentTypeCheckMixIn, WPS10Capabili
         return (params, "xml")
 
 
-#===============================================================================
+# ==============================================================================
 # WCS 1.0 DescribeProcess
-#===============================================================================
+# ==============================================================================
 
 
 class WPS10DescribeProcessValidTestCase(ContentTypeCheckMixIn, testbase.XMLTestCase):
@@ -142,9 +142,9 @@ class WPS10DescribeProcessTC10BinaryComplexDataIndentity(ContentTypeCheckMixIn, 
 
 #TODO: Error - invalid process identifier
 
-#===============================================================================
+# ==============================================================================
 # WCS 1.0 Execute - Minimal Process
-#===============================================================================
+# ==============================================================================
 
 class WPS10ExecuteTC06MinimalValidProcess(ContentTypeCheckMixIn, WPS10ExecuteMixIn, testbase.XMLTestCase):
     expectedContentType = XML_CONTENT_TYPE
@@ -164,9 +164,9 @@ class WPS10ExecuteTC06MinimalAllowedProcessWithLineage(ContentTypeCheckMixIn, WP
         params = "service=WPS&version=1.0.0&request=execute&identifier=Test06MinimalAllowedProcess&lineage=true"
         return (params, "kvp")
 
-#===============================================================================
+# ==============================================================================
 # WCS 1.0 Execute - Literal Data Tests
-#===============================================================================
+# ==============================================================================
 
 class WPS10ExecuteTestCase(ContentTypeCheckMixIn, WPS10ExecuteMixIn, testbase.XMLTestCase):
     expectedContentType = XML_CONTENT_TYPE
@@ -303,9 +303,9 @@ class WPS10ExecuteLiteralDataRawOutputKVPTestCase(ContentTypeCheckMixIn, testbas
 #TODO: Error - invalid input (value type)
 #TODO: Error - invalid input (out of the allowed range)
 
-#===============================================================================
+# ==============================================================================
 # WCS 1.0 Execute - Bounding Box Data Tests
-#===============================================================================
+# ==============================================================================
 
 class WPS10ExecuteBoundingBoxTestCase(ContentTypeCheckMixIn, WPS10ExecuteMixIn, testbase.XMLTestCase):
     expectedContentType = XML_CONTENT_TYPE
@@ -377,9 +377,9 @@ class WPS10ExecuteBoundingBoxRawOutputKVPTestCase(ContentTypeCheckMixIn, testbas
 #TODO: Error - invalid input CRS
 #TODO: Error - invalid output CRS
 
-#===============================================================================
+# ==============================================================================
 # WCS 1.0 Execute - Complex Data Tests (text-based payload)
-#===============================================================================
+# ==============================================================================
 
 class WPS10ExecuteComplexDataTextTestCase(ContentTypeCheckMixIn, WPS10ExecuteMixIn, testbase.XMLTestCase):
     expectedContentType = XML_CONTENT_TYPE
@@ -578,9 +578,9 @@ class WPS10ExecuteComplexDataXMLRawOutputKVPTestCase(ContentTypeCheckMixIn, Cont
         params = "service=WPS&version=1.0.0&request=Execute&identifier=TC02:identity:complex&DataInputs=TC02:input00=%3Ctest%3AtestXML+xmlns%3Atest%3D%22http%3A%2F%2Fxml.eox.at%2Ftest%22%3EP%C5%99%C3%ADli%C5%A1%20%C5%BElu%C5%A5ou%C4%8Dk%C3%BD%20k%C5%AF%C5%88%20%C3%BAp%C4%9Bl%20%C4%8F%C3%A1belsk%C3%A9%20%C3%B3dy.%3C%2Ftest%3AtestXML%3E@mimeType=text%2Fxml&RawDataOutput=TC02:output00@mimeType=text%2Fxml"
         return (params, "kvp")
 
-#===============================================================================
+# ==============================================================================
 # WCS 1.0 Execute - Complex Data Tests (binary payload)
-#===============================================================================
+# ==============================================================================
 
 class WPS10ExecuteComplexDataPNGBase64FileTestCase(ContentTypeCheckMixIn, WPS10ExecuteMixIn, testbase.XMLTestCase):
     expectedContentType = XML_CONTENT_TYPE
@@ -849,9 +849,9 @@ class WPS10ExecuteComplexDataMultipartInput(WPS10ExecuteMixIn, testbase.WPS10XML
     def testInput(self):
         self._testData(self._extractData("//wps:Input/wps:Reference"))
 
-#===============================================================================
+# ==============================================================================
 # request parameter input test
-#===============================================================================
+# ==============================================================================
 
 class WPS10RequestParameterProcessDescriptionTestCase(ContentTypeCheckMixIn, testbase.XMLTestCase):
     expectedContentType = XML_CONTENT_TYPE

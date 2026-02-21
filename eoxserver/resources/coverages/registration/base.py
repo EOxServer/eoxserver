@@ -30,7 +30,6 @@ import re
 from django.db.models import ForeignKey
 from django.contrib.gis.geos import Polygon
 from django.contrib.gis.gdal import SpatialReference, CoordTransform
-from django.utils.six import string_types
 
 from eoxserver.backends.access import vsi_open
 from eoxserver.backends.util import resolve_storage
@@ -427,7 +426,7 @@ def get_grid(definition):
     """ Get or create a grid according to our defintion
     """
     grid = None
-    if isinstance(definition, string_types):
+    if isinstance(definition, str):
         try:
             grid = models.Grid.objects.get(name=definition)
         except models.Grid.DoesNotExist:

@@ -1,9 +1,9 @@
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
 #
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Copyright (C) 2013 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -23,18 +23,16 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 import http
 from textwrap import dedent
 import importlib
 import sys
 
-
 from django.conf import settings
 from django.test import TestCase, TransactionTestCase, Client, override_settings
 from django.contrib.gis.geos import Polygon, MultiPolygon
-from django.utils.six import assertCountEqual, b
 from django.urls import clear_url_caches
 
 from eoxserver.core.util import multiparttools as mp
@@ -45,7 +43,6 @@ from eoxserver.services.result import result_set_from_raw_data
 from eoxserver.resources.coverages import models
 import eoxserver.services.config
 import eoxserver.services.views
-
 
 
 class BaseMultipartTest(TestCase):
@@ -319,8 +316,8 @@ class TemporalSubsetsTestCase(TransactionTestCase):
             axis_2_name='lat',
             axis_1_type=0,
             axis_2_type=0,
-            axis_1_offset=5/100,
-            axis_2_offset=5/100,
+            axis_1_offset=5 / 100,
+            axis_2_offset=5 / 100,
         )
 
         coverage_type = models.CoverageType.objects.create(name="RGB")
@@ -909,6 +906,7 @@ class TemporalSubsetsTestCase(TransactionTestCase):
             self.make_subsets("2000-01-01T00:00:40Z"), "contains", ("H",)
         )
 
+
 class CachingTest(TestCase):
     def _reload_ows_views(self):
         # NOTE: we have to do this dance because the setting
@@ -918,7 +916,6 @@ class CachingTest(TestCase):
         importlib.reload(sys.modules[settings.ROOT_URLCONF])
         clear_url_caches()
 
-
     def test_ows_view_not_cached_by_default(self):
         response = Client().get("/ows", {"service": "WMS", "request": "GetCapabilities"})
         self.assertEqual(response.status_code, http.HTTPStatus.OK)
@@ -927,7 +924,10 @@ class CachingTest(TestCase):
     def test_ows_view_cached_if_configured(self):
         with override_settings(EOXS_RENDERER_CACHE_TIME="3"):
             self._reload_ows_views()
-            response = Client().get("/ows", {"service": "WMS", "request": "GetCapabilities"})
+            response = Client().get(
+                "/ows",
+                {"service": "WMS", "request": "GetCapabilities"}
+            )
 
         self._reload_ows_views()
 

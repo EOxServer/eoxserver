@@ -1,7 +1,7 @@
 version: "3.6"
 services:
   database:
-    image: mdillon/postgis:10
+    image: postgis/postgis:17-3.5
     volumes:
       - database-data:/var/lib/postgresql/data
     environment:

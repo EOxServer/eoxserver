@@ -29,6 +29,7 @@ import re
 import logging
 import hashlib
 import json
+from urllib import parse
 
 from django.core.cache import caches, InvalidCacheBackendError
 from django.utils import timezone
@@ -36,7 +37,6 @@ from keystoneclient import exceptions as ksexceptions
 from keystoneclient.v2_0 import client as ksclient_v2
 from keystoneclient.v3 import client as ksclient_v3
 from swiftclient.exceptions import ClientException
-from django.utils.six.moves.urllib import parse
 
 from eoxserver.core.util.timetools import parse_iso8601
 from eoxserver.backends.storage_auths import BaseStorageAuthHandler

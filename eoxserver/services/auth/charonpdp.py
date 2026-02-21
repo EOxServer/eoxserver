@@ -1,10 +1,10 @@
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Stephan Krause <stephan.krause@eox.at>
 #          Stephan Meissl <stephan.meissl@eox.at>
 #
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Copyright (C) 2011 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -24,7 +24,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 import logging
 import os
@@ -34,14 +34,12 @@ import xml.dom.minidom
 import eoxserver
 from urllib.parse import urlparse
 
-from django.utils.six import iteritems
-
 from eoxserver.core import implements
 from eoxserver.core.config import get_eoxserver_config
 from eoxserver.services.ows.decoders import get_decoder
 from eoxserver.services.auth.base import BasePDP, AuthConfigReader
 from eoxserver.services.auth.interfaces import PolicyDecisionPointInterface
-                                         
+
 
 logger = logging.getLogger(__name__)
 
@@ -77,9 +75,9 @@ template_attribute = "<Attribute AttributeId=\"{0}\" DataType=\"{1}\">" + \
                      "<AttributeValue>{2}</AttributeValue></Attribute>"
 
 
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # PDP implementation for the CHARON Authorization Service
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 class CharonPDP(BasePDP):
     implements(PolicyDecisionPointInterface)
@@ -121,7 +119,7 @@ class CharonPDP(BasePDP):
                         value = value.strip()
                         self.attribMapping[key] = value
                         logger.debug(
-                            "Adding SAML attribute to dictionary: %s = %s" 
+                            "Adding SAML attribute to dictionary: %s = %s"
                             % (key, value)
                         )
         except IOError :
@@ -139,7 +137,7 @@ class CharonPDP(BasePDP):
         # adding the REMOTE_ADDR from HTTP header to subject attributes
         attributes['REMOTE_ADDR'] = httpHeader['REMOTE_ADDR']
 
-        for key, value in iteritems(self.attribMapping):
+        for key, value in self.attribMapping.items():
             if key in httpHeader:
                 attributes[key] = httpHeader[value]
                 logger.debug(
@@ -183,9 +181,9 @@ class CharonPDP(BasePDP):
         )
         return result
 
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # SOAP client for the CHARON Policy Management and Authorization Service
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 class AuthorisationClient(object):
     """
@@ -306,9 +304,9 @@ class AuthorisationClient(object):
                                        self._getPartEnvironment())
 
 
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # AuthorisationClientException
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 class AuthorisationClientException(Exception):
     """ Exception that is thrown by the AuthorisationClient in case of an error

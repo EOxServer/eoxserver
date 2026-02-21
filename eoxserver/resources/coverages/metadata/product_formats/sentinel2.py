@@ -29,7 +29,6 @@ import os.path
 
 from lxml.etree import parse, fromstring
 from django.contrib.gis.geos import MultiPolygon, Polygon
-from django.utils.six import iteritems
 from eoxserver.resources.coverages import crss
 
 
@@ -154,7 +153,7 @@ class S2ProductFormatReader(object):
 
 
 def parse_mask(mask_elem):
-    nsmap = {k: v for k, v in iteritems(mask_elem.nsmap) if k}
+    nsmap = {k: v for k, v in mask_elem.nsmap.items() if k}
     # name = mask_elem.xpath('gml:name/text()', namespaces=nsmap)[0]
     try:
         crs = mask_elem.xpath(

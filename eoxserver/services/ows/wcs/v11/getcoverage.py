@@ -1,9 +1,9 @@
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
 #
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Copyright (C) 2013 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -23,13 +23,13 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 
 from eoxserver.core import Component, implements
 from eoxserver.core.decoders import xml, kvp, typelist
 from eoxserver.services.ows.interfaces import (
-    ServiceHandlerInterface, GetServiceHandlerInterface, 
+    ServiceHandlerInterface, GetServiceHandlerInterface,
     PostServiceHandlerInterface
 )
 from eoxserver.services.ows.wcs.basehandlers import WCSGetCoverageHandlerBase
@@ -54,8 +54,8 @@ class WCS11GetCoverageHandler(WCSGetCoverageHandlerBase, Component):
 
     def get_params(self, coverage, decoder, request):
         return WCS11CoverageRenderParams(
-            coverage, decoder.boundingbox, decoder.format, decoder.gridcs, 
-            decoder.gridbasecrs, decoder.gridtype, decoder.gridorigin, 
+            coverage, decoder.boundingbox, decoder.format, decoder.gridcs,
+            decoder.gridbasecrs, decoder.gridtype, decoder.gridorigin,
             decoder.gridoffsets
         )
 

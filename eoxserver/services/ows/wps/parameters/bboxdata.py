@@ -1,4 +1,4 @@
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #
 #  WPS Bounding-Box Data type
 #
@@ -6,7 +6,7 @@
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
 #          Martin Paces <martin.paces@eox.at>
 #
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Copyright (C) 2013 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -26,7 +26,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 import re
 from itertools import chain
@@ -34,7 +34,6 @@ from eoxserver.core.util.rect import Rect
 from .data_types import Double
 from .crs import CRSType
 from .base import Parameter
-from django.utils.six import string_types
 
 # pre-compiled regular expression used to eliminate repeated extra white-spaces
 _RE_MULTIWS = re.compile(r"\s+")
@@ -178,7 +177,7 @@ class BoundingBoxData(Parameter):
                 (raw_bbox.lower, raw_bbox.upper),
                 raw_bbox.crs if raw_bbox.crs is not None else self.default_crs
             )
-        elif isinstance(raw_bbox, string_types):
+        elif isinstance(raw_bbox, str):
             items = raw_bbox.split(',')
             dim = len(items)//2
             lower = [self.dtype.parse(item) for item in items[0:dim]]

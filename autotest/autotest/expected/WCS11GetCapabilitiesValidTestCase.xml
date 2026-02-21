@@ -172,8 +172,8 @@ Copyright (C) European Space Agency - ESA</ows:Abstract>
       <ows:Title>MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed</ows:Title>
       <ows:Abstract/>
       <ows:WGS84BoundingBox dimensions="2">
-        <ows:LowerCorner>11.36106586 32.2014463</ows:LowerCorner>
-        <ows:UpperCorner>28.28384572 46.2520256</ows:UpperCorner>
+        <ows:LowerCorner>11.361066 32.201446</ows:LowerCorner>
+        <ows:UpperCorner>28.283846 46.252026</ows:UpperCorner>
       </ows:WGS84BoundingBox>
       <SupportedCRS>urn:ogc:def:crs:EPSG::4326</SupportedCRS>
       <SupportedCRS>urn:ogc:def:crs:EPSG::3857</SupportedCRS>
@@ -189,8 +189,8 @@ Copyright (C) European Space Agency - ESA</ows:Abstract>
       <ows:Title>mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced</ows:Title>
       <ows:Abstract/>
       <ows:WGS84BoundingBox dimensions="2">
-        <ows:LowerCorner>11.331755 32.19025</ows:LowerCorner>
-        <ows:UpperCorner>28.29481 46.268645</ows:UpperCorner>
+        <ows:LowerCorner>11.331755 32.190250</ows:LowerCorner>
+        <ows:UpperCorner>28.294810 46.268645</ows:UpperCorner>
       </ows:WGS84BoundingBox>
       <SupportedCRS>urn:ogc:def:crs:EPSG::4326</SupportedCRS>
       <SupportedCRS>urn:ogc:def:crs:EPSG::3857</SupportedCRS>
@@ -206,7 +206,7 @@ Copyright (C) European Space Agency - ESA</ows:Abstract>
       <ows:Title>mosaic_MER_FRS_1P_reduced_RGB</ows:Title>
       <ows:Abstract/>
       <ows:WGS84BoundingBox dimensions="2">
-        <ows:LowerCorner>-3.75 32.19025</ows:LowerCorner>
+        <ows:LowerCorner>-3.750000 32.190250</ows:LowerCorner>
         <ows:UpperCorner>28.263455 46.268645</ows:UpperCorner>
       </ows:WGS84BoundingBox>
       <SupportedCRS>urn:ogc:def:crs:EPSG::4326</SupportedCRS>

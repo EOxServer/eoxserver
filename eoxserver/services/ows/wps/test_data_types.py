@@ -1,11 +1,11 @@
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #
 #  WPS Literal Data - data-types - unit-tests
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Martin Paces <martin.paces@eox.at>
 #
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Copyright (C) 2014 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -25,7 +25,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # pylint: disable=missing-docstring, line-too-long
 
 from unittest import TestCase, main
@@ -35,7 +35,7 @@ from eoxserver.services.ows.wps.parameters import (
     Duration, Date, Time, DateTime, DateTimeTZAware, CRSType,
 )
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 class BaseTestMixin(object):
@@ -101,7 +101,7 @@ class TimeZoneTestMixin(object):
                 print ("\n%r != %r" % (res, dst))
                 raise
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 class TestDataTypeBool(TestCase, BaseTestMixin):
     def setUp(self):
@@ -501,7 +501,7 @@ class TestDataTypeCRS(TestCase, BaseTestMixin):
             "EPSG:0"
         ]
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 if __name__ == '__main__':
     main()

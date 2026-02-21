@@ -1,9 +1,9 @@
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
 #
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Copyright (C) 2011 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -23,7 +23,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 from eoxserver.services.ows.common.v11.encoders import OWS11ExceptionXMLEncoder
 from eoxserver.core.decoders import (
@@ -42,7 +42,7 @@ class WCS11ExceptionHandler(object):
         code = getattr(exception, "code", None)
         locator = getattr(exception, "locator", None)
         status = 400
-        
+
         if code is None:
             if isinstance(exception, MissingParameterException):
                 code = "MissingParameterValue"

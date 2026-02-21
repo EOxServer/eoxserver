@@ -1,4 +1,4 @@
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #
 #  WPS Complex Data type
 #
@@ -6,7 +6,7 @@
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
 #          Martin Paces <martin.paces@eox.at>
 #
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Copyright (C) 2013 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -26,38 +26,26 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # pylint: disable=too-few-public-methods,
 
 import json
 from os import remove
 from copy import deepcopy
+from io import BytesIO, StringIO
+from collections import OrderedDict
 
-try:
-    from StringIO import StringIO
-    from cStringIO import StringIO as FastStringIO
-    BytesIO = StringIO
-except ImportError:
-    from io import BytesIO
-    from io import StringIO
-    from io import StringIO as FastStringIO
-
-try:
-    # available in Python 2.7+
-    from collections import OrderedDict
-except ImportError:
-    from django.utils.datastructures import SortedDict as OrderedDict
-
+from django.utils.encoding import smart_str
 from lxml import etree
+
 from .base import Parameter
 from .formats import Format
-from django.utils.encoding import smart_str
-from django.utils.six import string_types, text_type, itervalues, binary_type
 
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # complex data - data containers
 
-class CDBase(object):
+
+class CDBase:
     """ Base class of the complex data container.
 
     Constructor parameters (all optional and all defaulting to None):
@@ -170,7 +158,7 @@ class CDTextBuffer(StringIO, CDBase):
         text_encoding   optional keyword parameter defining the input text
                    encoding. By default UTF-8 is assumed.
     """
-    def __init__(self, data=u'', *args, **kwargs):
+    def __init__(self, data='', *args, **kwargs):
         # NOTE: StringIO is an old-style class and super cannot be used!
         StringIO.__init__(self, smart_str(data))
         CDBase.__init__(self, *args, **kwargs)
@@ -222,7 +210,7 @@ class CDAsciiTextBuffer(CDByteBuffer):
         self.text_encoding = kwargs.get('text_encoding', None)
 
     def write(self, data):
-        if not isinstance(data, string_types):
+        if not isinstance(data, str):
             data = str(data)
         CDByteBuffer.write(self, data.encode('ascii'))
 
@@ -231,7 +219,7 @@ class CDAsciiTextBuffer(CDByteBuffer):
             data = CDByteBuffer.read(self)
         else:
             data = CDByteBuffer.read(self, size)
-        if self.text_encoding not in ('ascii', 'utf-8'): # ASCII is a subset of UTF-8
+        if self.text_encoding not in ('ascii', 'utf-8'):  # ASCII is a subset of UTF-8
             data = data.decode('ascii')
             if self.text_encoding is not None:
                 data = data.encode(self.text_encoding)
@@ -333,7 +321,8 @@ class CDPermanentFile(CDFile):
         kwargs['remove_file'] = False
         CDFile.__init__(self, *args, **kwargs)
 
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+
 
 class ComplexData(Parameter):
     """ Complex-data parameter class
@@ -354,7 +343,7 @@ class ComplexData(Parameter):
     """
 
     def __init__(self, identifier, formats, *args, **kwargs):
-        super(ComplexData, self).__init__(identifier, *args, **kwargs)
+        super().__init__(identifier, *args, **kwargs)
         self.formats = OrderedDict()
         if isinstance(formats, Format):
             formats = (formats,)
@@ -364,7 +353,7 @@ class ComplexData(Parameter):
     @property
     def default_format(self):
         """ Get default the default format. """
-        return next(itervalues(self.formats))
+        return next(iter(self.formats.values()))
 
     def get_format(self, mime_type, encoding=None, schema=None):
         """ Get format definition for the given mime-type and the optional
@@ -410,7 +399,7 @@ class ComplexData(Parameter):
         elif format_.encoding is not None:
             # encoded binary format - this can be a text encoding
             parsed_data = CDByteBuffer(**fattr)
-            if not isinstance(data, binary_type):
+            if not isinstance(data, bytes):
                 data = data.encode(text_encoding)
             data_in = BytesIO(data)
             for chunk in format_.decode(data_in, **opt):
@@ -457,17 +446,17 @@ class ComplexData(Parameter):
         elif format_.is_json:
             return json.dumps(data, ensure_ascii=False)
         elif format_.is_text:
-            if not isinstance(data, string_types):
+            if not isinstance(data, str):
                 data.seek(0)
                 data = data.read()
             return data
-        else: # generic binary byte-stream
+        else:  # generic binary byte-stream
             if format_.encoding is not None:
                 data.seek(0)
-                data_out = FastStringIO()
+                data_out = StringIO()
                 # data_out.write(str(data.data,'utf-8'))
                 for chunk in format_.encode(data):
-                    if isinstance(chunk, binary_type):
+                    if isinstance(chunk, bytes):
                         chunk = chunk.decode('utf-8')
 
                     data_out.write(chunk)
@@ -541,7 +530,7 @@ def _bytestring(data):
 
 def _unicode(data, encoding):
 
-    if isinstance(data, text_type):
+    if isinstance(data, str):
         return data
     elif isinstance(data, bytes):
         return smart_str(data, encoding)

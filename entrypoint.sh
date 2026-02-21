@@ -27,8 +27,8 @@ if [ ! -d "${INSTANCE_DIR}" ]; then
       source $f
     done
   fi
-  
-  /opt/eoxserver/eoxserver/scripts/eoxserver-instance.py "${INSTANCE_NAME}" "${INSTANCE_DIR}"
+
+  $PYTHON /opt/eoxserver/eoxserver/scripts/eoxserver-instance.py "${INSTANCE_NAME}" "${INSTANCE_DIR}"
   cd "${INSTANCE_DIR}"
 
   # create the database schema

@@ -1,9 +1,9 @@
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
 #
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Copyright (C) 2013 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -23,7 +23,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 from eoxserver.services.ows.wcs.parameters import (
     CoverageRenderParams, CoverageDescriptionRenderParams
@@ -41,7 +41,7 @@ class WCS11CoverageDescrptionRenderParams(CoverageDescriptionRenderParams):
 
 
 class WCS11CoverageRenderParams(CoverageRenderParams):
-    def __init__(self, coverage, bbox, format, gridcs=None, gridbasecrs=None, 
+    def __init__(self, coverage, bbox, format, gridcs=None, gridbasecrs=None,
                  gridtype=None, gridorigin=None, gridoffsets=None):
 
         super(WCS11CoverageRenderParams, self).__init__(coverage, "1.1.2")
@@ -77,18 +77,18 @@ class WCS11CoverageRenderParams(CoverageRenderParams):
 
         yield ("boundingbox", ",".join(map(str, self.bbox)))
         yield ("format", self.format)
-        
+
         if self.gridcs:
             yield ("gridcs", self.gridcs)
-        
+
         if self.gridbasecrs:
             yield ("gridbasecrs", self.gridbasecrs)
-        
+
         if self.gridoffsets:
             yield ("gridoffsets", ",".join(map(str, self.gridoffsets)))
-        
+
         if self.gridtype is not None:
             yield ("gridtype", self.gridtype)
-        
+
         if self.gridorigin is not None:
             yield ("gridorigin", ",".join(map(str, self.gridorigin)))

@@ -1,31 +1,31 @@
 #!/usr/bin/env python
-#-----------------------------------------------------------------------
+# ----------------------------------------------------------------------
 #
-# Description: 
+# Description:
 #
-#   asynchronous task processing - simple test task feed 
+#   asynchronous task processing - simple test task feed
 #
-# Quick Start: 
+# Quick Start:
 #
-#  1) set PYTHONPATH env.var to point to both: 
-#        - EOxServer installation 
-#        - EOxServer (configured) instance  
-#  2) optionally set also DJANGO_SETTINGS_MODULE env.var 
-#  3) run this script 
+#  1) set PYTHONPATH env.var to point to both:
+#        - EOxServer installation
+#        - EOxServer (configured) instance
+#  2) optionally set also DJANGO_SETTINGS_MODULE env.var
+#  3) run this script
 #
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Martin Paces <martin.paces@iguassu.cz>
 #
-#-------------------------------------------------------------------------------
-# Copyright (C) 2011 Iguassu Software Systems, a.s 
+# ------------------------------------------------------------------------------
+# Copyright (C) 2011 Iguassu Software Systems, a.s
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
-# copies of the Software, and to permit persons to whom the Software is 
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
 # The above copyright notice and this permission notice shall be included in all
@@ -38,8 +38,8 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
-# Step 1 - Handler subroutine 
+# ------------------------------------------------------------------------------
+# Step 1 - Handler subroutine
 
 def handler( taskStatus , input ) :
     """ example ATP handler subroutine """
@@ -55,13 +55,13 @@ def handler( taskStatus , input ) :
     # store the response and terminate
     taskStatus.storeResponse( str(sum) , "text/plain" )
 
-#-------------------------------------------------------------------------------
-# make sure the following commands are not 
-# executed while included as module 
+# ------------------------------------------------------------------------------
+# make sure the following commands are not
+# executed while included as module
 
-if __name__ == "__main__" : 
+if __name__ == "__main__" :
 
-    # imports 
+    # imports
 
     import time
     from eoxserver.resources.processes.tracker import \
@@ -69,20 +69,20 @@ if __name__ == "__main__" :
         getTaskStatusByIdentifier, getTaskLog, \
         getTaskResponse, deleteTaskByIdentifier
 
-    # delete previous task if exists 
-    try : 
+    # delete previous task if exists
+    try :
         deleteTaskByIdentifier( "SequenceSum" , "Task001" )
-    except : pass 
+    except : pass
 
-#-------------------------------------------------------------------------------
-# Step 2 - task registration 
+# ------------------------------------------------------------------------------
+# Step 2 - task registration
 
 
     registerTaskType( "SequenceSum" , "tools.atp_demo.handler" , 60 , 600 , 3 )
 
-#-------------------------------------------------------------------------------
-# Step 3 - new task creation 
- 
+# ------------------------------------------------------------------------------
+# Step 3 - new task creation
+
     while True :
         try:
             enqueueTask( "SequenceSum" , "Task001" , (1,2,3,4,5) )
@@ -91,8 +91,8 @@ if __name__ == "__main__" :
             print ("QueueFull!")
             time.sleep( 5 )
 
-#-------------------------------------------------------------------------------
-# Step 4 - polling task status 
+# ------------------------------------------------------------------------------
+# Step 4 - polling task status
 
     while True :
         status = getTaskStatusByIdentifier( "SequenceSum" , "Task001" )
@@ -100,22 +100,22 @@ if __name__ == "__main__" :
         if status[1] in ( "FINISHED" , "FAILED" ) : break
         time.sleep( 5 )
 
-#-------------------------------------------------------------------------------
-# Step 5 - getting the logged task history 
+# ------------------------------------------------------------------------------
+# Step 5 - getting the logged task history
 
     print ("Processing history:")
     for rec in getTaskLog( "SequenceSum" , "Task001" ) :
         print ("-" , rec[0] , "Status: " , rec[1][1] , "\t Message: %s"%rec[2] if rec[2] else "")
 
-#-------------------------------------------------------------------------------
-# Step 6 - getting result 
+# ------------------------------------------------------------------------------
+# Step 6 - getting result
 
     if status[1] == "FINISHED" :
         print ("Result: " , getTaskResponse( "SequenceSum" , "Task001" ))
 
-#-------------------------------------------------------------------------------
-# Step 7 - removing task 
+# ------------------------------------------------------------------------------
+# Step 7 - removing task
 
     deleteTaskByIdentifier( "SequenceSum" , "Task001" )
 
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------

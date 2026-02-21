@@ -34,7 +34,6 @@ import concurrent.futures
 from functools import wraps
 
 import numpy as np
-from django.utils.six import string_types
 
 from eoxserver.render.browse.util import warp_fields
 from eoxserver.render.browse.functions import get_function, get_buffer
@@ -155,7 +154,7 @@ def extract_fields(band_expression):
         :return: a list of field names
         :rtype: list
     """
-    if isinstance(band_expression, string_types):
+    if isinstance(band_expression, str):
         root_expr = parse_expression(band_expression)
     else:
         root_expr = band_expression

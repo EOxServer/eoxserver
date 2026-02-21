@@ -1,4 +1,4 @@
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #
 #  Execute - KVP decoder
 #
@@ -6,7 +6,7 @@
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
 #          Martin Paces <martin.paces@eox.at>
 #
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Copyright (C) 2013 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -26,9 +26,9 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
-from django.utils.six.moves.urllib.parse import unquote_plus
+from urllib.parse import unquote_plus
 
 from eoxserver.core.decoders import kvp
 from eoxserver.services.ows.wps.parameters import (
@@ -54,7 +54,7 @@ def _parse_inputs(raw_string):
                 schema=param.get("schema")
             )
         else:
-            #NOTE: KVP Bounding box cannot be safely detected and parsed.
+            # NOTE: KVP Bounding box cannot be safely detected and parsed.
             input_ = InputData(
                 data=value,
                 identifier=id_,
@@ -123,7 +123,7 @@ def parse_query_string(query_string):
 
 class WPS10ExecuteKVPDecoder(kvp.Decoder):
     """ WPS 1.0 Execute HTTP/GET KVP request decoder. """
-    #pylint: disable=too-few-public-methods
+    # pylint: disable=too-few-public-methods
     identifier = kvp.Parameter()
 
     @property
@@ -145,10 +145,9 @@ class WPS10ExecuteKVPDecoder(kvp.Decoder):
             status=self._status,
             store_response=self._store_response
         )
-        for output in self._outputs: # pylint: disable=not-an-iterable
+        for output in self._outputs:  # pylint: disable=not-an-iterable
             resp_doc.set_output(output)
         return resp_doc
-
 
     _inputs = kvp.Parameter("DataInputs", type=_parse_inputs, num="?")
     _outputs = kvp.Parameter(

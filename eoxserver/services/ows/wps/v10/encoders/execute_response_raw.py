@@ -1,4 +1,4 @@
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #
 # WPS 1.0 execute response raw encoder
 #
@@ -6,7 +6,7 @@
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
 #          Martin Paces <martin.paces@eox.at>
 #
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Copyright (C) 2013 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -26,7 +26,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 import types
 from io import BytesIO
@@ -38,10 +38,9 @@ from eoxserver.services.ows.wps.parameters import (
     LiteralData, ComplexData, BoundingBoxData,
 )
 from eoxserver.services.ows.wps.exceptions import InvalidOutputValueError
-from django.utils.six import string_types, itervalues
 
 
-class WPS10ExecuteResponseRawEncoder(object):
+class WPS10ExecuteResponseRawEncoder:
     """ WPS 1.0 raw output Execute response encoder. """
 
     @staticmethod
@@ -57,7 +56,7 @@ class WPS10ExecuteResponseRawEncoder(object):
     def encode_response(self, results):
         """Pack the raw execute response."""
         outputs = []
-        for data, prm, req in itervalues(results):
+        for data, prm, req in results.values():
             if prm.identifier in self.resp_form:
                 outputs.append(encode_raw_output(data, prm, req))
 
@@ -68,7 +67,8 @@ class WPS10ExecuteResponseRawEncoder(object):
 
         return outputs
 
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+
 
 class ResultAlt(ResultItem):
     """ Alternative implementation of the result buffer. The object can be
@@ -118,7 +118,7 @@ class ResultAlt(ResultItem):
         for chunk in iter(lambda: data_file.read(chunksize), ''):
             yield chunk
 
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 
 def encode_raw_output(data, prm, req):
@@ -148,7 +148,7 @@ def encode_raw_literal(data, prm, req):
 def encode_raw_bbox(data, prm, req):
     """ Encode a raw bounding box."""
     content_type = "text/plain" if req.mime_type is None else req.mime_type
-    content_type = "%s; charset=utf-8"%content_type
+    content_type = "%s; charset=utf-8" % content_type
     try:
         encoded_data = prm.encode_kvp(data).encode('utf-8')
     except (ValueError, TypeError) as exc:

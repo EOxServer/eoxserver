@@ -149,8 +149,8 @@ Copyright (C) European Space Agency - ESA</ows:Abstract>
       <ows:Title>mosaic_MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_RGB_reduced</ows:Title>
       <ows:Abstract/>
       <ows:WGS84BoundingBox dimensions="2">
-        <ows:LowerCorner>8.47845 32.19025</ows:LowerCorner>
-        <ows:UpperCorner>25.41015 46.268645</ows:UpperCorner>
+        <ows:LowerCorner>8.478450 32.190250</ows:LowerCorner>
+        <ows:UpperCorner>25.410150 46.268645</ows:UpperCorner>
       </ows:WGS84BoundingBox>
       <SupportedCRS>urn:ogc:def:crs:EPSG::4326</SupportedCRS>
       <SupportedCRS>urn:ogc:def:crs:EPSG::3857</SupportedCRS>

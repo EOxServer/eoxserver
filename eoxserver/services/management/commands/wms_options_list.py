@@ -1,9 +1,9 @@
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Martin Paces <martin.paces@eox.at>
 #
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Copyright (C) 2016 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -23,21 +23,18 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # pylint: disable=missing-docstring
 
 from sys import stdout
 import json
 from optparse import make_option
-try:
-    # available in Python 2.7+
-    from collections import OrderedDict
-except ImportError:
-    from django.utils.datastructures import SortedDict as OrderedDict
-from django.utils.six import string_types
+from collections import OrderedDict
+
 from django.core.management.base import BaseCommand, CommandError
 from eoxserver.resources.coverages.management.commands import CommandOutputMixIn
 from eoxserver.services.models import WMSRenderOptions
+
 
 JSON_OPTIONS = {
     "indent": None,
@@ -45,8 +42,8 @@ JSON_OPTIONS = {
     "sort_keys": False,
 }
 
-class Command(CommandOutputMixIn, BaseCommand):
 
+class Command(CommandOutputMixIn, BaseCommand):
     option_list = BaseCommand.option_list + (
         make_option(
             '--json', dest='json_dump', action='store_true', default=False,
@@ -107,7 +104,7 @@ def output_detailed(wms_opts):
     for wms_opt in wms_opts:
         yield "%s\n" % wms_opt.coverage.identifier
         for key, val in wms_opt_to_dict(wms_opt).items():
-            if hasattr(val, '__len__') and not isinstance(val, string_types):
+            if hasattr(val, '__len__') and not isinstance(val, str):
                 val = ",".join(str(v) for v in val)
             if key == "coverage_identifier":
                 continue

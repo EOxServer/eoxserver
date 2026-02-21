@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-#-----------------------------------------------------------------------
+# ----------------------------------------------------------------------
 #
 # Description:
 #
@@ -8,12 +8,12 @@
 #   This is the master server which keeps track of the aynchronous tasks in the
 #   queue and distributes task to the workers
 #
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Martin Paces <martin.paces@iguassu.cz>
 #
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Copyright (C) 2011 Iguassu Software Systems, a.s
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -33,13 +33,13 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 # default django settings module
 DJANGO_SETTINGS_DEFAULT = "settings"
 DJANGO_DB_DEFAULT = "default"
 
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 import os
 import sys
@@ -65,13 +65,13 @@ try:
 except NameError:
     # Python 3, xrange is now named range
     xrange = range
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 QUEUE_EMPTY_QUERY_DELAY=1.5 # time in seconds of next query to empty queue
 QUEUE_PUT_TIMEOUT=1.0 # time out used by internal task queue put operation
 QUEUE_CLEAN_UP_COUNT=300
 
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # generate unique server instance ID
 
 SERVER_ID=0
@@ -80,7 +80,7 @@ while 0 == SERVER_ID :
     SERVER_ID = struct.unpack( 'q' , tmp )[0]
     SERVER_ID_STR = "0x%16.16X"%( struct.unpack( 'Q' , tmp )[0] )
 
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 dbLock = Lock()
 writeLock = Lock()
@@ -95,14 +95,14 @@ def info( msg ) : write( ("INFO: %s\n"%(msg)).encode('UTF-8') )
 def warn( msg ) : write( ("WARNINIG: %s\n"%(msg)).encode('UTF-8') )
 def error( msg ) : write( ("ERROR: %s\n"%(msg)).encode('UTF-8') )
 
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # global worker pool
 
 global GWP
 
 GWP = None
 
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 # iterrupt and terminate signal handlers
 
@@ -123,7 +123,7 @@ def signal_handler_sigterm(sig, frm):
         GWP.terminate = True
         GWP.killChild = True # force immediate termination
 
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 class Importer( object ) :
     """ smart importer of the handler subroutine
@@ -217,7 +217,7 @@ def taskDispatch( taskID , threadID ) :
         error( "[%3.3i] %s " % ( threadID , smart_str((e) ) )
 
 
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 
 def worker( queue , id ) :
@@ -353,7 +353,7 @@ class WorkerPool( object ) :
                 debug( "[MASTER]: reenquing task ID=%i ... " % item )
                 dbLocker( dbLock , reenqueueTask , item , message = "Reenqued by ATPD." )
         except MPQEmpty : pass
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 def usage() :
     """ print usage info """
@@ -372,7 +372,7 @@ def usage() :
     return "\n".join(s)
 
 
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 if __name__ == "__main__" :
 
@@ -417,7 +417,7 @@ if __name__ == "__main__" :
             error( "Invalid commandline option '%s' !" % arg )
             sys.exit(1)
 
-    #-------------------------------------------------------------------
+    # ------------------------------------------------------------------
     # initialize the working enviroment
 
     # django settings module
@@ -435,14 +435,14 @@ if __name__ == "__main__" :
 
     # initialize the system
     System.init()
-    #-------------------------------------------------------------------
+    # ------------------------------------------------------------------
 
     info( "ATPD Asynchronous Task Processing Daemon has just been started!")
     info( "ATPD: id=%s (%i)" % ( SERVER_ID_STR , SERVER_ID ) )
     info( "ATPD: hostname=%s" % socket.getfqdn() )
     info( "ATPD: pid=%i " % os.getpid() )
 
-    #-------------------------------------------------------------------
+    # ------------------------------------------------------------------
     # start the worker pool
 
     GWP = WorkerPool( NTHREAD )

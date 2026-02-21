@@ -1,9 +1,9 @@
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
 #
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Copyright (C) 2011 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -23,7 +23,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 
 import logging
@@ -31,7 +31,6 @@ import itertools
 from functools import partial
 
 from django.http import HttpResponse
-from django.utils.six import string_types
 
 from eoxserver.core import Component, ExtensionPoint, env
 from eoxserver.services.ows.interfaces import *
@@ -49,6 +48,7 @@ from eoxserver.services.ows.common.v20.exceptionhandler import (
 logger = logging.getLogger(__name__)
 
 ALLOWED_HTTP_METHODS = ["GET", "POST", "OPTIONS"]
+
 
 class OptionsRequestHandler(object):
     """ Dummy request handler class to respond to HTTP OPTIONS requests.
@@ -112,7 +112,6 @@ class ServiceComponent(Component):
 
         decoder = get_decoder(request)
 
-
         if request.method == "GET":
             handlers = self.get_service_handlers
         elif request.method == "POST":
@@ -124,7 +123,7 @@ class ServiceComponent(Component):
                 "The %s HTTP method is not allowed!" % request.method,
                 ALLOWED_HTTP_METHODS
             )
-            #handlers = self.service_handlers
+            # handlers = self.service_handlers
 
         version = decoder.version
         if version is None:
@@ -284,7 +283,7 @@ def sort_handlers(handlers, ascending=True):
 def handler_supports_service(handler, service=None):
     """ Convenience method to check whether or not a handler supports a service.
     """
-    if isinstance(handler.service, string_types):
+    if isinstance(handler.service, str):
         return handler.service.upper() == service
     else:
         return service in handler.service

@@ -26,6 +26,7 @@
 # ------------------------------------------------------------------------------
 
 
+import sys
 import os
 import tempfile
 import logging
@@ -33,13 +34,8 @@ from itertools import chain
 import mimetypes
 
 from django.db.models import Q
-from django.http import HttpResponse
-try:
-    from django.http import StreamingHttpResponse
-except ImportError:
-    StreamingHttpResponse = HttpResponse
+from django.http import StreamingHttpResponse
 
-from django.utils.six import MAXSIZE
 from django.conf import settings
 from django.utils.module_loading import import_string
 
@@ -385,7 +381,7 @@ class WCS20GetEOCoverageSetKVPDecoder(kvp.Decoder):
     eo_ids      = kvp.Parameter("eoid", type=typelist(str, ","), num=1, locator="eoid")
     subsets     = kvp.Parameter("subset", type=parse_subset_kvp, num="*")
     containment = kvp.Parameter(type=containment_enum, num="?")
-    count       = kvp.Parameter(type=pos_int, num="?", default=MAXSIZE)
+    count       = kvp.Parameter(type=pos_int, num="?", default=sys.maxsize)
     start_index = kvp.Parameter("startIndex", type=pos_int, num="?", default=0)
     package_format = kvp.Parameter("packageFormat", num="?", type=parse_package_format)
     mediatype   = kvp.Parameter("mediatype", num="?")
@@ -404,7 +400,7 @@ class WCS20GetEOCoverageSetXMLDecoder(xml.Decoder):
     eo_ids      = xml.Parameter("wcseo11:eoId/text()", num="+", locator="eoid")
     subsets     = xml.Parameter("wcs:DimensionTrim", type=parse_subset_xml, num="*")
     containment = xml.Parameter("wcseo11:containment/text()", num="?", type=containment_enum, locator="containment")
-    count       = xml.Parameter("@count", type=pos_int, num="?", default=MAXSIZE, locator="count")
+    count       = xml.Parameter("@count", type=pos_int, num="?", default=sys.maxsize, locator="count")
     start_index = xml.Parameter("@startIndex", type=pos_int, num="?", default=0, locator="startIndex")
     package_format = xml.Parameter("wcseo11:packageFormat/text()", type=parse_package_format, num="?", locator="packageFormat")
     mediatype   = xml.Parameter("wcseo11:mediaType/text()", num="?", locator="mediatype")

@@ -15,7 +15,7 @@
           <ows:UpperCorner>46.268645 28.263455</ows:UpperCorner>
         </ows:BoundingBox>
         <ows:WGS84BoundingBox dimensions="2">
-          <ows:LowerCorner>-3.75 32.19025</ows:LowerCorner>
+          <ows:LowerCorner>-3.750000 32.190250</ows:LowerCorner>
           <ows:UpperCorner>28.263455 46.268645</ows:UpperCorner>
         </ows:WGS84BoundingBox>
         <GridCRS>

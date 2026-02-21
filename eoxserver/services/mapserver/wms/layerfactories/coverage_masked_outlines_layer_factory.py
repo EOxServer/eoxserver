@@ -1,9 +1,9 @@
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
 #
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Copyright (C) 2011 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -23,7 +23,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 
 from eoxserver.contrib import mapserver as ms
@@ -49,7 +49,7 @@ class CoverageMaskedOutlinesLayerFactory(BaseStyleMixIn, PolygonLayerMixIn,
             )
 
         coverage = eo_object.cast()
-        layer.setMetaData("eoxs_geometry_reversed", "true")
+        layer.metadata.set("eoxs_geometry_reversed", "true")
 
         mask_items = coverage.data_items.filter(
             semantic__startswith="polygonmask"

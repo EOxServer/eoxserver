@@ -1,9 +1,9 @@
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
 #
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Copyright (C) 2013 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -23,7 +23,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 from eoxserver.testing.utils import tag
 
@@ -31,9 +31,9 @@ from autotest_services import base as testbase
 from . import base as wcsbase
 
 
-#===============================================================================
+# ==============================================================================
 # WCS 1.1
-#===============================================================================
+# ==============================================================================
 
 @tag('wcs', 'wcs11')
 class WCS11GetCapabilitiesValidTestCase(testbase.XMLTestCase):
@@ -106,9 +106,9 @@ class WCS11GetCoverageMosaicSubsetEPSG4326TestCase(wcsbase.WCS11GetCoverageMixIn
         params = "service=WCS&version=1.1.2&request=GetCoverage&identifier=mosaic_MER_FRS_1P_reduced_RGB&boundingbox=35,10,42,20,urn:ogc:def:crs:EPSG::4326&format=image/tiff&GridCS=urn:ogc:def:crs:OGC::imageCRS&GridBaseCRS=urn:ogc:def:crs:OGC::imageCRS&GridType=urn:ogc:def:method:WCS:1.1:2dGridIn2dCrs&GridOrigin=40,10&GridOffsets=-0.06,0.06"
         return (params, "kvp")
 
-#===============================================================================
+# ==============================================================================
 # WCS 1.1: Exceptions
-#===============================================================================
+# ==============================================================================
 
 @tag('wcs', 'wcs11')
 class WCS11DescribeCoverageNoSuchCoverageFaultTestCase(testbase.ExceptionTestCase):
@@ -177,9 +177,9 @@ class WCS11GetCoverageFormatUnknownFaultTestCase(testbase.ExceptionTestCase):
     def getExpectedExceptionCode(self):
         return "InvalidParameterValue"
 
-#===============================================================================
+# ==============================================================================
 # WCS 1.1 WCS Transaction tests
-#===============================================================================
+# ==============================================================================
 '''
 class WCS11TransactionRectifiedDatasetTestCase(testbase.WCSTransactionRectifiedGridCoverageTestCase):
     """ This test case shall test the synchronous inserting of a new
@@ -212,9 +212,9 @@ class WCS11TransactionReferenceableDatasetTestCase(testbase.WCSTransactionRefere
     ADDtiffFile = "asar/ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775.tiff"
 '''
 
-#===============================================================================
+# ==============================================================================
 # WCS 1.1 - POST
-#===============================================================================
+# ==============================================================================
 
 @tag('wcs', 'wcs11')
 class WCS11PostGetCapabilitiesValidTestCase(testbase.XMLTestCase):

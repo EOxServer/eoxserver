@@ -1,9 +1,9 @@
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
 #
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Copyright (C) 2011 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -23,7 +23,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 
 from eoxserver.core import implements
@@ -42,22 +42,22 @@ from eoxserver.services.result import (
 )
 from eoxserver.services.urls import get_http_service_url
 
+
 class MapServerWMSFeatureInfoRenderer(MapServerWMSBaseComponent):
     """ A WMS feature info renderer using MapServer.
     """
     implements(WMSFeatureInfoRendererInterface)
 
-    
     def render(self, layer_groups, request_values, request, **options):
         config = CapabilitiesConfigReader(get_eoxserver_config())
         http_service_url = get_http_service_url(request)
         map_ = ms.Map()
-        map_.setMetaData({
+        ms.set_metadata(map_.web.metadata, {
             "enable_request": "*",
             "onlineresource": http_service_url,
         }, namespace="ows")
 
-        map_.setMetaData("wms_getfeatureinfo_formatlist", "text/html")
+        map_.web.metadata.set("wms_getfeatureinfo_formatlist", "text/html")
         map_.setProjection("EPSG:4326")
 
         session = self.setup_map(layer_groups, map_, options)
@@ -70,7 +70,7 @@ class MapServerWMSFeatureInfoRenderer(MapServerWMSBaseComponent):
             use_eoom = True
         else:
             request_values.append(("info_format", frmt))
-        
+
         with session:
             request = ms.create_request(request_values)
             raw_result = map_.dispatch(request)
@@ -94,7 +94,7 @@ class MapServerWMSFeatureInfoRenderer(MapServerWMSBaseComponent):
                     lookup_table[identifier] for identifier in identifiers
                 ]
 
-                # encode the coverages with the EO O&M 
+                # encode the coverages with the EO O&M
                 encoder = WCS20EOXMLEncoder()
 
                 return [

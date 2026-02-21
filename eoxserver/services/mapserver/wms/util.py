@@ -1,9 +1,9 @@
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
 #
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Copyright (C) 2011 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -23,7 +23,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 
 import logging
@@ -55,7 +55,7 @@ class MapServerWMSBaseComponent(Component):
 
     def render(self, layer_groups, request_values, **options):
         map_ = ms.Map()
-        map_.setMetaData("ows_enable_request", "*")
+        map_.web.metadata.set("ows_enable_request", "*")
         map_.setProjection("EPSG:4326")
         map_.imagecolor.setRGB(0, 0, 0)
 
@@ -64,8 +64,8 @@ class MapServerWMSBaseComponent(Component):
         crss_string = " ".join(
             map(lambda crs: "EPSG:%d" % crs, decoder.supported_crss_wms)
         )
-        map_.setMetaData("ows_srs", crss_string)
-        map_.setMetaData("wms_srs", crss_string)
+        map_.web.metadata.set("ows_srs", crss_string)
+        map_.web.metadata.set("wms_srs", crss_string)
 
         self.check_parameters(map_, request_values)
 
@@ -105,7 +105,6 @@ class MapServerWMSBaseComponent(Component):
             if suffix in factory.suffixes:
                 if result:
                     pass  # TODO
-                    #raise Exception("Found")
                 result = factory
                 return result
         return result
@@ -169,7 +168,7 @@ class MapServerWMSBaseComponent(Component):
                 connector = self.get_connector(data_items)
 
                 if group_name:
-                    layer.setMetaData("wms_layer_group", "/" + group_name)
+                    layer.metadata.set("wms_layer_group", "/" + group_name)
 
                 session.add(connector, coverage, data_items, layer)
 
@@ -194,7 +193,7 @@ class MapServerWMSBaseComponent(Component):
     def get_empty_layers(self, name):
         layer = ms.layerObj()
         layer.name = name
-        layer.setMetaData("wms_enable_request", "getmap")
+        layer.metadata.set("wms_enable_request", "getmap")
         return (layer,)
 
 

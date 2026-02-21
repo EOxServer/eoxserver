@@ -1,9 +1,9 @@
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
 #
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Copyright (C) 2014 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -23,24 +23,18 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 import os.path
-try:
-    from cStringIO import StringIO
-except ImportError:
-    from io import StringIO
-try:
-    from ConfigParser import RawConfigParser
-except ImportError:
-    from configparser import RawConfigParser
+from io import StringIO
+from configparser import RawConfigParser
 
 from eoxserver.core.decoders import config
-from django.utils.six import string_types
+
 
 class NativeConfigFormatReader(object):
     def open_reader(self, obj):
-        if isinstance(obj, string_types):
+        if isinstance(obj, str):
             try:
                 parser = RawConfigParser()
                 if os.path.exists(obj):

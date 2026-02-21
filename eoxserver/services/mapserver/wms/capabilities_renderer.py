@@ -1,9 +1,9 @@
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
 #
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Copyright (C) 2011 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -23,15 +23,17 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 from itertools import chain
 
 from eoxserver.core import Component, implements, ExtensionPoint
 from eoxserver.core.config import get_eoxserver_config
 from eoxserver.core.util.timetools import isoformat
-from eoxserver.contrib.mapserver import create_request, Map, Layer, Class, Style
-from eoxserver.resources.coverages import crss, models
+from eoxserver.contrib.mapserver import (
+    create_request, Map, Layer, Class, Style, set_metadata
+)
+from eoxserver.resources.coverages import crss
 from eoxserver.resources.coverages.formats import getFormatRegistry
 from eoxserver.services.ows.common.config import CapabilitiesConfigReader
 from eoxserver.services.ows.wms.interfaces import (
@@ -63,7 +65,7 @@ class MapServerWMSCapabilitiesRenderer(Component):
         http_service_url = get_http_service_url(request)
 
         map_ = Map()
-        map_.setMetaData({
+        set_metadata(map_.web.metadata, {
             "enable_request": "*",
             "onlineresource": http_service_url,
             "service_onlineresource": conf.onlineresource,
@@ -89,7 +91,7 @@ class MapServerWMSCapabilitiesRenderer(Component):
             "srs": " ".join(crss.getSupportedCRS_WCS(format_function=crss.asShortCode)),
         }, namespace="ows")
         map_.setProjection("EPSG:4326")
-        map_.setMetaData({
+        set_metadata(map_.web.metadata, {
             "getmap_formatlist": ",".join([f.mimeType for f in self.get_wms_formats()]),
             "getfeatureinfo_formatlist": "text/html,application/vnd.ogc.gml,text/plain",
         }, namespace="wms")
@@ -98,7 +100,7 @@ class MapServerWMSCapabilitiesRenderer(Component):
 
         for collection in collections:
             group_name = None
-            
+
             # calculate extent and timextent for every collection
             extent = collection.extent_wgs84
             # save overall map extent
@@ -118,11 +120,11 @@ class MapServerWMSCapabilitiesRenderer(Component):
             )
 
             if len(suffixes) > 1:
-                # create group layer, if there is more than one suffix for this 
+                # create group layer, if there is more than one suffix for this
                 # collection
                 group_name = collection.identifier + "_group"
                 group_layer = Layer(group_name)
-                group_layer.setMetaData({
+                set_metadata(group_layer.metadata, {
                     "title": group_name,
                     "abstract": group_name,
                     "extent": " ".join(map(str, extent)),
@@ -133,7 +135,7 @@ class MapServerWMSCapabilitiesRenderer(Component):
 
                 # add default style
                 default_class = Class("default")
-                default_style= Style("default")
+                default_style = Style("default")
                 default_class.insertStyle(default_style)
                 group_layer.insertClass(default_class)
 
@@ -143,11 +145,11 @@ class MapServerWMSCapabilitiesRenderer(Component):
                 layer_name = collection.identifier + (suffix or "")
                 layer = Layer(layer_name)
                 if group_name:
-                    layer.setMetaData({
+                    set_metadata(layer.metadata, {
                         "layer_group": "/" + group_name
                     }, namespace="wms")
 
-                layer.setMetaData({
+                set_metadata(layer.metadata, {
                     "title": layer_name,
                     "abstract": layer_name,
                     "extent": " ".join(map(str, extent)),
@@ -163,7 +165,7 @@ class MapServerWMSCapabilitiesRenderer(Component):
 
             layer_name = coverage.identifier
             layer = Layer(layer_name)
-            layer.setMetaData({
+            set_metadata(layer.metadata, {
                 "title": layer_name,
                 "abstract": layer_name,
                 "extent": " ".join(map(str, extent)),
@@ -175,8 +177,8 @@ class MapServerWMSCapabilitiesRenderer(Component):
 
         # set the map_extent to a reasonable default value
         # in case there is no coverage or collection
-        if map_extent is None : 
-            map_extent = ( 0.0, 0.0, 1.0, 1.0 )
+        if map_extent is None :
+            map_extent = (0.0, 0.0, 1.0, 1.0)
 
         map_minx, map_miny, map_maxx, map_maxy = map_extent
         map_.setExtent(map_minx, map_miny, map_maxx, map_maxy)
@@ -194,9 +196,9 @@ class MapServerWMSCapabilitiesRenderer(Component):
             e1_minx, e1_miny, e1_maxx, e1_maxy = e1
             e2_minx, e2_miny, e2_maxx, e2_maxy = e2
             return (
-                min(e1_minx, e2_minx), 
-                min(e1_miny, e2_miny), 
-                max(e1_maxx, e2_maxx), 
+                min(e1_minx, e2_minx),
+                min(e1_miny, e2_miny),
+                max(e1_maxx, e2_maxx),
                 max(e1_maxy, e2_maxy)
             )
         elif e1:

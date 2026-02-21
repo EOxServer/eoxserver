@@ -1,9 +1,9 @@
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
 #
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Copyright (C) 2013 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -23,14 +23,14 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 """ This module contains facilities to help decoding KVP strings.
 """
 
+from urllib.parse import parse_qs
+
 from django.http import QueryDict
-from django.utils.six import string_types, add_metaclass
-from django.utils.six.moves.urllib.parse import parse_qs
 
 from eoxserver.core.decoders.base import BaseParameter
 
@@ -109,8 +109,7 @@ class DecoderMetaclass(type):
         super(DecoderMetaclass, cls).__init__(name, bases, dct)
 
 
-@add_metaclass(DecoderMetaclass)
-class Decoder(object):
+class Decoder(metaclass=DecoderMetaclass):
     """ Base class for KVP decoders.
 
     :param params: an instance of either :class:`dict`,
@@ -149,7 +148,7 @@ class Decoder(object):
             for key, values in params.lists():
                 query_dict[key.lower()] = values
 
-        elif isinstance(params, string_types):
+        elif isinstance(params, str):
             tmp = parse_qs(params)
             for key, values in tmp.items():
                 query_dict[key.lower()] = values
