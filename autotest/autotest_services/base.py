@@ -78,7 +78,7 @@ mimetypes.init()
 
 # precompile regular expression
 RE_MIME_TYPE_XML = re.compile(
-    "^text/xml|application/(?:[a-z]+\+)?xml$", re.IGNORECASE
+    r"^text/xml|application/(?:[a-z]+\+)?xml$", re.IGNORECASE
 )
 
 # ==============================================================================
