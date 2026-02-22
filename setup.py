@@ -1,13 +1,10 @@
 from setuptools import setup
 import subprocess
-import pkg_resources
 
 
-with open('requirements.txt', 'r') as reqs:
+with open('requirements.txt', 'r', encoding="utf-8") as reqs:
     install_requires = [
-        str(requirement)
-        for requirement
-        in pkg_resources.parse_requirements(reqs)
+        requirement.strip() for requirement in reqs
     ]
 
 try:
