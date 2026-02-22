@@ -98,7 +98,7 @@ def unpack_multipart_response(response):
 def pack_multipart_request(parts, boundary):
 
     def _format_header(key, value):
-        return b(f"{key}: {value}")
+        return (f"{key}: {value}").encode("ascii")
 
     def _generate_multipart_request(parts):
         yield b""
