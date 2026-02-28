@@ -98,9 +98,11 @@ class ResponseDocument(ResponseForm):
         self.store_response = store_response
 
     def __reduce__(self):  # NOTE: needed for correct async-WPS request pickling
+        # NOTE: The items must be an iterator!
+        #       See https://docs.python.org/3/library/pickle.html#object.__reduce__
         return (
             self.__class__, (self.lineage, self.status, self.store_response),
-            None, None, self.items()
+            None, None, iter(self.items()),
         )
 
     def __str__(self):
