@@ -3,7 +3,7 @@ django-model-utils<6.0.0
 django-prometheus==2.4.*
 zipstream==1.1.*
 psycopg2==2.9.*
-lxml<7.0.0
+lxml>=6.1.0,<7.0.0
 pycql==0.0.*
 matplotlib==3.10.*
 numpy<2.5.0
