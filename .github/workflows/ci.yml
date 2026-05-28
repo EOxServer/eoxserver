@@ -13,21 +13,21 @@ on:
       - 'requirements.txt'
 jobs:
   build-docker:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
       - name: Build the eoxserver docker image
         run: |
           docker pull eoxa/eoxserver:latest || true
           docker build --cache-from eoxa/eoxserver:latest -t eoxserver .
           docker save eoxserver | gzip > eoxserver.tar.gz
       - name: Save image to cache
-        uses: actions/cache/save@v3
+        uses: actions/cache/save@6f8efc29b200d32929f49075959781ed54ec270c # v3
         with:
           path: eoxserver.tar.gz
           key: eoxserver.tar.gz-${{ github.run_id }}-${{ github.run_number }}
       - name: Slack Notify
-        uses: 8398a7/action-slack@v3.8.0
+        uses: 8398a7/action-slack@77eaa4f1c608a7d68b38af4e3f739dcd8cba273e # v3
         with:
           status: ${{ job.status }}
           fields: repo,message,commit,author,action,eventName,ref,workflow,job,took
@@ -36,7 +36,7 @@ jobs:
         if: failure()
 
   test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
@@ -55,8 +55,8 @@ jobs:
           - "manage.py test autotest_services --tag opensearch -v2"
     needs: build-docker
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/cache/restore@v3
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: actions/cache/restore@6f8efc29b200d32929f49075959781ed54ec270c # v3
         id: cache
         with:
           path: eoxserver.tar.gz
@@ -78,7 +78,7 @@ jobs:
         run: |
           docker exec -i eoxserver-autotest-1 python3 ${{ matrix.command }}
       - name: Upload logs and outputs of failed tests
-        uses: 'actions/upload-artifact@v4'
+        uses: 'actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02' # v4
         with:
           name: logs ${{ matrix.command }}
           path: |
@@ -87,7 +87,7 @@ jobs:
           retention-days: 5
         if: failure()
       - name: Slack Notify
-        uses: 8398a7/action-slack@v3.8.0
+        uses: 8398a7/action-slack@77eaa4f1c608a7d68b38af4e3f739dcd8cba273e # v3
         with:
           status: ${{ job.status }}
           fields: repo,message,commit,author,action,eventName,ref,workflow,job,took
@@ -96,12 +96,12 @@ jobs:
         if: failure()
 
   publish-docker:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: test
     if: contains(github.ref, 'refs/tags/') || github.ref == 'refs/heads/master'
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/cache/restore@v3
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: actions/cache/restore@6f8efc29b200d32929f49075959781ed54ec270c # v3
         id: cache
         with:
           path: eoxserver.tar.gz
@@ -111,7 +111,7 @@ jobs:
         run: |
           echo ::set-output name=SOURCE_TAG::$([[ $GITHUB_REF == refs/tags/* ]] && echo ${GITHUB_REF#refs/tags/} || echo "")
       - name: Login to Docker Hub
-        uses: docker/login-action@v1
+        uses: docker/login-action@dd4fa0671be5250ee6f50aedf4cb05514abda2c7 # v1
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
@@ -134,7 +134,7 @@ jobs:
           for tag in $(docker image ls --format "{{.Tag}}" eoxa/eoxserver) ; do docker push "eoxa/eoxserver:$tag" ; done
         if: success()
       - name: Slack Notify
-        uses: 8398a7/action-slack@v3.8.0
+        uses: 8398a7/action-slack@77eaa4f1c608a7d68b38af4e3f739dcd8cba273e # v3
         with:
           status: ${{ job.status }}
           fields: repo,message,commit,author,action,eventName,ref,workflow,job,took
@@ -143,11 +143,11 @@ jobs:
         if: failure()
 
   publish-pypi:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: test
     if: contains(github.ref, 'refs/tags/')
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
       - name: Branch name
         id: branch_name
         run: |
@@ -159,19 +159,19 @@ jobs:
           pip install setuptools wheel
           sudo apt-get install -y gdal-bin
           python setup.py sdist bdist_wheel
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: eoxserver-dist
           path: ./dist/
           retention-days: 2
       - name: Push package to pypi
-        uses: pypa/gh-action-pypi-publish@master
+        uses: pypa/gh-action-pypi-publish@c1b34028248d0c9f7d90fe29fef2122e2276ff6f # master
         with:
           user: __token__
           password: ${{ secrets.PYPI_API_TOKEN }}
         if: success()
       - name: Slack Notify
-        uses: 8398a7/action-slack@v3.8.0
+        uses: 8398a7/action-slack@77eaa4f1c608a7d68b38af4e3f739dcd8cba273e # v3
         with:
           status: ${{ job.status }}
           fields: repo,message,commit,author,action,eventName,ref,workflow,job,took
@@ -180,12 +180,12 @@ jobs:
         if: failure()
 
   publish-github:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: publish-pypi
     if: contains(github.ref, 'refs/tags/')
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/download-artifact@v4
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: eoxserver-dist
       - name: Branch name
@@ -196,7 +196,7 @@ jobs:
           echo ::set-output name=SRC_DIST_FILE::$(ls *.tar.gz)
       - name: Draft Release
         id: create_release
-        uses: actions/create-release@v1
+        uses: actions/create-release@0cb9c9b65d5d1901c1f53e5e66eaf4afd303e70e # v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -204,7 +204,7 @@ jobs:
           release_name: ${{ steps.branch_name.outputs.SOURCE_TAG }}
           draft: true
       - name: Upload Release Asset Wheel
-        uses: actions/upload-release-asset@v1
+        uses: actions/upload-release-asset@e8f9f06c4b078e705bd2ea027f0926603fc9b4d5 # v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -214,7 +214,7 @@ jobs:
           asset_content_type: application/x-wheel+zip
         if: success()
       - name: Upload Release Asset Source Dist
-        uses: actions/upload-release-asset@v1
+        uses: actions/upload-release-asset@e8f9f06c4b078e705bd2ea027f0926603fc9b4d5 # v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -224,7 +224,7 @@ jobs:
           asset_content_type: application/tar+gzip
         if: success()
       - name: Slack Notify
-        uses: 8398a7/action-slack@v3.8.0
+        uses: 8398a7/action-slack@77eaa4f1c608a7d68b38af4e3f739dcd8cba273e # v3
         with:
           status: ${{ job.status }}
           fields: repo,message,commit,author,action,eventName,ref,workflow,job,took
@@ -237,7 +237,7 @@ jobs:
     needs: [publish-github, publish-docker]
     steps:
       - name: Slack Notify
-        uses: 8398a7/action-slack@v3.8.0
+        uses: 8398a7/action-slack@77eaa4f1c608a7d68b38af4e3f739dcd8cba273e # v3
         with:
           status: ${{ job.status }}
           fields: repo,message,commit,author,action,eventName,ref,workflow,job,took
