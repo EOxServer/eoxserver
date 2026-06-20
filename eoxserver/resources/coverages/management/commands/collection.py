@@ -289,7 +289,11 @@ class Command(CommandOutputMixIn, SubParserMixIn, BaseCommand):
                        **kwargs):
         models.collection_collect_metadata(
             self.get_collection(identifier),
-            False, False, False, product_summary, coverage_summary
+            collect_footprint=False,
+            collect_begin_time=False,
+            collect_end_time=False,
+            product_summary=product_summary,
+            coverage_summary=coverage_summary,
         )
         print('Successfully collected metadata for collection %r' % identifier)
 
