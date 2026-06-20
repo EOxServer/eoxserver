@@ -868,7 +868,8 @@ def collection_insert_eo_object(collection, eo_object, use_extent=False):
     collection.save()
 
 
-def collection_exclude_eo_object(collection, eo_object, use_extent=False):
+def collection_exclude_eo_object(collection, eo_object, use_extent=False,
+                                 product_summary=False, coverage_summary=False):
     """ Exclude an EOObject (either Product or Coverage) from the collection.
     """
     eo_object = cast_eo_object(eo_object)
@@ -889,7 +890,10 @@ def collection_exclude_eo_object(collection, eo_object, use_extent=False):
         eo_object.footprint is not None,
         eo_object.begin_time and eo_object.begin_time == collection.begin_time,
         eo_object.end_time and eo_object.end_time == collection.end_time,
-        use_extent=use_extent
+        use_extent=use_extent,
+        product_summary=product_summary,
+        coverage_summary=coverage_summary,
+        save_collection=False,
     )
     collection.full_clean()
     collection.save()
@@ -898,7 +902,7 @@ def collection_exclude_eo_object(collection, eo_object, use_extent=False):
 def collection_collect_metadata(collection, collect_footprint=True,
                                 collect_begin_time=True, collect_end_time=True,
                                 product_summary=False, coverage_summary=False,
-                                use_extent=False):
+                                use_extent=False, save_collection=True):
     """ Collect metadata
     """
 
@@ -924,13 +928,17 @@ def collection_collect_metadata(collection, collect_footprint=True,
             if use_extent:
                 collection.footprint = Polygon.from_bbox(
                     values["extent"]
-                )
+                ) if values["extent"] is not None else None
             else:
                 collection.footprint = values["footprint"]
         if collect_begin_time:
             collection.begin_time = values["begin_time"]
         if collect_end_time:
             collection.end_time = values["end_time"]
+
+        if save_collection:
+            collection.full_clean()
+            collection.save()
 
     if product_summary or coverage_summary:
         collection_metadata, _ = CollectionMetadata.objects.get_or_create(

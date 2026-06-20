@@ -270,7 +270,12 @@ class CollectionAdmin(EOObjectAdmin):
     def summary(self, request, queryset):
         for collection in queryset:
             models.collection_collect_metadata(
-                collection, product_summary=True, coverage_summary=True
+                collection,
+                collect_footprint=True,
+                collect_begin_time=True,
+                collect_end_time=True,
+                product_summary=True,
+                coverage_summary=True,
             )
 
     summary.short_description = (

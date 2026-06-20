@@ -156,7 +156,12 @@ def product_register(request):
 
             models.collection_insert_eo_object(collection, product)
             models.collection_collect_metadata(
-                collection, product_summary=True, coverage_summary=True
+                collection,
+                collect_footprint=False, # already updated in collection_insert_eo_object
+                collect_begin_time=False, # already updated in collection_insert_eo_object
+                collect_end_time=False, # already updated in collection_insert_eo_object
+                product_summary=True,
+                coverage_summary=True,
             )
 
     except (KeyError, ValueError) as e:
