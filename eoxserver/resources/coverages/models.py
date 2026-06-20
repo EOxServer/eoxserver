@@ -889,7 +889,8 @@ def collection_exclude_eo_object(collection, eo_object, use_extent=False):
         eo_object.footprint is not None,
         eo_object.begin_time and eo_object.begin_time == collection.begin_time,
         eo_object.end_time and eo_object.end_time == collection.end_time,
-        use_extent=use_extent
+        use_extent=use_extent,
+        save_collection=False,
     )
     collection.full_clean()
     collection.save()
@@ -898,7 +899,7 @@ def collection_exclude_eo_object(collection, eo_object, use_extent=False):
 def collection_collect_metadata(collection, collect_footprint=True,
                                 collect_begin_time=True, collect_end_time=True,
                                 product_summary=False, coverage_summary=False,
-                                use_extent=False):
+                                use_extent=False, save_collection=True):
     """ Collect metadata
     """
 
@@ -931,6 +932,10 @@ def collection_collect_metadata(collection, collect_footprint=True,
             collection.begin_time = values["begin_time"]
         if collect_end_time:
             collection.end_time = values["end_time"]
+
+        if save_collection:
+            collection.full_clean()
+            collection.save()
 
     if product_summary or coverage_summary:
         collection_metadata, _ = CollectionMetadata.objects.get_or_create(
