@@ -71,7 +71,7 @@ jobs:
           docker compose config
           docker compose up -d
           docker compose ps
-          docker exec -i eoxserver-autotest-1 pip3 install scipy
+          docker exec -i eoxserver-autotest-1 pip3 install 'scipy < 1.17.1'
       - name: Run the tests
         env:
           COMPOSE_INTERACTIVE_NO_CLI: 1
