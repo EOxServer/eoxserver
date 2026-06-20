@@ -868,7 +868,8 @@ def collection_insert_eo_object(collection, eo_object, use_extent=False):
     collection.save()
 
 
-def collection_exclude_eo_object(collection, eo_object, use_extent=False):
+def collection_exclude_eo_object(collection, eo_object, use_extent=False,
+                                 product_summary=False, coverage_summary=False):
     """ Exclude an EOObject (either Product or Coverage) from the collection.
     """
     eo_object = cast_eo_object(eo_object)
@@ -890,6 +891,8 @@ def collection_exclude_eo_object(collection, eo_object, use_extent=False):
         eo_object.begin_time and eo_object.begin_time == collection.begin_time,
         eo_object.end_time and eo_object.end_time == collection.end_time,
         use_extent=use_extent,
+        product_summary=product_summary,
+        coverage_summary=coverage_summary,
         save_collection=False,
     )
     collection.full_clean()
