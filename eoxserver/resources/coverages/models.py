@@ -878,7 +878,7 @@ def collection_collect_metadata(collection, collect_footprint=True,
             if use_extent:
                 collection.footprint = Polygon.from_bbox(
                     values["extent"]
-                )
+                ) if values["extent"] is not None else None
             else:
                 collection.footprint = values["footprint"]
         if collect_begin_time:
