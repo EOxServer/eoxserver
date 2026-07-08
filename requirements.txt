@@ -5,8 +5,8 @@ zipstream==1.1.*
 psycopg2==2.9.*
 lxml>=6.1.0,<7.0.0
 pycql==0.0.*
-matplotlib==3.10.*
-numpy<2.5.0
+matplotlib<3.12.0
+numpy<2.6.0
 pyows>=0.2.6
 python-keystoneclient<6.0.0
 python-swiftclient<5.0.0
