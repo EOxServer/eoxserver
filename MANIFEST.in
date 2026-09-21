@@ -2,3 +2,4 @@ include README.md
 include MANIFEST.in
 graft eoxserver
 recursive-exclude eoxserver *.pyc
+include requirements.txt
