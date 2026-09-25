@@ -12,15 +12,18 @@ on:
       - 'autotest/**'
       - 'requirements.txt'
       - 'docker-compose.yml'
+      - 'Dockerfile'
 jobs:
   build-docker:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
       - name: Build the eoxserver docker image
         run: |
-          docker pull eoxa/eoxserver:latest || true
-          docker build --cache-from eoxa/eoxserver:latest -t eoxserver .
+          # We want package updates, not endless cache reuse.
+          #docker pull eoxa/eoxserver:latest || true
+          #docker build --cache-from eoxa/eoxserver:latest -t eoxserver .
+          docker build -t eoxserver .
           docker save eoxserver | gzip > eoxserver.tar.gz
       - name: Save image to cache
         uses: actions/cache/save@6f8efc29b200d32929f49075959781ed54ec270c # v3
@@ -37,7 +40,7 @@ jobs:
         if: failure()
 
   test:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     strategy:
       fail-fast: false
       matrix:
@@ -97,7 +100,7 @@ jobs:
         if: failure()
 
   publish-docker:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     needs: test
     if: contains(github.ref, 'refs/tags/') || github.ref == 'refs/heads/master'
     steps:
@@ -144,7 +147,7 @@ jobs:
         if: failure()
 
   publish-pypi:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     needs: test
     if: contains(github.ref, 'refs/tags/')
     steps:
@@ -181,7 +184,7 @@ jobs:
         if: failure()
 
   publish-github:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     needs: publish-pypi
     if: contains(github.ref, 'refs/tags/')
     steps:
