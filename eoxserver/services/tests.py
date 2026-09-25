@@ -26,7 +26,6 @@
 # ------------------------------------------------------------------------------
 
 import http
-from textwrap import dedent
 import importlib
 import sys
 
@@ -49,22 +48,23 @@ class MultipartTest(TestCase):
     """ Test class for multipart parsing/splitting
     """
 
-    example_multipart = dedent("""\
-        MIME-Version: 1.0\r
-        Content-Type: multipart/mixed; boundary=frontier\r
-        \r
-        This is a message with multiple parts in MIME format.\r
-        --frontier
-        Content-Type: text/plain\r
-        \r
-        This is the body of the message.\r
-        --frontier
-        Content-Type: application/octet-stream\r
-        Content-Transfer-Encoding: base64\r
-        \r
-        PGh0bWw+CiAgPGhlYWQ+CiAgPC9oZWFkPgogIDxib2R5PgogICAgPHA+VGhpcyBpcyB0aGUgYm9keSBvZiB0aGUgbWVzc2FnZS48L3A+CiAgPC9ib2R5Pgo8L2h0bWw+Cg==\r
-        --frontier--
-    """).encode()
+    example_multipart = "\r\n".join([
+        "MIME-Version: 1.0",
+        "Content-Type: multipart/mixed; boundary=frontier",
+        "",
+        "This is a message with multiple parts in MIME format.",
+        "--frontier",
+        "Content-Type: text/plain",
+        "",
+        "This is the body of the message.",
+        "--frontier",
+        "Content-Type: application/octet-stream",
+        "Content-Transfer-Encoding: base64",
+        "",
+        "PGh0bWw+CiAgPGhlYWQ+CiAgPC9oZWFkPgogIDxib2R5PgogICAgPHA+VGhpcyBpcyB0aGUgYm9keSBvZiB0aGUgbWVzc2FnZS48L3A+CiAgPC9ib2R5Pgo8L2h0bWw+Cg==",
+        "--frontier--",
+        "",
+    ]).encode()
 
     def test_multipart_iteration(self):
         parsed = [
@@ -100,24 +100,25 @@ class MultipartTest(TestCase):
 
 class ResultSetTestCase(TestCase):
 
-    example_multipart = dedent("""\
-        MIME-Version: 1.0\r
-        Content-Type: multipart/mixed; boundary=frontier\r
-        \r
-        This is a message with multiple parts in MIME format.\r
-        --frontier
-        Content-Type: text/plain\r
-        Content-Disposition: attachmet; filename="message.msg"\r
-        Content-Id: message-part\r
-        \r
-        This is the body of the message.\r
-        --frontier
-        Content-Type: application/octet-stream\r
-        Content-Transfer-Encoding: base64\r
-        \r
-        PGh0bWw+CiAgPGhlYWQ+CiAgPC9oZWFkPgogIDxib2R5PgogICAgPHA+VGhpcyBpcyB0aGUgYm9keSBvZiB0aGUgbWVzc2FnZS48L3A+CiAgPC9ib2R5Pgo8L2h0bWw+Cg==\r
-        --frontier--
-    """).encode()
+    example_multipart = "\r\n".join([
+        "MIME-Version: 1.0",
+        "Content-Type: multipart/mixed; boundary=frontier",
+        "",
+        "This is a message with multiple parts in MIME format.",
+        "--frontier",
+        "Content-Type: text/plain",
+        "Content-Disposition: attachmet; filename=\"message.msg\"",
+        "Content-Id: message-part",
+        "",
+        "This is the body of the message.",
+        "--frontier",
+        "Content-Type: application/octet-stream",
+        "Content-Transfer-Encoding: base64",
+        "",
+        "PGh0bWw+CiAgPGhlYWQ+CiAgPC9oZWFkPgogIDxib2R5PgogICAgPHA+VGhpcyBpcyB0aGUgYm9keSBvZiB0aGUgbWVzc2FnZS48L3A+CiAgPC9ib2R5Pgo8L2h0bWw+Cg==",
+        "--frontier--",
+        "",
+    ]).encode()
 
     def test_result_set_from_raw(self):
         result_set = result_set_from_raw_data(self.example_multipart)
