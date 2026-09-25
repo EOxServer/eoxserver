@@ -3,10 +3,10 @@
   <wps:Process wps:processVersion="1.0.0">
     <ows:Identifier>TC00:identity:literal</ows:Identifier>
     <ows:Title>Test Case 00: Literal data identity.</ows:Title>
-    <ows:Abstract> Test identity process (the outputs are copies of the inputs)
-    demonstrating various features of the literal data inputs and outputs.
-    </ows:Abstract>
-    <ows:Metadata xlink:href="http://www.metadata.com/test-metadata" xlink:title="test-metadata"/>
+    <ows:Abstract>Test identity process (the outputs are copies of the inputs)
+demonstrating various features of the literal data inputs and outputs.
+</ows:Abstract>
+    <ows:Metadata xlink:title="test-metadata" xlink:href="http://www.metadata.com/test-metadata"/>
     <wps:Profile>test_profile</wps:Profile>
   </wps:Process>
   <wps:Status creationTime="2000-01-01T00:00:00.000000Z">
@@ -44,10 +44,10 @@
       <ows:Title>Userdefined title.</ows:Title>
       <ows:Abstract>Userdefined abstract.</ows:Abstract>
     </wps:Output>
-    <wps:Output asReference="false" uom="cm">
+    <wps:Output uom="cm" asReference="false">
       <ows:Identifier>TC00:output03</ows:Identifier>
     </wps:Output>
-    <wps:Output asReference="false" uom="F">
+    <wps:Output uom="F" asReference="false">
       <ows:Identifier>TC00:output04</ows:Identifier>
     </wps:Output>
   </wps:OutputDefinitions>
