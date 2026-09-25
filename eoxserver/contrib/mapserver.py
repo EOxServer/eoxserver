@@ -28,10 +28,7 @@
 import contextlib
 import time
 import logging
-try:
-    from cgi import escape
-except ImportError:
-    from html import escape
+from html import escape
 import tempfile
 import os
 

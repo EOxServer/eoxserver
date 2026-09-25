@@ -3,9 +3,9 @@
   <wps:Process wps:processVersion="1.0.0">
     <ows:Identifier>TC05:identity:literal:datetime</ows:Identifier>
     <ows:Title>Test Case 05: Literal output date-time time-zone test.</ows:Title>
-    <ows:Abstract> Test processes testing time-zone aware date-time input data-type
-    with automatic time-zone conversion.
-    </ows:Abstract>
+    <ows:Abstract>Test processes testing time-zone aware date-time input data-type
+with automatic time-zone conversion.
+</ows:Abstract>
     <wps:Profile>test_profile</wps:Profile>
   </wps:Process>
   <wps:Status creationTime="2000-01-01T00:00:00.000000Z">

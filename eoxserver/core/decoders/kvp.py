@@ -114,7 +114,7 @@ class Decoder(metaclass=DecoderMetaclass):
 
     :param params: an instance of either :class:`dict`,
                    :class:`django.http.QueryDict` or :class:`basestring` (which
-                   will be parsed using :func:`cgi.parse_qs`)
+                   will be parsed using :func:`urllib.parse.parse_qs`)
 
     Decoders should be used as such:
     ::

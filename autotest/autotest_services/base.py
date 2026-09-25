@@ -39,7 +39,6 @@ from tarfile import TarFile, TarInfo
 from base64 import b64decode
 
 from io import BytesIO
-import cgi
 from unittest import SkipTest, skipIf
 import glob
 
@@ -401,7 +400,9 @@ class RasterTestCase(OWSTestCase):
     def testExtension(self):
         content_disposition = self.response.get("Content-Disposition")
         if content_disposition is not None:
-            _, params = cgi.parse_header(content_disposition)
+            _, params = mp.parse_parametrized_option(
+                content_disposition, delimiter=";", assignment="=", quote="\""
+            )
             expected_extension = self.getFileExtension("raster")
             result_extension = os.path.splitext(params["filename"])[1][1:]
             self.assertEqual(expected_extension, result_extension)

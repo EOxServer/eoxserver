@@ -48,17 +48,22 @@ def get_substring(data, boundary, offset, end):
     return data[offset:index], index + len(boundary)
 
 
-def parse_parametrized_option(string):
+def parse_parametrized_option(string, delimiter=b";", assignment=b"=", quote=b"\""):
     """ Parses a parametrized options string like
     'base;option=value;otheroption=othervalue'.
 
     :returns: the base string and a :class:`dict` with all parameters
     """
-    parts = string.split(b";")
-    params = dict(
-        param.strip().split(b"=", 1) for param in parts[1:]
-    )
-    return parts[0], params
+    quote = quote[0]
+    def _parse_parameter(raw_value):
+        key, _, value = raw_value.strip().partition(assignment)
+        if value and value[0] == quote and value[-1] == quote:
+            value = value[1:-1]
+        return key, value
+    base, *parts = string.split(delimiter)
+    parameters = dict(_parse_parameter(param) for param in parts)
+    return base, parameters
+
 
 
 def capitalize_header(key):
