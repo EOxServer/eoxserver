@@ -418,10 +418,10 @@ class FormatConfigReader(config.Reader):
 # regular expression validators
 
 #: MIME-type regular expression validator (compiled reg.ex. pattern)
-_gerexValMime = re.compile("^[\w][-\w]*/[\w][-+\w]*(;[-\w]*=[-\w]*)*$")
+_gerexValMime = re.compile(r"^[\w][-\w]*/[\w][-+\w]*(;[-\w]*=[-\w]*)*$")
 
 #: library driver regular expression validator (compiled reg.ex. pattern)
-_gerexValDriv = re.compile("^[\w][-\w]*/[\w][-\w]*$")
+_gerexValDriv = re.compile(r"^[\w][-\w]*/[\w][-\w]*$")
 
 
 def valMimeType(string):
