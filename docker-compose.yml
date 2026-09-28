@@ -37,7 +37,7 @@ services:
      - "8800:8000"
 
   object-storage:
-    image: minio/minio
+    image: cgr.dev/chainguard/minio:latest
     environment:
       MINIO_ACCESS_KEY: AKIAIOSFODNN7EXAMPLE
       MINIO_SECRET_KEY: wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY

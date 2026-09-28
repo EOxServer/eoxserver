@@ -41,7 +41,6 @@ from tarfile import TarFile, TarInfo
 from base64 import b64decode
 
 from io import BytesIO
-import cgi
 from unittest import SkipTest, skipIf
 import glob
 
@@ -56,7 +55,9 @@ from django.test import Client, TransactionTestCase
 from django.conf import settings
 
 from eoxserver.core.config import get_eoxserver_config
-from eoxserver.core.util.multiparttools import iterate_multipart_data, CRLF
+from eoxserver.core.util.multiparttools import (
+    CRLF, iterate_multipart_data, parse_parametrized_option,
+)
 from eoxserver.contrib import gdal, osr
 from eoxserver.testing.xcomp import xmlCompareFiles, XMLParseError
 from eoxserver.testing.utils import tag
@@ -452,7 +453,7 @@ class RasterTestCase(OWSTestCase):
     def testExtension(self):
         content_disposition = self.response.get("Content-Disposition")
         if content_disposition is not None:
-            _, params = cgi.parse_header(content_disposition)
+            _, params = parse_parametrized_option(content_disposition)
             expected_extension = self.getFileExtension("raster")
             result_extension = os.path.splitext(params["filename"])[1][1:]
             self.assertEqual(expected_extension, result_extension)

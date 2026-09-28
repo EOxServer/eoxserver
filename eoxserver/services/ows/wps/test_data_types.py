@@ -75,7 +75,10 @@ class BaseTestMixin(object):
 
     def testParseFail(self):
         for src in self.parsed_rejected:
-            self.assertRaises(ValueError, self.dtype.parse, src)
+            try:
+                self.assertRaises(ValueError, self.dtype.parse, src)
+            except:
+                raise Exception(src)
 
     def testEncodeFail(self):
         for src in self.encoded_rejected:
@@ -109,13 +112,13 @@ class TestDataTypeBool(TestCase, BaseTestMixin):
         self.dtype = Boolean
         self.dtype_diff = self.dtype
         self.encoded = [
-            (True, u'true'),
-            (1, u'true'),
-            ('Anything', u'true'),
-            (False, u'false'),
-            (0, u'false'),
-            (None, u'false'),
-            ([], u'false'),
+            (True, 'true'),
+            (1, 'true'),
+            ('Anything', 'true'),
+            (False, 'false'),
+            (0, 'false'),
+            (None, 'false'),
+            ([], 'false'),
         ]
         self.encoded_rejected = []
         self.parsed = [
@@ -131,7 +134,7 @@ class TestDataTypeBool(TestCase, BaseTestMixin):
         ]
         self.parsed_rejected = [
             'string',
-            u'unicode',
+            'unicode',
         ]
 
 
@@ -141,12 +144,12 @@ class TestDataTypeInt(TestCase, BaseTestMixin):
         self.dtype = Integer
         self.dtype_diff = self.dtype
         self.encoded = [
-            (1, u'1'),
-            (-1, u'-1'),
-            (False, u'0'),
-            (True, u'1'),
-            (0xFFFFFFFFFFFFFFFFFF, u'4722366482869645213695'),
-            (-0xFFFFFFFFFFFFFFFFFF, u'-4722366482869645213695'),
+            (1, '1'),
+            (-1, '-1'),
+            (False, '0'),
+            (True, '1'),
+            (0xFFFFFFFFFFFFFFFFFF, '4722366482869645213695'),
+            (-0xFFFFFFFFFFFFFFFFFF, '-4722366482869645213695'),
         ]
         self.encoded_rejected = [
             float('NaN'),
@@ -154,18 +157,18 @@ class TestDataTypeInt(TestCase, BaseTestMixin):
         ]
 
         self.parsed = [
-            (u'+0', 0),
-            (u'-0', 0),
+            ('+0', 0),
+            ('-0', 0),
             ('24', 24),
             ('32145', 32145),
             (-1, -1),
-            (u'4722366482869645213695', 0xFFFFFFFFFFFFFFFFFF),
+            ('4722366482869645213695', 0xFFFFFFFFFFFFFFFFFF),
             ('-4722366482869645213695', -4722366482869645213695),
         ]
         self.parsed_rejected = [
             'nan',
-            u'-inf',
-            u'24anything',
+            '-inf',
+            '24anything',
             '2.5'
         ]
 
@@ -176,38 +179,38 @@ class TestDataTypeFloat(TestCase, BaseTestMixin):
         self.dtype = Double
         self.dtype_diff = self.dtype
         self.encoded = [
-            (1e250, u'1e+250'),
-            (-1e-250, u'-1e-250'),
-            (-12345678.9012345678, u'-12345678.9012346'),
-            (0.6666666666666666, u'0.666666666666667'),
-            (-0.0, u'-0'),
-            (float('-inf'), u'-inf'),
-            (float('nan'), u'nan'),
+            (1e250, '1e+250'),
+            (-1e-250, '-1e-250'),
+            (-12345678.9012345678, '-12345678.9012346'),
+            (0.6666666666666666, '0.666666666666667'),
+            (-0.0, '-0'),
+            (float('-inf'), '-inf'),
+            (float('nan'), 'nan'),
         ]
         self.encoded_rejected = [
             'anything',
         ]
         self.parsed = [
-            (u'1e250', 1e+250),
+            ('1e250', 1e+250),
             ('-1e-250', -1e-250),
             ('16.25', 16.25),
             ('-inf', float('-inf')),
             ('nan', float('nan')),
         ]
         self.parsed_rejected = [
-            u'24anything',
+            '24anything',
         ]
 
 
 class TestDataTypeString(TestCase, BaseTestMixin):
     def setUp(self):
-        sample_unicode = u'P\u0159\xedli\u0161\u017elu\u0165ou\u010dk\xfd k' \
-                      u'\u016f\u0148 \xfap\u011bl\u010f\xe1belsk\xe9 \xf3dy.'
+        sample_unicode = 'P\u0159\xedli\u0161\u017elu\u0165ou\u010dk\xfd k' \
+                      '\u016f\u0148 \xfap\u011bl\u010f\xe1belsk\xe9 \xf3dy.'
         self.name = 'string'
         self.dtype = String
         self.dtype_diff = None
         self.encoded = [
-            ('TEST', u'TEST'),
+            ('TEST', 'TEST'),
             (sample_unicode, sample_unicode),
         ]
         self.encoded_rejected = []
@@ -223,36 +226,36 @@ class TestDataTypeDuration(TestCase, BaseTestMixin):
         self.dtype = Duration
         self.dtype_diff = self.dtype
         self.encoded = [
-            (timedelta(2, 11911, 654321), u'P2DT3H18M31.654321S'),
-            (-timedelta(2, 11911, 654321), u'-P2DT3H18M31.654321S'),
-            (timedelta(2, 11911, 0), u'P2DT3H18M31S'),
-            (-timedelta(2, 11911, 0), u'-P2DT3H18M31S'),
-            (timedelta(2, 0, 654321), u'P2DT0.654321S'),
-            (timedelta(2, 0, 654321), u'P2DT0.654321S'),
-            (-timedelta(561, 0, 0), u'-P561D'),
-            (-timedelta(561, 0, 0), u'-P561D'),
-            (timedelta(0, 11911, 654321), u'PT3H18M31.654321S'),
-            (-timedelta(0, 11911, 654321), u'-PT3H18M31.654321S'),
-            (timedelta(0, 0, 0), u'PT0S'),
-            (-timedelta(0, 0, 0), u'PT0S'),
+            (timedelta(2, 11911, 654321), 'P2DT3H18M31.654321S'),
+            (-timedelta(2, 11911, 654321), '-P2DT3H18M31.654321S'),
+            (timedelta(2, 11911, 0), 'P2DT3H18M31S'),
+            (-timedelta(2, 11911, 0), '-P2DT3H18M31S'),
+            (timedelta(2, 0, 654321), 'P2DT0.654321S'),
+            (timedelta(2, 0, 654321), 'P2DT0.654321S'),
+            (-timedelta(561, 0, 0), '-P561D'),
+            (-timedelta(561, 0, 0), '-P561D'),
+            (timedelta(0, 11911, 654321), 'PT3H18M31.654321S'),
+            (-timedelta(0, 11911, 654321), '-PT3H18M31.654321S'),
+            (timedelta(0, 0, 0), 'PT0S'),
+            (-timedelta(0, 0, 0), 'PT0S'),
         ]
         self.encoded_rejected = [
             'anything',
         ]
         self.parsed = [
-            (u'P4Y3M2DT3H18M31.654321S', timedelta(1552, 11911, 654321)),
+            ('P4Y3M2DT3H18M31.654321S', timedelta(1552, 11911, 654321)),
             ('-P4Y3M2DT3H18M31.654321S', -timedelta(1552, 11911, 654321)),
-            (u'P1.6Y1.6M1.6DT1.6H1.6M0S', timedelta(633, 57696, 0)),
-            (u'-P1.6Y1.6M1.6DT1.6H1.6M0S', -timedelta(633, 57696, 0)),
-            (u'PT0S', timedelta(0, 0, 0)),
-            (u'P0Y', timedelta(0, 0, 0)),
+            ('P1.6Y1.6M1.6DT1.6H1.6M0S', timedelta(633, 57696, 0)),
+            ('-P1.6Y1.6M1.6DT1.6H1.6M0S', -timedelta(633, 57696, 0)),
+            ('PT0S', timedelta(0, 0, 0)),
+            ('P0Y', timedelta(0, 0, 0)),
         ]
         self.parsed_rejected = [
-            u'anything',
-            u'P1S',
-            u'P1H',
-            u'PT1Y',
-            u'PT1D',
+            'anything',
+            'P1S',
+            'P1H',
+            'PT1Y',
+            'PT1D',
         ]
 
 
@@ -262,23 +265,23 @@ class TestDataTypeDate(TestCase, BaseTestMixin):
         self.dtype = Date
         self.dtype_diff = Duration
         self.encoded = [
-            (date(1830, 6, 7), u'1830-06-07'),
-            (date(2014, 3, 31), u'2014-03-31'),
+            (date(1830, 6, 7), '1830-06-07'),
+            (date(2014, 3, 31), '2014-03-31'),
         ]
         self.encoded_rejected = [
             'anything',
         ]
         self.parsed = [
             (date(1830, 6, 7), date(1830, 6, 7)),
-            (u'1830-06-07', date(1830, 6, 7)),
+            ('1830-06-07', date(1830, 6, 7)),
             ('2014-03-31', date(2014, 3, 31)),
         ]
         self.parsed_rejected = [
-            u'anything',
-            u'2014-02-29',
-            u'2014-13-01',
-            u'2014-02-00',
-            u'2014-00-01'
+            'anything',
+            '2014-02-29',
+            '2014-13-01',
+            '2014-02-00',
+            '2014-00-01'
         ]
 
 
@@ -289,22 +292,23 @@ class TestDataTypeTime(TestCase, BaseTestMixin):
         self.dtype = Time
         self.dtype_diff = Duration
         self.encoded = [
-            (time(0, 0, 0, 0), u'00:00:00'),
-            (time(12, 30, 30, 500000), u'12:30:30.500000'),
-            (time(23, 59, 59, 999999), u'23:59:59.999999'),
+            (time(0, 0, 0, 0), '00:00:00'),
+            (time(12, 30, 30, 500000), '12:30:30.500000'),
+            (time(23, 59, 59, 999999), '23:59:59.999999'),
         ]
         self.encoded_rejected = [
             'anything',
         ]
         self.parsed = [
             (time(12, 30, 30, 500000), time(12, 30, 30, 500000)),
-            (u'00:00:00Z', time(0, 0, 0, 0)),
+            ('00:00:00Z', time(0, 0, 0, 0)),
+            ('24:00:00Z', time(0, 0, 0, 0)),
             ('12:30:30.5', time(12, 30, 30, 500000)),
             ('23:59:59.999999+01:30', time(23, 59, 59, 999999)),
         ]
         self.parsed_rejected = [
-            u'anything',
-            '24:00:00',
+            'anything',
+            '24:00:00.000001',
             '18:60:00',
             '18:30:60',
         ]
@@ -318,19 +322,19 @@ class TestDataTypeDateTime(TestCase, BaseTestMixin, TimeZoneTestMixin):
         self.encoded = [
             (
                 datetime(2014, 6, 1, 12, 30, 14, 123456, DateTime.UTC),
-                u'2014-06-01T12:30:14.123456Z'
+                '2014-06-01T12:30:14.123456Z'
             ),
             (
                 datetime(2014, 6, 1, 12, 30, 14, 500000, DateTime.TZOffset(90)),
-                u'2014-06-01T12:30:14.500000+01:30'
+                '2014-06-01T12:30:14.500000+01:30'
             ),
             (
                 datetime(2014, 6, 1, 12, 30, 0, 0, DateTime.UTC),
-                u'2014-06-01T12:30:00Z'
+                '2014-06-01T12:30:00Z'
             ),
             (
                 datetime(2014, 6, 1, 12, 30, 0, 0),
-                u'2014-06-01T12:30:00'
+                '2014-06-01T12:30:00'
             ),
         ]
         self.encoded_rejected = [
@@ -349,34 +353,38 @@ class TestDataTypeDateTime(TestCase, BaseTestMixin, TimeZoneTestMixin):
                 datetime(2014, 6, 1, 11, 00, 14, 123456, DateTime.UTC),
                 datetime(2014, 6, 1, 11, 00, 14, 123456, DateTime.UTC)),
             (
-                u'2014-06-01T12:30:14.123456',
+                '2014-06-01T12:30:14.123456',
                 datetime(2014, 6, 1, 12, 30, 14, 123456)),
             (
-                u'2014-06-01T12:30:14.123456Z',
+                '2014-06-01T12:30:14.123456Z',
                 datetime(2014, 6, 1, 12, 30, 14, 123456, DateTime.UTC)
             ),
             (
-                u'2014-06-01T12:30:14.123456+01:30',
+                '2014-06-01T12:30:14.123456+01:30',
                 datetime(2014, 6, 1, 12, 30, 14, 123456, DateTime.TZOffset(90))
             ),
             (
-                u'2014-06-01 12:30:14',
+                '2014-06-01 12:30:14',
                 datetime(2014, 6, 1, 12, 30, 14, 0)
             ),
             (
-                u'2014-06-01T00:00Z',
+                '2014-06-01T00:00Z',
                 datetime(2014, 6, 1, 0, 0, 0, 0, DateTime.UTC)
+            ),
+            (
+                '2014-06-01T24:00Z',
+                datetime(2014, 6, 2, 0, 0, 0, 0, DateTime.UTC)
             ),
         ]
         self.parsed_rejected = [
-            u'anything',
-            u'2014-06-01T12:30:60',
-            u'2014-06-01T12:60:30',
-            u'2014-06-01T24:00:00',
-            u'2014-02-29T00:00',
-            u'2014-13-01T00:00',
-            u'2014-02-00T00:00',
-            u'2014-00-01T00:00',
+            'anything',
+            '2014-06-01T12:30:60',
+            '2014-06-01T12:60:30',
+            '2014-06-01T24:00:00.000001',
+            '2014-02-29T00:00',
+            '2014-13-01T00:00',
+            '2014-02-00T00:00',
+            '2014-00-01T00:00',
         ]
 
 
@@ -388,15 +396,15 @@ class TestDataTypeDateTimeTZAware(TestCase, BaseTestMixin, TimeZoneTestMixin):
         self.encoded = [
             (
                 datetime(2014, 6, 1, 12, 30, 14, 123456),
-                u'2014-06-01T12:30:14.123456+01:30'
+                '2014-06-01T12:30:14.123456+01:30'
             ),
             (
                 datetime(2014, 6, 1, 12, 30, 14, 123456, DateTime.TZOffset(-90)),
-                u'2014-06-01T12:30:14.123456-01:30'
+                '2014-06-01T12:30:14.123456-01:30'
             ),
             (
                 datetime(2014, 6, 1, 12, 30, 14, 123456, DateTime.UTC),
-                u'2014-06-01T12:30:14.123456Z'
+                '2014-06-01T12:30:14.123456Z'
             ),
         ]
         self.encoded_rejected = []
@@ -414,15 +422,15 @@ class TestDataTypeDateTimeTZAware(TestCase, BaseTestMixin, TimeZoneTestMixin):
                 datetime(2014, 6, 1, 12, 30, 14, 123456, DateTime.UTC)
             ),
             (
-                u'2014-06-01T12:30:14.123456-01:30',
+                '2014-06-01T12:30:14.123456-01:30',
                 datetime(2014, 6, 1, 12, 30, 14, 123456, DateTime.TZOffset(-90))
             ),
             (
-                u'2014-06-01 12:30:14',
+                '2014-06-01 12:30:14',
                 datetime(2014, 6, 1, 12, 30, 14, 0, DateTime.TZOffset(90))
             ),
             (
-                u'2014-06-01T00:00Z',
+                '2014-06-01T00:00Z',
                 datetime(2014, 6, 1, 0, 0, 0, 0, DateTime.UTC)
             ),
         ]
@@ -437,15 +445,15 @@ class TestDataTypeDateTimeTZAwareWithTZConversion(TestCase, BaseTestMixin, TimeZ
         self.encoded = [
             (
                 datetime(2014, 6, 1, 12, 30, 14, 123456),
-                u'2014-06-01T09:00:14.123456-02:00'
+                '2014-06-01T09:00:14.123456-02:00'
             ),
             (
                 datetime(2014, 6, 1, 12, 30, 14, 123456, DateTime.TZOffset(-90)),
-                u'2014-06-01T12:00:14.123456-02:00'
+                '2014-06-01T12:00:14.123456-02:00'
             ),
             (
                 datetime(2014, 6, 1, 12, 30, 14, 123456, DateTime.UTC),
-                u'2014-06-01T10:30:14.123456-02:00'
+                '2014-06-01T10:30:14.123456-02:00'
             ),
         ]
         self.encoded_rejected = []
@@ -463,15 +471,15 @@ class TestDataTypeDateTimeTZAwareWithTZConversion(TestCase, BaseTestMixin, TimeZ
                 datetime(2014, 6, 1, 10, 30, 14, 123456, DateTime.TZOffset(-120))
             ),
             (
-                u'2014-06-01T12:30:14.123456-01:30',
+                '2014-06-01T12:30:14.123456-01:30',
                 datetime(2014, 6, 1, 12, 0, 14, 123456, DateTime.TZOffset(-120))
             ),
             (
-                u'2014-06-01 12:30:14',
+                '2014-06-01 12:30:14',
                 datetime(2014, 6, 1, 9, 0, 14, 0, DateTime.TZOffset(-120))
             ),
             (
-                u'2014-06-01T00:00Z',
+                '2014-06-01T00:00Z',
                 datetime(2014, 5, 31, 22, 0, 0, 0, DateTime.TZOffset(-120))
             ),
         ]
@@ -484,8 +492,8 @@ class TestDataTypeCRS(TestCase, BaseTestMixin):
         self.dtype = CRSType
         self.dtype_diff = None
         self.encoded = [
-            (0, u'ImageCRS'),
-            (4326, u'http://www.opengis.net/def/crs/EPSG/0/4326'),
+            (0, 'ImageCRS'),
+            (4326, 'http://www.opengis.net/def/crs/EPSG/0/4326'),
         ]
         self.encoded_rejected = [
             -1,

@@ -1,6 +1,6 @@
 django==5.2.*
 django-model-utils<6.0.0
-django-prometheus==2.4.*
+django-prometheus==2.5.*
 zipstream==1.1.*
 psycopg2==2.9.*
 lxml>=6.1.0,<7.0.0

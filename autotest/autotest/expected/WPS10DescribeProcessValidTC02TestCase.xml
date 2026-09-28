@@ -3,10 +3,10 @@
   <ProcessDescription wps:processVersion="1.0.0">
     <ows:Identifier>TC02:identity:complex</ows:Identifier>
     <ows:Title>Test Case 02: Complex data identity.</ows:Title>
-    <ows:Abstract> Test identity process (the outputs are copies of the inputs)
-    demonstrating various features of the complex data inputs and outputs.
-    </ows:Abstract>
-    <ows:Metadata xlink:href="http://www.metadata.com/test-metadata" xlink:title="test-metadata"/>
+    <ows:Abstract>Test identity process (the outputs are copies of the inputs)
+demonstrating various features of the complex data inputs and outputs.
+</ows:Abstract>
+    <ows:Metadata xlink:title="test-metadata" xlink:href="http://www.metadata.com/test-metadata"/>
     <wps:Profile>test_profile</wps:Profile>
     <DataInputs>
       <Input minOccurs="1" maxOccurs="1">
